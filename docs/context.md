@@ -411,6 +411,11 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 | 6 | **Banked shops repay by Transfer365**, which is free: a bank transfer to the partner's account with the reference number. No cash trip at all. | Nov 6 | New |
 | 7 | **Cash-out in one batch:** the licensed partner pays distributors into their bank account once a day, so they never have to handle USDC unless they want to. | Nov 6 | New, ask advisors |
 | 8 | **Ask** whether a mobile-money provider with cash agents in El Salvador could be the cash-in network. | Nov 6 | Question |
+| 9 | **Pilot where the points are.** The first route is in central San Salvador, within about 1 km of a MoneyGram Ramps point. Shops further out wait for idea 1 or 6. | Nov 7 | New |
+| 10 | **No big deposit at sign-up.** Because of credit, a shop never pre-loads money: it takes stock on credit, sells it, then cashes in once a week only the amount it owes. Shops can't afford to lock up working capital. | Nov 7 | Built into the design |
+| 11 | **Ask the banks on the list** (Cuscatlán, Davivienda, Promerica) whether one could be the licensed partner that both takes cash-in and pays distributors out to their bank (idea 7). | Nov 7 | Question |
+
+**Finding, Nov 7 (Yahya, MoneyGram Ramps locator):** 10 points in El Salvador, all **cash-in only** (cash to USDC), no cash-out. All 10 were within about 1 km of each other in central San Salvador: Banco Cuscatlán (4), Super Selectos, Banco Promerica, Banco Integral, Banco Davivienda, Banco Abank and a DLC road market. Two cautions: the list was sorted by distance from one search spot, so it may stop at 10 (search again from Santa Ana and San Miguel before saying "only 10 in the country"); and MoneyGram's Oct 2026 El Salvador launch was about receiving USDC from the US and collecting cash, so check whether that cash-out works at other points. What it means for us: cash-in exists today, but only near the capital, and there's no easy cash-out for anyone.
 
 **Still to find out:** what cash-in costs per $100 today, how far the nearest payment point is for a typical shop, and which partner could convert in bulk and already has a bank account.
 

@@ -17,7 +17,7 @@ Work in progress. Nothing runs yet. The plan and every decision are in [docs/con
 
 ## Risk #1: turning cash into digital dollars
 
-Shops are paid in cash. For digital payments to work, that cash has to become digital dollars somewhere, cheaply. We haven't solved this yet. Our ideas so far are in section 6 of [docs/context.md](docs/context.md).
+Shops are paid in cash. For digital payments to work, that cash has to become digital dollars somewhere, cheaply. We haven't solved this yet. As of Nov 7, the MoneyGram cash-in points we found on Stellar are all in central San Salvador, and none offer cash-out, so our first pilot route stays near them and shops cash in once a week only what they owe. Our ideas so far are in section 6 of [docs/context.md](docs/context.md).
 
 ## How to run it
 
