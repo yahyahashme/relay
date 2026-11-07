@@ -147,3 +147,13 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# ---- Tiendas: never commit keys ----
+# Secret keys (start with S) live only in .env.local on your computer and in Vercel settings.
+.env*
+!.env.example
+# Stellar CLI identities and local network config can hold secret keys
+.stellar/
+.soroban/
+# Rust build output for the contract
+target/
