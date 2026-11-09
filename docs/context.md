@@ -704,10 +704,10 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 
 ## 15. How we work
 
-- **Repo:** public from day one (judges need it). Board columns: Backlog, This week, In progress, In review, Done. Labels: contract, app, business, research, pitch, bug, risk-1, blocked.
-- **Issues:** one task each, one owner, a due day, a "Done means" line. Claude can turn §3.4 into issues once the repo exists; give it the repo name.
-- **Branches and pull requests:** one branch per issue (like `12-cash-confirm`); the PR says "Closes #12"; PRs stay small and get merged daily. Docs can merge without review; code gets a quick look from Yahya or Jack.
-- **AI chats:** one per workstream. Contract (Jack), app wiring and deploy (Yahya), screens (Ruhaan, ChatGPT or Codex), business and pitch (Rohan). Start each one by attaching this file. When a chat leads to a decision, add it to §16 in a PR. Never paste secret keys into a chat.
+- **Repo:** public from day one (judges need it). Board columns: Backlog, This week, In progress, In review, Done. Labels: contract, app, setup, business, research, pitch, team, learning, bug, risk-1, blocked.
+- **Issues:** one task each, one owner, a due time, a "Done means" list. Since Nov 9 the issues are the plan, written so an AI can follow them: paste the whole issue into your AI with this file.
+- **Branches and pull requests:** one branch per issue (like `12-cash-confirm`); the PR says "Closes #12"; PRs stay small and get merged daily. **Reviews (Nov 9):** Yahya reviews every PR; Jack reviews Yahya's (Yahya can merge his own with his admin bypass if Jack is busy). Docs-only work can be done on github.com: open the file, click the pencil, then "Create a new branch for this commit and start a pull request".
+- **AI chats:** one per workstream. Contract, app and deploy (Yahya, Claude Code); scripts, safety review and pitch documents (Jack); small helper cards (Ruhaan, Codex); outreach and facts (Rohan). Start each one by pasting the issue and attaching this file. When a chat leads to a decision, add it to §16 in a PR. Never paste secret keys into a chat.
 - **Check-ins:** a 9 PM text every day (Done / Next / Blocked); in person Wed Nov 11, 5 to 7 PM; a 20-minute call Thu Nov 12 at 9 PM for the one-pager.
 - **Notion:** skipped. GitHub covers it.
 
@@ -737,6 +737,7 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 | Nov 9 | Compare our cost to loan sharks (about $35 per $100), never to MoneyGram's 5%. |
 | Nov 9 | Contract fees: 0.1% usage fee on every invoice; 1.5% credit fee paid by the distributor (0.75 buffer, 0.50 lenders, 0.25 us). Limits start at $200 and grow $25 per on-time repayment, up to $500: our own credit record. |
 | Nov 9 | MIT licence removed; the code is all rights reserved (#48). |
+| Nov 9 | Reviews: Yahya reviews every PR; Jack reviews Yahya's. |
 
 ---
 
