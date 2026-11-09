@@ -2,7 +2,7 @@
 
 **Velocity x Stellar Blockchain Innovation Challenge** · Space 1 (savings, credit, inflation resilience)
 Team: Yahya (Software Eng), Jack (Computer Eng), Ruhaan (Computer Eng), Rohan (FARM). UW first-years, new to finance and blockchain.
-Last updated: Thu Nov 5, 2026, night. All times are Eastern (ET).
+Last updated: Mon Nov 9, 2026, evening (re-planned after the advisor calls). All times are Eastern (ET).
 
 **How to use this file**
 - It's our one source of truth. Put it in the repo as `docs/context.md`.
@@ -52,6 +52,7 @@ Neighbourhood shops (tiendas) in El Salvador pay the trucks that restock them in
 
 - **Space 1 fit:** fair, cheap credit for stock, and a payment record, for people whose only option today is a loan shark.
 - **Not doing:** cross-border or diaspora money, Bitcoin, more than one country (others go on a "future" slide).
+- **Form (decided Nov 9):** a mobile web app (a website that works like a phone app, opened from the driver's QR code or a WhatsApp link, nothing to install) on our own open Soroban contract. In the pitch, the contract is the engine that partners (banks, cash-in companies, distributors' ordering systems) plug into. Not a native app, and not a feature inside someone else's wallet.
 - **Name:** not chosen, and not "RUTA". Ideas: *Fiado* (shop slang for "on credit"), *CuentaClara* ("clear account"), *Cuadre* ("balancing the till"). Pick one by Wed Nov 11.
 
 ## 2. Key dates
@@ -59,14 +60,14 @@ Neighbourhood shops (tiendas) in El Salvador pay the trucks that restock them in
 | When (ET) | What | Who |
 |---|---|---|
 | Fri Nov 6, 12:00 PM | Devpost opens. Register, then write its submission deadline into this table. | Yahya |
-| Mon Nov 9, 9 AM to 5 PM | 1:1 advisor office hours (virtual, 30 min). Sign-up closed Nov 5, 5 PM. | Whoever booked |
+| Mon Nov 9 | Advisor calls done: Adam Chu and Misha Stastna. What they said is in §14. | Yahya |
 | Tue Nov 10, 5 to 6 PM | Technical Workshop (virtual). Bring a real bug. | Yahya, Jack |
 | Wed Nov 11, 5 to 7 PM | Working Session #2, then the Pitch Prep Workshop. 1st floor IDEAs Clinic, PSE. | Everyone |
-| **Fri Nov 13, 8:30 AM** | **One-page solution form. Decides the Top 16.** We submit Thu night. [Form](https://airtable.com/apprwC5wqwb4We3jo/pageD4iVuMUuoOvFs/form) | Rohan |
+| **Fri Nov 13, 8:30 AM** | **One-page solution form. Decides the Top 16.** We submit Thu night. [Form](https://airtable.com/apprwC5wqwb4We3jo/pageD4iVuMUuoOvFs/form) | Jack |
 | Devpost deadline: TBD | Repo link, live testnet link with contract IDs, 1-minute video. We aim for Sat Nov 14. | Yahya |
 | **Mon Nov 16, 4:00 PM** | **Project Showcase.** Setup 4:00, judging 4:30 to 7:00. Innovation Arena, 280 Joseph St, Kitchener. Trifold plus a 3-minute pitch by one person that includes the 1-minute video. | All four (required) |
 | Tue Nov 17, 11 AM to 1 PM | Finalist pitch prep, Top 8 only. Same place. Bring the PowerPoint deck and a note-taker. | All four (required) |
-| **Wed Nov 18, 10:00 AM** | Final deck upload. [Template](https://docs.google.com/presentation/d/1RNYL7G9wOFROUY2XUyO6k37RBQuCF9kf/edit), PPT, no animations, no changes after. [Upload form](https://airtable.com/apprwC5wqwb4We3jo/paghYqabHAh8pDtac/form) | Rohan |
+| **Wed Nov 18, 10:00 AM** | Final deck upload. [Template](https://docs.google.com/presentation/d/1RNYL7G9wOFROUY2XUyO6k37RBQuCF9kf/edit), PPT, no animations, no changes after. [Upload form](https://airtable.com/apprwC5wqwb4We3jo/paghYqabHAh8pDtac/form) | Jack |
 | Wed Nov 18, 5 to 7:30 PM | Finals: 3-minute pitch plus 3 minutes of Q&A. $15K in prizes; three teams can win $5,000. | All four (required) |
 
 - Check class conflicts for Nov 16 to 18 now. Every member must attend the showcase, the finalist prep and the finals if we advance.
@@ -75,6 +76,8 @@ Neighbourhood shops (tiendas) in El Salvador pay the trucks that restock them in
 ---
 
 ## 3. Build plan
+
+> **Re-planned Mon Nov 9.** Nothing got built over the weekend, so the plan now lives in the GitHub issues: each one has an owner, a due time and a "Done means", written so an AI can follow it. §3.1 has the new roles. §3.4 and §3.5 below are the original Nov 6 plan, kept for reference; where they differ from the issues, the issues win.
 
 Built for real weeks: classes, quizzes, the datathon, and days where nothing happens. The riskiest part (the contract) goes first. A rough payment works end to end by Tue Nov 10, and everything after that makes it better. The hours below are guesses; if yours are different, say so and we move cards, not deadlines.
 
@@ -89,11 +92,12 @@ Built for real weeks: classes, quizzes, the datathon, and days where nothing hap
 
 - Yahya and Jack are at the Sheridan datathon on Sat Nov 7 and Sun Nov 8.
 - About 80 hours in total **(guess)**. The plan fills about 70% of them on purpose, because first-time Rust and Stellar steps usually take two to three times longer than expected.
-- **Roles**
-  - Jack owns the contract.
-  - Yahya owns the setup scripts, wiring the app to the contract, deploys, the README and Devpost.
-  - Rohan owns outreach, interviews, the one-pager, the trifold and the deck, and checks every number in §5.
-  - Ruhaan does three self-contained coding cards (§3.5) that Codex can build from the spec. If a card slips a day, Yahya takes it over.
+- **Roles (changed Nov 9)**
+  - Yahya: all the code-heavy work and all UI/UX. The contract (`route_ledger`), every screen, wiring the app to the contract, Vercel, the README, Devpost and the video.
+  - Jack: important backend work that isn't heavy. The setup and deploy scripts, the contract safety review and failure tests, fee sponsorship. Also the one-pager, the code and architecture slides, the trifold and the finals deck.
+  - Ruhaan: about 3 hours in total. Small, self-contained helper code that Codex can write (money and date helpers, the CSV parser, the WhatsApp link), with tests. No screens.
+  - Rohan: outreach and facts. Emails to banks and cash-in companies, interviews, prototype walkthroughs, and every number we use, with its source in `docs/facts.md`.
+  - If a card slips a day, Yahya (code) or Jack (scripts) takes it over.
   - The pitcher is picked by Wed Nov 11 and rehearses the most.
 
 ### 3.2 Rules that stop zero days
@@ -134,6 +138,8 @@ Built for real weeks: classes, quizzes, the datathon, and days where nothing hap
 **Pitch only, not built:** real cash-in and cash-out, real KYC, real lenders, a basic-phone SMS flow, other countries.
 
 ### 3.4 Day by day
+
+> Original Nov 6 plan, kept for reference. Since Nov 9 the GitHub issues are the plan.
 
 **Tonight or Fri morning (20 min)**
 - Yahya: create the public GitHub repo (a working name is fine; GitHub redirects after a rename). Add this file as `docs/context.md`, add `.env.local` to `.gitignore`, invite the team, post the link.
@@ -209,6 +215,8 @@ Built for real weeks: classes, quizzes, the datathon, and days where nothing hap
 
 ### 3.5 Ruhaan's task cards
 
+> Replaced Nov 9: these screens moved to Yahya. Ruhaan's cards are now small non-UI helpers ("Card R1 to R3" issues). The data shapes below are a starting point; the issues have the current ones.
+
 Give Codex the shared rules plus one card at a time, and ask for the whole card in one pull request.
 
 **Shared rules**
@@ -277,13 +285,15 @@ export type Driver = { id: string; name: string; cashHeld: number };
 
 ### 3.7 Demo video script
 
+> Nov 9: the video issue has the updated script (worldwide number first, then 85,265 tiendas and $2B a year).
+
 60 seconds, screen recording, with the shop and driver screens in a phone-size window. On screen the whole time: "Testnet · dólares de prueba · cash-in simulado".
 
 | Time | Show | Say |
 |---|---|---|
 | 0:00 to 0:08 | Title card with two numbers | "In El Salvador, neighbourhood shops pay delivery trucks in cash, and 62% of small businesses have borrowed from loan sharks." |
 | 0:08 to 0:20 | Driver's route, Tienda Rosa, QR code; the shop pays $150; the driver's screen turns "Pagada" | "The shop pays in digital dollars at the door. The driver sees it in seconds." |
-| 0:20 to 0:35 | Tienda Don Luis picks "Pagar en 7 días"; the distributor gets $147.75; the shop sees "Debe $150, vence 20 nov" | "Short on cash? Pay in 7 days, no interest. Our lender pool pays the distributor now." |
+| 0:20 to 0:35 | Tienda Don Luis picks "Pagar en 7 días"; the distributor gets $147.60; the shop sees "Debe $150, vence 20 nov" | "Short on cash? Pay in 7 days, no interest. Our lender pool pays the distributor now." |
 | 0:35 to 0:45 | Driver taps "Recibí efectivo", shop taps "Confirmo"; the dashboard shows the driver's cash | "Cash still works. Both sides confirm it, so the owner knows who's holding what." |
 | 0:45 to 0:55 | Dashboard, then the contract call on a Stellar explorer | "Every payment and every fee split is on a public Stellar record." |
 | 0:55 to 1:00 | App URL and contract ID | "Shops never pay fees. Live on Stellar testnet." |
@@ -322,7 +332,7 @@ Learn only what your next task needs. Each item has a "done means" so you know w
    - *Token:* how moving money and permissions (`require_auth`) work.
    - *Timelock:* checking the time, like our 7-day due date.
    - *Liquidity Pool:* a contract that holds pooled money, like our lender pool.
-6. **Yahya, by Tue:** generating TypeScript bindings (`stellar contract bindings typescript --help`) and calling a contract with `@stellar/stellar-sdk`.
+6. **Yahya, by Wed:** generating the TypeScript client (`npx @stellar/stellar-sdk generate --help`; the CLI's `bindings typescript` command is deprecated) and calling a contract with `@stellar/stellar-sdk`.
 7. **Stretch only** (15 min): path payments, https://developers.stellar.org/docs/build/guides/transactions/path-payments
 
 **Rohan, by Mon Nov 9**
@@ -348,15 +358,15 @@ Learn only what your next task needs. Each item has a "done means" so you know w
 **In short**
 - Distributors pay us. Shops never pay a fee, and we never take a cut of anyone's savings.
 - Two small fees, both written into the contract so anyone can check them:
-  1. **Usage fee:** 0.05% to 0.1% of every invoice the app handles, whether it's paid in cash, digitally or on credit. The rate is the same for cash and digital, so it doesn't push anyone back to cash. (This replaced the earlier monthly per-truck fee.)
+  1. **Usage fee:** 0.05% to 0.1% of every invoice the app handles, whether it's paid in cash, digitally or on credit. The demo contract uses 0.1%; for cash, the fee is recorded and billed later, since no digital money moves. The rate is the same for cash and digital, so it doesn't push anyone back to cash. (This replaced the earlier monthly per-truck fee.)
   2. **A share of the credit fee** when a shop uses "pay in 7 days".
 - Later: lenders and banks pay to see a shop's payment record, only with the shop's permission.
 
 **The $100 example** (made-up numbers; Rohan pressure-tests them)
 A shop buys $100 of stock and picks "pay in 7 days".
-1. At delivery, the lender pool pays the distributor $98.50. The distributor pays a 1.5% fee to be paid now, with no risk.
+1. At delivery, the lender pool pays the distributor $98.40. The distributor pays a 1.5% fee to be paid now, with no risk, plus the 0.1% usage fee every invoice pays.
 2. Within 7 days, the shop pays the pool $100. No interest.
-3. The contract splits the $1.50: $0.75 to the default buffer, $0.50 to lenders, $0.25 to us.
+3. The contract splits the $1.50: $0.75 to the default buffer, $0.50 to lenders, $0.25 to us. With the $0.10 usage fee, we earn $0.35 on this sale.
 
 **Three options, chosen per shop** (whoever covers a late payer sets the price)
 
@@ -387,7 +397,7 @@ A shop buys $100 of stock and picks "pay in 7 days".
 - If turning cash into digital dollars costs shops much, nobody switches (Risk #1, §6).
 - Distributors may say 1.5% is too much. Ask them (§13).
 
-**Market size (fill in from interviews):** about 70,000 neighbourhood shops in El Salvador (USDA). If each buys $X a week from all its suppliers, the yearly flow is 70,000 × X × 52. Example only: at $500 a week **(guess)** that's about $1.8B a year, and a 0.05% usage fee on all of it is about $0.9M a year.
+**Market size (sourced Nov 9):** distributors sell about **$2 billion a year** to El Salvador's **85,265 tiendas** (Distribución Dinámica study, via Diario El Salvador, 27 Feb 2026; one firm's study quoted by a government official, so cite it that way). Ceiling, not a forecast: a 0.1% usage fee on all of it is $2M a year; if 10% of it went through "pay in 7 days", our 0.25% share adds $500K. Lead with a worldwide number first, then this one (Misha); Rohan is finding and sourcing it. Never use the unsourced $7B.
 
 ---
 
@@ -414,6 +424,7 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 | 9 | **Cash-out via MoneyGram.** Distributors can collect cash from their digital dollars at MoneyGram Ramps points (banks, Super Selectos), as a stand-in until a partner pays them into their bank (idea 7). | Nov 7 | Found, check fees |
 | 10 | **No big deposit at sign-up.** Because of credit, a shop never pre-loads money: it takes stock on credit, sells it, then turns cash into digital dollars once a week, only for what it owes. Shops can't afford to lock up money they need for stock. | Nov 7 | Built into the design |
 | 11 | **Ask the banks that already work with MoneyGram** (Cuscatlán, Davivienda, Promerica) whether they could also take cash in, so the same counters handle both directions. | Nov 7 | Question |
+| 12 | **Partner instead of building cash points.** Work with a bank or cash-in/cash-out company that already has a reputation in El Salvador (Adam Chu, Nov 9). Secure ATMs (about $5k each) came up and were rejected: cash rules and safety. Rohan is emailing banks and cash-in companies. | Nov 9 | In progress |
 
 **Finding, Nov 7 (Yahya, MoneyGram Ramps locator):** MoneyGram has **cash-out** points in El Salvador (USDC to cash), in San Salvador and other cities. The locator shows the nearest 10 at a time, so we don't have a full count. Examples in central San Salvador: Banco Cuscatlán, Super Selectos, Banco Promerica, Banco Integral, Banco Davivienda, Banco Abank and a DLC road market. What it means for us: cash-out has a real answer today, so a distributor can turn digital dollars into cash at a bank or supermarket. **Cash-in (cash to USDC) is still unsolved,** and that's the half shops need.
 
@@ -474,11 +485,13 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 ### 8.1 Stack
 - **Contract:** one Soroban contract in Rust, `contracts/route_ledger`, for invoices, cash records and the lender pool. One contract means one deploy and one contract ID; we can split it later. (We first talked about two contracts; one is simpler for a first build.)
 - **Money:** a test dollar token we issue on testnet, used through its Stellar Asset Contract (SAC). Circle's testnet USDC is optional later.
-- **App:** Next.js, TypeScript, Tailwind. Spanish, mobile-first, on Vercel.
-- **Talking to Stellar:** `@stellar/stellar-sdk` with TypeScript bindings from the Stellar CLI. Testnet RPC `https://soroban-testnet.stellar.org`, Horizon `https://horizon-testnet.stellar.org`.
+- **App:** a mobile web app: Next.js (at the repo root), TypeScript, Tailwind. Spanish, mobile-first, on Vercel. No native app.
+- **Talking to Stellar:** `@stellar/stellar-sdk` (v17) with a TypeScript client generated by `npx @stellar/stellar-sdk generate` (the CLI's `bindings typescript` command is deprecated). Testnet RPC `https://soroban-testnet.stellar.org`, Horizon `https://horizon-testnet.stellar.org`.
 - **Names, phone numbers, items:** off-chain, in a JSON config for the demo (a database later).
 
 ### 8.2 Contract functions (spec for Jack)
+
+> Nov 9: Yahya now writes the contract and Jack reviews and tests it. The exact v1 to v3 spec (constructor, fee constants and math, error codes, tests) is in the contract issues and wins over this table. Changes: `init` became `__constructor(admin, token, treasury, credit_period_secs)`; fees are a 0.1% usage fee on every invoice plus 1.5% for credit (0.75 buffer, 0.50 lenders, 0.25 us); `set_terms(shop, limit)` has no option (options 2 and 3 are pitch-only); limits start at $200 and grow $25 per on-time repayment, up to $500.
 
 | Function | Signed by | What it does |
 |---|---|---|
@@ -517,11 +530,13 @@ Amounts are visible on a public ledger even without names. Later: keep invoice d
 ### 8.5 Repo layout
 
 ```
-contracts/route_ledger/   Rust contract and tests
-app/                      Next.js app
-scripts/                  setup (accounts, token, balances), seed (invoices)
+app/                      Next.js App Router pages and server code (the Next.js app lives at the repo root)
+components/, lib/         UI components; shared TypeScript (lib/stellar/ is server-only)
+contracts/route_ledger/   Rust contract and tests (Cargo workspace at the repo root)
+packages/route_ledger/    generated TypeScript client for the contract
+scripts/                  setup.sh (accounts, test USDC, balances), deploy.sh (contract, terms, pool, demo invoices)
 config/testnet.json       public keys and contract IDs, no secrets
-docs/                     context.md (this file), research.md, risks.md, one-pager.md, pitch.md
+docs/                     context.md (this file), facts.md, research.md, assumptions.md, security.md, one-pager.md, pitch.md
 README.md                 what it is, how to run it, contract IDs, demo accounts, Risk #1
 ```
 
@@ -532,7 +547,7 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 **Who:** neighbourhood shops in El Salvador and the distributors whose trucks restock them. First customer **(guess, confirm in interviews)**: one mid-size distributor of snacks, drinks or dairy with a few routes.
 
 **Numbers we can use** (say "regional" when it is)
-- About 70,000 neighbourhood shops in El Salvador (USDA, cited in our first draft).
+- **85,265 neighbourhood shops (2025), up 23% in a decade. Distributors sell them about $2B a year, and they sell about $3B a year to customers. 85% are owned by women. Extortion used to close shops and delivery routes** (Distribución Dinámica study, via Diario El Salvador, 27 Feb 2026). This replaces the older "about 70,000 (USDA)".
 - 80% of 1,200 small-business owners in Mexico, El Salvador, Honduras and Guatemala mainly pay suppliers in cash (Mastercard and PCMI, Apr 2025). Regional, not El Salvador alone.
 - 62.2% of micro and small businesses have borrowed from loan sharks, at about 1,869% a year on average, and 68% get the money the same day. Reasons: 43.5% family emergencies, 41.7% keeping the business running (FUSAI and ASOMI, Jul 2026).
 - In a 2019 survey of 1,285 merchants, 75% used loan-shark money for stock, 96% repaid daily, and each $100 cost about $35 in interest (CIOPS, 2019).
@@ -588,19 +603,19 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 |---|---|---|
 | A real problem with evidence, and how we'd measure impact | §9 numbers and impact measures | Rohan |
 | Why we're better than the alternatives, including Stellar's benefits | §10, and "Why Stellar?" in §14 | Yahya |
-| A specific, reachable first customer, and market size | One distributor's routes; about 70,000 shops | Rohan |
-| A revenue model, affordable pricing, costs | §5 | Rohan |
+| A specific, reachable first customer, and market size | One distributor's routes; worldwide number first, then 85,265 tiendas and $2B a year from distributors | Rohan (facts), Jack (one-pager) |
+| A revenue model, affordable pricing, costs | §5 and `docs/assumptions.md` | Rohan (numbers), Jack (one-pager) |
 | A prototype tested with real users, and what we changed | §13 walkthroughs; "what we heard, what we changed" | Rohan, Yahya |
 
 **Technology and implementation, 37.5%**
 
 | They look for | Our answer | Owner |
 |---|---|---|
-| Meaningful Stellar use (Soroban, assets, path payments, anchors and SEPs) | A Soroban contract for invoices and the pool; a Stellar asset; anchors for Risk #1 in the pitch; a path payment as a stretch | Jack |
+| Meaningful Stellar use (Soroban, assets, path payments, anchors and SEPs) | A Soroban contract for invoices and the pool; a Stellar asset; anchors for Risk #1 in the pitch; a path payment as a stretch | Yahya |
 | A sensible on-chain and off-chain split, RPC or Horizon, a path to production | §8 | Yahya |
 | A build judges can verify: testnet deploy, public repo, docs, contract IDs | README with contract IDs and run steps | Yahya |
 | Security: contract safety, keys, sign-in, KYC awareness | Tests for the failure cases; keys server-side only; the licensed partner does KYC | Jack |
-| UX that hides blockchain: onboarding, fee sponsorship, mobile, low connectivity | Spanish, phone-first, "dólares digitales", fee sponsorship | Ruhaan, Yahya |
+| UX that hides blockchain: onboarding, fee sponsorship, mobile, low connectivity | Spanish, phone-first, "dólares digitales", fee sponsorship | Yahya, Jack (fee sponsorship) |
 
 **Presentation, 25%:** at the showcase, 15% delivery and 10% trifold effort and quality (§3.8).
 
@@ -667,7 +682,14 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 4. Is our contract design sensible: one contract, each role signing its own transactions, a short credit period for the demo?
 5. What's the best wallet setup for shop owners on cheap phones: passkeys, SMS links, something else?
 
+**What the advisors said (Mon Nov 9)**
+- **Adam Chu** (startup founder; LinkedIn https://www.linkedin.com/in/adamwchu/): the tech is believable; judges will ask about go-to-market. Partner with banks and cash-in/cash-out companies that already have a reputation in El Salvador, and cold-email them about Stellar (a real reply would stand out). State assumptions clearly and argue for them. Lead with market size, backed by transaction counts times our fee. Show it's a real business.
+- **Misha Stastna** (finance; LinkedIn https://www.linkedin.com/in/misha-stastna-b93192335/): pick a name; build our own credit record and know what El Salvador's credit bureaus are called; know what a DUNS number is in case asked (most tiendas won't have one); lead with the worldwide number, then El Salvador's; have a 30-second answer to "how do you make money?"; say KYC/KYB; show one slide of real contract code; delivery decides it.
+- **Our corrections:** don't compare to MoneyGram's 5% (that's a cross-border fee, and Transfer365 is free); compare to loan sharks (about $35 per $100) versus $0 for shops. The $0.75 buffer is our own number. The $30 wallet bonus and fuel discounts Adam mentioned were Chivo perks from 2021: don't use them.
+
 **What judges will probably ask** (practise 20-second answers)
+- *How do you make money (30 seconds)?* Distributors pay us, shops never do: 0.1% of every invoice we process, cash or digital, plus 0.25% of each "pay in 7 days" sale, built into an open contract.
+- *How do you get into El Salvador?* One mid-size distributor's routes first, with a bank or cash-in partner for cash and a licensed lender or cooperative funding the pool.
 - *Why not just Transfer365 and a database?* Transfer365 only moves money between bank accounts, and about half of small businesses don't have a bank relationship. It doesn't do credit, invoice matching or driver cash records. One distributor's database isn't a record other distributors and lenders can trust. Our contract enforces the credit rules and fee split in the open, settles in seconds for a fraction of a cent, and lets lenders fund a pool directly.
 - *How does a shop get digital dollars?* Risk #1. Say it first, then ideas 1, 6 and 3 from §6.
 - *Who are the lenders?* A test account in the demo. For real, a licensed microfinance institution or cooperative. We're not the lender.
@@ -709,6 +731,12 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 | Nov 6 | Risk #1 (cash to digital dollars) goes in every doc, with the ideas log. |
 | Nov 6 | Savings and Treasury yield are stretch goals, with a simulated token in the demo. |
 | Nov 6 | This file is our single context doc. Build plan adopted. One contract recommended (Jack can split it if needed). |
+| Nov 9 | Product form: a mobile web app on our own open contract, not a native app or a feature in someone else's wallet. |
+| Nov 9 | New roles: Yahya all code-heavy work and all UI; Jack light backend plus the one-pager, slides, trifold and deck; Ruhaan about 3 h of small non-UI helpers; Rohan outreach and sourced facts only. The plan moved into the GitHub issues. |
+| Nov 9 | Market size: $2B a year from distributors to 85,265 tiendas (Distribución Dinámica, via Diario El Salvador). Never use the unsourced $7B. Lead with a worldwide number first. |
+| Nov 9 | Compare our cost to loan sharks (about $35 per $100), never to MoneyGram's 5%. |
+| Nov 9 | Contract fees: 0.1% usage fee on every invoice; 1.5% credit fee paid by the distributor (0.75 buffer, 0.50 lenders, 0.25 us). Limits start at $200 and grow $25 per on-time repayment, up to $500: our own credit record. |
+| Nov 9 | MIT licence removed; the code is all rights reserved (#48). |
 
 ---
 
@@ -727,6 +755,9 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 | An inflation-protection angle | El Salvador uses the US dollar |
 | A Bitcoin or Chivo angle | Bitcoin became optional, Chivo reached 8.1% of people, and "crypto" puts people off |
 | "Cheaper transfers" as the pitch | Transfer365 is already free |
+| Our own secure cash ATMs | About $5k each, plus cash rules and safety; partner with banks and cash-in companies instead (Nov 9) |
+| A native app, or a feature inside another wallet | Install friction and no time; we can't change other companies' wallets (Nov 9) |
+| Comparing our fee to MoneyGram's 5% | That's a cross-border fee; we're domestic and Transfer365 is free (Nov 9) |
 | The name "RUTA" | Placeholder only |
 | Notion | Nobody knows it well; GitHub covers it |
 | Long generated reports | Not useful; keep docs short and practical |
@@ -776,6 +807,7 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 ## 19. Sources
 
 **Problem and market**
+- Market size: 85,265 tiendas and about $2B a year from distributors (Distribución Dinámica study, Diario El Salvador, Feb 27, 2026): https://diarioelsalvador.com/dedinero/la-seguridad-impulso-el-crecimiento-de-las-tiendas-de-barrio-en-un-23/763705
 - FUSAI and ASOMI loan-shark study (El Diario de Hoy, Jul 24, 2026): https://www.eldiariodehoy.com/negocios/microempresas-el-salvador-dependen-prestamos-usureros/86923/2026/
 - CIOPS 2019 survey of 1,285 merchants (Revista E&N, Sep 9, 2019): https://www.revistaeyn.com/finanzas/el-salvador-mipymes-pagan-hasta-2628-de-interes-por-usura-HAEN1317303
 - Mastercard and PCMI cash survey (El Mundo, Apr 10, 2025): https://diario.elmundo.sv/ampArticle/el-efectivo-es-principal-metodo-de-pago-para-80-de-las-pequenas-empresas-de-el-salvador?amp=1
@@ -785,7 +817,7 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 - Average loan rates in April 2026 (El Mundo, May 19, 2026): https://diario.elmundo.sv/economia/tasas-de-intereses-de-prestamos-en-el-salvador-mostraron-reduccion-en-abril
 - Bitcoin law change (Jan 30, 2025): https://www.centralamerica.com/news/el-salvador-bitcoin-law-changes
 - Remittances in 2025: https://elsalvadorinfo.net/northern-triangle-remittances-jump-20-in-2025-to-nearly-48-billion/ and as a share of GDP: https://dinero.com.sv/en/economy/remittances-equivalent-to-24-of-gdp-confirm-el-salvadors-high-economic-dependence/
-- About 70,000 shops: USDA El Salvador Retail Foods Annual. 51.5% of small businesses with no formal financial relationship: FLACSO El Salvador and FUSAI. Both were cited in our first draft; find the exact links before putting them on the one-pager.
+- About 70,000 shops (USDA El Salvador Retail Foods Annual; replaced by the 85,265 figure above). 51.5% of small businesses with no formal financial relationship: FLACSO El Salvador and FUSAI. Both were cited in our first draft; find the exact links before putting them on the one-pager.
 
 **Competitors and precedents**
 - Rocket (Microsoft, 2022): https://news.microsoft.com/es-xl/rocket-pos-la-app-que-impulsa-pequenas-tiendas-hacia-la-digitalizacion-de-sus-negocios/
@@ -817,3 +849,4 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 - Stay in Space 1, domestic El Salvador only. Don't bring back anything in §17 unless asked.
 - Use general examples, not teammates' hometowns.
 - Never ask for or paste secret keys.
+- Since Nov 9 the plan lives in the GitHub issues (owner, due time, "Done means"). Check them before suggesting tasks, and keep the roles in §3.1.
