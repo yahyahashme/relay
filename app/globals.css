@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+/* One light look on purpose: shopkeepers use it outdoors, on bright screens. */
+@theme {
+  --color-paper: #f5f4ef;
+  --color-card: #ffffff;
+  --color-ink: #14202e;
+  --color-muted: #5d6877;
+  --color-line: #e2dfd6;
+  --color-brand: #0b4ea2;
+  --color-brand-dark: #083b7a;
+  --color-brand-soft: #e6eefa;
+  --color-ok: #146c43;
+  --color-ok-soft: #e1f2e8;
+  --color-warn: #8f5200;
+  --color-warn-soft: #fcefd6;
+  --color-bad: #b42318;
+  --color-bad-soft: #fde6e3;
+  --color-credit: #5b3fa6;
+  --color-credit-soft: #efeafb;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
