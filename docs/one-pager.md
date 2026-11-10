@@ -6,7 +6,7 @@ Form: "BlockChain Innovation Challenge: Project Showcase Submission" ([link](htt
 
 **Before submitting**
 - Delete every `(Rohan to confirm)` marker and every `[bracketed placeholder]`, then re-count.
-- Every number marked `(Rohan to confirm)` comes from the open fact-sheet PR #59 (`docs/facts.md`, not on `main` yet). Rohan checks each against his final file (#50, #51) and `docs/assumptions.md` (#12).
+- Every number marked `(Rohan to confirm)` comes from the fact sheet `docs/facts.md` (merged in #59). Rohan checks each against his final file (#50, #51) and `docs/assumptions.md` (#12, not in the repo yet).
 - Never use: the $7B figure, "70,000 shops", the Chivo $30 bonus, or MoneyGram's 5% as a comparison. We compare to loan sharks.
 
 ---
@@ -39,7 +39,7 @@ Target: 120 to 150 words.
 <!-- q5 -->
 [WORLDWIDE MARKET NUMBER: one sentence from #51.] Distributors sell El Salvador's 85,265 neighbourhood shops and small retailers about $2 billion a year (Conamype estimate). Most pay in cash (regional survey: 8 in 10). (Rohan to confirm) Short of cash, 6 in 10 informal small businesses have borrowed from loan sharks, about $35 per $100 (2019 survey). (Rohan to confirm)
 
-We built a mobile web app on our own open Soroban contract on Stellar. A shop pays now in digital dollars (USDC), records cash with two taps, or pays in 7 days with no interest. On-time repayment raises its limit from $200 to $500: a credit record it never had. Stellar settles in seconds for a fraction of a cent, and anyone can check the rules and fees.
+We built a mobile web app on our own open Soroban contract on Stellar. A shop pays now in digital dollars (USDC), records cash with two taps, or pays in 7 days with no interest. On-time repayment raises its limit, up to $500: a credit record it never had. Stellar settles in seconds for a fraction of a cent, and anyone can check the rules and fees.
 
 Distributors pay, never shops: 0.1% of each invoice paid now or in cash, 0.25% of each pay-in-7-days sale. (Rohan to confirm, #12)
 <!-- /q5 -->
@@ -68,12 +68,12 @@ Every number in answers 4 to 6. "Confirm" means Rohan checks it against his fina
 
 | Number | Answer | Source | Status |
 |---|---|---|---|
-| 85,265 shops and small retailers (2025) | 5 | `facts.md` entry 2 (PR #59) | Rohan to confirm. Wording from the "Say this, not that" table. |
+| 85,265 shops and small retailers (2025) | 5 | `facts.md` entry 2 (merged in #59) | Rohan to confirm. Wording from the "Say this, not that" table. |
 | about $2 billion a year (Conamype estimate) | 5 | `facts.md` entry 1 | Rohan to confirm. One official, via Diario El Salvador, 27 Feb 2026. |
 | 8 in 10 small businesses pay suppliers mainly in cash, four countries | 5 | `facts.md` entry 11 | Rohan to confirm. **Regional** (2022 survey), not El Salvador alone. |
 | 6 in 10 informal small businesses have borrowed from loan sharks | 5 | `facts.md` entry 9 (62.2%) | Rohan to confirm. "Informal" must stay in the sentence. |
 | about $35 per $100 (2019 survey) | 5 | `facts.md` entry 10 | Rohan to confirm. Keep the year. |
-| $200 starting limit, $500 cap | 5 | Context §16 (Nov 9); contract `LIMIT_CAP` is $500 and tested | Our design numbers. Confirm against `assumptions.md` (#12). |
+| $500 cap on a shop's limit | 5 | `docs/credit-model.md` and context §16; contract `LIMIT_CAP` is $500 and tested | Our design number. Confirm against `assumptions.md` (#12). The start limit (the lower of $200 and one average delivery) is not in the answer. |
 | 0.1% on invoices paid now or in cash | 5 | Context §5 and §16; contract `USAGE_FEE_BPS` = 10 | **Flagged for Rohan**, see below. |
 | 0.25% of each pay-in-7-days sale | 5 | Context §5 and §16; contract `OUR_BPS` = 25 | **Flagged for Rohan**, see below. |
 | 7 days | 4, 5 | Product rule, context §7.3 | Design, not a measurement. |
@@ -97,7 +97,7 @@ Counted with `<!-- qN -->` markers: `(Rohan to confirm)` markers excluded, `[pla
 | Answer | Target | As written | What changes at submit |
 |---|---|---|---|
 | 4. One-line summary | about 20 | 20 | Nothing. |
-| 5. Problem and benefit | 120 to 150 | 139 | The 7-word `[WORLDWIDE MARKET NUMBER]` placeholder becomes Rohan's sentence. It can be up to about 18 words and still fit in 150. |
+| 5. Problem and benefit | 120 to 150 | 138 | The 7-word `[WORLDWIDE MARKET NUMBER]` placeholder becomes Rohan's sentence. It can be up to about 19 words and still fit in 150. |
 | 6. Why our team | 120 to 150 | 144 | Remove "(from docs/research.md)" (3 words) and swap `[add Thu from #28]` (4 words) for the URL (1 word): about 138. Each `[N]` stays one word. |
 
 Re-count after every edit. The counting script is not in the repo; it splits on spaces and treats "$2" and "pay-in-7-days" as one word each.
