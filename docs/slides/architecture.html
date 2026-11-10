@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920">
+<title>How it works on Stellar</title>
+<!-- 1920x1080 = a 13.33 x 7.5 in slide at 144 px/in, so 1 pt = 2 px. -->
+<style>
+  :root {
+    --bg: #f8fafc;
+    --ink: #0f172a;
+    --muted: #475569;
+    --line: #cbd5e1;
+    --shop: #2563eb;
+    --driver: #d97706;
+    --dist: #059669;
+    --lender: #be185d;
+    --us: #475569;
+    --stellar: #4338ca;
+    --stellar-bg: #eef2ff;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); color: var(--ink);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+  .slide { position: relative; width: 1920px; height: 1080px; }
+  h1 { position: absolute; left: 50px; top: 34px; font-size: 62px; line-height: 1.1; font-weight: 700; letter-spacing: -0.5px; }
+
+  .box { position: absolute; background: #fff; border: 4px solid var(--c, var(--line)); border-radius: 18px; padding: 12px 20px;
+    display: flex; flex-direction: column; justify-content: center; }
+  .box h2 { font-size: 36px; line-height: 1.1; font-weight: 700; }
+  .box.who h2 { font-size: 34px; }
+  .box p { margin-top: 8px; font-size: 26px; line-height: 1.25; color: var(--muted); }
+  .box ul { margin: 10px 0 0 22px; font-size: 26px; line-height: 1.3; color: var(--muted); }
+  .box li + li { margin-top: 8px; }
+  .mono { font-family: Menlo, Monaco, "Courier New", monospace; }
+
+  .shop { --c: var(--shop); } .driver { --c: var(--driver); } .dist { --c: var(--dist); } .lender { --c: var(--lender); }
+  .us { --c: var(--us); } .st { --c: var(--stellar); }
+
+  .group { position: absolute; left: 805px; top: 195px; width: 1075px; height: 375px; border: 4px dashed var(--stellar);
+    border-radius: 26px; background: var(--stellar-bg); }
+  .group span { position: absolute; left: 24px; top: 14px; font-size: 24px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--stellar); }
+
+  svg.arrows { position: absolute; left: 0; top: 0; }
+
+  .panel { position: absolute; top: 700px; height: 270px; border-radius: 18px; padding: 18px 28px; background: #fff; border: 4px solid var(--c); }
+  .panel h3 { font-size: 36px; font-weight: 700; color: var(--c); }
+  .panel h3 small { font-size: 26px; font-weight: 500; color: var(--muted); }
+  .panel ul { margin: 12px 0 0 30px; font-size: 34px; line-height: 1.4; }
+  .note { position: absolute; left: 50px; right: 50px; top: 995px; font-size: 34px; font-weight: 600; text-align: center; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <h1>How it works on Stellar</h1>
+
+  <div class="group"><span>Stellar testnet</span></div>
+
+  <!-- Who uses it -->
+  <div class="box who shop"   style="left:50px; top:140px; width:340px; height:118px"><h2>Shop phone</h2><p>pays now or later</p></div>
+  <div class="box who driver" style="left:50px; top:272px; width:340px; height:118px"><h2>Driver phone</h2><p>delivers, gets cash</p></div>
+  <div class="box who dist"   style="left:50px; top:404px; width:340px; height:118px"><h2>Distributor laptop</h2><p>creates the invoices</p></div>
+  <div class="box who lender" style="left:50px; top:536px; width:340px; height:118px"><h2>Lender</h2><p>funds the credit pool</p></div>
+
+  <!-- Our server -->
+  <div class="box us" style="left:450px; top:140px; width:310px; height:514px">
+    <h2>Our web app server</h2>
+    <ul>
+      <li>Signs the demo transactions</li>
+      <li>Will pay the network fees<br>(fee&nbsp;sponsorship)</li>
+    </ul>
+    <p>Next.js on Vercel</p>
+  </div>
+
+  <!-- On Stellar -->
+  <div class="box st" style="left:820px; top:277px; width:270px; height:240px">
+    <h2>Stellar RPC</h2><p>the public node that sends and reads transactions</p>
+  </div>
+  <div class="box st" style="left:1150px; top:277px; width:320px; height:240px">
+    <h2 class="mono" style="font-size:34px">route_ledger</h2><p>Soroban contract: invoices, credit rules, lender pool + loss buffer, fee splits</p>
+  </div>
+  <div class="box st" style="left:1530px; top:277px; width:320px; height:240px">
+    <h2>Test USDC</h2><p>Stellar Asset Contract: moves the digital dollars</p>
+  </div>
+
+  <!-- Two-way: calls go right, reads (balances, invoices) come back. -->
+  <svg class="arrows" width="1920" height="700" viewBox="0 0 1920 700" fill="none" stroke="#0f172a" stroke-width="5" stroke-linecap="round">
+    <defs>
+      <marker id="head" viewBox="0 0 12 12" refX="10" refY="6" markerUnits="userSpaceOnUse" markerWidth="20" markerHeight="20" orient="auto-start-reverse">
+        <path d="M1 1 L11 6 L1 11 Z" fill="#0f172a" stroke="none"/>
+      </marker>
+    </defs>
+    <path d="M396 199 H444" marker-start="url(#head)" marker-end="url(#head)"/>
+    <path d="M396 331 H444" marker-start="url(#head)" marker-end="url(#head)"/>
+    <path d="M396 463 H444" marker-start="url(#head)" marker-end="url(#head)"/>
+    <path d="M396 595 H444" marker-start="url(#head)" marker-end="url(#head)"/>
+    <path d="M766 397 H814" marker-start="url(#head)" marker-end="url(#head)"/>
+    <path d="M1096 397 H1144" marker-start="url(#head)" marker-end="url(#head)"/>
+    <path d="M1476 397 H1524" marker-start="url(#head)" marker-end="url(#head)"/>
+  </svg>
+
+  <!-- On / off Stellar -->
+  <div class="panel st" style="left:50px; width:935px">
+    <h3>On Stellar <small>public ledger</small></h3>
+    <ul>
+      <li>Invoice amounts, status, due dates</li>
+      <li>Payments, cash confirmations, credit, repayments</li>
+      <li>Fee splits, pool balances, limits</li>
+    </ul>
+  </div>
+  <div class="panel us" style="left:1005px; width:865px">
+    <h3>Off Stellar <small>our server</small></h3>
+    <ul>
+      <li>Shop and owner names, phone numbers</li>
+      <li>What’s on each invoice</li>
+      <li>CSV files, WhatsApp reminders</li>
+    </ul>
+  </div>
+  <p class="note">Amounts are public. Names are not.</p>
+</div>
+</body>
+</html>
