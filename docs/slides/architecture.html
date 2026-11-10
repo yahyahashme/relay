@@ -14,6 +14,7 @@
     --shop: #2563eb;
     --driver: #d97706;
     --dist: #059669;
+    --lender: #be185d;
     --us: #475569;
     --stellar: #4338ca;
     --stellar-bg: #eef2ff;
@@ -24,19 +25,19 @@
   .slide { position: relative; width: 1920px; height: 1080px; }
   h1 { position: absolute; left: 50px; top: 34px; font-size: 62px; line-height: 1.1; font-weight: 700; letter-spacing: -0.5px; }
 
-  .box { position: absolute; background: #fff; border: 4px solid var(--c, var(--line)); border-radius: 18px; padding: 16px 20px;
+  .box { position: absolute; background: #fff; border: 4px solid var(--c, var(--line)); border-radius: 18px; padding: 12px 20px;
     display: flex; flex-direction: column; justify-content: center; }
   .box h2 { font-size: 36px; line-height: 1.1; font-weight: 700; }
+  .box.who h2 { font-size: 34px; }
   .box p { margin-top: 8px; font-size: 26px; line-height: 1.25; color: var(--muted); }
-  .box ul { margin: 10px 0 0 26px; font-size: 27px; line-height: 1.3; color: var(--muted); }
+  .box ul { margin: 10px 0 0 22px; font-size: 26px; line-height: 1.3; color: var(--muted); }
+  .box li + li { margin-top: 8px; }
   .mono { font-family: Menlo, Monaco, "Courier New", monospace; }
-  .tag { position: absolute; top: -20px; left: 20px; padding: 2px 12px; background: var(--c); color: #fff; font-size: 22px;
-    font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; border-radius: 8px; }
 
-  .shop { --c: var(--shop); } .driver { --c: var(--driver); } .dist { --c: var(--dist); }
+  .shop { --c: var(--shop); } .driver { --c: var(--driver); } .dist { --c: var(--dist); } .lender { --c: var(--lender); }
   .us { --c: var(--us); } .st { --c: var(--stellar); }
 
-  .group { position: absolute; left: 785px; top: 200px; width: 1105px; height: 375px; border: 4px dashed var(--stellar);
+  .group { position: absolute; left: 805px; top: 195px; width: 1075px; height: 375px; border: 4px dashed var(--stellar);
     border-radius: 26px; background: var(--stellar-bg); }
   .group span { position: absolute; left: 24px; top: 14px; font-size: 24px; font-weight: 700; letter-spacing: 2px;
     text-transform: uppercase; color: var(--stellar); }
@@ -57,43 +58,46 @@
   <div class="group"><span>Stellar testnet</span></div>
 
   <!-- Who uses it -->
-  <div class="box shop"   style="left:50px; top:140px; width:300px; height:160px"><h2>Shop phone</h2><p>pays now or later</p></div>
-  <div class="box driver" style="left:50px; top:320px; width:300px; height:160px"><h2>Driver phone</h2><p>delivers, gets cash</p></div>
-  <div class="box dist"   style="left:50px; top:500px; width:300px; height:160px"><h2>Distributor laptop</h2><p>creates the invoices</p></div>
+  <div class="box who shop"   style="left:50px; top:140px; width:340px; height:118px"><h2>Shop phone</h2><p>pays now or later</p></div>
+  <div class="box who driver" style="left:50px; top:272px; width:340px; height:118px"><h2>Driver phone</h2><p>delivers, gets cash</p></div>
+  <div class="box who dist"   style="left:50px; top:404px; width:340px; height:118px"><h2>Distributor laptop</h2><p>creates the invoices</p></div>
+  <div class="box who lender" style="left:50px; top:536px; width:340px; height:118px"><h2>Lender</h2><p>funds the credit pool</p></div>
 
   <!-- Our server -->
-  <div class="box us" style="left:400px; top:140px; width:350px; height:520px">
+  <div class="box us" style="left:450px; top:140px; width:310px; height:514px">
     <h2>Our web app server</h2>
     <ul>
       <li>Signs the demo transactions</li>
-      <li>Pays the network fees</li>
+      <li>Will pay the network fees<br>(fee&nbsp;sponsorship)</li>
     </ul>
     <p>Next.js on Vercel</p>
   </div>
 
   <!-- On Stellar -->
-  <div class="box st" style="left:800px; top:285px; width:290px; height:240px">
+  <div class="box st" style="left:820px; top:277px; width:270px; height:240px">
     <h2>Stellar RPC</h2><p>the public node that sends and reads transactions</p>
   </div>
-  <div class="box st" style="left:1140px; top:285px; width:340px; height:240px">
-    <h2 class="mono" style="font-size:34px">route_ledger</h2><p>Soroban contract: invoices, credit rules, pool, fee splits</p>
+  <div class="box st" style="left:1150px; top:277px; width:320px; height:240px">
+    <h2 class="mono" style="font-size:34px">route_ledger</h2><p>Soroban contract: invoices, credit rules, lender pool + loss buffer, fee splits</p>
   </div>
-  <div class="box st" style="left:1530px; top:285px; width:340px; height:240px">
+  <div class="box st" style="left:1530px; top:277px; width:320px; height:240px">
     <h2>Test USDC</h2><p>Stellar Asset Contract: moves the digital dollars</p>
   </div>
 
+  <!-- Two-way: calls go right, reads (balances, invoices) come back. -->
   <svg class="arrows" width="1920" height="700" viewBox="0 0 1920 700" fill="none" stroke="#0f172a" stroke-width="5" stroke-linecap="round">
     <defs>
-      <marker id="head" viewBox="0 0 12 12" refX="10" refY="6" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="24" orient="auto">
+      <marker id="head" viewBox="0 0 12 12" refX="10" refY="6" markerUnits="userSpaceOnUse" markerWidth="20" markerHeight="20" orient="auto-start-reverse">
         <path d="M1 1 L11 6 L1 11 Z" fill="#0f172a" stroke="none"/>
       </marker>
     </defs>
-    <path d="M354 220 H394"  marker-end="url(#head)"/>
-    <path d="M354 400 H394"  marker-end="url(#head)"/>
-    <path d="M354 580 H394"  marker-end="url(#head)"/>
-    <path d="M754 405 H794"  marker-end="url(#head)"/>
-    <path d="M1094 405 H1134" marker-end="url(#head)"/>
-    <path d="M1484 405 H1524" marker-end="url(#head)"/>
+    <path d="M396 199 H444" marker-start="url(#head)" marker-end="url(#head)"/>
+    <path d="M396 331 H444" marker-start="url(#head)" marker-end="url(#head)"/>
+    <path d="M396 463 H444" marker-start="url(#head)" marker-end="url(#head)"/>
+    <path d="M396 595 H444" marker-start="url(#head)" marker-end="url(#head)"/>
+    <path d="M766 397 H814" marker-start="url(#head)" marker-end="url(#head)"/>
+    <path d="M1096 397 H1144" marker-start="url(#head)" marker-end="url(#head)"/>
+    <path d="M1476 397 H1524" marker-start="url(#head)" marker-end="url(#head)"/>
   </svg>
 
   <!-- On / off Stellar -->

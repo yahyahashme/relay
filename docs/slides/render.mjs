@@ -3,7 +3,8 @@
 //   architecture.png  "How it works on Stellar"
 //
 // Run from anywhere:  node docs/slides/render.mjs
-// Needs Google Chrome (set CHROME=/path/to/chrome if it is not the macOS default). No npm packages.
+// Needs Google Chrome or Chromium. It looks in the usual macOS, Windows and Linux places; if yours is
+// somewhere else, set CHROME=/path/to/chrome. No npm packages.
 //
 // The code on the slide is read straight from lib.rs, so it cannot drift from the contract.
 // If those lines change, this script stops and says so: update the slide, then re-run.
@@ -19,7 +20,16 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "../..");
 const outDir = join(root, "docs/img");
-const CHROME = process.env.CHROME || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const CHROME_PATHS = [
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+  "/usr/bin/google-chrome",
+  "/usr/bin/google-chrome-stable",
+  "/usr/bin/chromium",
+  "/usr/bin/chromium-browser",
+];
+const CHROME = process.env.CHROME || CHROME_PATHS.find((p) => existsSync(p)) || "";
 const EXPLORER = "https://stellar.expert/explorer/testnet/contract";
 
 const die = (msg) => {
@@ -75,7 +85,9 @@ const contractBlock = id
 if (!id) console.warn("render.mjs: no contract ID found. The code slide shows PENDING.");
 
 // ---------- 3. Render ----------
-if (!existsSync(CHROME)) die(`Chrome not found at ${CHROME}. Set CHROME=/path/to/chrome.`);
+if (!CHROME || !existsSync(CHROME)) die(`Chrome not found${CHROME ? ` at ${CHROME}` : ""}. Set CHROME=/path/to/chrome.`);
+// Chrome refuses to run its sandbox as root (e.g. in a container).
+const asRoot = typeof process.getuid === "function" && process.getuid() === 0;
 mkdirSync(outDir, { recursive: true });
 const tmp = mkdtempSync(join(tmpdir(), "slides-56-"));
 
@@ -86,6 +98,7 @@ function shoot(htmlPath, png) {
       "--headless=new",
       "--disable-gpu",
       "--hide-scrollbars",
+      ...(asRoot ? ["--no-sandbox"] : []),
       "--force-device-scale-factor=1",
       "--window-size=1920,1080",
       `--user-data-dir=${join(tmp, "profile")}`,
