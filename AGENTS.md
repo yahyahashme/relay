@@ -1,3 +1,5 @@
+Read CLAUDE.md first: it has this repo's rules.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 ## This is NOT the Next.js you know
