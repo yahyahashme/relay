@@ -21,6 +21,10 @@ Shops are paid in cash. For digital payments to work, that cash has to become di
 
 ## How to run it
 
+- You need the Stellar CLI (version 30 or newer) and Node.
+- `./scripts/setup.sh` (add `--fresh` to start over) creates the demo accounts and test dollars and writes `config/testnet.json` and `.env.local`.
+- Testnet is reset sometimes, so rerun it to rebuild.
+
 Coming with the first working version (target: Nov 12). This section will list the setup steps, the testnet contract IDs and the demo accounts.
 
 ## Never commit secret keys
