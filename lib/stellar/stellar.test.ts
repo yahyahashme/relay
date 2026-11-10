@@ -81,6 +81,11 @@ describe("map", () => {
     });
   });
 
+  it("adds a pending cash claim when there is one", () => {
+    expect(toInvoice(chainInvoice, 500_000_000n).cashClaim).toBe(50);
+    expect(toInvoice(chainInvoice, 0n)).not.toHaveProperty("cashClaim");
+  });
+
   it("leaves method out while nothing is paid", () => {
     const unpaid = { ...chainInvoice, paid: 0n, status: { tag: "Due", values: undefined }, method: { tag: "None", values: undefined } } as const;
     expect(toInvoice(unpaid)).not.toHaveProperty("method");

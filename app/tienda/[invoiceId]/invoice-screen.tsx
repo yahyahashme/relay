@@ -13,7 +13,7 @@ type Action = "now" | "later" | "cash";
 
 /** Why "Pagar en 7 días" is greyed out, or null if the shop can use it. */
 function creditBlocked(shop: Shop | null, invoice: Invoice): string | null {
-  if (!shop) return "Esta tienda todavía no tiene crédito";
+  if (!shop || shop.creditLimit <= 0) return "Su tienda aún no tiene crédito";
   if (shop.overdue) return "Tiene un pago vencido";
   const owedAfter = Math.round((shop.creditOwed + leftToPay(invoice)) * 100);
   if (owedAfter > Math.round(shop.creditLimit * 100)) return "Supera su límite de crédito";
