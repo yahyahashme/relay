@@ -10,8 +10,8 @@ Issue number: $ARGUMENTS
    - If it is already assigned to me, continue.
 3. Read only the docs/context.md sections the issue references.
 4. Implement the smallest change that meets "Done means". Write or update tests.
-5. Run the checks (`cargo test` in contracts/route_ledger, `npm run build` and `npm run lint` in app/).
-6. Commit and push the branch. Then open the PR using the repo's template (`--body` would replace it, so build the body from the template instead):
+5. Run the checks at the repo root: `cargo test`, `npm run build`, `npm run lint` and `npm test`.
+6. Commit. If the branch has never been pushed, run `git fetch origin && git rebase origin/main` first. If it is already pushed, run `git fetch origin && git merge origin/main` instead (force-push is denied). Then push the branch and open the PR using the repo's template (`--body` would replace it, so build the body from the template instead):
    - Read `.github/pull_request_template.md`.
    - Fill in every section truthfully. Leave a checkbox unchecked if it isn't true.
    - Put `Closes #$ARGUMENTS` on the first line.

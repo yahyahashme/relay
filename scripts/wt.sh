@@ -3,18 +3,21 @@
 set -euo pipefail
 N=$1; SLUG=$2
 ROOT=$(git rev-parse --show-toplevel)
+DIR="$ROOT/../ts-$N-$SLUG"
 git fetch origin main
-git worktree add "$ROOT/../ts-$N-$SLUG" -b "$N-$SLUG" origin/main
-cd "$ROOT/../ts-$N-$SLUG"
+# Running this again for the same issue reuses the branch instead of failing on -b.
+if git show-ref --verify --quiet "refs/heads/$N-$SLUG"; then
+  git worktree add "$DIR" "$N-$SLUG"
+else
+  git worktree add "$DIR" -b "$N-$SLUG" origin/main
+fi
+cd "$DIR"
 # gitignored secrets aren't copied into worktrees, so link them.
-# Next.js only loads env files from app/, so link that one too.
+# The Next.js app lives at the repo root, so the root .env.local is the one Next.js reads.
 if [ -f "$ROOT/.env.local" ]; then
   ln -s "$ROOT/.env.local" .env.local
 fi
-if [ -f "$ROOT/app/.env.local" ] && [ -d app ]; then
-  ln -s "$ROOT/app/.env.local" app/.env.local
-fi
-[ -d app ] && (cd app && npm install)
+npm install
 # Claude Code only finds CLAUDE.md, /take-issue and the permission rules if they are in
 # this worktree. A worktree starts from origin/main, so it lacks them until the setup PR is merged.
 CLAUDE_FILES=(CLAUDE.md .claude/commands/take-issue.md .claude/settings.json)

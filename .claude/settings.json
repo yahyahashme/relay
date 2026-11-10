@@ -2,9 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(git status:*)", "Bash(git diff:*)", "Bash(git add:*)", "Bash(git commit:*)",
-      "Bash(git fetch:*)", "Bash(git rebase origin/main)", "Bash(git push origin HEAD)",
+      "Bash(git fetch:*)", "Bash(git rebase origin/main)", "Bash(git merge origin/main)", "Bash(git push origin HEAD)",
       "Bash(gh issue view:*)", "Bash(gh issue edit:*)", "Bash(gh pr create:*)",
-      "Bash(cargo test:*)", "Bash(cargo build:*)", "Bash(npm run:*)", "Bash(npm install)"
+      "Bash(cargo test:*)", "Bash(cargo build:*)", "Bash(stellar contract build)",
+      "Bash(npm run:*)", "Bash(npm test)", "Bash(npx tsc --noEmit)", "Bash(npm install)"
     ],
     "deny": [
       "Read(./.env*)", "Read(**/.env*)",
