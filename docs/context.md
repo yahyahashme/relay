@@ -93,8 +93,8 @@ Built for real weeks: classes, quizzes, the datathon, and days where nothing hap
 - Yahya and Jack are at the Sheridan datathon on Sat Nov 7 and Sun Nov 8.
 - About 80 hours in total **(guess)**. The plan fills about 70% of them on purpose, because first-time Rust and Stellar steps usually take two to three times longer than expected.
 - **Roles (changed Nov 9)**
-  - Yahya: all the code-heavy work and all UI/UX. The contract (`route_ledger`), every screen, wiring the app to the contract, Vercel, the README, Devpost and the video.
-  - Jack: important backend work that isn't heavy. The setup and deploy scripts, the contract safety review and failure tests, fee sponsorship. Also the one-pager, the code and architecture slides, the trifold and the finals deck.
+  - Yahya: all the code-heavy work and all UI/UX. The contract (`route_ledger`) and its deploy script, every screen, wiring the app to the contract, Vercel, the README, Devpost and the video.
+  - Jack: important backend work that isn't heavy. The setup script, the contract safety review and failure tests, fee sponsorship. Also the one-pager, the code and architecture slides, the trifold and the finals deck.
   - Ruhaan: about 3 hours in total. Small, self-contained helper code that Codex can write (money and date helpers, the CSV parser, the WhatsApp link), with tests. No screens.
   - Rohan: outreach and facts. Emails to banks and cash-in companies, interviews, prototype walkthroughs, and every number we use, with its source in `docs/facts.md`.
   - If a card slips a day, Yahya (code) or Jack (scripts) takes it over.
@@ -358,15 +358,16 @@ Learn only what your next task needs. Each item has a "done means" so you know w
 **In short**
 - Distributors pay us. Shops never pay a fee, and we never take a cut of anyone's savings.
 - Two small fees, both written into the contract so anyone can check them:
-  1. **Usage fee:** 0.05% to 0.1% of every invoice the app handles, whether it's paid in cash, digitally or on credit. The demo contract uses 0.1%; for cash, the fee is recorded and billed later, since no digital money moves. The rate is the same for cash and digital, so it doesn't push anyone back to cash. (This replaced the earlier monthly per-truck fee.)
+  1. **Usage fee:** 0.05% to 0.1% of every invoice paid in cash or digitally. Credit sales don't pay it, because our cut is already inside the 1.5% credit fee (Nov 10). The demo contract uses 0.1%; for cash, the fee is recorded and billed later, since no digital money moves. The rate is the same for cash and digital, so it doesn't push anyone back to cash. (This replaced the earlier monthly per-truck fee.)
   2. **A share of the credit fee** when a shop uses "pay in 7 days".
 - Later: lenders and banks pay to see a shop's payment record, only with the shop's permission.
 
 **The $100 example** (made-up numbers; Rohan pressure-tests them)
 A shop buys $100 of stock and picks "pay in 7 days".
-1. At delivery, the lender pool pays the distributor $98.40. The distributor pays a 1.5% fee to be paid now, with no risk, plus the 0.1% usage fee every invoice pays.
+1. At delivery, the lender pool pays the distributor $98.50. The distributor pays one 1.5% fee to be paid now, with no risk. No usage fee on top, so there is one number to remember.
 2. Within 7 days, the shop pays the pool $100. No interest.
-3. The contract splits the $1.50: $0.75 to the default buffer, $0.50 to lenders, $0.25 to us. With the $0.10 usage fee, we earn $0.35 on this sale.
+3. The contract splits the $1.50: $0.75 to the default buffer, $0.50 to lenders, $0.25 to us.
+4. If a shop is about 4 weeks late (4 credit periods), the admin calls `cover_default`: the buffer pays the lenders back what it can, the shop's credit goes to $0, and the debt stays on its record. Anything the shop pays later refills the buffer.
 
 **Three options, chosen per shop** (whoever covers a late payer sets the price)
 
@@ -397,7 +398,7 @@ A shop buys $100 of stock and picks "pay in 7 days".
 - If turning cash into digital dollars costs shops much, nobody switches (Risk #1, §6).
 - Distributors may say 1.5% is too much. Ask them (§13).
 
-**Market size (sourced Nov 9):** distributors sell about **$2 billion a year** to El Salvador's **85,265 tiendas** (Distribución Dinámica study, via Diario El Salvador, 27 Feb 2026; one firm's study quoted by a government official, so cite it that way). Ceiling, not a forecast: a 0.1% usage fee on all of it is $2M a year; if 10% of it went through "pay in 7 days", our 0.25% share adds $500K. Lead with a worldwide number first, then this one (Misha); Rohan is finding and sourcing it. Never use the unsourced $7B.
+**Market size (sourced Nov 9):** distributors sell about **$2 billion a year** to El Salvador's **85,265 tiendas** (Distribución Dinámica study, via Diario El Salvador, 27 Feb 2026; one firm's study quoted by a government official, so cite it that way). Ceiling, not a forecast: if 10% of it went through "pay in 7 days", our 0.25% share of that is $500K a year, and the 0.1% usage fee on the other 90% is $1.8M (credit sales don't pay the usage fee), so about $2.3M in total. Lead with a worldwide number first, then this one (Misha); Rohan is finding and sourcing it. Never use the unsourced $7B.
 
 ---
 
@@ -483,7 +484,7 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 ## 8. Tech design
 
 ### 8.1 Stack
-- **Contract:** one Soroban contract in Rust, `contracts/route_ledger`, for invoices, cash records and the lender pool. One contract means one deploy and one contract ID; we can split it later. (We first talked about two contracts; one is simpler for a first build.)
+- **Contract:** one Soroban contract in Rust, `contracts/route_ledger`, for invoices, cash records and the lender pool. One contract means one deploy and one contract ID; we can split it later. (We first talked about two contracts; one is simpler for a first build.) Build it with `stellar contract build` (soroban-sdk 29 refuses a plain `cargo build` for wasm); `cargo test` runs the tests without the CLI.
 - **Money:** a test dollar token we issue on testnet, used through its Stellar Asset Contract (SAC). Circle's testnet USDC is optional later.
 - **App:** a mobile web app: Next.js (at the repo root), TypeScript, Tailwind. Spanish, mobile-first, on Vercel. No native app.
 - **Talking to Stellar:** `@stellar/stellar-sdk` (v17) with a TypeScript client generated by `npx @stellar/stellar-sdk generate` (the CLI's `bindings typescript` command is deprecated). Testnet RPC `https://soroban-testnet.stellar.org`, Horizon `https://horizon-testnet.stellar.org`.
@@ -492,6 +493,8 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 ### 8.2 Contract functions (spec for Jack)
 
 > Nov 9: Yahya now writes the contract and Jack reviews and tests it. The exact v1 to v3 spec (constructor, fee constants and math, error codes, tests) is in the contract issues and wins over this table. Changes: `init` became `__constructor(admin, token, treasury, credit_period_secs)`; fees are a 0.1% usage fee on every invoice plus 1.5% for credit (0.75 buffer, 0.50 lenders, 0.25 us); `set_terms(shop, limit)` has no option (options 2 and 3 are pitch-only); limits start at $200 and grow $25 per on-time repayment, up to $500.
+
+> Nov 10 (review of #58): no usage fee on credit sales (payout $98.50 per $100). A limit only grows if the shop borrowed $40+ in that cycle, and at most once per credit period. A late repayment drops the limit $25. New functions: `approve_distributor(distributor)` and `is_distributor` (only approved distributors can create invoices, so pool money can't go to a fake one); `cover_default(shop)` (admin, once a shop is 4 credit periods late: the buffer repays the lenders what it can, the shop's limit goes to 0, the debt stays as `written_off`, and later repayments refill the buffer); `fund_buffer(from, amount)` (seeds the buffer; `deploy.sh` adds $50).
 
 | Function | Signed by | What it does |
 |---|---|---|
@@ -636,7 +639,7 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 - Facebook and WhatsApp groups: search "emprendedores El Salvador", "tiendas El Salvador", "tenderos El Salvador".
 - LinkedIn: route, sales and credit managers at Salvadoran distributors of drinks, snacks or dairy.
 - Researchers: FUSAI Observatorio MYPE, FLACSO El Salvador, CONAMYPE.
-- UW Latin American student groups, and the challenge advisors.
+- UW Latin American student groups. (Only Yahya contacts the challenge advisors: #17.)
 - Ask everyone for two more names.
 - Reddit only for leads (it skews middle class).
 - Tests with local corner-store owners count for "is it easy to use", not as proof of the El Salvador problem. Label them that way.
@@ -688,7 +691,7 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 - **Our corrections:** don't compare to MoneyGram's 5% (that's a cross-border fee, and Transfer365 is free); compare to loan sharks (about $35 per $100) versus $0 for shops. The $0.75 buffer is our own number. The $30 wallet bonus and fuel discounts Adam mentioned were Chivo perks from 2021: don't use them.
 
 **What judges will probably ask** (practise 20-second answers)
-- *How do you make money (30 seconds)?* Distributors pay us, shops never do: 0.1% of every invoice we process, cash or digital, plus 0.25% of each "pay in 7 days" sale, built into an open contract.
+- *How do you make money (30 seconds)?* Distributors pay us, shops never do: 0.1% of every invoice paid in cash or digitally, plus 0.25% of each "pay in 7 days" sale (inside the 1.5% credit fee, so the distributor gets $98.50 per $100), built into an open contract.
 - *How do you get into El Salvador?* One mid-size distributor's routes first, with a bank or cash-in partner for cash and a licensed lender or cooperative funding the pool.
 - *Why not just Transfer365 and a database?* Transfer365 only moves money between bank accounts, and about half of small businesses don't have a bank relationship. It doesn't do credit, invoice matching or driver cash records. One distributor's database isn't a record other distributors and lenders can trust. Our contract enforces the credit rules and fee split in the open, settles in seconds for a fraction of a cent, and lets lenders fund a pool directly.
 - *How does a shop get digital dollars?* Risk #1. Say it first, then ideas 1, 6 and 3 from §6.
@@ -738,6 +741,9 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 | Nov 9 | Contract fees: 0.1% usage fee on every invoice; 1.5% credit fee paid by the distributor (0.75 buffer, 0.50 lenders, 0.25 us). Limits start at $200 and grow $25 per on-time repayment, up to $500: our own credit record. |
 | Nov 9 | MIT licence removed; the code is all rights reserved (#48). |
 | Nov 9 | Reviews: Yahya reviews every PR; Jack reviews Yahya's. |
+| Nov 9 | The deploy script moved from Jack to Yahya, so Yahya's work waits only on Jack's setup script (#15). |
+| Nov 10 | Credit sales pay no usage fee: the distributor gets $98.50 per $100 (one 1.5% fee; our 0.25% is inside it). The limit grows only after a $40+ cycle, once per credit period; late repayment drops it $25. The buffer covers defaults 4 credit periods late (`cover_default`), and only approved distributors can invoice. |
+| Nov 10 | Only Yahya contacts the advisors (Adam Chu, Misha Stastna), with at most two follow-ups each (#17). |
 
 ---
 
