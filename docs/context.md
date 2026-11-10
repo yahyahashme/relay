@@ -550,7 +550,7 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 - **85,265 neighbourhood shops and small retailers (2025), about 50,133 of them tiendas proper, up 23% in a decade** (Distribución Dinámica study, via Diario El Mundo, 24 Feb and 1 Mar 2026). The total also counts eateries, street vendors and tortilla shops. This replaces the older "about 70,000 (USDA)".
 - **Distributors sell them about $2B a year, and they sell about $3B a year to customers** (Conamype estimate, Paul Steiner citing market studies, via Diario El Salvador, 27 Feb 2026). Never use the $5B sum.
 - **Most are run by women.** Distribución Dinámica says 85% (via Diario El Salvador); another report says about 70%, so say "most". **Extortion used to close shops and delivery routes** (same article; GI-TOC, Feb 2022).
-- 80% of 1,200 small-business owners in Mexico, El Salvador, Honduras and Guatemala mainly pay suppliers in cash (Mastercard and PCMI, Apr 2025). Regional, not El Salvador alone.
+- 80% of 1,200 small-business owners in Mexico, El Salvador, Honduras and Guatemala mainly pay suppliers in cash (a 2022 PCMI survey, quoted in a Mastercard white paper reported in Apr 2025; `docs/facts.md` entry 11). Regional, not El Salvador alone.
 - 62.2% of informal and semi-informal micro and small businesses have borrowed from loan sharks at some point, at about 1,869% a year on average, and 68% get the money the same day. Reasons: 43.5% family emergencies, 41.7% keeping the business running (FUSAI and ASOMI, via El Diario de Hoy, Jul 2026). The 1,869% matches a March 2022 CIOPS measurement, so it may be older data.
 - In a 2019 survey of 1,285 merchants, 75% used loan-shark money for stock, 96% repaid daily, and each $100 cost about $35 in interest (CIOPS, 2019).
 - 51.5% of micro and small businesses have no formal financial relationship (FLACSO and FUSAI, cited in our first draft).
@@ -736,7 +736,7 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 | Nov 6 | This file is our single context doc. Build plan adopted. One contract recommended (Jack can split it if needed). |
 | Nov 9 | Product form: a mobile web app on our own open contract, not a native app or a feature in someone else's wallet. |
 | Nov 9 | New roles: Yahya all code-heavy work and all UI; Jack light backend plus the one-pager, slides, trifold and deck; Ruhaan about 3 h of small non-UI helpers; Rohan outreach and sourced facts only. The plan moved into the GitHub issues. |
-| Nov 9 | Market size: $2B a year from distributors to 85,265 tiendas (Distribución Dinámica, via Diario El Salvador). Never use the unsourced $7B. Lead with a worldwide number first. |
+| Nov 9 | Market size: $2B a year from distributors to El Salvador's neighbourhood shops (Conamype estimate, via Diario El Salvador; see the fact-sheet row below). Never use the unsourced $7B. Lead with a worldwide number first. |
 | Nov 9 | Fact sheet (#50): every number now lives in `docs/facts.md`. Corrections: 85,265 is "shops and small retailers" (about 50,133 tiendas proper); the $2B is a Conamype estimate, not the Distribución Dinámica study; 62.2% is informal small businesses; say "most" women-owned, not 85%. |
 | Nov 9 | Compare our cost to loan sharks (about $35 per $100), never to MoneyGram's 5%. |
 | Nov 9 | Contract fees: 0.1% usage fee on every invoice; 1.5% credit fee paid by the distributor (0.75 buffer, 0.50 lenders, 0.25 us). Limits start at $200 and grow $25 per on-time repayment, up to $500: our own credit record. |

@@ -2,8 +2,7 @@
 
 Every number we say in the one-pager, pitch, trifold and deck comes from this file (#50). Quotes were copied from the live pages on Mon Nov 9, 2026.
 
-- **PASTE** means: open that entry's link and copy the sentence described, then add its translation.
-- **Checked** says who opened the link and confirmed the quote, and when. Claude checked entries 1–3, 7 and 9–21 on Nov 9; a teammate can add their initials too.
+- **Checked** says who opened the link and confirmed the quote, and when. Claude checked entries 1–3, 7 and 9–21 on Nov 9 and copied entries 4–8 from the live pages on Nov 10; a teammate can add their initials too.
 
 **Never use:** the $7 billion market, "about 70,000 shops", $5 billion as our market, the Chivo $30 bonus or fuel discounts, MoneyGram's 5%.
 
@@ -69,39 +68,39 @@ _Added in #51._
 - **Claim:** Neighbourhood shops and small retailers grew 23% in ten years.
 - **Number:** +23.3% (69,111 in 2015 to 85,265 in 2025)
 - **Source:** Diario El Mundo, 24 Feb 2026 (same article as entry 2), https://diario.elmundo.sv/economia/el-salvador-supera-las-85000-tiendas-de-barrio-tras-crecer-23-en-una-decada
-- **Exact quote:** PASTE the article's first sentence (the one with 23.3 %).
-- **Translation:** (add once pasted)
+- **Exact quote:** "Las tiendas de colonias o ventas detallistas crecieron un 23.3 % en la última década, un impulso que se sostuvo desde 2022 debido a la reducción de la violencia, reveló un estudio presentado este martes por Distribución Dinámica."
+- **Translation:** "Neighbourhood shops and small retailers grew 23.3% in the last decade, a boost sustained since 2022 by the drop in violence, according to a study presented this Tuesday by Distribución Dinámica."
 - **Use in:** one-pager / deck
 - **Caveat:**
   - Same mixed count as entry 2.
   - Growth was uneven: +58% in Greater San Salvador, +1% in the east.
   - The study says shop numbers fell from 2011 to 2020 because of gang extortion payments and then COVID.
   - Officials credit the security crackdown since 2022. State the number, not the politics.
-- **Checked:** __
+- **Checked:** Claude, 10 Nov 2026 (link opened in a browser, quote copied from the page)
 
 ## 5. What tiendas sell, and why we never say $5B
 - **Claim:** Neighbourhood shops sell about $3 billion a year to their customers.
 - **Number:** about US$3 billion a year (said Feb 2026)
 - **Source:** Diario El Salvador, 27 Feb 2026 (same article and speaker as entry 1), https://diarioelsalvador.com/dedinero/la-seguridad-impulso-el-crecimiento-de-las-tiendas-de-barrio-en-un-23/763705
-- **Exact quote:** PASTE Steiner's full sentence from entry 1 (it has the $3,000 millones and $5,000 millones figures).
-- **Translation:** (add once pasted)
+- **Exact quote:** "Estudios de mercado independientes nos dicen que las tiendas de barrio venden aproximadamente $3,000 millones al año, más los $2,000 millones que les venden las distribuidoras. Estamos hablando de un canal que vale $5,000 millones anuales"
+- **Translation:** "Independent market studies tell us that neighbourhood shops sell about $3,000 million a year, plus the $2,000 million that distributors sell them. We're talking about a channel worth $5,000 million a year."
 - **Use in:** deck (backup only)
 - **Caveat:** The "$5 billion" headline adds what distributors sell to shops ($2B) and what shops sell to customers ($3B), which counts the same goods twice. Never use $5B as our market. Same attribution caveat as entry 1.
-- **Checked:** __
+- **Checked:** Claude, 10 Nov 2026 (link opened in a browser, quote copied from the page)
 
 ## 6. Who runs the shops
 - **Claim:** Most neighbourhood shops are run by women.
 - **Number:** 85% owned by women (Distribución Dinámica, as reported); another report says about 70%
 - **Source:** Diario El Salvador, 27 Feb 2026 (same article as entry 1), https://diarioelsalvador.com/dedinero/la-seguridad-impulso-el-crecimiento-de-las-tiendas-de-barrio-en-un-23/763705
-- **Exact quote:** PASTE the sentence with 85 % (it credits the Distribución Dinámica study).
-- **Translation:** (add once pasted)
+- **Exact quote:** "Además, el 85 % de estos negocios pertenece a mujeres, según detalla el estudio de Distribución Dinámica."
+- **Translation:** "In addition, 85% of these businesses belong to women, according to the Distribución Dinámica study."
 - **Use in:** one-pager / pitch / deck
 - **Caveat:**
   - Only this paper reports 85%. America Retail, a retail trade site, says about 70%: https://americaretail-malls.com/paises/centroamerica/las-85000-tienditas-salvadorenas-mueven-cifras-record-en-2026/
   - Supporting data: 81% of the state bank's loans to tiendas went to women (entry 20).
   - Say "most" unless we get Distribución Dinámica's own slide.
   - Related: women are much less likely to have a bank account (entry 12).
-- **Checked:** __
+- **Checked:** Claude, 10 Nov 2026 (link opened in a browser, quote copied from the page)
 
 ## 7. Extortion used to close shops and delivery routes
 - **Claim:** Before 2022, gang extortion closed shops and forced distributors to shut delivery routes.
@@ -111,21 +110,21 @@ _Added in #51._
   - Diario El Salvador, 27 Feb 2026 (entry 1's article), quoting Distribución Dinámica's director, Roberto Santiváñez
 - **Exact quote:**
   - GI-TOC: "the public transport and delivery industries are among the worst affected"
-  - Diario El Salvador: PASTE Santiváñez's quote about extortion closing shops and distributors' routes.
-- **Translation:** GI-TOC is in English. Santiváñez: (add once pasted)
+  - Diario El Salvador: "La extorsión venía generando cierres de tiendas, cierres de las rutas de las diferentes distribuidoras; en lugar de abrir rutas, cerraban rutas, y así cada año iban reduciéndose los detallistas"
+- **Translation:** GI-TOC is in English. Santiváñez: "Extortion was closing shops and closing the different distributors' routes; instead of opening routes, they were closing them, and so every year there were fewer retailers."
 - **Use in:** pitch / deck (background only)
 - **Caveat:** GI-TOC's sentence covers northern Central America, not El Salvador alone; the 1.7% is El Salvador's own figure. This is history: the government reports extortion fell sharply after the 2022 state of exception. Use it as background, not as a claim about today.
-- **Checked:** Claude, 9 Nov 2026 (GI-TOC quote matches the page; Santiváñez quote still to paste)
+- **Checked:** Claude, 9 Nov 2026 (GI-TOC quote matches the page); 10 Nov 2026 (Santiváñez quote copied from the page)
 
 ## 8. What shop owners say they need
 - **Claim:** Shop owners' biggest priorities include access to financing and to technology for managing payments, plus business skills and better internet.
 - **Number:** none (the study's summary)
 - **Source:** Diario El Mundo, 24 Feb 2026 (same article as entry 2), https://diario.elmundo.sv/economia/el-salvador-supera-las-85000-tiendas-de-barrio-tras-crecer-23-en-una-decada
-- **Exact quote:** PASTE the article's last paragraph (about financing and technology to manage payments).
-- **Translation:** (add once pasted)
+- **Exact quote:** "Según los resultados del estudio, para los empresarios detrás de estas tiendas una de las mayores prioridades es el acceso a financiamiento, así como a tecnología para gestionar pagos, fortalecer capacidades empresariales y mejorar la conexión a internet."
+- **Translation:** "According to the study's results, for the owners behind these shops one of the top priorities is access to financing, as well as technology to manage payments, building business skills and better internet."
 - **Use in:** one-pager / pitch / deck
 - **Caveat:** The study author's summary, not a survey percentage. Diario El Salvador reports the same list from Santiváñez. Useful because "technology to manage payments" is what we're building.
-- **Checked:** __
+- **Checked:** Claude, 10 Nov 2026 (link opened in a browser, quote copied from the page)
 
 ## 9. Loan sharks
 - **Claim:** Six in ten informal small businesses have borrowed from loan sharks. Most get the money the same day, at about 1,869% a year.
@@ -141,7 +140,8 @@ _Added in #51._
   - The 1,869% equals the rate CIOPS (UTEC) measured in March 2022, so it may be older data.
   - Other surveys give higher shares (CIOPS 2022: 80.9%).
   - Reasons for borrowing: 43.5% a family emergency, 41.7% to keep the business running.
-  - Optional: PASTE the sentences with 68% and 1,869% to have them word for word.
+  - 68%: "el 68% de quienes buscan dinero con un usurero lo recibe ese mismo día" ("68% of those who go to a loan shark get the money that same day").
+  - 1,869%: "la tasa promedio que cobran los usureros ronda el 1,869% anual" ("the average rate loan sharks charge is around 1,869% a year"). Both copied from the page on 10 Nov 2026.
 - **Checked:** Claude, 9 Nov 2026 (link opened, quote matches the page)
 
 ## 10. What loan sharks cost
@@ -156,7 +156,8 @@ _Added in #51._
   - The data is from 2019, before the 2022 crackdown, so say the year.
   - The $35 is per loan. Borrowers renew up to 30 times a year, which is how annual rates run into the thousands (the survey's average: up to 2,628% a year).
   - The 96% say they pay daily for their physical safety.
-  - PASTE the sentences with 75 % and 96 %.
+  - 75%: "un 75 % destina este financiamiento para compra de mercadería para venta" ("75% use this money to buy stock to sell").
+  - 96%: "un 96 % de los encuestados aseguró que debe pagar cada día por cuestiones de seguridad física" ("96% of those surveyed said they must pay every day for their physical safety"). Both copied from the page on 10 Nov 2026.
 - **Checked:** Claude, 9 Nov 2026 (link opened, quote matches the page)
 
 ## 11. Small businesses pay suppliers in cash (regional)
