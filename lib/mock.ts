@@ -1,0 +1,328 @@
+// In-memory demo data that follows the same rules as the contract
+// (contracts/route_ledger/src/lib.rs). Pages never import this file:
+// they call lib/api.ts, which uses it while NEXT_PUBLIC_USE_MOCKS isn't "false".
+//
+// Inside this file money is in whole cents (pool: 7-decimal units, like the
+// contract) so sums never drift. Everything returned is in dollars.
+
+import { formatDay, formatMoney, plural } from "./format";
+import type { Driver, Invoice, InvoiceRow, PayMethod, Pool, Receipt, Shop } from "./types";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const CREDIT_DAYS = 7;
+const UNITS_PER_CENT = 100_000; // $1 = 10,000,000 units
+const LIMIT_STEP = 25_00; // +$25 per on-time repayment...
+const LIMIT_CAP = 500_00; // ...up to $500,
+const MIN_BORROW_TO_GROW = 40_00; // ...only if the cycle borrowed at least $40,
+const RAISE_EVERY_MS = CREDIT_DAYS * DAY_MS; // ...and at most once per credit period
+const CREDIT_FEE_BPS = 150;
+const BUFFER_BPS = 75;
+const OUR_BPS = 25;
+
+type InvoiceRecord = {
+  id: number;
+  shopId: string;
+  driverId: string;
+  amount: number;
+  paid: number;
+  dueAt: number;
+  method?: PayMethod;
+  cashClaim?: number;
+};
+type ShopRecord = {
+  id: string;
+  name: string;
+  owner: string;
+  limit: number;
+  owed: number;
+  dueAt: number; // 0 while nothing is owed
+  onTime: number;
+  late: number;
+  cycleBorrowed: number; // borrowed since owed was last 0
+  lastRaiseAt: number; // 0 if never
+};
+type DriverRecord = { id: string; name: string; cashHeld: number };
+type Store = {
+  invoices: InvoiceRecord[];
+  shops: ShopRecord[];
+  drivers: DriverRecord[];
+  pool: { available: number; buffer: number }; // units
+};
+
+const SEED_INVOICES: [number, string, string, number][] = [
+  [1001, "tienda-1", "motorista-1", 150_00],
+  [1002, "tienda-2", "motorista-1", 85_50],
+  [1003, "tienda-3", "motorista-2", 220_00], // over the $200 limit on purpose
+  [1004, "tienda-1", "motorista-1", 60_00],
+  [1005, "tienda-2", "motorista-2", 130_00],
+  [1006, "tienda-3", "motorista-2", 95_25],
+  [1007, "tienda-1", "motorista-1", 40_00],
+  [1008, "tienda-2", "motorista-1", 175_00],
+];
+const DEMO_DRIVER: Record<string, string> = {
+  "tienda-1": "motorista-1",
+  "tienda-2": "motorista-2",
+  "tienda-3": "motorista-2",
+};
+const DEMO_AMOUNTS = [45_75, 120_00, 68_40, 99_90, 152_30];
+
+let clock = () => Date.now();
+let store: Store | null = null;
+
+function seed(now: number): Store {
+  const shop = (id: string, name: string, owner: string): ShopRecord => ({
+    id, name, owner, limit: 200_00, owed: 0, dueAt: 0, onTime: 0, late: 0, cycleBorrowed: 0, lastRaiseAt: 0,
+  });
+  return {
+    invoices: SEED_INVOICES.map(([id, shopId, driverId, amount]) => ({
+      id, shopId, driverId, amount, paid: 0, dueAt: now + CREDIT_DAYS * DAY_MS,
+    })),
+    shops: [
+      shop("tienda-1", "Tienda Rosa", "Rosa Martínez"),
+      shop("tienda-2", "Tienda Don Luis", "Luis Hernández"),
+      shop("tienda-3", "Mini Súper La Esquina", "Marta López"),
+    ],
+    drivers: [
+      { id: "motorista-1", name: "Carlos", cashHeld: 0 },
+      { id: "motorista-2", name: "Ana", cashHeld: 0 },
+    ],
+    pool: { available: 5_000_00 * UNITS_PER_CENT, buffer: 50_00 * UNITS_PER_CENT }, // deploy.sh seeds $50
+  };
+}
+
+function db(): Store {
+  return (store ??= seed(clock()));
+}
+
+/** Tests only: start again from the seed data, optionally with a fixed clock. */
+export function resetMock(now?: () => number) {
+  clock = now ?? (() => Date.now());
+  store = null;
+}
+
+// ---------- conversions ----------
+
+const dollars = (cents: number) => cents / 100;
+const money = (cents: number) => formatMoney(dollars(cents));
+const iso = (time: number) => new Date(time).toISOString();
+const bps = (units: number, rate: number) => Math.floor((units * rate) / 10_000);
+
+/** Dollars from the screens -> whole cents, or null if it isn't a usable amount. */
+function toCents(amount: number): number | null {
+  const cents = Math.round(amount * 100);
+  return Number.isFinite(cents) && cents > 0 ? cents : null;
+}
+
+function toInvoice(r: InvoiceRecord): Invoice {
+  const invoice: Invoice = {
+    id: r.id,
+    shopId: r.shopId,
+    driverId: r.driverId,
+    amount: dollars(r.amount),
+    paid: dollars(r.paid),
+    dueDate: iso(r.dueAt),
+    status: r.paid >= r.amount ? "paid" : r.paid > 0 ? "part_paid" : "due",
+  };
+  if (r.method) invoice.method = r.method;
+  if (r.cashClaim !== undefined) invoice.cashClaim = dollars(r.cashClaim);
+  return invoice;
+}
+
+function toShop(s: ShopRecord): Shop {
+  const shop: Shop = {
+    id: s.id,
+    name: s.name,
+    owner: s.owner,
+    creditLimit: dollars(s.limit),
+    creditOwed: dollars(s.owed),
+    overdue: s.owed > 0 && clock() > s.dueAt,
+    onTime: s.onTime,
+    late: s.late,
+  };
+  if (s.owed > 0) shop.creditDue = iso(s.dueAt);
+  return shop;
+}
+
+function nextMethod(current: PayMethod | undefined, method: PayMethod): PayMethod {
+  return !current || current === method ? method : "mixed";
+}
+
+const ok = (message: string): Receipt => ({ ok: true, message });
+const fail = (message: string): Receipt => ({ ok: false, message });
+
+const findInvoice = (id: number) => db().invoices.find((i) => i.id === id);
+const findShop = (id: string) => db().shops.find((s) => s.id === id);
+
+// ---------- reads ----------
+
+export function getInvoices(): Invoice[] {
+  return [...db().invoices].sort((a, b) => a.id - b.id).map(toInvoice);
+}
+
+export function getInvoice(id: number): Invoice | null {
+  const invoice = findInvoice(id);
+  return invoice ? toInvoice(invoice) : null;
+}
+
+export function getShop(shopId: string): Shop | null {
+  const shop = findShop(shopId);
+  return shop ? toShop(shop) : null;
+}
+
+export function getDrivers(): Driver[] {
+  return db().drivers.map((d) => ({ ...d, cashHeld: dollars(d.cashHeld) }));
+}
+
+export function getPool(): Pool {
+  const { available, buffer } = db().pool;
+  return { available: available / (100 * UNITS_PER_CENT), buffer: buffer / (100 * UNITS_PER_CENT) };
+}
+
+export function createDemoInvoice(shopId?: string): Invoice {
+  const { invoices, shops } = db();
+  const id = Math.max(1000, ...invoices.map((i) => i.id)) + 1;
+  const shop = shopId ? findShop(shopId) : shops[id % shops.length];
+  if (!shop) throw new Error("Tienda desconocida.");
+  const record: InvoiceRecord = {
+    id,
+    shopId: shop.id,
+    driverId: DEMO_DRIVER[shop.id] ?? "motorista-1",
+    amount: DEMO_AMOUNTS[id % DEMO_AMOUNTS.length],
+    paid: 0,
+    dueAt: clock() + CREDIT_DAYS * DAY_MS,
+  };
+  invoices.push(record);
+  return toInvoice(record);
+}
+
+// ---------- writes (same checks, in the same order, as the contract) ----------
+
+export function payNow(invoiceId: number, amount?: number): Receipt {
+  const invoice = findInvoice(invoiceId);
+  if (!invoice) return fail("No encontramos esa factura.");
+  if (invoice.paid >= invoice.amount) return fail("Esta factura ya está pagada.");
+  const left = invoice.amount - invoice.paid;
+  const pay = amount === undefined ? left : toCents(amount);
+  if (pay === null) return fail("Monto inválido.");
+  if (pay > left) return fail(`El monto es mayor que lo que falta pagar (${money(left)}).`);
+
+  invoice.paid += pay;
+  invoice.method = nextMethod(invoice.method, "digital");
+  return pay === left
+    ? ok(`Pago recibido: ${money(pay)} en dólares digitales.`)
+    : ok(`Pago recibido: ${money(pay)}. Falta ${money(left - pay)}.`);
+}
+
+export function payLater(invoiceId: number): Receipt {
+  const invoice = findInvoice(invoiceId);
+  if (!invoice) return fail("No encontramos esa factura.");
+  if (invoice.paid >= invoice.amount) return fail("Esta factura ya está pagada.");
+  const shop = findShop(invoice.shopId);
+  if (!shop) return fail("Esta tienda todavía no tiene crédito.");
+  const now = clock();
+  if (shop.owed > 0 && now > shop.dueAt) return fail("Tiene un pago vencido.");
+  const amount = invoice.amount - invoice.paid;
+  if (shop.owed + amount > shop.limit) return fail("Supera su límite de crédito.");
+
+  const units = amount * UNITS_PER_CENT;
+  // No usage fee on credit: our cut is inside the 1.5% (the distributor gets $98.50 per $100).
+  const payout = units - bps(units, CREDIT_FEE_BPS);
+  const toBuffer = bps(units, BUFFER_BPS);
+  const fromPool = payout + bps(units, OUR_BPS) + toBuffer;
+  const { pool } = db();
+  if (pool.available < fromPool) return fail("Hoy no hay fondos para crédito. Intente más tarde.");
+
+  pool.available -= fromPool;
+  pool.buffer += toBuffer;
+  if (shop.owed === 0) {
+    shop.dueAt = now + CREDIT_DAYS * DAY_MS;
+    shop.cycleBorrowed = 0;
+  }
+  shop.owed += amount;
+  shop.cycleBorrowed += amount;
+  invoice.paid = invoice.amount;
+  invoice.method = nextMethod(invoice.method, "credit");
+  return ok(`Listo. Tiene hasta el ${formatDay(iso(shop.dueAt))} para pagar ${money(amount)}, sin intereses.`);
+}
+
+export function claimCash(invoiceId: number, amount: number): Receipt {
+  const invoice = findInvoice(invoiceId);
+  if (!invoice) return fail("No encontramos esa factura.");
+  if (invoice.paid >= invoice.amount) return fail("Esta factura ya está pagada.");
+  const cash = toCents(amount);
+  if (cash === null) return fail("Monto inválido.");
+  if (cash > invoice.amount - invoice.paid) return fail("El monto es mayor que lo que falta pagar.");
+
+  invoice.cashClaim = cash;
+  return ok("Listo. Ahora la tienda debe tocar «Confirmo».");
+}
+
+export function confirmCash(invoiceId: number): Receipt {
+  const invoice = findInvoice(invoiceId);
+  if (!invoice) return fail("No encontramos esa factura.");
+  const cash = invoice.cashClaim;
+  if (cash === undefined) return fail("El motorista aún no registró el efectivo.");
+  if (invoice.paid >= invoice.amount) return fail("Esta factura ya está pagada.");
+  if (cash > invoice.amount - invoice.paid) return fail("El efectivo registrado es mayor que lo que falta pagar.");
+
+  invoice.paid += cash;
+  invoice.method = nextMethod(invoice.method, "cash");
+  delete invoice.cashClaim;
+  const driver = db().drivers.find((d) => d.id === invoice.driverId);
+  if (driver) driver.cashHeld += cash;
+  return ok(`Listo. Confirmó ${money(cash)} en efectivo.`);
+}
+
+export function repay(shopId: string, amount: number): Receipt {
+  const shop = findShop(shopId);
+  if (!shop || shop.owed === 0) return fail("No tiene deudas pendientes.");
+  const pay = toCents(amount);
+  if (pay === null || pay > shop.owed) return fail("Monto inválido.");
+
+  db().pool.available += pay * UNITS_PER_CENT;
+  shop.owed -= pay;
+  if (shop.owed > 0) return ok(`Pago recibido: ${money(pay)}. Falta ${money(shop.owed)}.`);
+
+  const now = clock();
+  const onTime = now <= shop.dueAt;
+  const borrowed = shop.cycleBorrowed;
+  shop.dueAt = 0;
+  shop.cycleBorrowed = 0;
+  if (!onTime) {
+    shop.late += 1;
+    shop.limit = Math.max(shop.limit - LIMIT_STEP, 0);
+    return ok(`Deuda pagada con atraso. Su límite bajó a ${money(shop.limit)}.`);
+  }
+  shop.onTime += 1;
+  const waited = shop.lastRaiseAt === 0 || now >= shop.lastRaiseAt + RAISE_EVERY_MS;
+  if (shop.limit >= LIMIT_CAP || borrowed < MIN_BORROW_TO_GROW || !waited) {
+    return ok("Deuda pagada a tiempo. Gracias.");
+  }
+  shop.limit = Math.min(shop.limit + LIMIT_STEP, LIMIT_CAP);
+  shop.lastRaiseAt = now;
+  return ok(`Deuda pagada a tiempo. Su límite subió a ${money(shop.limit)}.`);
+}
+
+/** Many invoices at once (CSV import, #32). All rows are checked before any is added. */
+export function createInvoices(rows: InvoiceRow[]): Receipt {
+  const { invoices, drivers } = db();
+  const ids = new Set(invoices.map((i) => i.id));
+  const records: InvoiceRecord[] = [];
+  for (const [index, row] of rows.entries()) {
+    const line = `Fila ${index + 1}`;
+    if (!Number.isInteger(row.invoiceId) || row.invoiceId <= 0) return fail(`${line}: número de factura inválido.`);
+    if (ids.has(row.invoiceId)) return fail(`${line}: la factura ${row.invoiceId} ya existe.`);
+    if (!findShop(row.shopId)) return fail(`${line}: tienda desconocida.`);
+    if (!drivers.some((d) => d.id === row.driverId)) return fail(`${line}: motorista desconocido.`);
+    const amount = /^\d+(\.\d{1,7})?$/.test(row.amount.trim()) ? toCents(Number(row.amount)) : null;
+    if (amount === null) return fail(`${line}: monto inválido.`);
+    const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(row.dueDate.trim());
+    const dueAt = Date.parse(dateOnly ? `${row.dueDate.trim()}T06:00:00Z` : row.dueDate); // midnight in El Salvador
+    if (Number.isNaN(dueAt)) return fail(`${line}: fecha inválida.`);
+    ids.add(row.invoiceId);
+    records.push({ id: row.invoiceId, shopId: row.shopId, driverId: row.driverId, amount, paid: 0, dueAt });
+  }
+  if (records.length === 0) return fail("No hay facturas para crear.");
+  invoices.push(...records);
+  return ok(records.length === 1 ? "Se creó 1 factura." : `Se crearon ${plural(records.length, "factura", "facturas")}.`);
+}

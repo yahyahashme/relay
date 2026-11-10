@@ -157,3 +157,15 @@ vite.config.ts.timestamp-*
 .soroban/
 # Rust build output for the contract
 target/
+# Soroban test snapshots (written by `cargo test`)
+test_snapshots/
+
+# Next.js lines from create-next-app that the list above was missing
+/.pnp
+/out/
+/build
+.DS_Store
+*.pem
+.pnpm-debug.log*
+.vercel
+next-env.d.ts

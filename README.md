@@ -6,7 +6,7 @@ Built for the Velocity x Stellar challenge (Nov 2026) by Yahya, Jack, Rohan and 
 
 ## Status
 
-Work in progress. Nothing runs yet. The plan and every decision are in [docs/context.md](docs/context.md). Tasks are in [Issues](../../issues).
+Work in progress. The app runs on demo data (`npm install`, then `npm run dev`), and the contract is written and tested (`cargo test`); it goes on testnet on Wed Nov 11. The plan and every decision are in [docs/context.md](docs/context.md). Tasks are in [Issues](../../issues).
 
 ## What it will have
 
