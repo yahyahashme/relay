@@ -14,7 +14,9 @@ use soroban_sdk::{
     IntoVal, Val, Vec,
 };
 
-/// 0.10% on every invoice paid, digital, cash or credit. Goes to us.
+/// 0.10% on every invoice paid digitally or in cash. Goes to us.
+/// Credit sales don't pay it: our cut there is inside the 1.50% credit fee,
+/// so the distributor sees one number ($98.50 for every $100).
 pub const USAGE_FEE_BPS: i128 = 10;
 /// 1.50% on credit, split three ways:
 pub const CREDIT_FEE_BPS: i128 = 150;
@@ -30,6 +32,15 @@ const _: () = assert!(BUFFER_BPS + LENDER_BPS + OUR_BPS == CREDIT_FEE_BPS);
 pub const LIMIT_STEP: i128 = 250_000_000;
 /// ...up to $500. This is our own credit record.
 pub const LIMIT_CAP: i128 = 5_000_000_000;
+/// A repayment only raises the limit if the shop borrowed at least $40 in
+/// that cycle (about one small delivery)...
+pub const MIN_BORROW_TO_GROW: i128 = 400_000_000;
+// ...and at most once per credit period. Together these stop a shop from
+// taking $1 of credit and repaying it over and over to reach $500.
+
+/// A shop this many credit periods past its due date can be written off:
+/// 4 x 7 days = 28 days late for real, 8 minutes with the 2-minute demo period.
+pub const DEFAULT_AFTER_PERIODS: u64 = 4;
 
 /// `list_invoices` returns only the newest 60, so one call never reads too much.
 pub const MAX_LIST: u32 = 60;
@@ -54,6 +65,8 @@ pub enum Error {
     NothingOwed = 10,
     NoCashClaim = 11,
     NoCreditTerms = 12,
+    NotApproved = 13,
+    NotInDefault = 14,
 }
 
 #[contracttype]
@@ -117,6 +130,12 @@ pub struct Shop {
     pub on_time: u32,
     pub late: u32,
     pub total_repaid: i128,
+    /// Borrowed since `owed` was last 0.
+    pub cycle_borrowed: i128,
+    /// Unix seconds of the last limit raise; 0 if never.
+    pub last_raise_at: u64,
+    /// Debt the buffer covered after a default and the shop still owes.
+    pub written_off: i128,
 }
 
 /// What the app shows. A shop with no credit terms gets all zeros.
@@ -130,6 +149,7 @@ pub struct ShopView {
     pub on_time: u32,
     pub late: u32,
     pub total_repaid: i128,
+    pub written_off: i128,
 }
 
 #[contracttype]
@@ -143,6 +163,7 @@ pub enum DataKey {
     DriverCash(Address),
     CashClaim(u64),
     UsageOwed(Address),
+    Distributor(Address),
 }
 
 #[contractevent]
@@ -221,6 +242,28 @@ pub struct Repaid {
     pub owed: i128,
 }
 
+#[contractevent]
+pub struct DistributorApproved {
+    #[topic]
+    pub distributor: Address,
+}
+
+#[contractevent]
+pub struct BufferFunded {
+    #[topic]
+    pub from: Address,
+    pub amount: i128,
+}
+
+#[contractevent]
+pub struct DefaultCovered {
+    #[topic]
+    pub shop: Address,
+    pub owed: i128,
+    /// How much the buffer could pay back to the lenders (at most `owed`).
+    pub covered: i128,
+}
+
 #[contract]
 pub struct RouteLedger;
 
@@ -241,6 +284,18 @@ impl RouteLedger {
 
     // ---------- v1: invoices and digital payments ----------
 
+    /// Admin only: let a distributor create invoices. Without this, any
+    /// address could invoice a shop and collect pool money as "distributor".
+    pub fn approve_distributor(env: Env, distributor: Address) {
+        load_config(&env).admin.require_auth();
+        put(&env, &DataKey::Distributor(distributor.clone()), &true);
+        DistributorApproved { distributor }.publish(&env);
+    }
+
+    pub fn is_distributor(env: Env, distributor: Address) -> bool {
+        env.storage().persistent().has(&DataKey::Distributor(distributor))
+    }
+
     pub fn create_invoice(
         env: Env,
         distributor: Address,
@@ -251,6 +306,9 @@ impl RouteLedger {
         due: u64,
     ) -> Result<(), Error> {
         distributor.require_auth();
+        if !env.storage().persistent().has(&DataKey::Distributor(distributor.clone())) {
+            return Err(Error::NotApproved);
+        }
         if env.storage().persistent().has(&DataKey::Invoice(id)) {
             return Err(Error::AlreadyExists);
         }
@@ -449,13 +507,13 @@ impl RouteLedger {
         if terms.owed + amount > terms.limit {
             return Err(Error::OverLimit);
         }
-        // 3. Fees: the distributor gets the amount minus 1.50% credit and 0.10% usage.
-        let usage_fee = bps(amount, USAGE_FEE_BPS)?;
-        let payout = amount - bps(amount, CREDIT_FEE_BPS)? - usage_fee;
+        // 3. Fees: the distributor gets the amount minus the 1.50% credit fee
+        //    (no usage fee on credit: our 0.25% is inside the 1.50%).
+        let payout = amount - bps(amount, CREDIT_FEE_BPS)?;
         let ours = bps(amount, OUR_BPS)?;
         let to_buffer = bps(amount, BUFFER_BPS)?;
         // The lenders' 0.50% never leaves `available`, so the pool gives up the rest.
-        let from_pool = payout + usage_fee + ours + to_buffer;
+        let from_pool = payout + ours + to_buffer;
         // 4. Only lend money the pool has, never the buffer.
         let mut pool = load_pool(&env);
         if pool.available < from_pool {
@@ -466,7 +524,7 @@ impl RouteLedger {
         let token = token::Client::new(&env, &config.token);
         let me = env.current_contract_address();
         send(&token, &me, &invoice.distributor, payout);
-        send(&token, &me, &config.treasury, usage_fee + ours);
+        send(&token, &me, &config.treasury, ours);
 
         pool.available -= from_pool;
         pool.buffer += to_buffer;
@@ -474,8 +532,10 @@ impl RouteLedger {
 
         if terms.owed == 0 {
             terms.due_at = now + config.credit_period_secs;
+            terms.cycle_borrowed = 0;
         }
         terms.owed += amount;
+        terms.cycle_borrowed += amount;
         save_shop(&env, &shop, &terms);
 
         invoice.paid = invoice.amount;
@@ -502,13 +562,16 @@ impl RouteLedger {
 
     // ---------- v3: repayment and the shop's credit record ----------
 
+    /// The shop pays back credit. Money goes to the pool for the lenders.
+    /// If the debt was written off (`cover_default`), it refills the buffer instead.
     pub fn repay(env: Env, shop: Address, amount: i128) -> Result<(), Error> {
         shop.require_auth();
         let mut terms = match load_shop(&env, &shop) {
-            Some(terms) if terms.owed > 0 => terms,
+            Some(terms) if terms.owed > 0 || terms.written_off > 0 => terms,
             _ => return Err(Error::NothingOwed),
         };
-        if amount <= 0 || amount > terms.owed {
+        let owed_now = if terms.owed > 0 { terms.owed } else { terms.written_off };
+        if amount <= 0 || amount > owed_now {
             return Err(Error::InvalidAmount);
         }
 
@@ -519,26 +582,98 @@ impl RouteLedger {
             &amount,
         );
         let mut pool = load_pool(&env);
+        terms.total_repaid += amount;
+
+        if terms.owed == 0 {
+            // Paying back a written-off debt: the buffer paid for it, so it gets it back.
+            pool.buffer += amount;
+            save_pool(&env, &pool);
+            terms.written_off -= amount;
+            save_shop(&env, &shop, &terms);
+            Repaid { shop, amount, owed: terms.written_off }.publish(&env);
+            return Ok(());
+        }
+
         pool.available += amount;
         save_pool(&env, &pool);
-
         terms.owed -= amount;
-        terms.total_repaid += amount;
         if terms.owed == 0 {
-            if env.ledger().timestamp() <= terms.due_at {
+            let now = env.ledger().timestamp();
+            if now <= terms.due_at {
                 terms.on_time += 1;
-                // +$25 for paying on time, never past $500. A limit the
-                // admin set above $500 is left alone.
-                if terms.limit < LIMIT_CAP {
+                // +$25 for paying on time, never past $500, and only if the shop
+                // borrowed at least $40 this cycle and wasn't raised in the last
+                // credit period. A limit the admin set above $500 is left alone.
+                let big_enough = terms.cycle_borrowed >= MIN_BORROW_TO_GROW;
+                let waited = terms.last_raise_at == 0
+                    || now >= terms.last_raise_at + config.credit_period_secs;
+                if big_enough && waited && terms.limit < LIMIT_CAP {
                     terms.limit = (terms.limit + LIMIT_STEP).min(LIMIT_CAP);
+                    terms.last_raise_at = now;
                 }
             } else {
+                // Late: the limit drops one step ($25).
                 terms.late += 1;
+                terms.limit = (terms.limit - LIMIT_STEP).max(0);
             }
             terms.due_at = 0;
+            terms.cycle_borrowed = 0;
         }
         save_shop(&env, &shop, &terms);
         Repaid { shop, amount, owed: terms.owed }.publish(&env);
+        Ok(())
+    }
+
+    /// Admin only: a shop is `DEFAULT_AFTER_PERIODS` credit periods late.
+    /// The buffer pays the lenders back what it can, the shop's credit is
+    /// turned off, and the debt stays on its record as `written_off`.
+    pub fn cover_default(env: Env, shop: Address) -> Result<(), Error> {
+        let config = load_config(&env);
+        config.admin.require_auth();
+        let mut terms = load_shop(&env, &shop).ok_or(Error::NothingOwed)?;
+        if terms.owed == 0 {
+            return Err(Error::NothingOwed);
+        }
+        let late_by = config.credit_period_secs.saturating_mul(DEFAULT_AFTER_PERIODS);
+        if env.ledger().timestamp() <= terms.due_at.saturating_add(late_by) {
+            return Err(Error::NotInDefault);
+        }
+
+        let owed = terms.owed;
+        let mut pool = load_pool(&env);
+        let covered = owed.min(pool.buffer);
+        pool.buffer -= covered;
+        pool.available += covered;
+        save_pool(&env, &pool);
+
+        terms.written_off += owed;
+        terms.owed = 0;
+        terms.due_at = 0;
+        terms.cycle_borrowed = 0;
+        terms.late += 1;
+        terms.limit = 0;
+        save_shop(&env, &shop, &terms);
+        DefaultCovered { shop, owed, covered }.publish(&env);
+        Ok(())
+    }
+
+    /// Anyone (usually the lender, at launch) can add money straight to the
+    /// buffer, so it isn't empty before the first credit fees arrive.
+    pub fn fund_buffer(env: Env, from: Address, amount: i128) -> Result<(), Error> {
+        from.require_auth();
+        if amount <= 0 {
+            return Err(Error::InvalidAmount);
+        }
+        let config = load_config(&env);
+        token::Client::new(&env, &config.token).transfer(
+            &from,
+            &env.current_contract_address(),
+            &amount,
+        );
+        let mut pool = load_pool(&env);
+        pool.buffer += amount;
+        save_pool(&env, &pool);
+        BufferFunded { from, amount }.publish(&env);
         Ok(())
     }
 
@@ -552,6 +687,7 @@ impl RouteLedger {
             on_time: terms.on_time,
             late: terms.late,
             total_repaid: terms.total_repaid,
+            written_off: terms.written_off,
         }
     }
 }

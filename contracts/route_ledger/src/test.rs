@@ -45,6 +45,8 @@ fn setup() -> Setup {
         (admin.clone(), asset.address(), treasury.clone(), WEEK),
     );
     let client = RouteLedgerClient::new(&env, &contract_id);
+    let distributor = Address::generate(&env);
+    client.approve_distributor(&distributor);
 
     let shop = Address::generate(&env);
     let lender = Address::generate(&env);
@@ -57,7 +59,7 @@ fn setup() -> Setup {
         minter,
         admin,
         treasury,
-        distributor: Address::generate(&env),
+        distributor,
         shop,
         driver: Address::generate(&env),
         lender,
@@ -388,8 +390,9 @@ fn credit_of_100() {
 
     t.client.pay_with_credit(&t.shop, &1);
 
-    assert_eq!(t.balance(&t.distributor), 984_000_000);
-    assert_eq!(t.balance(&t.treasury), 3_500_000);
+    // $98.50 to the distributor, $0.25 to us, $0.75 to the buffer.
+    assert_eq!(t.balance(&t.distributor), 985_000_000);
+    assert_eq!(t.balance(&t.treasury), 2_500_000);
     let pool = t.client.get_pool();
     assert_eq!(pool.buffer, 7_500_000);
     assert_eq!(pool_before.available - pool.available, 995_000_000);
@@ -417,8 +420,8 @@ fn credit_of_150() {
 
     t.client.pay_with_credit(&t.shop, &1);
 
-    assert_eq!(t.balance(&t.distributor), 1_476_000_000);
-    assert_eq!(t.balance(&t.treasury), 5_250_000);
+    assert_eq!(t.balance(&t.distributor), 1_477_500_000);
+    assert_eq!(t.balance(&t.treasury), 3_750_000);
     let pool = t.client.get_pool();
     assert_eq!(pool.buffer, 11_250_000);
     assert_eq!(pool_before.available - pool.available, 1_492_500_000);
@@ -482,7 +485,7 @@ fn part_digital_then_credit_is_mixed() {
 
     // Credit covers the remaining $100 only.
     assert_eq!(t.client.get_shop(&t.shop).owed, 1_000_000_000);
-    assert_eq!(t.balance(&t.distributor) - distributor_before, 984_000_000);
+    assert_eq!(t.balance(&t.distributor) - distributor_before, 985_000_000);
     let invoice = t.client.get_invoice(&1);
     assert_eq!(invoice.status, InvoiceStatus::Paid);
     assert_eq!(invoice.method, PayMethod::Mixed);
@@ -533,7 +536,7 @@ fn full_cycle_on_time() {
 }
 
 #[test]
-fn late_repayment_keeps_the_limit() {
+fn late_repayment_drops_the_limit_one_step() {
     let t = setup();
     t.with_credit();
     t.invoice(1, 100 * USD);
@@ -545,7 +548,7 @@ fn late_repayment_keeps_the_limit() {
     let shop = t.client.get_shop(&t.shop);
     assert_eq!(shop.late, 1);
     assert_eq!(shop.on_time, 0);
-    assert_eq!(shop.limit, 2_000_000_000);
+    assert_eq!(shop.limit, 1_750_000_000);
     assert_eq!(shop.owed, 0);
     assert_eq!(shop.due_at, 0);
 }
@@ -628,7 +631,8 @@ fn shop_without_terms_shows_zeros() {
             overdue: false,
             on_time: 0,
             late: 0,
-            total_repaid: 0
+            total_repaid: 0,
+            written_off: 0
         }
     );
 }
@@ -646,4 +650,129 @@ fn set_terms_keeps_the_record() {
     assert_eq!(shop.limit, 3_000_000_000);
     assert_eq!(shop.on_time, 1);
     assert_eq!(shop.total_repaid, 1_000_000_000);
+}
+
+// ---------- review fixes (Nov 10) ----------
+
+#[test]
+fn only_approved_distributors_create_invoices() {
+    let t = setup();
+    let stranger = Address::generate(&t.env);
+    assert!(t.client.is_distributor(&t.distributor));
+    assert!(!t.client.is_distributor(&stranger));
+    assert_eq!(
+        t.client.try_create_invoice(&stranger, &1, &t.shop, &t.driver, &(100 * USD), &START),
+        Err(Ok(Error::NotApproved))
+    );
+}
+
+#[test]
+fn tiny_loans_do_not_grow_the_limit() {
+    let t = setup();
+    t.with_credit();
+    t.invoice(1, 39 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    t.client.repay(&t.shop, &(39 * USD));
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!(shop.on_time, 1);
+    assert_eq!(shop.limit, 200 * USD);
+}
+
+#[test]
+fn small_loans_in_one_cycle_add_up() {
+    let t = setup();
+    t.with_credit();
+    t.invoice(1, 20 * USD);
+    t.invoice(2, 20 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    t.client.pay_with_credit(&t.shop, &2);
+    t.client.repay(&t.shop, &(40 * USD));
+    assert_eq!(t.client.get_shop(&t.shop).limit, 225 * USD);
+}
+
+#[test]
+fn one_raise_per_credit_period() {
+    let t = setup();
+    t.with_credit();
+    t.invoice(1, 100 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    t.client.repay(&t.shop, &(100 * USD));
+    assert_eq!(t.client.get_shop(&t.shop).limit, 225 * USD);
+
+    // Same week: borrowing and repaying again doesn't raise it.
+    t.invoice(2, 100 * USD);
+    t.client.pay_with_credit(&t.shop, &2);
+    t.client.repay(&t.shop, &(100 * USD));
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!(shop.limit, 225 * USD);
+    assert_eq!(shop.on_time, 2);
+
+    // A week later it does.
+    t.env.ledger().set_timestamp(START + WEEK);
+    t.invoice(3, 100 * USD);
+    t.client.pay_with_credit(&t.shop, &3);
+    t.client.repay(&t.shop, &(100 * USD));
+    assert_eq!(t.client.get_shop(&t.shop).limit, 250 * USD);
+}
+
+#[test]
+fn default_is_covered_by_the_buffer() {
+    let t = setup();
+    t.with_credit();
+    t.client.fund_buffer(&t.lender, &(50 * USD));
+    t.invoice(1, 100 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    let available_before = t.client.get_pool().available;
+
+    // Not yet: 4 weeks late is the line.
+    t.env.ledger().set_timestamp(START + WEEK + 4 * WEEK);
+    assert_eq!(t.client.try_cover_default(&t.shop), Err(Ok(Error::NotInDefault)));
+
+    t.env.ledger().set_timestamp(START + WEEK + 4 * WEEK + 1);
+    t.client.cover_default(&t.shop);
+    let pool = t.client.get_pool();
+    // Buffer had $50 + $0.75: it gives all of it back to the lenders.
+    assert_eq!(pool.buffer, 0);
+    assert_eq!(pool.available - available_before, 507_500_000);
+    t.assert_pool_matches_balance();
+
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!((shop.owed, shop.limit, shop.late), (0, 0, 1));
+    assert_eq!(shop.written_off, 100 * USD);
+    assert!(!shop.overdue);
+    assert_eq!(t.client.try_cover_default(&t.shop), Err(Ok(Error::NothingOwed)));
+
+    // Credit is off.
+    t.invoice(2, 10 * USD);
+    assert_eq!(t.client.try_pay_with_credit(&t.shop, &2), Err(Ok(Error::OverLimit)));
+
+    // Paying it back later refills the buffer.
+    t.client.repay(&t.shop, &(30 * USD));
+    assert_eq!(t.client.get_pool().buffer, 30 * USD);
+    assert_eq!(t.client.get_shop(&t.shop).written_off, 70 * USD);
+    assert_eq!(t.client.try_repay(&t.shop, &(71 * USD)), Err(Ok(Error::InvalidAmount)));
+    t.assert_pool_matches_balance();
+}
+
+#[test]
+fn small_buffer_covers_what_it_can() {
+    let t = setup();
+    t.with_credit();
+    t.invoice(1, 100 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    let available_before = t.client.get_pool().available;
+    t.env.ledger().set_timestamp(START + 6 * WEEK);
+    t.client.cover_default(&t.shop);
+    // Only the $0.75 buffer was there; the lenders carry the other $99.25.
+    assert_eq!(t.client.get_pool().available - available_before, 7_500_000);
+    assert_eq!(t.client.get_pool().buffer, 0);
+}
+
+#[test]
+fn fund_buffer_checks_the_amount() {
+    let t = setup();
+    assert_eq!(t.client.try_fund_buffer(&t.lender, &0), Err(Ok(Error::InvalidAmount)));
+    t.client.fund_buffer(&t.lender, &(10 * USD));
+    assert_eq!(t.client.get_pool(), Pool { available: 0, buffer: 10 * USD });
+    t.assert_pool_matches_balance();
 }

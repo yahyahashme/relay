@@ -21,7 +21,7 @@ describe("seed data", () => {
   it("has three shops with a $200 limit and a $5,000 pool", () => {
     expect(mock.getShop("tienda-1")).toMatchObject({ name: "Tienda Rosa", creditLimit: 200, creditOwed: 0, overdue: false });
     expect(mock.getShop("nope")).toBeNull();
-    expect(mock.getPool()).toEqual({ available: 5000, buffer: 0 });
+    expect(mock.getPool()).toEqual({ available: 5000, buffer: 50 });
     expect(mock.getDrivers().map((d) => d.name)).toEqual(["Carlos", "Ana"]);
   });
 });
@@ -68,7 +68,7 @@ describe("pay in 7 days", () => {
     expect(mock.getInvoice(1001)).toMatchObject({ status: "paid", method: "credit" });
     expect(mock.getShop("tienda-1")).toMatchObject({ creditOwed: 150, overdue: false, creditDue: new Date(NOW + 7 * DAY).toISOString() });
     // $150 on credit: the pool gives up $149.25 and keeps $1.125 as a buffer.
-    expect(mock.getPool()).toEqual({ available: 4850.75, buffer: 1.125 });
+    expect(mock.getPool()).toEqual({ available: 4850.75, buffer: 51.125 });
   });
 
   it("stops at the limit and while overdue", () => {
@@ -95,15 +95,30 @@ describe("repay", () => {
     expect(mock.repay("tienda-1", 1).message).toBe("No tiene deudas pendientes.");
   });
 
-  it("keeps the limit when paid late", () => {
+  it("drops the limit $25 when paid late", () => {
     mock.payLater(1001);
     now = NOW + 8 * DAY;
+    expect(mock.repay("tienda-1", 150).message).toBe("Deuda pagada con atraso. Su límite bajó a $175.00.");
+    expect(mock.getShop("tienda-1")).toMatchObject({ creditLimit: 175, onTime: 0, late: 1 });
+  });
+
+  it("only grows after a $40+ cycle, once per week", () => {
+    mock.payLater(1001); // $150
     mock.repay("tienda-1", 150);
-    expect(mock.getShop("tienda-1")).toMatchObject({ creditLimit: 200, onTime: 0, late: 1 });
+    expect(mock.getShop("tienda-1")?.creditLimit).toBe(225);
+    mock.payLater(1004); // $60, same week
+    expect(mock.repay("tienda-1", 60).message).toBe("Deuda pagada a tiempo. Gracias.");
+    expect(mock.getShop("tienda-1")?.creditLimit).toBe(225);
+
+    now = NOW + 7 * DAY;
+    mock.payLater(1007); // $40 is enough
+    mock.repay("tienda-1", 40);
+    expect(mock.getShop("tienda-1")?.creditLimit).toBe(250);
   });
 
   it("never grows the limit past $500", () => {
     for (let round = 0; round < 14; round++) {
+      now = NOW + round * 7 * DAY;
       const invoice = mock.createDemoInvoice("tienda-2");
       expect(mock.payLater(invoice.id).ok).toBe(true);
       mock.repay("tienda-2", invoice.amount);

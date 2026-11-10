@@ -94,7 +94,7 @@ export default function AccountScreen() {
             <p className="text-2xl font-semibold tabular-nums">{formatMoney(available)}</p>
           </div>
         </div>
-        <p className="rounded-xl bg-brand-soft px-3 py-2 text-brand">+$25 por cada pago a tiempo, hasta $500</p>
+        <p className="rounded-xl bg-brand-soft px-3 py-2 text-brand">+$25 por pago a tiempo (uno por semana, compras desde $40), hasta $500. Si paga tarde, baja $25.</p>
         <p>
           Historial: {plural(shop.onTime, "pago", "pagos")} a tiempo, {shop.late} tarde
         </p>

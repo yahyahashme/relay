@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Deploy route_ledger to testnet and load the demo: credit terms, pool money
-# and 8 invoices (#52). Run it right after ./scripts/setup.sh (#15):
+# Deploy route_ledger to testnet and load the demo: credit terms, pool money,
+# a seeded loss buffer, the approved distributor and 8 invoices (#52).
+# Run it right after ./scripts/setup.sh (#15):
 #
 #   ./scripts/setup.sh && ./scripts/deploy.sh
 #   CREDIT_PERIOD_SECS=120 ./scripts/deploy.sh   # 2-minute credit, for an "overdue" demo copy
@@ -122,6 +123,16 @@ deposit_once() {
   [ "$(view get_pool | field available)" = "50000000000" ]
 }
 retry deposit_once
+
+step "The lender seeds the loss buffer with \$50"
+buffer_once() {
+  invoke lender fund_buffer --from "$LENDER" --amount 500000000 && return 0
+  [ "$(view get_pool | field buffer)" = "500000000" ]
+}
+retry buffer_once
+
+step "Approving the demo distributor (only approved distributors can invoice)"
+retry invoke admin approve_distributor --distributor "$DISTRIBUTOR"
 
 # ---------- 6. Demo invoices ----------
 step "Creating the 8 demo invoices (due in 7 days)"

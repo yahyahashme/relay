@@ -12,8 +12,9 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const CREDIT_DAYS = 7;
 const UNITS_PER_CENT = 100_000; // $1 = 10,000,000 units
 const LIMIT_STEP = 25_00; // +$25 per on-time repayment...
-const LIMIT_CAP = 500_00; // ...up to $500
-const USAGE_FEE_BPS = 10;
+const LIMIT_CAP = 500_00; // ...up to $500,
+const MIN_BORROW_TO_GROW = 40_00; // ...only if the cycle borrowed at least $40,
+const RAISE_EVERY_MS = CREDIT_DAYS * DAY_MS; // ...and at most once per credit period
 const CREDIT_FEE_BPS = 150;
 const BUFFER_BPS = 75;
 const OUR_BPS = 25;
@@ -37,6 +38,8 @@ type ShopRecord = {
   dueAt: number; // 0 while nothing is owed
   onTime: number;
   late: number;
+  cycleBorrowed: number; // borrowed since owed was last 0
+  lastRaiseAt: number; // 0 if never
 };
 type DriverRecord = { id: string; name: string; cashHeld: number };
 type Store = {
@@ -68,7 +71,7 @@ let store: Store | null = null;
 
 function seed(now: number): Store {
   const shop = (id: string, name: string, owner: string): ShopRecord => ({
-    id, name, owner, limit: 200_00, owed: 0, dueAt: 0, onTime: 0, late: 0,
+    id, name, owner, limit: 200_00, owed: 0, dueAt: 0, onTime: 0, late: 0, cycleBorrowed: 0, lastRaiseAt: 0,
   });
   return {
     invoices: SEED_INVOICES.map(([id, shopId, driverId, amount]) => ({
@@ -83,7 +86,7 @@ function seed(now: number): Store {
       { id: "motorista-1", name: "Carlos", cashHeld: 0 },
       { id: "motorista-2", name: "Ana", cashHeld: 0 },
     ],
-    pool: { available: 5_000_00 * UNITS_PER_CENT, buffer: 0 },
+    pool: { available: 5_000_00 * UNITS_PER_CENT, buffer: 50_00 * UNITS_PER_CENT }, // deploy.sh seeds $50
   };
 }
 
@@ -222,17 +225,21 @@ export function payLater(invoiceId: number): Receipt {
   if (shop.owed + amount > shop.limit) return fail("Supera su límite de crédito.");
 
   const units = amount * UNITS_PER_CENT;
-  const usageFee = bps(units, USAGE_FEE_BPS);
-  const payout = units - bps(units, CREDIT_FEE_BPS) - usageFee;
+  // No usage fee on credit: our cut is inside the 1.5% (the distributor gets $98.50 per $100).
+  const payout = units - bps(units, CREDIT_FEE_BPS);
   const toBuffer = bps(units, BUFFER_BPS);
-  const fromPool = payout + usageFee + bps(units, OUR_BPS) + toBuffer;
+  const fromPool = payout + bps(units, OUR_BPS) + toBuffer;
   const { pool } = db();
   if (pool.available < fromPool) return fail("Hoy no hay fondos para crédito. Intente más tarde.");
 
   pool.available -= fromPool;
   pool.buffer += toBuffer;
-  if (shop.owed === 0) shop.dueAt = now + CREDIT_DAYS * DAY_MS;
+  if (shop.owed === 0) {
+    shop.dueAt = now + CREDIT_DAYS * DAY_MS;
+    shop.cycleBorrowed = 0;
+  }
   shop.owed += amount;
+  shop.cycleBorrowed += amount;
   invoice.paid = invoice.amount;
   invoice.method = nextMethod(invoice.method, "credit");
   return ok(`Listo. Tiene hasta el ${formatDay(iso(shop.dueAt))} para pagar ${money(amount)}, sin intereses.`);
@@ -276,15 +283,23 @@ export function repay(shopId: string, amount: number): Receipt {
   shop.owed -= pay;
   if (shop.owed > 0) return ok(`Pago recibido: ${money(pay)}. Falta ${money(shop.owed)}.`);
 
-  const onTime = clock() <= shop.dueAt;
+  const now = clock();
+  const onTime = now <= shop.dueAt;
+  const borrowed = shop.cycleBorrowed;
   shop.dueAt = 0;
+  shop.cycleBorrowed = 0;
   if (!onTime) {
     shop.late += 1;
-    return ok("Deuda pagada. Gracias.");
+    shop.limit = Math.max(shop.limit - LIMIT_STEP, 0);
+    return ok(`Deuda pagada con atraso. Su límite bajó a ${money(shop.limit)}.`);
   }
   shop.onTime += 1;
-  if (shop.limit >= LIMIT_CAP) return ok("Deuda pagada a tiempo. Gracias.");
+  const waited = shop.lastRaiseAt === 0 || now >= shop.lastRaiseAt + RAISE_EVERY_MS;
+  if (shop.limit >= LIMIT_CAP || borrowed < MIN_BORROW_TO_GROW || !waited) {
+    return ok("Deuda pagada a tiempo. Gracias.");
+  }
   shop.limit = Math.min(shop.limit + LIMIT_STEP, LIMIT_CAP);
+  shop.lastRaiseAt = now;
   return ok(`Deuda pagada a tiempo. Su límite subió a ${money(shop.limit)}.`);
 }
 
