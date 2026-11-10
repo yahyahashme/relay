@@ -285,7 +285,7 @@ export type Driver = { id: string; name: string; cashHeld: number };
 
 ### 3.7 Demo video script
 
-> Nov 9: the video issue has the updated script (worldwide number first, then 85,265 tiendas and $2B a year).
+> Nov 9: the video issue has the updated script (worldwide number first, then 85,265 shops and small retailers and $2B a year; see docs/facts.md).
 
 60 seconds, screen recording, with the shop and driver screens in a phone-size window. On screen the whole time: "Testnet · dólares de prueba · cash-in simulado".
 
@@ -398,7 +398,7 @@ A shop buys $100 of stock and picks "pay in 7 days".
 - If turning cash into digital dollars costs shops much, nobody switches (Risk #1, §6).
 - Distributors may say 1.5% is too much. Ask them (§13).
 
-**Market size (sourced Nov 9):** distributors sell about **$2 billion a year** to El Salvador's **85,265 tiendas** (Distribución Dinámica study, via Diario El Salvador, 27 Feb 2026; one firm's study quoted by a government official, so cite it that way). Ceiling, not a forecast: if 10% of it went through "pay in 7 days", our 0.25% share of that is $500K a year, and the 0.1% usage fee on the other 90% is $1.8M (credit sales don't pay the usage fee), so about $2.3M in total. Lead with a worldwide number first, then this one (Misha); Rohan is finding and sourcing it. Never use the unsourced $7B.
+**Market size (sourced Nov 9):** distributors sell about **$2 billion a year** to El Salvador's **85,265 neighbourhood shops and small retailers** (about 50,133 of them are tiendas proper). The $2B is a Conamype estimate: its president, Paul Steiner, citing unnamed market studies, via Diario El Salvador, 27 Feb 2026. The shop count is Distribución Dinámica's. Details and caveats: `docs/facts.md` entries 1 to 3. Ceiling, not a forecast: if 10% of it went through "pay in 7 days", our 0.25% share of that is $500K a year, and the 0.1% usage fee on the other 90% is $1.8M (credit sales don't pay the usage fee), so about $2.3M in total. Lead with a worldwide number first, then this one (Misha); Rohan is finding and sourcing it. Never use the unsourced $7B.
 
 ---
 
@@ -550,13 +550,15 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 **Who:** neighbourhood shops in El Salvador and the distributors whose trucks restock them. First customer **(guess, confirm in interviews)**: one mid-size distributor of snacks, drinks or dairy with a few routes.
 
 **Numbers we can use** (say "regional" when it is)
-- **85,265 neighbourhood shops (2025), up 23% in a decade. Distributors sell them about $2B a year, and they sell about $3B a year to customers. 85% are owned by women. Extortion used to close shops and delivery routes** (Distribución Dinámica study, via Diario El Salvador, 27 Feb 2026). This replaces the older "about 70,000 (USDA)".
-- 80% of 1,200 small-business owners in Mexico, El Salvador, Honduras and Guatemala mainly pay suppliers in cash (Mastercard and PCMI, Apr 2025). Regional, not El Salvador alone.
-- 62.2% of micro and small businesses have borrowed from loan sharks, at about 1,869% a year on average, and 68% get the money the same day. Reasons: 43.5% family emergencies, 41.7% keeping the business running (FUSAI and ASOMI, Jul 2026).
+- **85,265 neighbourhood shops and small retailers (2025), about 50,133 of them tiendas proper, up 23% in a decade** (Distribución Dinámica study, via Diario El Mundo, 24 Feb and 1 Mar 2026). The total also counts eateries, street vendors and tortilla shops. This replaces the older "about 70,000 (USDA)".
+- **Distributors sell them about $2B a year, and they sell about $3B a year to customers** (Conamype estimate, Paul Steiner citing market studies, via Diario El Salvador, 27 Feb 2026). Never use the $5B sum.
+- **Most are run by women.** Distribución Dinámica says 85% (via Diario El Salvador); another report says about 70%, so say "most". **Extortion used to close shops and delivery routes** (same article; GI-TOC, Feb 2022).
+- 80% of 1,200 small-business owners in Mexico, El Salvador, Honduras and Guatemala mainly pay suppliers in cash (a 2022 PCMI survey, quoted in a Mastercard white paper reported in Apr 2025; `docs/facts.md` entry 11). Regional, not El Salvador alone.
+- 62.2% of informal and semi-informal micro and small businesses have borrowed from loan sharks at some point, at about 1,869% a year on average, and 68% get the money the same day. Reasons: 43.5% family emergencies, 41.7% keeping the business running (FUSAI and ASOMI, via El Diario de Hoy, Jul 2026). The 1,869% matches a March 2022 CIOPS measurement, so it may be older data.
 - In a 2019 survey of 1,285 merchants, 75% used loan-shark money for stock, 96% repaid daily, and each $100 cost about $35 in interest (CIOPS, 2019).
 - 51.5% of micro and small businesses have no formal financial relationship (FLACSO and FUSAI, cited in our first draft).
-- 46.9% of adults have an account (central bank survey, 2025).
-- Transfer365, the central bank's instant transfer system, is free for users and moves over $4B a month; the survey article says it carries 95.3% of financial transactions. So "cheaper transfers" is not our pitch.
+- 46.9% of adults have a savings account (central bank survey, 2025); the World Bank's Global Findex says 43% (2024). Say "fewer than half".
+- Transfer365, the central bank's instant transfer system, is free for users and moves over $4B a month (BCR data via El Diario de Hoy, Jan 2026); outlets put its share at 93% to 95.3%, so say "more than 9 in 10". So "cheaper transfers" is not our pitch.
 - El Salvador uses the US dollar, so USDC is simply "digital dollars": no exchange rate, and no inflation story.
 - Bitcoin became optional in Jan 2025, as part of a $1.4B IMF deal, and only 8.1% used the government's Chivo wallet in 2024. Say "digital dollars", never "crypto".
 - Remittances ($10.0B in 2025, about 24% of GDP) are background only. We're domestic.
@@ -579,6 +581,7 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 | **Rocket** (El Salvador; GlobalPay Solutions with Mastercard and Microsoft) | A shop app: card payments, bills, phone top-ups, a marketplace to order stock; microcredit planned. In 2022: over 2,000 shops signed up, about 400 actually using it. | Shops sign up; keeping them active is the hard part. | We live inside the distributor's route: driver cash records, invoice matching, and credit on a record shared across distributors. |
 | **Tienda Pago** (Mexico and Peru) | Pays big brands' distributors for a shop's stock. The shop approves with an SMS or WhatsApp code when the truck arrives and repays within 7 days at a bank or one of 33,000 payment points. Works on basic phones. Raised $7.5M (2018). | Seven-day stock credit at the truck works. | El Salvador; rules and fee splits in an open contract; a pool many lenders can fund; cash tracking for distributors. |
 | **Transfer365** | Free instant bank transfers. | Moving money between bank accounts is already free. | No credit, no invoice matching, no driver cash records; about half of small businesses have no bank relationship. |
+| **BFA tienda credit line** (state bank, with Conamype guarantees; since late 2025) | Loans to tiendas up to $10,000, approved within 72 hours; over $1.4M lent in 440 loans by Feb 2026. | Government already sees stock credit as the problem. | A loan you apply for (average about $3,200) versus 7-day, no-interest stock credit at the truck, per delivery, that builds a record. See `docs/facts.md` entry 20. |
 | **Loan sharks** | Cash the same day, no paperwork. | Speed and no paperwork matter. | The same speed for stock, with no interest. |
 | **Cash** | Works everywhere. | Cash has to stay allowed. | We record cash instead of fighting it. |
 
@@ -606,7 +609,7 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 |---|---|---|
 | A real problem with evidence, and how we'd measure impact | §9 numbers and impact measures | Rohan |
 | Why we're better than the alternatives, including Stellar's benefits | §10, and "Why Stellar?" in §14 | Yahya |
-| A specific, reachable first customer, and market size | One distributor's routes; worldwide number first, then 85,265 tiendas and $2B a year from distributors | Rohan (facts), Jack (one-pager) |
+| A specific, reachable first customer, and market size | One distributor's routes; worldwide number first, then 85,265 shops and small retailers and $2B a year from distributors | Rohan (facts), Jack (one-pager) |
 | A revenue model, affordable pricing, costs | §5 and `docs/assumptions.md` | Rohan (numbers), Jack (one-pager) |
 | A prototype tested with real users, and what we changed | §13 walkthroughs; "what we heard, what we changed" | Rohan, Yahya |
 
@@ -736,7 +739,8 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 | Nov 6 | This file is our single context doc. Build plan adopted. One contract recommended (Jack can split it if needed). |
 | Nov 9 | Product form: a mobile web app on our own open contract, not a native app or a feature in someone else's wallet. |
 | Nov 9 | New roles: Yahya all code-heavy work and all UI; Jack light backend plus the one-pager, slides, trifold and deck; Ruhaan about 3 h of small non-UI helpers; Rohan outreach and sourced facts only. The plan moved into the GitHub issues. |
-| Nov 9 | Market size: $2B a year from distributors to 85,265 tiendas (Distribución Dinámica, via Diario El Salvador). Never use the unsourced $7B. Lead with a worldwide number first. |
+| Nov 9 | Market size: $2B a year from distributors to El Salvador's neighbourhood shops (Conamype estimate, via Diario El Salvador; see the fact-sheet row below). Never use the unsourced $7B. Lead with a worldwide number first. |
+| Nov 9 | Fact sheet (#50): every number now lives in `docs/facts.md`. Corrections: 85,265 is "shops and small retailers" (about 50,133 tiendas proper); the $2B is a Conamype estimate, not the Distribución Dinámica study; 62.2% is informal small businesses; say "most" women-owned, not 85%. |
 | Nov 9 | Compare our cost to loan sharks (about $35 per $100), never to MoneyGram's 5%. |
 | Nov 9 | Contract fees: 0.1% usage fee on every invoice; 1.5% credit fee paid by the distributor (0.75 buffer, 0.50 lenders, 0.25 us). Limits start at $200 and grow $25 per on-time repayment, up to $500: our own credit record. |
 | Nov 9 | MIT licence removed; the code is all rights reserved (#48). |
@@ -814,12 +818,14 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 ## 19. Sources
 
 **Problem and market**
-- Market size: 85,265 tiendas and about $2B a year from distributors (Distribución Dinámica study, Diario El Salvador, Feb 27, 2026): https://diarioelsalvador.com/dedinero/la-seguridad-impulso-el-crecimiento-de-las-tiendas-de-barrio-en-un-23/763705
+- Market size: 85,265 shops and small retailers and about $2B a year from distributors (Conamype's Paul Steiner and the Distribución Dinámica study, Diario El Salvador, Feb 27, 2026): https://diarioelsalvador.com/dedinero/la-seguridad-impulso-el-crecimiento-de-las-tiendas-de-barrio-en-un-23/763705
 - FUSAI and ASOMI loan-shark study (El Diario de Hoy, Jul 24, 2026): https://www.eldiariodehoy.com/negocios/microempresas-el-salvador-dependen-prestamos-usureros/86923/2026/
 - CIOPS 2019 survey of 1,285 merchants (Revista E&N, Sep 9, 2019): https://www.revistaeyn.com/finanzas/el-salvador-mipymes-pagan-hasta-2628-de-interes-por-usura-HAEN1317303
 - Mastercard and PCMI cash survey (El Mundo, Apr 10, 2025): https://diario.elmundo.sv/ampArticle/el-efectivo-es-principal-metodo-de-pago-para-80-de-las-pequenas-empresas-de-el-salvador?amp=1
-- 46.9% account ownership and Transfer365's share (El Salvador in English, Jan 6, 2026): https://elsalvadorinenglish.com/2026/01/06/el-salvador-reaches-46-9-financial-inclusion-as-government-expands-access-to-banking-services/
-- Transfer365 moves over $4B a month (El Salvador in English, Jan 8, 2026): https://elsalvadorinenglish.com/2026/01/08/el-salvadors-transfer365-moves-over-4-billion-monthly-becoming-the-countrys-most-used-digital-payment-platform/
+- 46.9% with a savings account (BCR survey, via Revista E&N, Jan 7, 2026): https://www.revistaeyn.com/finanzas/inclusion-financiera-de-la-poblacion-de-el-salvador-es-casi-del-47-OG28841852
+- Transfer365 moves over $4B a month (BCR data, El Diario de Hoy, Jan 12, 2026): https://www.elsalvador.com/dinero-y-negocios/entorno-economico/transfer365-servicio-transferencias-el-salvador/1258080/2026/
+- Shop count split, 50,133 tiendas and 35,142 other retailers (Diario El Mundo, Mar 1, 2026): https://diario.elmundo.sv/economia/en-el-salvador-hay-mas-de-300-pupuserias-que-tambien-funcionan-como-tiendas
+- Every other source, with exact quotes: `docs/facts.md`
 - Interest-cap law and the 1.6× rule (FLACSO opinion piece, El Mundo, Oct 21, 2025): https://diario.elmundo.sv/opinion/la-ley-contra-la-usura-en-el-salvador-entre-la-proteccion-formal-y-la-exclusion-real-del-credito-mype
 - Average loan rates in April 2026 (El Mundo, May 19, 2026): https://diario.elmundo.sv/economia/tasas-de-intereses-de-prestamos-en-el-salvador-mostraron-reduccion-en-abril
 - Bitcoin law change (Jan 30, 2025): https://www.centralamerica.com/news/el-salvador-bitcoin-law-changes
