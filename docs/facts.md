@@ -8,7 +8,31 @@ Every number we say in the one-pager, pitch, trifold and deck comes from this fi
 
 ## Opening line
 
-_Added in #51._
+> "Around the world, small businesses in developing countries can't get about $5.7 trillion in credit they need. In El Salvador alone, more than 50,000 neighbourhood shops buy about $2 billion a year from distributors."
+
+About 33 words, about 10 seconds. Sources: entry 22 (IFC/World Bank) and entries 1 and 3. "Can't get credit they need" is a finance **gap**, not money we can earn, so never call it our market.
+
+Backup if a judge prefers a shop number: "There are about 50 million small neighbourhood shops in the world's emerging markets (entry 23)…"
+
+Dropped from the #51 template: "mostly in cash". The cash figure (entry 11) covers four countries, not El Salvador alone.
+
+## Where we go next
+
+1. **Ecuador and Panama.** Both use the US dollar (entries 25, 26), so the same USDC product works with no currency exchange.
+2. **Guatemala and Honduras.** Neighbours with the same kind of shops and routes, where small businesses also pay suppliers mainly in cash (entries 11, 27). They have their own currencies, so we'd add currency swaps.
+3. **Mexico and Peru.** Much bigger markets where Tienda Pago already showed shops use one-week credit for stock (entry 28).
+
+## Pitch highlights
+
+Strongest first. Each line is safe to say out loud; the entry has the source.
+
+1. Small businesses in developing countries can't get about $5.7 trillion in credit they need (22).
+2. Distributors sell El Salvador's neighbourhood shops about $2 billion a year (Conamype estimate) (1).
+3. 6 in 10 informal small businesses have borrowed from loan sharks, at about $35 per $100 (2019 survey) (9, 10).
+4. Loan sharks lend El Salvador's small businesses about $1.25 billion a year (19).
+5. Conamype says shops are out of stock 24 days out of 30 for lack of credit (21).
+6. Fewer than half of adults have a bank account (12, 13).
+7. A state bank already lends tiendas up to $10,000 in 72 hours; we're different because credit happens at the truck, per delivery (20).
 
 ## Say this, not that
 
@@ -319,3 +343,77 @@ _Added in #51._
 - **Use in:** pitch / one-pager (always with "according to Conamype")
 - **Caveat:** Paul Steiner, Conamype's president, said it in a TV interview (Entrevista AM) and cited no study. Strong line, soft evidence, so attribute it every time. In the same interview he said the BFA line (entry 20) lends even to informal shops.
 - **Checked:** Claude, 9 Nov 2026 (link opened, quote matches the page)
+
+---
+
+## Worldwide and expansion (#51)
+
+## 22. The worldwide credit gap for small businesses
+- **Claim:** Small businesses in developing countries can't get about $5.7 trillion in credit they need.
+- **Number:** US$5.7 trillion across 119 emerging and developing economies (2019 data, IFC and World Bank report, March 2025); plus US$2.1 trillion for informal businesses
+- **Source:** World Bank, SME Finance topic page, last updated 7 Oct 2025, https://www.worldbank.org/en/topic/smefinance?amp=1 ; report: IFC and SME Finance Forum, "MSME Finance Gap" (March 2025), https://www.smefinanceforum.org/news/11541348
+- **Exact quote:** "a finance gap of about US$5.7 trillion"
+- **Translation:** n/a (English source)
+- **Use in:** one-pager / pitch / video / deck (opening line)
+- **Caveat:** A model estimate of unmet demand for credit by formal micro, small and medium businesses, not revenue we can earn. The data year is 2019, though the report is from 2025 and IFC still uses the figure (IFC factsheet, March 2026: $8 trillion including informal businesses, https://www.smefinanceforum.org/news/11526833). Worldwide, not El Salvador.
+- **Checked:** Claude, 10 Nov 2026 (quote matched against the page text; open the link to confirm)
+
+## 23. Small shops worldwide
+- **Claim:** There are about 50 million small neighbourhood shops ("nanostores") in emerging markets.
+- **Number:** about 50 million (estimate)
+- **Source:** MIT Center for Transportation & Logistics, SCALE nanostores summary, https://ctl.mit.edu/sites/ctl.mit.edu/files/MIT-SCALE-SCM-Nanostores_Summary.pdf (citing the book *Reaching 50 Million Nanostores*)
+- **Exact quote:** "there are 50 million nanostores globally"
+- **Translation:** n/a (English source)
+- **Use in:** pitch / deck (backup opening line)
+- **Caveat:** A rough academic estimate with no single year; say "about". The same summary says logistics costs are 10% to 20% of these shops' product sales in Latin America.
+- **Checked:** Claude, 10 Nov 2026 (quote matched against the page text; open the link to confirm)
+
+## 24. Small shops still pay suppliers by cash, cheque or transfer (regional)
+- **Claim:** Across Latin America, most payments between small shops and their suppliers still don't use digital payments.
+- **Number:** 90% of B2B payments, about US$293.4 billion; 12 million traditional retailers; US$362 billion in sales to consumers (11 Latin American and Caribbean markets plus the US)
+- **Source:** Mastercard, "Pequeñas empresas y transformación digital: abriendo una oportunidad de US$448 mil millones en la industria de bienes de consumo envasados", 8 Apr 2025, https://www.mastercard.com/news/latin-america/es/sala-de-prensa/comunicados-de-prensa/pr-es/2025/abril/pequenas-empresas-y-transformacion-digital-abriendo-una-oportunidad-de-us-448-mil-millones-en-la-industria-de-cpg
+- **Exact quote:** "el 90% de los pagos B2B —equivalentes a US$293,4 mil millones—"
+- **Translation:** "90% of B2B payments, equivalent to US$293.4 billion"
+- **Use in:** deck / Q&A
+- **Caveat:** Commissioned by Mastercard, a payments company. The 90% means cash, cheques **or bank transfers**, so it is not "90% cash". Covers El Salvador, Guatemala, Honduras, Mexico, Peru, Colombia, Brazil, Chile, Argentina, Jamaica, the Dominican Republic and the US.
+- **Checked:** Claude, 10 Nov 2026 (quote taken from a text extract of the page; confirm wording)
+
+## 25. Ecuador uses the US dollar
+- **Claim:** Ecuador has used the US dollar as its currency since 2000.
+- **Number:** since January 2000
+- **Source:** IMF Working Paper WP/22/234, "Central Bank Balance Sheet Expansion in a Dollarized Economy: The Case of Ecuador", December 2022, https://imf.org/-/media/Files/Publications/WP/2022/English/wpiea2022234-print-pdf.ashx
+- **Exact quote:** "an officially dollarized economy since January 2000"
+- **Translation:** n/a (English source)
+- **Use in:** deck ("where we go next")
+- **Caveat:** IMF working papers are research, not official IMF policy, but this fact is not disputed.
+- **Checked:** Claude, 10 Nov 2026 (quote matched against the page text; open the link to confirm)
+
+## 26. Panama uses the US dollar
+- **Claim:** Panama has used the US dollar as legal tender since 1904.
+- **Number:** since 1904 (the balboa is pegged 1:1 and exists only as coins)
+- **Source:** Cato Journal, "Lessons from the Monetary Experience of Panama: A Dollar Economy with Financial Integration" (Winter 1999), https://cato.org/cato-journal/winter-1999/lessons-monetary-experience-panama-dollar-economy-financial-integration
+- **Exact quote:** "In 1904, the U. S. dollar became legal tender in Panama."
+- **Translation:** n/a (English source)
+- **Use in:** deck ("where we go next")
+- **Caveat:** An academic journal from 1999; the arrangement hasn't changed since. A Panamanian government source would be stronger if a judge pushes.
+- **Checked:** Claude, 10 Nov 2026 (quote matched against the page text; open the link to confirm)
+
+## 27. Guatemala and Honduras
+- **Claim:** Guatemala and Honduras have the same kind of neighbourhood shops, and their small businesses also pay suppliers mainly in cash.
+- **Number:** El Salvador, Guatemala and Honduras together have about 300,000 tiendas de barrio (PCMI for Mastercard); 80% cash for supplier payments (four countries, entry 11)
+- **Source:** Diario El Mundo, 10 Apr 2025 (same article as entry 11), https://diario.elmundo.sv/economia/el-efectivo-es-principal-metodo-de-pago-para-80-de-las-pequenas-empresas-de-el-salvador
+- **Exact quote:** — (same article as entry 11; the 300,000 figure is in its fourth paragraph)
+- **Translation:** —
+- **Use in:** deck ("where we go next")
+- **Caveat:** Regional estimate from a Mastercard-commissioned study. Both countries have their own currencies (quetzal, lempira), so we'd need currency swaps, unlike El Salvador.
+- **Checked:** Claude, 10 Nov 2026 (figure confirmed on the page)
+
+## 28. Mexico and Peru: Tienda Pago
+- **Claim:** In Mexico and Peru, Tienda Pago already lends small shops short credit for stock, paying the distributor directly.
+- **Number:** average loan under US$500; about three loans a month per shop; credit for up to 14 days
+- **Source:** Triodos Investment Management, "Investment: Tienda Pago" (2021), https://www.triodos-im.com/articles/2021/investment---tiendapago
+- **Exact quote:** "The average loan provided by Tienda Pago is less than USD 500"
+- **Translation:** n/a (English source)
+- **Use in:** deck / Q&A (precedent and expansion)
+- **Caveat:** Written by one of Tienda Pago's investors, from 2021. Tienda Pago raised a US$12 million Series B in October 2022 (Accion, https://www.accion.org/short-term-credits-lender-tienda-pago-raises-12m-to-keep-helping-small-convenience-stores-grow-their-business-in-todays-challenging-economic-environment). It charges the shop a fee; we don't. For Mexico's shop count, a market-research firm says more than one million traditional stores (Premise, Jul 2024, https://premise.com/?p=68793), which is weaker.
+- **Checked:** Claude, 10 Nov 2026 (quote matched against the page text; open the link to confirm)
