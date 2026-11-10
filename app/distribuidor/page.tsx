@@ -1,11 +1,11 @@
 "use client";
 
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { BackLink, Card, Chip, Label, LoadError, Loading, Screen } from "@/components/ui";
 import { createDemoInvoice, getDrivers, getInvoices, getShop } from "@/lib/api";
 import { formatDay, formatMoney } from "@/lib/format";
 import { creditPayout, invoiceStatus, METHOD_LABEL, type StatusTone } from "@/lib/labels";
-import type { Shop } from "@/lib/types";
+import type { Invoice, Shop } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
 
 const STATUS_FILTERS: { label: string; tone?: StatusTone }[] = [
@@ -21,6 +21,36 @@ async function loadDashboard() {
   const shopIds = [...new Set(invoices.map((i) => i.shopId))];
   const shops = (await Promise.all(shopIds.map(getShop))).filter((s): s is Shop => s !== null);
   return { invoices, drivers, shops };
+}
+
+const HIGHLIGHT_MS = 4000;
+
+/** What a row looks like; when it changes between refreshes, the row lights up. */
+const rowKey = (i: Invoice) => `${i.status}|${i.paid}|${i.method ?? ""}|${i.cashClaim ?? ""}`;
+
+/** Ids of invoices that are new or changed since the last refresh, for a few seconds. */
+function useChangedRows(invoices: Invoice[] | undefined): Set<number> {
+  const seen = useRef<Map<number, string> | null>(null);
+  const [changed, setChanged] = useState<Map<number, number>>(new Map());
+  useEffect(() => {
+    if (!invoices) return;
+    const before = seen.current;
+    seen.current = new Map(invoices.map((i) => [i.id, rowKey(i)]));
+    if (!before) return; // first load: nothing "changed"
+    const now = Date.now();
+    const fresh = invoices.filter((i) => before.get(i.id) !== rowKey(i)).map((i) => i.id);
+    if (fresh.length === 0) return;
+    setChanged((old) => new Map([...old, ...fresh.map((id) => [id, now] as const)]));
+  }, [invoices]);
+  useEffect(() => {
+    if (changed.size === 0) return;
+    const timer = setTimeout(
+      () => setChanged((old) => new Map([...old].filter(([, at]) => Date.now() - at < HIGHLIGHT_MS))),
+      HIGHLIGHT_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [changed]);
+  return new Set(changed.keys());
 }
 
 const sum = (values: number[]) => Math.round(values.reduce((a, b) => a + b, 0) * 100) / 100;
@@ -44,7 +74,7 @@ function Total({ label, children }: { label: string; children: ReactNode }) {
   return (
     <Card className="flex flex-col gap-1">
       <Label>{label}</Label>
-      <div className="text-2xl font-semibold tabular-nums">{children}</div>
+      <div className="text-2xl font-semibold tabular-nums lg:text-4xl">{children}</div>
     </Card>
   );
 }
@@ -55,6 +85,7 @@ export default function Dashboard() {
   const [driverFilter, setDriverFilter] = useState("all");
   const [creating, setCreating] = useState(false);
   const [newest, setNewest] = useState<number | null>(null);
+  const changed = useChangedRows(data?.invoices);
 
   async function newDemoInvoice() {
     setCreating(true);
@@ -102,7 +133,7 @@ export default function Dashboard() {
   const onCredit = sum(shops.map((s) => s.creditOwed));
   const overdue = sum(shops.filter((s) => s.overdue).map((s) => s.creditOwed));
 
-  const rows = invoices.filter(
+  const rows = [...invoices].reverse().filter( // newest first
     (i) =>
       (statusFilter === "all" || invoiceStatus(i).tone === statusFilter) &&
       (driverFilter === "all" || i.driverId === driverFilter),
@@ -171,7 +202,10 @@ export default function Dashboard() {
             {rows.map((invoice) => {
               const status = invoiceStatus(invoice);
               return (
-                <tr key={invoice.id} className={invoice.id === newest ? "bg-brand-soft" : ""}>
+                <tr
+                  key={invoice.id}
+                  className={`transition-colors duration-700 lg:text-lg ${invoice.id === newest || changed.has(invoice.id) ? "bg-brand-soft" : ""}`}
+                >
                   <td className="px-4 py-3 font-medium tabular-nums">{invoice.id}</td>
                   <td className="px-4 py-3">{shopName(invoice.shopId)}</td>
                   <td className="px-4 py-3">{driverName(invoice.driverId)}</td>
