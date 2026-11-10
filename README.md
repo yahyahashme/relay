@@ -14,6 +14,7 @@ Work in progress. The app runs on demo data (`npm install`, then `npm run dev`),
 - **Driver screen:** the day's route, invoices with QR codes, cash collected.
 - **Distributor screen:** what's paid, what's owed, and which driver holds which cash.
 - **One Soroban contract (`route_ledger`)** on Stellar testnet: invoices, cash records, and a lender pool for the 7-day credit.
+- Network fees are paid by our sponsor account (a fee bump), so shops never spend XLM.
 
 ## Risk #1: turning cash into digital dollars
 
