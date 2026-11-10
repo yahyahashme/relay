@@ -27,6 +27,19 @@ Shops are paid in cash. For digital payments to work, that cash has to become di
 
 Coming with the first working version (target: Nov 12). This section will list the setup steps, the testnet contract IDs and the demo accounts.
 
+<!-- contract-ids:start -->
+## Contract IDs
+
+Stellar testnet, deployed 2026-11-10 by `scripts/deploy.sh`.
+
+| What | ID | Explorer |
+|---|---|---|
+| `route_ledger` contract | `CAPQ6ZDDWDS3OE42BM5LM3M7YEQ3TJ7IJZ5ZT7A2Z3RTSI35OJKV3I23` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CAPQ6ZDDWDS3OE42BM5LM3M7YEQ3TJ7IJZ5ZT7A2Z3RTSI35OJKV3I23) |
+| Test USDC token | `CANWPJKTWATAQKWD4VNDRMPHHWONWJ5IMCIJ2OTJNYFZ5IDQWX2E2NUP` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CANWPJKTWATAQKWD4VNDRMPHHWONWJ5IMCIJ2OTJNYFZ5IDQWX2E2NUP) |
+
+Test USDC is our own, issued by `tiendas-issuer`, not Circle's.
+<!-- contract-ids:end -->
+
 ## Never commit secret keys
 
 Stellar secret keys start with `S`. They go in `.env.local` on your computer and in Vercel's settings, never in this repo.

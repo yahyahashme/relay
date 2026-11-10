@@ -1,0 +1,41 @@
+{
+  "network": "testnet",
+  "rpcUrl": "https://soroban-testnet.stellar.org",
+  "horizonUrl": "https://horizon-testnet.stellar.org",
+  "networkPassphrase": "Test SDF Network ; September 2015",
+  "explorer": "https://stellar.expert/explorer/testnet",
+  "token": {
+    "code": "USDC",
+    "issuer": "GCQHRIYAA4D5UCQ3MHK3B6FNPYXBBLPEU5QSBAKAKAAOXWQ5ICZRPXHN",
+    "contractId": "CANWPJKTWATAQKWD4VNDRMPHHWONWJ5IMCIJ2OTJNYFZ5IDQWX2E2NUP",
+    "decimals": 7
+  },
+  "contracts": {
+    "routeLedger": "CAPQ6ZDDWDS3OE42BM5LM3M7YEQ3TJ7IJZ5ZT7A2Z3RTSI35OJKV3I23"
+  },
+  "accounts": {
+    "admin": "GDD7KGT5UZNODMB26M6TRUQIOG3UMCXYYL52KQF7ESYS5DZ45LFDL3T3",
+    "issuer": "GCQHRIYAA4D5UCQ3MHK3B6FNPYXBBLPEU5QSBAKAKAAOXWQ5ICZRPXHN",
+    "sponsor": "GA4Q52RF5TT2QHYGZER3A6QX23KTVWBTEV67EH4OHQENUDIDFA5J7LQS",
+    "treasury": "GBCFUVDG7AWLRXZ7QBLIV7KI4Z5JOR73AWJE6VZS5UEIA5VTGAMUAYTX",
+    "lender": "GC24T2YOYPHSZ2BW42CFFMJVELOR3VBWXPCG2NCG257AHUDLSBQZFQRL",
+    "distributor": "GBGNJTX64HA3NOMNCNLHUEBTYFRL2CVXKI3V3QFOVUGXC6OTSRUVJYDS",
+    "drivers": {
+      "motorista-1": "GDUH4WF52CDM3G6M57B65IHDEF73CCXFZUSRLEFTB632GEJTTJO5T6WZ",
+      "motorista-2": "GDBJ6GSKBXKCG2UY7EAHMRI32EVE2IPTNA2OI5JOVNOHNPUJTQLEQBRL"
+    },
+    "shops": {
+      "tienda-1": "GD2HWNZT4DQ4FXKKJ6FUXL4B5XWLSAJTRX2EGPQL5U3Q2VINRL4LRSOA",
+      "tienda-2": "GDX3MHGPTGKZ4MQCMGMSRXVFCNQF2C4KNXG37D24JAUJQIA7V4BKGAU7",
+      "tienda-3": "GDBFDE5UJXZKZNL7ZXHKPTNYIL4SFWWIT3CAHGDY7VHC32IBL45JVLZS"
+    }
+  },
+  "names": {
+    "distributor": "Distribuidora El Sol",
+    "motorista-1": "Carlos",
+    "motorista-2": "Ana",
+    "tienda-1": "Tienda Rosa",
+    "tienda-2": "Tienda Don Luis",
+    "tienda-3": "Mini Súper La Esquina"
+  }
+}
