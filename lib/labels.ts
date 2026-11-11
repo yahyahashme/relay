@@ -32,3 +32,11 @@ export function creditPayout(amount: number): number {
   const units = Math.round(amount * 100) * 100_000;
   return (units - Math.floor((units * CREDIT_FEE_BPS) / 10_000)) / 10_000_000;
 }
+
+/** "12,50" or "12.5" -> 12.5; null if it isn't a positive amount with at most 2 decimals. */
+export function parseAmount(text: string): number | null {
+  const clean = text.trim().replace(",", ".");
+  if (!/^\d+(\.\d{1,2})?$/.test(clean)) return null;
+  const value = Number(clean);
+  return value > 0 ? value : null;
+}
