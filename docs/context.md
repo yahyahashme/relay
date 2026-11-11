@@ -714,7 +714,7 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 
 - **Repo:** public from day one (judges need it). Board columns: Backlog, This week, In progress, In review, Done. Labels: contract, app, setup, business, research, pitch, team, learning, bug, risk-1, blocked.
 - **Issues:** one task each, one owner, a due time, a "Done means" list. Since Nov 9 the issues are the plan, written so an AI can follow them: paste the whole issue into your AI with this file.
-- **Branches and pull requests:** one branch per issue (like `12-cash-confirm`); the PR says "Closes #12"; PRs stay small and get merged daily. **Reviews (Nov 9):** Yahya reviews every PR; Jack reviews Yahya's (Yahya can merge his own with his admin bypass if Jack is busy). Docs-only work can be done on github.com: open the file, click the pencil, then "Create a new branch for this commit and start a pull request".
+- **Branches and pull requests:** one branch per issue (like `12-cash-confirm`); the PR says "Closes #12"; PRs stay small and get merged daily. **Reviews:** Yahya reviews every PR; Jack reviews Yahya's. Since Nov 10, Yahya's PRs wait for Jack's approval: the admin bypass is a rare exception, not the habit. Docs-only work can be done on github.com: open the file, click the pencil, then "Create a new branch for this commit and start a pull request".
 - **AI chats:** one per workstream. Contract, app and deploy (Yahya, Claude Code); scripts, safety review and pitch documents (Jack); small helper cards (Ruhaan, Codex); outreach and facts (Rohan). Start each one by pasting the issue and attaching this file. When a chat leads to a decision, add it to §16 in a PR. Never paste secret keys into a chat.
 - **Check-ins:** a 9 PM text every day (Done / Next / Blocked); in person Wed Nov 11, 5 to 7 PM; a 20-minute call Thu Nov 12 at 9 PM for the one-pager.
 - **Notion:** skipped. GitHub covers it.
@@ -750,6 +750,7 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 | Nov 9 | The deploy script moved from Jack to Yahya, so Yahya's work waits only on Jack's setup script (#15). |
 | Nov 10 | Credit sales pay no usage fee: the distributor gets $98.50 per $100 (one 1.5% fee; our 0.25% is inside it). The limit grows only after a $40+ cycle, once per credit period; late repayment drops it $25. The buffer covers defaults 4 credit periods late (`cover_default`), and only approved distributors can invoice. |
 | Nov 10 | Only Yahya contacts the advisors (Adam Chu, Misha Stastna), with at most two follow-ups each (#17). |
+| Nov 10 | Yahya's PRs wait for Jack's review before they merge; the admin bypass is a rare exception, not the habit. |
 
 ---
 
