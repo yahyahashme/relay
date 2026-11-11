@@ -45,9 +45,14 @@ if (start < 0) die("pay_with_credit not found in contracts/route_ledger/src/lib.
 // Each block starts at a known line inside pay_with_credit and runs for `len` lines.
 const BLOCKS = [
   { first: "if terms.owed > 0 && now > terms.due_at {", len: 3 }, // not overdue
-  { first: "if terms.owed + amount > terms.limit {", len: 3 }, // within the limit
+  { first: "match terms.owed.checked_add(amount) {", len: 4 }, // within the limit (#66 made the sum overflow-safe)
   { first: "let mut pool = load_pool(&env);", len: 4 }, // the pool has money
 ];
+
+// What fits on the 1920x1080 slide at 48 px (24 pt) code: see code-slide.html. Past these the
+// text runs into the callouts or the contract ID, so stop instead of rendering a broken image.
+const MAX_CHARS = 45;
+const MAX_LINES = 11;
 
 function takeBlock({ first, len }) {
   const i = lib.findIndex((l, n) => n > start && l.trim() === first);
@@ -55,7 +60,10 @@ function takeBlock({ first, len }) {
   const lines = lib.slice(i, i + len);
   if (lines[len - 1].trim() !== "}") die(`the block starting "${first}" changed shape. Update docs/slides/render.mjs.`);
   const indent = Math.min(...lines.map((l) => l.match(/^ */)[0].length));
-  return lines.map((l) => l.slice(indent)).join("\n");
+  const out = lines.map((l) => l.slice(indent));
+  const wide = out.find((l) => l.length > MAX_CHARS);
+  if (wide) die(`"${wide.trim()}" is wider than ${MAX_CHARS} characters, so it will not fit the slide at 24 pt. Pick other lines.`);
+  return out.join("\n");
 }
 
 const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -63,7 +71,7 @@ const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, 
 // One pass, so a replacement is never highlighted twice.
 function highlight(code) {
   return esc(code).replace(
-    /(\/\/.*)|\b(Error::\w+)\b|\b(if|let|mut|return)\b/g,
+    /(\/\/.*)|\b(Error::\w+)\b|\b(if|let|mut|return|match)\b/g,
     (m, comment, err) => (comment ? `<span class="c">${m}</span>` : err ? `<span class="e">${m}</span>` : `<span class="k">${m}</span>`),
   );
 }
@@ -111,6 +119,8 @@ function shoot(htmlPath, png) {
 }
 
 let page = readFileSync(join(here, "code-slide.html"), "utf8");
+const totalLines = BLOCKS.reduce((sum, b) => sum + b.len, 0);
+if (totalLines > MAX_LINES) die(`the slide shows ${totalLines} code lines but only ${MAX_LINES} fit above the contract ID.`);
 BLOCKS.forEach((b, n) => {
   page = page.replace(`{{BLOCK_${n + 1}}}`, () => highlight(takeBlock(b)));
 });
