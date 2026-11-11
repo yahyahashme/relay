@@ -9,6 +9,7 @@ import {
   Transaction,
   TransactionBuilder,
   rpc,
+  xdr,
 } from "@stellar/stellar-sdk";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -27,9 +28,10 @@ const sponsor = Keypair.random();
 const shop = Keypair.random();
 
 // A payment from the shop, already signed by the shop, like the app sends it.
-function signedInner(): Transaction {
+// A contract call carries its resource fee inside its fee, so `fee` can be large.
+function signedInner(fee: string = BASE_FEE): Transaction {
   const tx = new TransactionBuilder(new Account(shop.publicKey(), "100"), {
-    fee: BASE_FEE,
+    fee,
     networkPassphrase: Networks.TESTNET,
   })
     .addOperation(
@@ -45,11 +47,22 @@ function signedInner(): Transaction {
   return tx;
 }
 
-// What the RPC returns when the network rejects a transaction: only the part
-// of the result XDR that sponsor.ts reads.
-const txResult = (code: string) => ({
-  result: () => ({ switch: () => ({ name: code }) }),
-});
+// Real result XDR, hand-encoded and parsed by the SDK, so these tests see the
+// same object shape the RPC gives us (a fake with the old result().switch()
+// methods passed while the real thing did not).
+const FEE = "0000000000000064"; // feeCharged 100
+const EXT = "00000000";
+const parseResult = (...parts: string[]) =>
+  xdr.TransactionResult.fromXDR(Buffer.from(parts.join(""), "hex"));
+
+// txBAD_SEQ
+const badSeq = () => parseResult(FEE, "fffffffb", EXT);
+// txFAILED: one payment operation, PAYMENT_UNDERFUNDED
+const failedUnderfunded = () =>
+  parseResult(FEE, "ffffffff", "00000001", "00000000", "00000001", "fffffffe", EXT);
+// txFEE_BUMP_INNER_FAILED: the inner transaction was txBAD_SEQ
+const innerBadSeq = () =>
+  parseResult("00000000000000c8", "fffffff3", "00".repeat(32), FEE, "fffffffb", EXT, EXT);
 
 const sendTransaction = (status: string, extra: object = {}) =>
   ({ status, hash: "abc123", ...extra }) as rpc.Api.SendTransactionResponse;
@@ -104,6 +117,24 @@ describe("sendSponsored", () => {
     expect(shop.verify(inner.hash(), inner.signatures[0].signature)).toBe(true);
   });
 
+  it("bids at least the inner fee for a contract call, which holds a resource fee", async () => {
+    // BASE_FEE (100) plus an example 60,000-stroop resource fee. With the old
+    // fixed BASE_FEE bid the SDK threw "Invalid baseFee, it should be at least 60100".
+    const inner = signedInner("60100");
+    const send = vi
+      .spyOn(rpc.Server.prototype, "sendTransaction")
+      .mockResolvedValue(sendTransaction("PENDING"));
+    vi.spyOn(rpc.Server.prototype, "getTransaction").mockResolvedValue(
+      getTransaction("SUCCESS"),
+    );
+
+    expect(await run(inner)).toEqual({ value: { hash: "abc123" } });
+    const sent = send.mock.calls[0][0] as FeeBumpTransaction;
+    expect(sent.innerTransaction.fee).toBe("60100");
+    // 60,100 per operation, times the one operation plus one for the bump.
+    expect(sent.fee).toBe(String(60100 * 2));
+  });
+
   it("waits for the transaction to reach a ledger", async () => {
     vi.spyOn(rpc.Server.prototype, "sendTransaction").mockResolvedValue(
       sendTransaction("PENDING"),
@@ -144,14 +175,30 @@ describe("sendSponsored", () => {
 
   it("throws with the result code when the network rejects it", async () => {
     vi.spyOn(rpc.Server.prototype, "sendTransaction").mockResolvedValue(
-      sendTransaction("ERROR", { errorResult: txResult("txBadSeq") }),
+      sendTransaction("ERROR", { errorResult: badSeq() }),
     );
     const get = vi.spyOn(rpc.Server.prototype, "getTransaction");
 
     const out = await run(signedInner());
 
-    expect(out).toMatchObject({ error: { message: expect.stringContaining("txBadSeq") } });
+    expect(out).toMatchObject({
+      error: { message: "Sponsored payment rejected: txBadSeq" },
+    });
     expect(get).not.toHaveBeenCalled();
+  });
+
+  it("names the inner failure when the fee bump wraps a failed transaction", async () => {
+    vi.spyOn(rpc.Server.prototype, "sendTransaction").mockResolvedValue(
+      sendTransaction("ERROR", { errorResult: innerBadSeq() }),
+    );
+
+    const out = await run(signedInner());
+
+    expect(out).toMatchObject({
+      error: {
+        message: "Sponsored payment rejected: txFeeBumpInnerFailed (txBadSeq)",
+      },
+    });
   });
 
   it("throws with the result code when the transaction fails in a ledger", async () => {
@@ -159,13 +206,15 @@ describe("sendSponsored", () => {
       sendTransaction("PENDING"),
     );
     vi.spyOn(rpc.Server.prototype, "getTransaction").mockResolvedValue(
-      getTransaction("FAILED", { resultXdr: txResult("txFailed") }),
+      getTransaction("FAILED", { resultXdr: failedUnderfunded() }),
     );
 
     const out = await run(signedInner());
 
     expect(out).toMatchObject({
-      error: { message: expect.stringMatching(/txFailed.*abc123|abc123.*txFailed/) },
+      error: {
+        message: "Sponsored payment failed (abc123): txFailed (paymentUnderfunded)",
+      },
     });
   });
 

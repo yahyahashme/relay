@@ -17,15 +17,21 @@ const WAIT_MS = 1000;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-type Switchable = { switch(): { name: string } };
+// stellar-sdk 17 parses result XDR into plain objects: a union is
+// { type: "txFailed", ...its arm }, not the older result().switch().name.
+type Union = { type: string };
+
+function isUnion(value: unknown): value is Union {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as Union).type === "string"
+  );
+}
 
 // The name of a Stellar result code, e.g. "txBadSeq". Never throws.
 function codeName(value: unknown): string {
-  try {
-    return (value as Switchable).switch().name;
-  } catch {
-    return "unknown";
-  }
+  return isUnion(value) ? value.type : "unknown";
 }
 
 // Describes why the network said no, e.g. "txFailed (paymentUnderfunded)" or
@@ -33,17 +39,12 @@ function codeName(value: unknown): string {
 // logs must not be replaced by an error from reading the error.
 function describeResult(txResult: unknown): string {
   try {
-    const result = (txResult as { result(): unknown }).result();
+    const result = (txResult as { result?: unknown }).result;
     const code = codeName(result);
     if (code === "txFeeBumpInnerFailed") {
       const inner = (
-        result as {
-          innerResultPair(): { result(): { result(): unknown } };
-        }
-      )
-        .innerResultPair()
-        .result()
-        .result();
+        result as { innerResultPair: { result: { result: unknown } } }
+      ).innerResultPair.result.result;
       return `${code} (${describeOperations(inner) ?? codeName(inner)})`;
     }
     const operations = describeOperations(result);
@@ -54,15 +55,28 @@ function describeResult(txResult: unknown): string {
 }
 
 // For a transaction that failed in its operations: the first operation's
-// result, e.g. "paymentUnderfunded". Undefined when there is none.
+// result, e.g. "paymentUnderfunded" or "invokeHostFunctionTrapped". Undefined
+// when there is none.
 function describeOperations(result: unknown): string | undefined {
   try {
-    const first = (result as { results(): unknown[] }).results()[0];
-    const inner = (first as { tr(): { value(): unknown } }).tr().value();
-    return codeName(inner);
+    const first = (result as { results?: unknown[] }).results?.[0];
+    const tr = (first as { tr?: unknown } | undefined)?.tr;
+    if (!isUnion(tr)) return undefined;
+    // The operation's own result sits next to "type", e.g. paymentResult.
+    const detail = Object.entries(tr).find(([key]) => key !== "type")?.[1];
+    return isUnion(detail) ? detail.type : tr.type;
   } catch {
     return undefined;
   }
+}
+
+// A fee bump must bid at least the inner transaction's fee per operation, or
+// the SDK refuses to build it. The inner fee of a contract call already holds
+// its resource fee (thousands of times BASE_FEE), and nothing adds that for
+// us. The bump's total fee is this bid times (operations + 1).
+function bumpBaseFee(inner: Transaction): string {
+  const perOperation = Math.ceil(Number(inner.fee) / inner.operations.length);
+  return String(Math.max(Number(BASE_FEE), perOperation));
 }
 
 /**
@@ -77,11 +91,9 @@ export async function sendSponsored(
   if (!secret) throw new Error("STELLAR_SECRET_SPONSOR is not set");
   const sponsor = Keypair.fromSecret(secret);
 
-  // baseFee is the fee per operation, not the inner transaction's total: the
-  // SDK adds the inner resource fee (contract calls) on its own.
   const feeBump = TransactionBuilder.buildFeeBumpTransaction(
     sponsor,
-    BASE_FEE,
+    bumpBaseFee(signedInner),
     signedInner,
     config.networkPassphrase,
   );

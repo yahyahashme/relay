@@ -14,7 +14,7 @@ Work in progress. The app runs on demo data (`npm install`, then `npm run dev`),
 - **Driver screen:** the day's route, invoices with QR codes, cash collected.
 - **Distributor screen:** what's paid, what's owed, and which driver holds which cash.
 - **One Soroban contract (`route_ledger`)** on Stellar testnet: invoices, cash records, and a lender pool for the 7-day credit.
-- Network fees are paid by our sponsor account (a fee bump), so shops never spend XLM.
+- Fee sponsorship is written but not switched on yet: `lib/stellar/sponsor.ts` wraps a shop's signed transaction in a fee bump paid by our sponsor account, but the app doesn't call it yet (#32). Until then the sending account pays its own network fee.
 
 ## Risk #1: turning cash into digital dollars
 

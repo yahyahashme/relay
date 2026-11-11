@@ -6,6 +6,11 @@
 // (--conditions=react-server lets `import "server-only"` load outside Next.js.)
 // Needs `./scripts/setup.sh` to have run: it writes .env.local and config/testnet.json.
 // It never prints a secret key.
+//
+// It sends a plain payment, so a pass does NOT prove a contract call can be sponsored.
+// A contract call's fee includes its resource fee, so the bump must bid more (see
+// bumpBaseFee in lib/stellar/sponsor.ts). The unit tests cover that offline; check a
+// sponsored contract call on testnet once the app uses sendSponsored (#32).
 import {
   Asset,
   BASE_FEE,
