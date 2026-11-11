@@ -3,6 +3,11 @@
 //   architecture.png  "How it works on Stellar"
 //
 // Run from anywhere:  node docs/slides/render.mjs
+// Print size:         SCALE=3 node docs/slides/render.mjs
+//   SCALE (a whole number, 1 to 4, default 1) draws the same slide with more pixels, so it prints
+//   sharp: 3 gives 5760 x 3240 (240 pixels per inch at 24 in wide). The files are named
+//   code-slide@3x.png and architecture@3x.png; the 1x files are left alone. Git ignores the @Nx
+//   files, so render them on the computer that prints, after the final contract ID is in place.
 // Needs Google Chrome or Chromium. It looks in the usual macOS, Windows and Linux places; if yours is
 // somewhere else, set CHROME=/path/to/chrome. No npm packages.
 //
@@ -20,6 +25,12 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "../..");
 const outDir = join(root, "docs/img");
+const SCALE = Number(process.env.SCALE || 1);
+if (!Number.isInteger(SCALE) || SCALE < 1 || SCALE > 4) {
+  console.error(`render.mjs: SCALE must be a whole number from 1 to 4 (got "${process.env.SCALE}").`);
+  process.exit(1);
+}
+const SUFFIX = SCALE === 1 ? "" : `@${SCALE}x`;
 const CHROME_PATHS = [
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
   "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
@@ -99,7 +110,8 @@ const asRoot = typeof process.getuid === "function" && process.getuid() === 0;
 mkdirSync(outDir, { recursive: true });
 const tmp = mkdtempSync(join(tmpdir(), "slides-56-"));
 
-function shoot(htmlPath, png) {
+function shoot(htmlPath, name) {
+  const png = name.replace(/\.png$/, `${SUFFIX}.png`);
   execFileSync(
     CHROME,
     [
@@ -107,7 +119,7 @@ function shoot(htmlPath, png) {
       "--disable-gpu",
       "--hide-scrollbars",
       ...(asRoot ? ["--no-sandbox"] : []),
-      "--force-device-scale-factor=1",
+      `--force-device-scale-factor=${SCALE}`,
       "--window-size=1920,1080",
       `--user-data-dir=${join(tmp, "profile")}`,
       `--screenshot=${join(outDir, png)}`,
@@ -115,7 +127,7 @@ function shoot(htmlPath, png) {
     ],
     { stdio: "ignore" },
   );
-  console.log(`wrote docs/img/${png}`);
+  console.log(`wrote docs/img/${png} (${1920 * SCALE} x ${1080 * SCALE})`);
 }
 
 let page = readFileSync(join(here, "code-slide.html"), "utf8");
