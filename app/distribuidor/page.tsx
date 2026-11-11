@@ -30,7 +30,10 @@ const HIGHLIGHT_MS = 4000;
 /** What a row looks like; when it changes between refreshes, the row lights up. */
 const rowKey = (i: Invoice) => `${i.status}|${i.paid}|${i.method ?? ""}|${i.cashClaim ?? ""}`;
 
-/** Ids of invoices that are new or changed since the last refresh, for a few seconds. */
+/**
+ * Ids of invoices that are new or changed since the last refresh, for a few seconds.
+ * "New" means newer than anything loaded before: older rows that "Ver más" adds don't light up.
+ */
 function useChangedRows(invoices: Invoice[] | undefined): Set<number> {
   const seen = useRef<Map<number, string> | null>(null);
   const [changed, setChanged] = useState<Map<number, number>>(new Map());
@@ -40,7 +43,10 @@ function useChangedRows(invoices: Invoice[] | undefined): Set<number> {
     seen.current = new Map(invoices.map((i) => [i.id, rowKey(i)]));
     if (!before) return; // first load: nothing "changed"
     const now = Date.now();
-    const fresh = invoices.filter((i) => before.get(i.id) !== rowKey(i)).map((i) => i.id);
+    const newestBefore = Math.max(0, ...before.keys());
+    const fresh = invoices
+      .filter((i) => (before.has(i.id) ? before.get(i.id) !== rowKey(i) : i.id > newestBefore))
+      .map((i) => i.id);
     if (fresh.length === 0) return;
     setChanged((old) => new Map([...old, ...fresh.map((id) => [id, now] as const)]));
   }, [invoices]);
