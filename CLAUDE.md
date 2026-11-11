@@ -5,6 +5,8 @@ Read docs/context.md first (sections relevant to your issue). It is the source o
 ## Rules
 - Work on ONE GitHub issue per session. Stay inside the files that issue needs.
 - Branch is already created (NN-slug). Never commit to main. Never force-push.
+- Run `git branch --show-current` before every commit. If it isn't your issue's branch, stop and tell me.
+  Never switch branches in a shared checkout; use your own ../ts-NN-slug worktree (./scripts/wt.sh NN slug).
 - Small PR, body ends with "Closes #NN". Include screenshots for UI, test output for contract.
 - Rebase on origin/main before the first push: git fetch origin && git rebase origin/main
   Once the branch is pushed, never rebase (force-push is denied). Use git merge origin/main instead.

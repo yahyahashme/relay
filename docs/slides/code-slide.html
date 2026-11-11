@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920">
+<title>Code slide</title>
+<!-- 1920x1080 = a 13.33 x 7.5 in slide at 144 px/in, so 1 pt = 2 px: the 48 px code is 24 pt. -->
+<style>
+  :root {
+    --bg: #0b1220;
+    --card: #131d33;
+    --ink: #f1f5f9;
+    --muted: #a3b1c6;
+    --kw: #c4b5fd;
+    --err: #fda4af;
+    --cmt: #7c8aa5;
+    --c1: #f59e0b;
+    --c2: #38bdf8;
+    --c3: #34d399;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); color: var(--ink);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+  .slide { position: relative; width: 1920px; height: 1080px; padding: 34px 60px 0; }
+  h1 { font-size: 60px; line-height: 1.1; font-weight: 700; letter-spacing: -0.5px; }
+  .sub { margin-top: 8px; font-size: 28px; color: var(--muted); }
+  .sub code { font-family: Menlo, Monaco, "Courier New", monospace; color: var(--ink); }
+
+  .rows { margin-top: 26px; display: grid; grid-template-columns: 1250px 1fr; column-gap: 28px; row-gap: 26px; align-items: stretch; }
+  pre { font-family: Menlo, Monaco, "Courier New", monospace; font-size: 48px; line-height: 1.2; padding: 14px 28px;
+    background: var(--card); border-radius: 14px; border-left: 12px solid var(--accent); white-space: pre; }
+  .callout { display: flex; align-items: center; border-left: 8px solid var(--accent); padding: 6px 0 6px 24px; font-size: 48px; line-height: 1.15; font-weight: 600; }
+  .r1 { --accent: var(--c1); } .r2 { --accent: var(--c2); } .r3 { --accent: var(--c3); }
+
+  .k { color: var(--kw); } .e { color: var(--err); font-weight: 700; } .c { color: var(--cmt); }
+
+  .foot { position: absolute; left: 60px; right: 60px; bottom: 26px; border-top: 2px solid #26324d; padding-top: 14px; }
+  .foot .label { font-size: 26px; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; }
+  .foot .id { font-family: Menlo, Monaco, "Courier New", monospace; font-size: 44px; line-height: 1.15; }
+  .foot .id.pending { color: #fbbf24; font-size: 38px; }
+  .foot .url { font-family: Menlo, Monaco, "Courier New", monospace; font-size: 28px; color: var(--c2); }
+  .foot .url a { color: inherit; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <h1>The contract enforces the credit rules</h1>
+  <p class="sub">Abridged from <code>pay_with_credit</code> in <code>contracts/route_ledger/src/lib.rs</code> (Soroban, Rust)</p>
+
+  <div class="rows">
+    <pre class="r1">{{BLOCK_1}}</pre>
+    <div class="callout r1">No new credit while a payment is late</div>
+
+    <pre class="r2">{{BLOCK_2}}</pre>
+    <div class="callout r2">Can’t go over the shop’s limit</div>
+
+    <pre class="r3">{{BLOCK_3}}</pre>
+    <div class="callout r3">The pool must have the money</div>
+  </div>
+
+  <div class="foot">
+    <div class="label">Contract ID · Stellar testnet</div>
+    {{CONTRACT_BLOCK}}
+  </div>
+</div>
+</body>
+</html>
