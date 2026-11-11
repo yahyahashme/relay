@@ -42,7 +42,8 @@ pub const MIN_BORROW_TO_GROW: i128 = 400_000_000;
 /// 4 x 7 days = 28 days late for real, 8 minutes with the 2-minute demo period.
 pub const DEFAULT_AFTER_PERIODS: u64 = 4;
 
-/// `list_invoices` returns only the newest 60, so one call never reads too much.
+/// One list call returns at most 60 invoices, so it never reads too much.
+/// Older ones are reached a page at a time with `list_page`.
 pub const MAX_LIST: u32 = 60;
 
 const DAY_IN_LEDGERS: u32 = 17_280; // one ledger every ~5 seconds
@@ -67,6 +68,8 @@ pub enum Error {
     NoCreditTerms = 12,
     NotApproved = 13,
     NotInDefault = 14,
+    /// The driver changed the cash amount after the shop looked at it.
+    ClaimChanged = 15,
 }
 
 #[contracttype]
@@ -164,6 +167,40 @@ pub enum DataKey {
     CashClaim(u64),
     UsageOwed(Address),
     Distributor(Address),
+    // v4: history a page at a time, and running totals.
+    ShopIds(Address),
+    DriverIds(Address),
+    Totals(Address),
+}
+
+/// Which invoices `list_page` walks through.
+#[contracttype]
+#[derive(Clone)]
+pub enum ListFilter {
+    All,
+    Shop(Address),
+    Driver(Address),
+}
+
+/// One page of invoices, newest first, and how many there are in all.
+#[contracttype]
+#[derive(Clone)]
+pub struct InvoicePage {
+    pub invoices: Vec<Invoice>,
+    pub total: u32,
+}
+
+/// A distributor's running totals since the contract was deployed,
+/// so dashboards never have to add up the whole history. Display only:
+/// they saturate instead of failing a payment on overflow.
+#[contracttype]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct Totals {
+    pub invoices: u32,
+    pub invoiced: i128,
+    pub digital: i128,
+    pub cash: i128,
+    pub credit: i128,
 }
 
 #[contractevent]
@@ -327,9 +364,13 @@ impl RouteLedger {
             method: PayMethod::None,
         };
         put(&env, &DataKey::Invoice(id), &invoice);
-        let mut ids = load_ids(&env);
-        ids.push_back(id);
-        put(&env, &DataKey::Ids, &ids);
+        push_id(&env, DataKey::Ids, id);
+        push_id(&env, DataKey::ShopIds(shop.clone()), id);
+        push_id(&env, DataKey::DriverIds(invoice.driver.clone()), id);
+        update_totals(&env, &distributor, |t| {
+            t.invoices = t.invoices.saturating_add(1);
+            t.invoiced = t.invoiced.saturating_add(amount);
+        });
         InvoiceCreated { id, distributor, shop, amount, due }.publish(&env);
         Ok(())
     }
@@ -358,6 +399,7 @@ impl RouteLedger {
 
         invoice.paid += amount;
         record_payment(&env, &mut invoice, PayMethod::Digital);
+        update_totals(&env, &invoice.distributor, |t| t.digital = t.digital.saturating_add(amount));
         InvoicePaid { id, shop, amount, usage_fee }.publish(&env);
         Ok(())
     }
@@ -377,6 +419,32 @@ impl RouteLedger {
             }
         }
         invoices
+    }
+
+    /// Invoices newest first, `skip` of the newest left out, at most `MAX_LIST`.
+    /// Call again with a bigger `skip` to page back through all history.
+    pub fn list_page(env: Env, filter: ListFilter, skip: u32, limit: u32) -> InvoicePage {
+        let ids: Vec<u64> = match filter {
+            ListFilter::All => load_ids(&env),
+            ListFilter::Shop(shop) => load_id_list(&env, DataKey::ShopIds(shop)),
+            ListFilter::Driver(driver) => load_id_list(&env, DataKey::DriverIds(driver)),
+        };
+        let total = ids.len();
+        let end = total.saturating_sub(skip);
+        let start = end.saturating_sub(limit.min(MAX_LIST));
+        let mut invoices = Vec::new(&env);
+        let mut i = end;
+        while i > start {
+            i -= 1;
+            if let Some(invoice) = env.storage().persistent().get(&DataKey::Invoice(ids.get_unchecked(i))) {
+                invoices.push_back(invoice);
+            }
+        }
+        InvoicePage { invoices, total }
+    }
+
+    pub fn get_totals(env: Env, distributor: Address) -> Totals {
+        env.storage().persistent().get(&DataKey::Totals(distributor)).unwrap_or_default()
     }
 
     pub fn get_config(env: Env) -> Config {
@@ -407,9 +475,10 @@ impl RouteLedger {
         Ok(())
     }
 
-    /// The shop confirms the driver's cash claim. The driver now holds that
-    /// cash for the distributor, and the distributor owes us the usage fee.
-    pub fn cash_confirm(env: Env, shop: Address, id: u64) -> Result<(), Error> {
+    /// The shop confirms the driver's cash claim of exactly `amount` (what its
+    /// screen showed). The driver now holds that cash for the distributor, and
+    /// the distributor owes us the usage fee.
+    pub fn cash_confirm(env: Env, shop: Address, id: u64, amount: i128) -> Result<(), Error> {
         shop.require_auth();
         let mut invoice = load_invoice(&env, id)?;
         if invoice.shop != shop {
@@ -417,6 +486,10 @@ impl RouteLedger {
         }
         let claim_key = DataKey::CashClaim(id);
         let claim: i128 = env.storage().persistent().get(&claim_key).ok_or(Error::NoCashClaim)?;
+        // Otherwise the driver could swap $10 for $90 after the shop looked.
+        if claim != amount {
+            return Err(Error::ClaimChanged);
+        }
         // The invoice may have been paid another way since the claim.
         if invoice.status == InvoiceStatus::Paid {
             return Err(Error::AlreadyPaid);
@@ -429,6 +502,7 @@ impl RouteLedger {
         record_payment(&env, &mut invoice, PayMethod::Cash);
         add(&env, DataKey::DriverCash(invoice.driver.clone()), claim);
         add(&env, DataKey::UsageOwed(invoice.distributor.clone()), bps(claim, USAGE_FEE_BPS)?);
+        update_totals(&env, &invoice.distributor, |t| t.cash = t.cash.saturating_add(claim));
         env.storage().persistent().remove(&claim_key);
         CashConfirmed { id, shop, driver: invoice.driver, amount: claim }.publish(&env);
         Ok(())
@@ -547,6 +621,7 @@ impl RouteLedger {
 
         invoice.paid = invoice.amount;
         record_payment(&env, &mut invoice, PayMethod::Credit);
+        update_totals(&env, &invoice.distributor, |t| t.credit = t.credit.saturating_add(amount));
         PaidWithCredit { id, shop, amount, payout, due_at: terms.due_at }.publish(&env);
         Ok(())
     }
@@ -759,6 +834,23 @@ fn save_pool(env: &Env, pool: &Pool) {
 
 fn load_ids(env: &Env) -> Vec<u64> {
     env.storage().persistent().get(&DataKey::Ids).unwrap_or_else(|| Vec::new(env))
+}
+
+fn load_id_list(env: &Env, key: DataKey) -> Vec<u64> {
+    env.storage().persistent().get(&key).unwrap_or_else(|| Vec::new(env))
+}
+
+fn push_id(env: &Env, key: DataKey, id: u64) {
+    let mut ids = load_id_list(env, key.clone());
+    ids.push_back(id);
+    put(env, &key, &ids);
+}
+
+fn update_totals(env: &Env, distributor: &Address, change: impl FnOnce(&mut Totals)) {
+    let key = DataKey::Totals(distributor.clone());
+    let mut totals: Totals = env.storage().persistent().get(&key).unwrap_or_default();
+    change(&mut totals);
+    put(env, &key, &totals);
 }
 
 fn load_invoice(env: &Env, id: u64) -> Result<Invoice, Error> {

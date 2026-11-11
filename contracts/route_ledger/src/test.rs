@@ -280,7 +280,7 @@ fn cash_payment_after_shop_confirms() {
     // Nothing is paid until the shop confirms.
     assert_eq!(t.client.get_invoice(&1).status, InvoiceStatus::Due);
 
-    t.client.cash_confirm(&t.shop, &1);
+    t.client.cash_confirm(&t.shop, &1, &t.client.get_cash_claim(&1));
     let invoice = t.client.get_invoice(&1);
     assert_eq!(invoice.status, InvoiceStatus::Paid);
     assert_eq!(invoice.method, PayMethod::Cash);
@@ -296,7 +296,7 @@ fn cash_payment_after_shop_confirms() {
 fn confirm_without_a_claim_fails() {
     let t = setup();
     t.invoice(1, 150 * USD);
-    assert_eq!(t.client.try_cash_confirm(&t.shop, &1), Err(Ok(Error::NoCashClaim)));
+    assert_eq!(t.client.try_cash_confirm(&t.shop, &1, &t.client.get_cash_claim(&1)), Err(Ok(Error::NoCashClaim)));
 }
 
 #[test]
@@ -326,7 +326,7 @@ fn part_cash_then_digital_is_mixed() {
     let t = setup();
     t.invoice(1, 150 * USD);
     t.client.cash_claim(&t.driver, &1, &(50 * USD));
-    t.client.cash_confirm(&t.shop, &1);
+    t.client.cash_confirm(&t.shop, &1, &t.client.get_cash_claim(&1));
     assert_eq!(t.client.get_invoice(&1).status, InvoiceStatus::PartPaid);
 
     t.client.pay(&t.shop, &1, &(100 * USD));
@@ -342,11 +342,11 @@ fn stale_cash_claim_cannot_overpay() {
     t.client.cash_claim(&t.driver, &1, &(100 * USD));
     // The shop pays $100 digitally before confirming the cash.
     t.client.pay(&t.shop, &1, &(100 * USD));
-    assert_eq!(t.client.try_cash_confirm(&t.shop, &1), Err(Ok(Error::Overpay)));
+    assert_eq!(t.client.try_cash_confirm(&t.shop, &1, &t.client.get_cash_claim(&1)), Err(Ok(Error::Overpay)));
 
     // And once the invoice is fully paid, a leftover claim cannot be confirmed.
     t.client.pay(&t.shop, &1, &(50 * USD));
-    assert_eq!(t.client.try_cash_confirm(&t.shop, &1), Err(Ok(Error::AlreadyPaid)));
+    assert_eq!(t.client.try_cash_confirm(&t.shop, &1, &t.client.get_cash_claim(&1)), Err(Ok(Error::AlreadyPaid)));
 }
 
 #[test]
@@ -354,7 +354,7 @@ fn cash_handed_in_reduces_what_the_driver_holds() {
     let t = setup();
     t.invoice(1, 150 * USD);
     t.client.cash_claim(&t.driver, &1, &(150 * USD));
-    t.client.cash_confirm(&t.shop, &1);
+    t.client.cash_confirm(&t.shop, &1, &t.client.get_cash_claim(&1));
 
     t.client.cash_handed_in(&t.distributor, &t.driver, &(100 * USD));
     assert_eq!(t.client.get_driver_cash(&t.driver), 500_000_000);
@@ -912,7 +912,7 @@ fn each_function_asks_for_exactly_its_documented_signer() {
     t.client.cash_claim(&t.driver, &1, &(20 * USD));
     t.assert_signed_by(&t.driver, "cash_claim");
 
-    t.client.cash_confirm(&t.shop, &1);
+    t.client.cash_confirm(&t.shop, &1, &t.client.get_cash_claim(&1));
     t.assert_signed_by(&t.shop, "cash_confirm");
 
     t.client.cash_handed_in(&t.distributor, &t.driver, &(10 * USD));
@@ -1023,8 +1023,8 @@ fn wrong_signer_cannot_record_cash() {
 
     // Not the shop: a stranger, or the driver confirming their own claim.
     for signer in [t.stranger(), t.driver.clone()] {
-        t.only(&signer, "cash_confirm", (t.shop.clone(), 1u64).into_val(&t.env));
-        assert_not_signed!(t.client.try_cash_confirm(&t.shop, &1));
+        t.only(&signer, "cash_confirm", (t.shop.clone(), 1u64, 100 * USD).into_val(&t.env));
+        assert_not_signed!(t.client.try_cash_confirm(&t.shop, &1, &t.client.get_cash_claim(&1)));
     }
     let invoice = t.client.get_invoice(&1);
     assert_eq!((invoice.paid, invoice.status), (0, InvoiceStatus::Due));
@@ -1032,7 +1032,7 @@ fn wrong_signer_cannot_record_cash() {
     assert_eq!(t.client.get_driver_cash(&t.driver), 0);
 
     t.everyone();
-    t.client.cash_confirm(&t.shop, &1);
+    t.client.cash_confirm(&t.shop, &1, &t.client.get_cash_claim(&1));
     assert_eq!(t.client.get_driver_cash(&t.driver), 100 * USD);
 
     // Not the distributor: a stranger, or the driver clearing their own cash.
@@ -1104,21 +1104,21 @@ fn double_cash_confirm_is_no_cash_claim() {
     let t = setup();
     t.invoice(1, 150 * USD);
     t.client.cash_claim(&t.driver, &1, &(50 * USD));
-    t.client.cash_confirm(&t.shop, &1);
+    t.client.cash_confirm(&t.shop, &1, &t.client.get_cash_claim(&1));
     let invoice = t.client.get_invoice(&1);
     assert_eq!(invoice.paid, 50 * USD);
 
     // The claim is used up: the second confirm finds nothing and adds nothing.
-    assert_eq!(t.client.try_cash_confirm(&t.shop, &1), Err(Ok(Error::NoCashClaim)));
+    assert_eq!(t.client.try_cash_confirm(&t.shop, &1, &t.client.get_cash_claim(&1)), Err(Ok(Error::NoCashClaim)));
     assert_eq!(t.client.get_invoice(&1), invoice);
     assert_eq!(t.client.get_driver_cash(&t.driver), 50 * USD);
     assert_eq!(t.client.get_usage_owed(&t.distributor), 500_000);
 
     // Same when the first confirm paid the invoice off: NoCashClaim, not AlreadyPaid.
     t.client.cash_claim(&t.driver, &1, &(100 * USD));
-    t.client.cash_confirm(&t.shop, &1);
+    t.client.cash_confirm(&t.shop, &1, &t.client.get_cash_claim(&1));
     assert_eq!(t.client.get_invoice(&1).status, InvoiceStatus::Paid);
-    assert_eq!(t.client.try_cash_confirm(&t.shop, &1), Err(Ok(Error::NoCashClaim)));
+    assert_eq!(t.client.try_cash_confirm(&t.shop, &1, &t.client.get_cash_claim(&1)), Err(Ok(Error::NoCashClaim)));
     assert_eq!(t.client.get_invoice(&1).paid, 150 * USD);
     assert_eq!(t.client.get_driver_cash(&t.driver), 150 * USD);
     t.assert_nothing_overpaid();
@@ -1131,7 +1131,7 @@ fn confirming_another_shops_claim_is_not_your_invoice() {
     t.invoice(1, 150 * USD);
     t.client.cash_claim(&t.driver, &1, &(100 * USD));
 
-    assert_eq!(t.client.try_cash_confirm(&other, &1), Err(Ok(Error::NotYourInvoice)));
+    assert_eq!(t.client.try_cash_confirm(&other, &1, &t.client.get_cash_claim(&1)), Err(Ok(Error::NotYourInvoice)));
     // The claim is untouched and nothing was recorded.
     assert_eq!(t.client.get_cash_claim(&1), 100 * USD);
     assert_eq!(t.client.get_invoice(&1).paid, 0);
@@ -1139,7 +1139,7 @@ fn confirming_another_shops_claim_is_not_your_invoice() {
     assert_eq!(t.client.get_usage_owed(&t.distributor), 0);
 
     // The real shop can still confirm it.
-    t.client.cash_confirm(&t.shop, &1);
+    t.client.cash_confirm(&t.shop, &1, &t.client.get_cash_claim(&1));
     assert_eq!(t.client.get_invoice(&1).paid, 100 * USD);
 }
 
@@ -1151,7 +1151,7 @@ fn a_stale_claim_never_pushes_paid_above_amount() {
     t.invoice(1, 100 * USD);
     t.client.cash_claim(&t.driver, &1, &(60 * USD));
     t.client.pay(&t.shop, &1, &(50 * USD));
-    assert_eq!(t.client.try_cash_confirm(&t.shop, &1), Err(Ok(Error::Overpay)));
+    assert_eq!(t.client.try_cash_confirm(&t.shop, &1, &t.client.get_cash_claim(&1)), Err(Ok(Error::Overpay)));
     let invoice = t.client.get_invoice(&1);
     assert_eq!((invoice.paid, invoice.status), (50 * USD, InvoiceStatus::PartPaid));
     assert_eq!(t.client.get_driver_cash(&t.driver), 0);
@@ -1159,14 +1159,14 @@ fn a_stale_claim_never_pushes_paid_above_amount() {
 
     // Paying the rest closes it, and the old claim is still rejected.
     t.client.pay(&t.shop, &1, &(50 * USD));
-    assert_eq!(t.client.try_cash_confirm(&t.shop, &1), Err(Ok(Error::AlreadyPaid)));
+    assert_eq!(t.client.try_cash_confirm(&t.shop, &1, &t.client.get_cash_claim(&1)), Err(Ok(Error::AlreadyPaid)));
     assert_eq!(t.client.get_invoice(&1).paid, 100 * USD);
 
     // The shop pays all of it digitally after a full cash claim: rejected.
     t.invoice(2, 100 * USD);
     t.client.cash_claim(&t.driver, &2, &(100 * USD));
     t.client.pay(&t.shop, &2, &(100 * USD));
-    assert_eq!(t.client.try_cash_confirm(&t.shop, &2), Err(Ok(Error::AlreadyPaid)));
+    assert_eq!(t.client.try_cash_confirm(&t.shop, &2, &t.client.get_cash_claim(&2)), Err(Ok(Error::AlreadyPaid)));
     assert_eq!(t.client.try_cash_claim(&t.driver, &2, &USD), Err(Ok(Error::AlreadyPaid)));
     assert_eq!(t.client.get_invoice(&2).paid, 100 * USD);
 
@@ -1174,7 +1174,7 @@ fn a_stale_claim_never_pushes_paid_above_amount() {
     t.invoice(3, 100 * USD);
     t.client.cash_claim(&t.driver, &3, &(40 * USD));
     t.client.pay(&t.shop, &3, &(60 * USD));
-    t.client.cash_confirm(&t.shop, &3);
+    t.client.cash_confirm(&t.shop, &3, &t.client.get_cash_claim(&3));
     let invoice = t.client.get_invoice(&3);
     assert_eq!((invoice.paid, invoice.status), (100 * USD, InvoiceStatus::Paid));
 
@@ -1281,7 +1281,7 @@ fn huge_amounts_overflow_nothing_and_move_nothing() {
 
     // Cash: the claim is only a note; confirming it would overflow the fee and is refused.
     t.client.cash_claim(&t.driver, &2, &i128::MAX);
-    assert_eq!(t.client.try_cash_confirm(&t.shop, &2), Err(Ok(Error::InvalidAmount)));
+    assert_eq!(t.client.try_cash_confirm(&t.shop, &2, &t.client.get_cash_claim(&2)), Err(Ok(Error::InvalidAmount)));
     assert_eq!(t.client.get_invoice(&2).paid, 0);
     assert_eq!(t.client.get_driver_cash(&t.driver), 0);
     assert_eq!(t.client.get_usage_owed(&t.distributor), 0);
@@ -1387,7 +1387,7 @@ fn contract_balance_equals_the_pool_and_only_credit_sends_money_out() {
     check("pay", false);
     t.client.cash_claim(&t.driver, &1, &(50 * USD));
     check("cash_claim", false);
-    t.client.cash_confirm(&t.shop, &1);
+    t.client.cash_confirm(&t.shop, &1, &t.client.get_cash_claim(&1));
     check("cash_confirm", false);
     t.client.cash_handed_in(&t.distributor, &t.driver, &(20 * USD));
     check("cash_handed_in", false);
@@ -1434,7 +1434,7 @@ fn cash_handed_in_needs_an_approved_distributor() {
     let t = setup();
     t.invoice(1, 150 * USD);
     t.client.cash_claim(&t.driver, &1, &(100 * USD));
-    t.client.cash_confirm(&t.shop, &1);
+    t.client.cash_confirm(&t.shop, &1, &t.client.get_cash_claim(&1));
     assert_eq!(t.client.get_driver_cash(&t.driver), 100 * USD);
 
     // Anyone can sign for themselves, but they must be an approved distributor.
@@ -1448,4 +1448,86 @@ fn cash_handed_in_needs_an_approved_distributor() {
 
     t.client.cash_handed_in(&t.distributor, &t.driver, &(100 * USD));
     assert_eq!(t.client.get_driver_cash(&t.driver), 0);
+}
+
+// ---------- v4: confirm binds the amount, history pages, running totals ----------
+
+#[test]
+fn confirm_refuses_a_claim_changed_after_the_shop_looked() {
+    let t = setup();
+    t.invoice(1, 100 * USD);
+    t.client.cash_claim(&t.driver, &1, &(10 * USD));
+    // The shop's screen shows $10; the driver swaps it for $90 before the tap.
+    t.client.cash_claim(&t.driver, &1, &(90 * USD));
+    assert_eq!(t.client.try_cash_confirm(&t.shop, &1, &(10 * USD)), Err(Ok(Error::ClaimChanged)));
+    assert_eq!(t.client.get_invoice(&1).paid, 0);
+    assert_eq!(t.client.get_driver_cash(&t.driver), 0);
+    // Confirming what is really claimed works.
+    t.client.cash_confirm(&t.shop, &1, &(90 * USD));
+    assert_eq!(t.client.get_invoice(&1).paid, 90 * USD);
+}
+
+#[test]
+fn list_page_walks_back_through_all_history() {
+    let t = setup();
+    for id in 1..=130u64 {
+        t.invoice(id, USD);
+    }
+    let first = t.client.list_page(&ListFilter::All, &0, &60);
+    assert_eq!(first.total, 130);
+    assert_eq!(first.invoices.len(), 60);
+    assert_eq!(first.invoices.get(0).unwrap().id, 130); // newest first
+    assert_eq!(first.invoices.get(59).unwrap().id, 71);
+    let second = t.client.list_page(&ListFilter::All, &60, &60);
+    assert_eq!(second.invoices.get(0).unwrap().id, 70);
+    let last = t.client.list_page(&ListFilter::All, &120, &60);
+    assert_eq!(last.invoices.len(), 10);
+    assert_eq!(last.invoices.get(9).unwrap().id, 1);
+    assert_eq!(t.client.list_page(&ListFilter::All, &130, &60).invoices.len(), 0);
+    assert_eq!(t.client.list_page(&ListFilter::All, &500, &60).invoices.len(), 0);
+    // Never more than MAX_LIST in one call.
+    assert_eq!(t.client.list_page(&ListFilter::All, &0, &1000).invoices.len(), 60);
+}
+
+#[test]
+fn list_page_filters_by_shop_and_driver() {
+    let t = setup();
+    let other_shop = Address::generate(&t.env);
+    let other_driver = Address::generate(&t.env);
+    t.invoice(1, USD);
+    t.client.create_invoice(&t.distributor, &2, &other_shop, &other_driver, &USD, &1_000);
+    t.invoice(3, USD);
+
+    let mine = t.client.list_page(&ListFilter::Shop(t.shop.clone()), &0, &60);
+    assert_eq!(mine.total, 2);
+    assert_eq!((mine.invoices.get(0).unwrap().id, mine.invoices.get(1).unwrap().id), (3, 1));
+    let theirs = t.client.list_page(&ListFilter::Driver(other_driver), &0, &60);
+    assert_eq!(theirs.total, 1);
+    assert_eq!(theirs.invoices.get(0).unwrap().id, 2);
+    assert_eq!(t.client.list_page(&ListFilter::Shop(Address::generate(&t.env)), &0, &60).total, 0);
+}
+
+#[test]
+fn totals_count_every_payment_by_method() {
+    let t = setup();
+    assert_eq!(t.client.get_totals(&t.distributor), Totals::default());
+    t.with_credit();
+    t.invoice(1, 100 * USD);
+    t.invoice(2, 60 * USD);
+    t.invoice(3, 40 * USD);
+    t.client.pay(&t.shop, &1, &(30 * USD));
+    t.client.cash_claim(&t.driver, &1, &(70 * USD));
+    t.client.cash_confirm(&t.shop, &1, &(70 * USD));
+    t.client.pay_with_credit(&t.shop, &2);
+    t.client.pay(&t.shop, &3, &(40 * USD));
+
+    let totals = t.client.get_totals(&t.distributor);
+    assert_eq!(totals.invoices, 3);
+    assert_eq!(totals.invoiced, 200 * USD);
+    assert_eq!(totals.digital, 70 * USD);
+    assert_eq!(totals.cash, 70 * USD);
+    assert_eq!(totals.credit, 60 * USD);
+    // Refused calls change nothing.
+    assert!(t.client.try_pay(&t.shop, &3, &USD).is_err());
+    assert_eq!(t.client.get_totals(&t.distributor), totals);
 }
