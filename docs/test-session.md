@@ -20,7 +20,8 @@ The Pitch Prep Workshop may have its own agenda from 6 PM. If it does, do sectio
 **Rules**
 - Use your own phone, in a private/incognito tab. The app is built for 360 px width.
 - **Split the roles so you don't collide.** The app runs on one shared testnet contract, so two people paying the same invoice get a failure that isn't a bug. Yahya: distributor dashboard. Jack: shop screens, shop 1. Ruhaan: driver screens. Rohan: try everything cold with no instructions, and say out loud what confuses you.
-- **Make your own invoices.** On the dashboard, "Nueva factura de demo" adds one. Don't depend on the seed invoices; other people use them.
+- **Pairs for the two-person steps.** Steps 3 to 7 and 12 to 14 need a driver and a shop at the same time: Jack (shop 1) and Ruhaan (driver, Carlos's route) do them together. Yahya keeps the dashboard open for steps 15 and 16. Rohan starts cold, then joins Jack for step 17 (two phones, one invoice).
+- **Make your own invoices.** On the dashboard, "Nueva factura de demo" adds one, and it **rotates the shops**: Tienda Rosa (tienda-1) $45.00, Tienda Don Luis (tienda-2) $60.00, Mini Súper La Esquina (tienda-3) $85.50. Each shop always gets its own amount, and every third tap is yours: tap until the invoice is for your shop. Don't depend on the seed invoices (other people use them), except in step 10.
 - Testnet can be slow. Wait 10 seconds before calling a button stuck.
 - These tests are about "is it easy to use". They are not user research for #30: only real shop owners and distributors count there.
 
@@ -38,7 +39,7 @@ The Pitch Prep Workshop may have its own agenda from 6 PM. If it does, do sectio
 | 7 | Driver: wait up to 5 seconds, no refresh | The same stop shows "Pagada". | |
 | 8 | Shop: new invoice, tap **Pagar en 7 días** | "Listo. Tiene hasta el <date> para pagar $X, sin intereses." | |
 | 9 | Shop: tap **Mi cuenta** | "Debe $X", "Vence el <date>", "Límite de crédito", "Disponible". The limit starts at $200. | |
-| 10 | Shop: open a second invoice that would take the debt over the limit | "Pagar en 7 días" is greyed out, with the hint "Supera su límite de crédito". | |
+| 10 | Shop: open an invoice that would take the debt over the $200 limit. Use seed invoice **1003** (Mini Súper La Esquina, $220.00: over the limit on purpose). If someone already paid it, use Mini Súper's demo invoices ($85.50 each): buy two on credit ($171.00), and the third is over the limit. | "Pagar en 7 días" is greyed out, with the hint "Supera su límite de crédito". | |
 | 11 | Shop: **Pagar deuda** on Mi cuenta | "Deuda pagada a tiempo. Su límite subió a $…" (the limit grows only after a $40+ cycle, once per credit period, so "Deuda pagada a tiempo. Gracias." is also correct). Then "No tiene deudas pendientes." | |
 | 12 | Cash, shop first: new invoice, **Pagué en efectivo** before the driver did anything | "El motorista aún no registró el efectivo." | |
 | 13 | Cash, driver: tap the stop, then **Recibí efectivo** | The button shows the amount. Then "Esperando que la tienda confirme $X." and the chip "Efectivo por confirmar". | |
@@ -112,7 +113,7 @@ Rules from #26: not RUTA, Misha said to pick one, and it must not be an existing
 
 ## 4. Pick the pitcher
 
-#26: the pitcher "rehearses the most and owns the script from v1" (#37). One person gives the 3-minute pitch, and the 1-minute video plays inside it. The script v1 is `docs/pitch.md` (PR #83).
+#26: the pitcher "rehearses the most and owns the script from v1" (#37). One person gives the 3-minute pitch, and the 1-minute video plays inside it. The script v1 is `docs/pitch.md` in PR #83 (branch `37-trifold-pitch`). It is not on `main` yet, so open it from that PR's "Files changed" tab, and have it open on everyone's laptop before 6:30.
 
 1. **Read-through, 5 minutes.** Each person reads two segments of the script aloud with a timer: 0:00 to 0:25 (62 words) and 2:30 to 2:50 (47 words). Others write down one thing that landed and one that didn't.
 2. **Check the dates.** The pitcher must be at the Mon Nov 16 4:00 PM showcase, the Tue Nov 17 prep session if we make the Top 8, and the Wed Nov 18 5 to 7:30 PM finals. All four of us must be there anyway (context §2). Say now if anyone has a class conflict.
@@ -126,12 +127,14 @@ Rules from #26: not RUTA, Misha said to pick one, and it must not be an existing
 
 ```
 Name: <NAME> (runner-up: <NAME2>)
+Team number: <n> (from the form's "Team Topic & Number" picker)
 Pitcher: <NAME>
 Bugs filed: #<n>, #<n> (or: none)
 Name checks: <done / not done: which>
 ```
 
 **Then:**
+- **Find our team number.** Open the form (don't submit anything) and look for our team in the "Team Topic & Number" picker. Jack puts the number in the post: form field 1 needs it on Thursday (#31).
 - **Tell Yahya the name.** He changes one line: `export const APP_NAME = "Nombre pendiente";` in `lib/brand.ts` (#32). The app reads it from there only.
 - **Where else the name must go, so nobody guesses later:** form question 2 (#31, due Thu 9 PM), the trifold title (#37), the video end card (#35), the README (#28), and, if Yahya wants it in the web address, a Vercel domain before Friday (#28 step 1).
 - If the name comes late, the form still needs one on Thursday night. Don't leave it to the 9 PM call.
