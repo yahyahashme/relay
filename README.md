@@ -59,7 +59,9 @@ The demo uses test dollars, with cash-in simulated and labelled on screen.
 
 ## Run it locally
 
-You need Node and the Stellar CLI (version 30 or newer).
+**Just to look around:** `npm install`, then `npm run dev` and open http://localhost:3000. With no `.env.local` the app runs on demo data: no keys, no Stellar CLI, nothing on testnet.
+
+**With the real contract** you need Node, the Stellar CLI (version 30 or newer) and Rust (https://rustup.rs, for the contract build and `cargo test`).
 
 1. `npm install`
 2. `./scripts/setup.sh` creates the demo accounts and test dollars and writes `config/testnet.json` and `.env.local` (add `--fresh` to start over; testnet is reset sometimes).
