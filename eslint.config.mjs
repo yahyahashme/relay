@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated contract client (npx @stellar/stellar-sdk generate)
+    "packages/**",
   ]),
 ]);
 

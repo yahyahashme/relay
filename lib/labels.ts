@@ -21,3 +21,14 @@ export const METHOD_LABEL: Record<PayMethod, string> = {
 export function leftToPay(invoice: Invoice): number {
   return Math.round((invoice.amount - invoice.paid) * 100) / 100;
 }
+
+const CREDIT_FEE_BPS = 150; // paid by the distributor: 0.75% buffer, 0.50% lenders, 0.25% us
+
+/**
+ * What the distributor received for a credit payment of `amount` dollars:
+ * amount - 1.5%, rounded down in 7-decimal units like the contract ($100 -> $98.50).
+ */
+export function creditPayout(amount: number): number {
+  const units = Math.round(amount * 100) * 100_000;
+  return (units - Math.floor((units * CREDIT_FEE_BPS) / 10_000)) / 10_000_000;
+}
