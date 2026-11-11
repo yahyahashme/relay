@@ -17,7 +17,8 @@ const METHOD: Record<string, PayMethod | undefined> = {
 const iso = (unixSeconds: bigint) => new Date(Number(unixSeconds) * 1000).toISOString();
 
 /** Contract invoice (bigint units, addresses) -> what the screens use (dollars, role ids). */
-export function toInvoice(i: ChainInvoice): Invoice {
+/** `cashClaim` = units a driver says they got in cash and the shop hasn't confirmed (0 = none). */
+export function toInvoice(i: ChainInvoice, cashClaim = 0n): Invoice {
   const invoice: Invoice = {
     id: Number(i.id),
     shopId: roleOf(i.shop),
@@ -29,6 +30,7 @@ export function toInvoice(i: ChainInvoice): Invoice {
   };
   const method = METHOD[i.method.tag];
   if (method) invoice.method = method;
+  if (cashClaim > 0n) invoice.cashClaim = toDollars(cashClaim);
   return invoice;
 }
 

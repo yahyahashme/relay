@@ -4,7 +4,7 @@ import { type ReactNode, useState } from "react";
 import { BackLink, Card, Chip, Label, LoadError, Loading, Screen } from "@/components/ui";
 import { createDemoInvoice, getDrivers, getInvoices, getShop } from "@/lib/api";
 import { formatDay, formatMoney } from "@/lib/format";
-import { invoiceStatus, METHOD_LABEL, type StatusTone } from "@/lib/labels";
+import { creditPayout, invoiceStatus, METHOD_LABEL, type StatusTone } from "@/lib/labels";
 import type { Shop } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
 
@@ -176,7 +176,12 @@ export default function Dashboard() {
                   <td className="px-4 py-3">{shopName(invoice.shopId)}</td>
                   <td className="px-4 py-3">{driverName(invoice.driverId)}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{formatMoney(invoice.amount)}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{formatMoney(invoice.paid)}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">
+                    {formatMoney(invoice.paid)}
+                    {invoice.method === "credit" && (
+                      <span className="block text-sm text-muted">recibió {formatMoney(creditPayout(invoice.paid))}</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <span className="flex flex-wrap gap-1">
                       <Chip tone={status.tone}>{status.label}</Chip>

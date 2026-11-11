@@ -19,7 +19,7 @@ const wait = () => new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
 
 async function read<T>(mockRead: () => T, liveRead?: () => Promise<T>): Promise<T> {
   if (!USE_MOCKS) {
-    if (!liveRead) throw new Error(NOT_CONNECTED); // not wired yet: #25
+    if (!liveRead) throw new Error(NOT_CONNECTED);
     return liveRead();
   }
   await wait();
@@ -28,7 +28,7 @@ async function read<T>(mockRead: () => T, liveRead?: () => Promise<T>): Promise<
 
 async function write(mockWrite: () => Receipt, liveWrite?: () => Promise<Receipt>): Promise<Receipt> {
   try {
-    if (!USE_MOCKS) return liveWrite ? await liveWrite() : { ok: false, message: NOT_CONNECTED }; // not wired yet: #25
+    if (!USE_MOCKS) return liveWrite ? await liveWrite() : { ok: false, message: NOT_CONNECTED }; // not wired yet: CSV import (#32)
     await wait();
     return mockWrite();
   } catch {
@@ -46,15 +46,19 @@ export const getShop = (shopId: string): Promise<Shop | null> =>
 export const getDrivers = (): Promise<Driver[]> => read(mock.getDrivers, live.getDrivers);
 export const getPool = (): Promise<Pool> => read(mock.getPool, live.getPool);
 export const createDemoInvoice = (shopId?: string): Promise<Invoice> =>
-  read(() => mock.createDemoInvoice(shopId));
+  read(() => mock.createDemoInvoice(shopId), () => live.createDemoInvoice(shopId));
 
 // ---------- writes ----------
 
 /** No amount = pay what's left. */
 export const payNow = (invoiceId: number, amount?: number) =>
   write(() => mock.payNow(invoiceId, amount), () => live.payNow(invoiceId, amount));
-export const payLater = (invoiceId: number) => write(() => mock.payLater(invoiceId));
-export const claimCash = (invoiceId: number, amount: number) => write(() => mock.claimCash(invoiceId, amount));
-export const confirmCash = (invoiceId: number) => write(() => mock.confirmCash(invoiceId));
-export const repay = (shopId: string, amount: number) => write(() => mock.repay(shopId, amount));
+export const payLater = (invoiceId: number) =>
+  write(() => mock.payLater(invoiceId), () => live.payLater(invoiceId));
+export const claimCash = (invoiceId: number, amount: number) =>
+  write(() => mock.claimCash(invoiceId, amount), () => live.claimCash(invoiceId, amount));
+export const confirmCash = (invoiceId: number) =>
+  write(() => mock.confirmCash(invoiceId), () => live.confirmCash(invoiceId));
+export const repay = (shopId: string, amount: number) =>
+  write(() => mock.repay(shopId, amount), () => live.repay(shopId, amount));
 export const createInvoices = (rows: InvoiceRow[]) => write(() => mock.createInvoices(rows));
