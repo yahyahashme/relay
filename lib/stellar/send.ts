@@ -8,14 +8,18 @@ import { config, type Role } from "./config";
 import { ContractError, contractErrorCode } from "./errors";
 
 const server = new rpc.Server(config.rpcUrl);
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 6;
 const POLL_MS = 1000;
 const POLL_TRIES = 30;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** The sequence number was already used (another call from the same account won). */
-class BadSequence extends Error {}
+class BadSequence extends Error {
+  constructor() {
+    super("Sequence number already used (another call from the same account won)");
+  }
+}
 
 /** Throws ContractError if the simulation says the contract would refuse. */
 export function checkSimulation(tx: AssembledTransaction<unknown>): void {
@@ -31,6 +35,16 @@ export async function read<T>(call: Promise<AssembledTransaction<T>>): Promise<T
   const sim = tx.simulation;
   if (sim && rpc.Api.isSimulationError(sim)) throw new ContractError(contractErrorCode(sim.error));
   return tx.result;
+}
+
+/** True once the source account's sequence number is at or past this transaction's. */
+async function sequenceUsed(signed: Transaction): Promise<boolean> {
+  try {
+    const account = await server.getAccount(signed.source);
+    return BigInt(account.sequenceNumber()) >= BigInt(signed.sequence);
+  } catch {
+    return false; // can't tell: keep waiting
+  }
 }
 
 /**
@@ -51,6 +65,15 @@ export async function submitSigned(signed: Transaction): Promise<{ hash: string 
     if (got.status === rpc.Api.GetTransactionStatus.SUCCESS) return { hash: sent.hash };
     // Simulation passed but the ledger refused it (state changed in between).
     if (got.status === rpc.Api.GetTransactionStatus.FAILED) throw new ContractError(null);
+    // Another server instance sent a different transaction with the same
+    // sequence number and it won: ours is dropped without an error and would
+    // never show up. Once the account has moved past our number, retry.
+    if (i >= 2 && (await sequenceUsed(signed))) {
+      const again = await server.getTransaction(sent.hash); // ours may have just landed
+      if (again.status === rpc.Api.GetTransactionStatus.SUCCESS) return { hash: sent.hash };
+      if (again.status === rpc.Api.GetTransactionStatus.FAILED) throw new ContractError(null);
+      throw new BadSequence();
+    }
     await sleep(POLL_MS);
   }
   throw new Error(`Transaction ${sent.hash} not confirmed after ${POLL_TRIES} s`);
@@ -69,7 +92,7 @@ function enqueue<T>(role: Role, job: () => Promise<T>): Promise<T> {
 /**
  * Build + simulate + sign as `role`, then submit. Stops on a contract error
  * (ContractError carries the Spanish message). On txBadSeq (e.g. another
- * Vercel instance used the same account) it rebuilds and retries, up to 3 times.
+ * Vercel instance used the same account) it waits, rebuilds and retries, up to 6 times.
  */
 export function run(role: Role, call: (client: Client) => Promise<AssembledTransaction<unknown>>) {
   return enqueue(role, async () => {
@@ -81,7 +104,13 @@ export function run(role: Role, call: (client: Client) => Promise<AssembledTrans
       try {
         return await submitSigned(tx.signed);
       } catch (error) {
-        if (error instanceof BadSequence && attempt < MAX_RETRIES) continue;
+        if (error instanceof BadSequence && attempt < MAX_RETRIES) {
+          // The other instance's transaction needs a ledger (about 5 s) before
+          // the account's new sequence number shows, so retrying at once just
+          // fails again. Wait longer each time, with jitter so racers spread out.
+          await sleep(1000 * (attempt + 1) + Math.random() * 1000);
+          continue;
+        }
         throw error;
       }
     }
