@@ -2,7 +2,7 @@
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { BackLink, Card, Chip, Label, LoadError, Loading, ReceiptView, Screen } from "@/components/ui";
-import { createDemoInvoice, getDrivers, getInvoices, getShop, handInCash } from "@/lib/api";
+import { createDemoInvoice, getDrivers, getInvoiceHistory, getShop, getTotals, handInCash } from "@/lib/api";
 import { formatDay, formatMoney } from "@/lib/format";
 import { creditPayout, invoiceStatus, METHOD_LABEL, type StatusTone } from "@/lib/labels";
 import type { Invoice, Receipt, Shop } from "@/lib/types";
@@ -16,11 +16,13 @@ const STATUS_FILTERS: { label: string; tone?: StatusTone }[] = [
   { label: "Crédito", tone: "credit" },
 ];
 
-async function loadDashboard() {
-  const [invoices, drivers] = await Promise.all([getInvoices(), getDrivers()]);
+/** `pages` pages of history (newest first): every refresh re-reads all of them, so nothing goes stale. */
+async function loadDashboard(pages: number) {
+  const [history, drivers, totals] = await Promise.all([getInvoiceHistory(pages), getDrivers(), getTotals()]);
+  const { invoices, total } = history;
   const shopIds = [...new Set(invoices.map((i) => i.shopId))];
   const shops = (await Promise.all(shopIds.map(getShop))).filter((s): s is Shop => s !== null);
-  return { invoices, drivers, shops };
+  return { invoices, total, totals, drivers, shops };
 }
 
 const HIGHLIGHT_MS = 4000;
@@ -80,7 +82,16 @@ function Total({ label, children }: { label: string; children: ReactNode }) {
 }
 
 export default function Dashboard() {
-  const { data, failed, reload } = usePolling("dashboard", loadDashboard);
+  const [pages, setPages] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const { data, failed, reload } = usePolling("dashboard", () => loadDashboard(pages));
+  const firstPages = useRef(pages);
+  useEffect(() => {
+    if (pages === firstPages.current) return; // the first load is usePolling's
+    firstPages.current = pages;
+    setLoadingMore(true);
+    void reload().finally(() => setLoadingMore(false));
+  }, [pages, reload]);
   const [statusFilter, setStatusFilter] = useState<StatusTone | "all">("all");
   const [driverFilter, setDriverFilter] = useState("all");
   const [creating, setCreating] = useState(false);
@@ -136,15 +147,15 @@ export default function Dashboard() {
     );
   }
 
-  const { invoices, drivers, shops } = data;
+  const { invoices, total, totals, drivers, shops } = data;
   const shopName = (id: string) => shops.find((s) => s.id === id)?.name ?? id;
   const driverName = (id: string) => drivers.find((d) => d.id === id)?.name ?? id;
 
-  const collected = sum(invoices.filter((i) => i.method === "digital").map((i) => i.paid));
+  const collected = totals.digital; // all history, from the contract's running totals
   const onCredit = sum(shops.map((s) => s.creditOwed));
   const overdue = sum(shops.filter((s) => s.overdue).map((s) => s.creditOwed));
 
-  const rows = [...invoices].reverse().filter( // newest first
+  const rows = invoices.filter( // already newest first
     (i) =>
       (statusFilter === "all" || invoiceStatus(i).tone === statusFilter) &&
       (driverFilter === "all" || i.driverId === driverFilter),
@@ -258,6 +269,22 @@ export default function Dashboard() {
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="flex flex-col items-center gap-3">
+        <p className="text-muted">
+          Mostrando las {invoices.length} facturas más recientes de {total}.
+        </p>
+        {invoices.length < total && (
+          <button
+            type="button"
+            onClick={() => setPages((p) => p + 1)}
+            disabled={loadingMore}
+            className="min-h-12 rounded-xl border border-brand px-5 text-lg font-semibold text-brand active:bg-brand-soft disabled:border-line disabled:text-muted"
+          >
+            {loadingMore ? "Cargando..." : "Ver más"}
+          </button>
+        )}
       </div>
     </Screen>
   );
