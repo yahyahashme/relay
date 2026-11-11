@@ -127,6 +127,17 @@ describe("repay", () => {
   });
 });
 
+describe("cash hand-in", () => {
+  it("lowers what the driver holds, never below zero", () => {
+    expect(mock.handInCash("motorista-1", 10).message).toBe("Monto inválido.");
+    mock.claimCash(1004, 60);
+    mock.confirmCash(1004);
+    expect(mock.handInCash("motorista-1", 60)).toMatchObject({ ok: true, message: "Listo. Carlos entregó $60.00 en efectivo." });
+    expect(mock.getDrivers().find((d) => d.id === "motorista-1")?.cashHeld).toBe(0);
+    expect(mock.handInCash("nadie", 1).ok).toBe(false);
+  });
+});
+
 describe("create invoices", () => {
   it("adds valid rows and rejects a duplicate id", () => {
     const row = { invoiceId: 2001, shopId: "tienda-3", driverId: "motorista-2", amount: "12.50", dueDate: "2026-11-20" };

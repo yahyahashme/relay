@@ -88,6 +88,15 @@ export async function payNow(invoiceId: number, amount?: number): Promise<Receip
       units = toUnits(amount.toFixed(2));
     }
     if (units > left) return fail(`El monto es mayor que lo que falta pagar (${formatMoney(toDollars(left))}).`);
+    if (amount !== undefined) {
+      // Leave room for cash the driver recorded, so the shop can still confirm it.
+      const claim = await read(readClient().get_cash_claim({ id: invoice.id }));
+      if (claim > 0n && units > left - claim) {
+        return fail(
+          `Hay ${formatMoney(toDollars(claim))} en efectivo por confirmar. Puede pagar hasta ${formatMoney(toDollars(left - claim))}.`,
+        );
+      }
+    }
 
     const shop = roleOf(invoice.shop);
     if (!SHOP_IDS.includes(shop as Role)) return fail("Esta factura no es de su tienda.");
@@ -187,6 +196,25 @@ export async function repay(shopId: string, amount: number): Promise<Receipt> {
       return receipt(hash, after.limit < before.limit ? `Deuda pagada con atraso. Su límite bajó a ${limit}.` : "Deuda pagada con atraso.");
     }
     return receipt(hash, after.limit > before.limit ? `Deuda pagada a tiempo. Su límite subió a ${limit}.` : "Deuda pagada a tiempo. Gracias.");
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+/** The distributor got a driver's cash at the warehouse. No money moves on chain. */
+export async function handInCash(driverId: string, amount: number): Promise<Receipt> {
+  try {
+    const driver = addressOf(driverId);
+    if (!driver || !DRIVER_IDS.includes(driverId as Role)) return fail("No encontramos a ese motorista.");
+    if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
+    const held = await read(readClient().get_driver_cash({ driver }));
+    // "Hand in everything" must send the exact units held.
+    const asked = toUnits(amount.toFixed(2));
+    const units = toDollars(held) === amount ? held : asked;
+    const { hash } = await run("distributor", (client) =>
+      client.cash_handed_in({ distributor: addressOf("distributor") as string, driver, amount: units }),
+    );
+    return receipt(hash, `Listo. ${nameOf(driverId)} entregó ${formatMoney(toDollars(units))} en efectivo.`);
   } catch (error) {
     return failure(error);
   }

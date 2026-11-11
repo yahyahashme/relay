@@ -303,6 +303,16 @@ export function repay(shopId: string, amount: number): Receipt {
   return ok(`Deuda pagada a tiempo. Su límite subió a ${money(shop.limit)}.`);
 }
 
+/** The driver handed cash to the distributor at the warehouse. Lowers what the driver holds. */
+export function handInCash(driverId: string, amount: number): Receipt {
+  const driver = db().drivers.find((d) => d.id === driverId);
+  if (!driver) return fail("No encontramos a ese motorista.");
+  const cash = toCents(amount);
+  if (cash === null || cash > driver.cashHeld) return fail("Monto inválido.");
+  driver.cashHeld -= cash;
+  return ok(`Listo. ${driver.name} entregó ${money(cash)} en efectivo.`);
+}
+
 /** Many invoices at once (CSV import, #32). All rows are checked before any is added. */
 export function createInvoices(rows: InvoiceRow[]): Receipt {
   const { invoices, drivers } = db();
