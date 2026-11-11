@@ -61,4 +61,7 @@ export const confirmCash = (invoiceId: number) =>
   write(() => mock.confirmCash(invoiceId), () => live.confirmCash(invoiceId));
 export const repay = (shopId: string, amount: number) =>
   write(() => mock.repay(shopId, amount), () => live.repay(shopId, amount));
+/** The distributor got a driver's cash at the warehouse (only lowers the driver's cash count). */
+export const handInCash = (driverId: string, amount: number) =>
+  write(() => mock.handInCash(driverId, amount), () => live.handInCash(driverId, amount));
 export const createInvoices = (rows: InvoiceRow[]) => write(() => mock.createInvoices(rows));

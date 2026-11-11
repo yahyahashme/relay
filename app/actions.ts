@@ -88,6 +88,15 @@ export async function payNow(invoiceId: number, amount?: number): Promise<Receip
       units = toUnits(amount.toFixed(2));
     }
     if (units > left) return fail(`El monto es mayor que lo que falta pagar (${formatMoney(toDollars(left))}).`);
+    if (amount !== undefined) {
+      // Leave room for cash the driver recorded, so the shop can still confirm it.
+      const claim = await read(readClient().get_cash_claim({ id: invoice.id }));
+      if (claim > 0n && units > left - claim) {
+        return fail(
+          `Hay ${formatMoney(toDollars(claim))} en efectivo por confirmar. Puede pagar hasta ${formatMoney(toDollars(left - claim))}.`,
+        );
+      }
+    }
 
     const shop = roleOf(invoice.shop);
     if (!SHOP_IDS.includes(shop as Role)) return fail("Esta factura no es de su tienda.");
@@ -192,6 +201,25 @@ export async function repay(shopId: string, amount: number): Promise<Receipt> {
   }
 }
 
+/** The distributor got a driver's cash at the warehouse. No money moves on chain. */
+export async function handInCash(driverId: string, amount: number): Promise<Receipt> {
+  try {
+    const driver = addressOf(driverId);
+    if (!driver || !DRIVER_IDS.includes(driverId as Role)) return fail("No encontramos a ese motorista.");
+    if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
+    const held = await read(readClient().get_driver_cash({ driver }));
+    // "Hand in everything" must send the exact units held.
+    const asked = toUnits(amount.toFixed(2));
+    const units = toDollars(held) === amount ? held : asked;
+    const { hash } = await run("distributor", (client) =>
+      client.cash_handed_in({ distributor: addressOf("distributor") as string, driver, amount: units }),
+    );
+    return receipt(hash, `Listo. ${nameOf(driverId)} entregó ${formatMoney(toDollars(units))} en efectivo.`);
+  } catch (error) {
+    return failure(error);
+  }
+}
+
 // ---------- demo invoices (the distributor's "Nueva factura de demo") ----------
 
 const DEMO_SHOPS = ["tienda-1", "tienda-2", "tienda-3"] as const;
@@ -212,7 +240,10 @@ export async function createDemoInvoice(shopId?: string): Promise<Invoice> {
         const list = await read(readClient().list_invoices());
         id = list.reduce((max, i) => (i.id > max ? i.id : max), 1000n) + 1n + skip;
         const shop = shopId ?? DEMO_SHOPS[Number(id % 3n)];
-        const due = BigInt(Math.floor(Date.now() / 1000)) + WEEK_SECS;
+        // A few random seconds so two server instances never build the very same
+        // transaction: identical ones share a hash, and both judges would get one invoice.
+        const jitter = BigInt(Math.floor(Math.random() * 600));
+        const due = BigInt(Math.floor(Date.now() / 1000)) + WEEK_SECS + jitter;
         return client.create_invoice({
           distributor: addressOf("distributor") as string,
           id,
@@ -227,6 +258,9 @@ export async function createDemoInvoice(shopId?: string): Promise<Invoice> {
         skip += 1n;
         continue;
       }
+      // Another server instance took the same id between our simulation and the
+      // ledger (the transaction fails with no code). Pick again from a fresh list.
+      if (error instanceof ContractError && error.code === null) continue;
       console.error("[actions]", error);
       throw new Error(error instanceof ContractError ? error.message : FALLBACK_MESSAGE);
     }
