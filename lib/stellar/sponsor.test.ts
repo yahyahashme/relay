@@ -2,10 +2,13 @@ import {
   Account,
   Asset,
   BASE_FEE,
+  Contract,
   FeeBumpTransaction,
   Keypair,
   Networks,
   Operation,
+  SorobanDataBuilder,
+  StrKey,
   Transaction,
   TransactionBuilder,
   rpc,
@@ -27,11 +30,10 @@ import { sendSponsored } from "./sponsor";
 const sponsor = Keypair.random();
 const shop = Keypair.random();
 
-// A payment from the shop, already signed by the shop, like the app sends it.
-// A contract call carries its resource fee inside its fee, so `fee` can be large.
-function signedInner(fee: string = BASE_FEE): Transaction {
+// A payment from the shop, already signed by the shop.
+function signedInner(): Transaction {
   const tx = new TransactionBuilder(new Account(shop.publicKey(), "100"), {
-    fee,
+    fee: BASE_FEE,
     networkPassphrase: Networks.TESTNET,
   })
     .addOperation(
@@ -41,6 +43,23 @@ function signedInner(fee: string = BASE_FEE): Transaction {
         amount: "0.01",
       }),
     )
+    .setTimeout(60)
+    .build();
+  tx.sign(shop);
+  return tx;
+}
+
+// A contract call from the shop, signed, like the app sends it: it carries soroban
+// data, and the builder adds that resource fee to the fee. (On testnet a simulated
+// get_pool came to 6,677 stroops: 100 plus 6,577.)
+const RESOURCE_FEE = 6577;
+function signedContractCall(): Transaction {
+  const tx = new TransactionBuilder(new Account(shop.publicKey(), "100"), {
+    fee: BASE_FEE,
+    networkPassphrase: Networks.TESTNET,
+    sorobanData: new SorobanDataBuilder().setResourceFee(RESOURCE_FEE).build(),
+  })
+    .addOperation(new Contract(StrKey.encodeContract(Buffer.alloc(32, 7))).call("get_pool"))
     .setTimeout(60)
     .build();
   tx.sign(shop);
@@ -117,10 +136,8 @@ describe("sendSponsored", () => {
     expect(shop.verify(inner.hash(), inner.signatures[0].signature)).toBe(true);
   });
 
-  it("bids at least the inner fee for a contract call, which holds a resource fee", async () => {
-    // BASE_FEE (100) plus an example 60,000-stroop resource fee. With the old
-    // fixed BASE_FEE bid the SDK threw "Invalid baseFee, it should be at least 60100".
-    const inner = signedInner("60100");
+  it("sponsors a contract call: the bump covers its resource fee at the plain BASE_FEE bid", async () => {
+    const inner = signedContractCall();
     const send = vi
       .spyOn(rpc.Server.prototype, "sendTransaction")
       .mockResolvedValue(sendTransaction("PENDING"));
@@ -130,9 +147,10 @@ describe("sendSponsored", () => {
 
     expect(await run(inner)).toEqual({ value: { hash: "abc123" } });
     const sent = send.mock.calls[0][0] as FeeBumpTransaction;
-    expect(sent.innerTransaction.fee).toBe("60100");
-    // 60,100 per operation, times the one operation plus one for the bump.
-    expect(sent.fee).toBe(String(60100 * 2));
+    expect(sent.innerTransaction.fee).toBe(String(Number(BASE_FEE) + RESOURCE_FEE));
+    // BASE_FEE for the one operation plus one for the bump, plus the inner
+    // resource fee: the same shape as the real testnet run (6,677 inner, 6,777 outer).
+    expect(sent.fee).toBe(String(Number(BASE_FEE) * 2 + RESOURCE_FEE));
   });
 
   it("waits for the transaction to reach a ledger", async () => {

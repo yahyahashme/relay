@@ -70,15 +70,6 @@ function describeOperations(result: unknown): string | undefined {
   }
 }
 
-// A fee bump must bid at least the inner transaction's fee per operation, or
-// the SDK refuses to build it. The inner fee of a contract call already holds
-// its resource fee (thousands of times BASE_FEE), and nothing adds that for
-// us. The bump's total fee is this bid times (operations + 1).
-function bumpBaseFee(inner: Transaction): string {
-  const perOperation = Math.ceil(Number(inner.fee) / inner.operations.length);
-  return String(Math.max(Number(BASE_FEE), perOperation));
-}
-
 /**
  * Wraps a transaction the shop already signed in a fee bump paid by the
  * sponsor, sends it and waits until it is in a ledger.
@@ -91,9 +82,13 @@ export async function sendSponsored(
   if (!secret) throw new Error("STELLAR_SECRET_SPONSOR is not set");
   const sponsor = Keypair.fromSecret(secret);
 
+  // baseFee is the inclusion fee per operation, not the inner transaction's
+  // total. For a contract call the SDK counts only the inclusion part against
+  // it and adds the inner resource fee itself (checked on testnet with a
+  // simulated get_pool: inner fee 6,677 stroops, outer fee 6,777 at BASE_FEE).
   const feeBump = TransactionBuilder.buildFeeBumpTransaction(
     sponsor,
-    bumpBaseFee(signedInner),
+    BASE_FEE,
     signedInner,
     config.networkPassphrase,
   );
