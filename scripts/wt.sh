@@ -9,7 +9,8 @@ git fetch origin main
 if git show-ref --verify --quiet "refs/heads/$N-$SLUG"; then
   git worktree add "$DIR" "$N-$SLUG"
 else
-  git worktree add "$DIR" -b "$N-$SLUG" origin/main
+  # --no-track: otherwise the new branch's upstream is origin/main, and a plain git pull would pull main.
+  git worktree add --no-track "$DIR" -b "$N-$SLUG" origin/main
 fi
 cd "$DIR"
 # gitignored secrets aren't copied into worktrees, so link them.
