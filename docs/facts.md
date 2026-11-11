@@ -4,7 +4,7 @@ Every number we say in the one-pager, pitch, trifold and deck comes from this fi
 
 - **Checked** says who opened the link and confirmed the quote, and when. Claude checked entries 1–3, 7 and 9–21 on Nov 9 and copied entries 4–8 from the live pages on Nov 10; a teammate can add their initials too.
 
-**Never use:** the $7 billion market, "about 70,000 shops", $5 billion as our market, the Chivo $30 bonus or fuel discounts, MoneyGram's 5%.
+**Never use:** the $7 billion market, "about 70,000 shops", $5 billion as our market, the Chivo $30 bonus or fuel discounts, MoneyGram's 5%, "$98.40 per $100" or "$0.35 per credit sale", a "$2.5 million" revenue figure (entries 29 and 30).
 
 ## Opening line
 
@@ -319,3 +319,129 @@ _Added in #51._
 - **Use in:** pitch / one-pager (always with "according to Conamype")
 - **Caveat:** Paul Steiner, Conamype's president, said it in a TV interview (Entrevista AM) and cited no study. Strong line, soft evidence, so attribute it every time. In the same interview he said the BFA line (entry 20) lends even to informal shops.
 - **Checked:** Claude, 9 Nov 2026 (link opened, quote matches the page)
+
+---
+
+## Our own numbers: the contract, the demo and the safety review (#61)
+
+_Entries 29 to 35 come from this repo, not from a web page. Claude read the code at commit dfdc33c (`main` after #66) on Nov 11, 2026 and checked each number against it; no teammate has confirmed them yet. Quotes are copied from the code or from `docs/security.md`. They describe the contract as built on testnet, with test dollars. If the contract changes (open PR #80 changes `cash_confirm`), re-check before saying any of them._
+
+**Pitch highlights from these entries** (strongest first; each is safe to say out loud, the entry has the source). Move them into the main Pitch highlights list at the top once #73 has merged. Entries 30 and 33 have no line on purpose: a revenue scenario and demo data are not things to say as results.
+
+1. Money leaves our contract in exactly one function, and every function that changes state needs the right person's signature (34).
+2. Distributors pay us, shops never do: 0.1% of a cash or digital invoice, or one 1.5% fee when the lender pool pays them at delivery, so they get $98.50 per $100 (29).
+3. A shop's credit limit starts at $200 and grows $25 for each on-time repayment, but only after a loan of $40 or more and once a week, so nobody can farm it with tiny loans (31).
+4. Our own safety review found and fixed two bugs, and we publish the 11 limits that are still open (35).
+5. If a shop never pays, the loss buffer, filled by 0.75% of every credit sale, repays the lenders first (32).
+
+## 29. What we charge: the fee constants
+- **Claim:** The distributor pays us 0.10% of an invoice paid by cash or digitally, or one 1.50% fee when the lender pool pays the invoice up front ("pay in 7 days"). The shop never pays a fee.
+- **Number:**
+  - Usage fee 0.10% (10 basis points) on cash and digital invoices. Per $100: the distributor receives $99.90 and we get $0.10.
+  - Credit fee 1.50% (150 basis points), only on credit sales. Per $100: the distributor receives $98.50 at delivery. The $1.50 splits into $0.75 for the loss buffer, $0.50 for the lenders and $0.25 for us.
+  - No usage fee on top of the credit fee.
+- **Source:** `contracts/route_ledger/src/lib.rs` lines 17 to 29 (`USAGE_FEE_BPS`, `CREDIT_FEE_BPS`, `BUFFER_BPS`, `LENDER_BPS`, `OUR_BPS`) and the `pay` and `pay_with_credit` functions, commit dfdc33c. The app uses the same numbers (`lib/labels.ts:25`, `lib/mock.ts:18`). Also `docs/security.md` section 1 and `docs/context.md` section 5.
+- **Exact quote:** "Credit sales don't pay it: our cut there is inside the 1.50% credit fee, so the distributor sees one number ($98.50 for every $100)." (code comment, line breaks removed)
+- **Translation:** n/a (English source)
+- **Use in:** one-pager / pitch / trifold / deck ("how do you make money")
+- **Caveat:**
+  - Demo parameters on testnet, set when the contract is deployed. Fees round down.
+  - The shop pays the invoice's face value and no interest, but the distributor's 1.50% is a fee to be paid early. A lawyer should confirm it isn't treated as interest under the usury law (entry 18).
+  - The cash usage fee is recorded (`get_usage_owed`) but nothing collects it yet (`docs/security.md` known limit 6). Digital payments collect it on the spot.
+  - Don't say "$98.40 per $100" or "$0.35 per credit sale". Those add the 0.10% on top of the 1.50%, which the contract doesn't do. The draft assumptions doc (open PR #74) still shows them.
+- **Checked:** Claude, 11 Nov 2026 (`lib.rs` read at dfdc33c; the split adds up: 98.50 + 0.25 + 0.75 + 0.50 = 100.00)
+
+## 30. Revenue scenarios with the fees as built (our maths)
+- **Claim:** If every dollar of the $2 billion moved through us by cash or digital payment, we would earn $2 million a year. If 10% of it used "pay in 7 days" instead, we would earn $2.3 million, not $2.5 million.
+- **Number:**
+  - All cash or digital: 0.1% × $2,000,000,000 = **$2,000,000**.
+  - 10% on credit: credit volume $200,000,000 × 0.25% (our share of the 1.50%) = **$500,000**, plus usage fee on the other $1,800,000,000 × 0.1% = **$1,800,000**. Total **$2,300,000**.
+- **Source:** Our arithmetic from entry 1 ($2 billion) and entry 29 (the fees). Not a quote from anyone.
+- **Exact quote:** n/a (computed; the inputs are in entries 1 and 29)
+- **Translation:** n/a
+- **Use in:** Q&A / deck backup. Always say "scenario, not a forecast".
+- **Caveat:**
+  - It assumes every dollar of the $2 billion goes through us. That sizes the market; it is not a revenue forecast or a prediction of our share.
+  - Adding "$2M + $500K = $2.5M" (issue #61's list, open PR #74) charges the 0.1% usage fee on the credit volume as well. The contract doesn't (`docs/context.md` section 5, Nov 10 change), so that sum is $200,000 too high.
+  - Our cash usage fee is billed later, not collected on the spot (entry 29).
+- **Checked:** Claude, 11 Nov 2026 (arithmetic redone; the 0.1% and 0.25% match `lib.rs`)
+
+## 31. How a shop's credit limit grows and drops
+- **Claim:** A shop's credit limit grows $25 each time it repays on time, up to $500. It drops $25 when it pays late, and a shop can't grow its limit by borrowing tiny amounts.
+- **Number:**
+  - Start: $200 in the demo (the admin sets it with `set_terms`).
+  - +$25 (`LIMIT_STEP`) per on-time repayment, cap $500 (`LIMIT_CAP`).
+  - It only grows if the shop borrowed at least $40 (`MIN_BORROW_TO_GROW`) in that cycle, and at most once per credit period (7 days; 2 minutes in the demo).
+  - A late repayment drops it $25, never below $0. No new credit while a payment is overdue.
+  - The limit changes only when the shop's whole balance is repaid.
+- **Source:** `contracts/route_ledger/src/lib.rs` lines 31 to 39 and the `repay` function (line 574), commit dfdc33c; `scripts/deploy.sh` lines 113 and 115 (the $200); `docs/credit-model.md` sections 3 to 5.
+- **Exact quote:** "Together these stop a shop from taking $1 of credit and repaying it over and over to reach $500." (code comment, line breaks removed)
+- **Translation:** n/a (English source)
+- **Use in:** pitch / deck / Q&A ("how do you stop fraud?")
+- **Caveat:**
+  - Demo parameters; they are guesses to test in interviews (#7), not real repayment data.
+  - The contract has no default start limit; the $200 is set shop by shop at deploy. A limit the admin sets above $500 is left alone. `docs/credit-model.md` section 3 says the start should be the lower of $200 and one average delivery. That is a proposal, not built.
+  - The limit is our own credit record. It is not a bureau score (entry 15).
+- **Checked:** Claude, 11 Nov 2026 (`repay` and the constants read at dfdc33c)
+
+## 32. When a shop never pays
+- **Claim:** A shop four credit periods (28 days) past its due date can be written off. The loss buffer repays the lenders what it can, the shop's limit goes to $0, and the debt stays on its record.
+- **Number:**
+  - 4 credit periods (`DEFAULT_AFTER_PERIODS`) = 28 days late for real; 8 minutes with the 2-minute demo period.
+  - The buffer grows by 0.75% of every credit sale. The demo seeds it with $50.
+  - Later payments on a written-off debt go back into the buffer.
+- **Source:** `contracts/route_ledger/src/lib.rs` lines 41 to 43 and `cover_default` (line 637), commit dfdc33c; `scripts/deploy.sh` line 127; `docs/credit-model.md` sections 5 and 9.
+- **Exact quote:** "A shop this many credit periods past its due date can be written off: 4 x 7 days = 28 days late for real, 8 minutes with the 2-minute demo period." (code comment)
+- **Translation:** n/a (English source)
+- **Use in:** Q&A / deck ("what if a shop doesn't pay?")
+- **Caveat:**
+  - The admin calls `cover_default` by hand. It is not automatic.
+  - The buffer pays first. Anything past the buffer is a loss to the lenders (`docs/security.md` known limit 11), so never say "no risk" about the lenders. "No risk" is about the distributor, who is paid at delivery.
+  - The stress test in `docs/credit-model.md` section 9 adds up: 0.75% × $150,000 = $1,125 a week, so losses of $1,500, $7,500, $4,000 and $15,000 are about 1.3, 6.7, 3.6 and 13.3 weeks of buffer. Its inputs (1,000 shops, $150 outstanding each) are guesses.
+- **Checked:** Claude, 11 Nov 2026 (`cover_default` and the constants read at dfdc33c; stress-test arithmetic redone)
+
+## 33. What's loaded in the demo (test dollars)
+- **Claim:** The testnet demo holds test dollars we issued: $5,000 in the lender pool, a $50 loss buffer, three shops with a $200 limit, and 8 seed invoices.
+- **Number:** $5,000 pool; $50 buffer; 3 shops × $200 limit; 8 invoices of $150.00, $85.50, $220.00, $60.00, $130.00, $95.25, $40.00 and $175.00 (total $955.75). Invoice 1003 ($220.00) is over the $200 limit on purpose, to show the refusal.
+- **Source:** `scripts/deploy.sh` lines 113 to 152, commit dfdc33c. The contract ID is in `config/testnet.json` and the README ("Contract IDs"); it changes on every deploy.
+- **Exact quote:** "The lender puts $5,000 in the pool" (the script's own step message)
+- **Translation:** n/a (English source)
+- **Use in:** demo video / Q&A only. Never as traction.
+- **Caveat:**
+  - Test dollars on testnet, seeded by us. These are not users, volume or revenue. Say "demo data" whenever they are shown.
+  - The Stellar Development Foundation can reset testnet, which would delete the contract and these balances (`docs/security.md` section 5).
+- **Checked:** Claude, 11 Nov 2026 (`deploy.sh` read at dfdc33c; the invoice total added up by hand)
+
+## 34. Who can move the money
+- **Claim:** Money leaves the contract in exactly one function, `pay_with_credit`. Every function that changes state needs the right person's signature.
+- **Number:**
+  - 1 function sends tokens out of the contract (`lib.rs` lines 533 and 534). The three other transfers (`deposit`, `repay`, `fund_buffer`) move tokens into it.
+  - 12 signature checks (`require_auth`), each covered by tests. Deleting any one of them in turn fails at least 2 tests (a one-off check described in PR #66).
+  - 62 contract tests (44 before the review, 18 added in #66). `cargo test`: 62 passed (as stated in PR #66).
+  - 11 known limits published in `docs/security.md` section 6.
+- **Source:** `docs/security.md` sections 1 and 6; PR #66, merged 11 Nov 2026; `contracts/route_ledger/src/lib.rs` and `test.rs`, commit dfdc33c.
+- **Exact quote:** "Tokens leave the contract in exactly one function: `pay_with_credit`, to the distributor (the payout) and the treasury (our 0.25%)." (`docs/security.md`)
+- **Translation:** n/a (English source)
+- **Use in:** pitch / deck / Q&A ("who can move the money?")
+- **Caveat:**
+  - A testnet demo with no outside audit. Say "we reviewed it ourselves", never "audited".
+  - The admin is trusted: it can approve distributors and set limits (known limit 1). Lenders can't withdraw yet (limit 3).
+  - Recount the tests after PR #80 merges. The "deleting each `require_auth`" check was run once and isn't scripted in the repo, so re-run it before saying it out loud.
+  - I counted 62 `#[test]` functions and 12 `require_auth` calls and confirmed where tokens leave the contract; I did not re-run `cargo test` (no Rust on this machine).
+- **Checked:** Claude, 11 Nov 2026 (the three counts above matched the code at dfdc33c; test results are quoted from PR #66, not re-run)
+
+## 35. Bugs our own review found
+- **Claim:** Our safety review found two real bugs and we fixed them. A third problem, the shop's cash confirmation not naming an amount, is found and its fix is in review.
+- **Number:** 2 bugs fixed (#66); 1 found, fix proposed in open PR #80; 11 known limits published.
+  - Any address could sign `cash_handed_in` and zero a driver's cash total. Now only an approved distributor can.
+  - A huge invoice made the credit-limit check overflow and crash instead of being refused. It never moved money. It now returns `OverLimit`.
+  - `cash_confirm(shop, id)` confirms whatever claim is stored when it runs, so a driver could swap the amount after the shop looked (a $10 claim became $90 in a test).
+- **Source:** PR #66 body ("What changed" and "Found but not fixed here"); `docs/security.md` section 6, limits 4 and 5.
+- **Exact quote:** "any address could sign and zero a driver's cash total" (PR #66)
+- **Translation:** n/a (English source)
+- **Use in:** Q&A (a judge asks "did you review it?"). It shows we test our own work and are honest about what's open.
+- **Caveat:**
+  - Don't claim the third problem is fixed until PR #80 is merged and deployed.
+  - Known limits are not fixed bugs: the admin is trusted, distributor approval can't be revoked, lenders can't withdraw. Say them before a judge finds them.
+  - The $10-to-$90 swap came from a throwaway test described in the PR; it isn't in the repo's tests.
+- **Checked:** Claude, 11 Nov 2026 (PR #66 body and `docs/security.md` read; the first two fixes are in `lib.rs` at dfdc33c)
