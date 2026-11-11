@@ -1,11 +1,11 @@
 "use client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { BackLink, Card, Chip, Label, LoadError, Loading, Screen } from "@/components/ui";
-import { createDemoInvoice, getDrivers, getInvoices, getShop } from "@/lib/api";
+import { BackLink, Card, Chip, Label, LoadError, Loading, ReceiptView, Screen } from "@/components/ui";
+import { createDemoInvoice, getDrivers, getInvoices, getShop, handInCash } from "@/lib/api";
 import { formatDay, formatMoney } from "@/lib/format";
 import { creditPayout, invoiceStatus, METHOD_LABEL, type StatusTone } from "@/lib/labels";
-import type { Invoice, Shop } from "@/lib/types";
+import type { Invoice, Receipt, Shop } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
 
 const STATUS_FILTERS: { label: string; tone?: StatusTone }[] = [
@@ -86,6 +86,17 @@ export default function Dashboard() {
   const [creating, setCreating] = useState(false);
   const [newest, setNewest] = useState<number | null>(null);
   const changed = useChangedRows(data?.invoices);
+  const [handingIn, setHandingIn] = useState<string | null>(null);
+  const [cashReceipt, setCashReceipt] = useState<Receipt | null>(null);
+
+  async function cashHandedIn(driverId: string, amount: number) {
+    setHandingIn(driverId);
+    setCashReceipt(null);
+    const result = await handInCash(driverId, amount);
+    if (result.ok) await reload();
+    setCashReceipt(result);
+    setHandingIn(null);
+  }
 
   async function newDemoInvoice() {
     setCreating(true);
@@ -148,13 +159,22 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Total label="Cobrado digital">{formatMoney(collected)}</Total>
         <Total label="Efectivo por motorista">
-          <span className="text-lg">
-            {drivers.map((d, index) => (
-              <span key={d.id}>
-                {index > 0 && " · "}
+          <span className="flex flex-col gap-2 text-lg">
+            {drivers.map((d) => (
+              <span key={d.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                 <span className="whitespace-nowrap">
                   {d.name} {formatMoney(d.cashHeld)}
                 </span>
+                {d.cashHeld > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => cashHandedIn(d.id, d.cashHeld)}
+                    disabled={handingIn !== null}
+                    className="min-h-12 rounded-xl border border-brand px-3 text-base font-semibold text-brand active:bg-brand-soft disabled:border-line disabled:text-muted"
+                  >
+                    {handingIn === d.id ? "Guardando..." : "Marcar efectivo entregado"}
+                  </button>
+                )}
               </span>
             ))}
           </span>
@@ -164,6 +184,8 @@ export default function Dashboard() {
           <span className={overdue > 0 ? "text-bad" : ""}>{formatMoney(overdue)}</span>
         </Total>
       </div>
+
+      {cashReceipt && <ReceiptView receipt={cashReceipt} />}
 
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">

@@ -192,6 +192,25 @@ export async function repay(shopId: string, amount: number): Promise<Receipt> {
   }
 }
 
+/** The distributor got a driver's cash at the warehouse. No money moves on chain. */
+export async function handInCash(driverId: string, amount: number): Promise<Receipt> {
+  try {
+    const driver = addressOf(driverId);
+    if (!driver || !DRIVER_IDS.includes(driverId as Role)) return fail("No encontramos a ese motorista.");
+    if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
+    const held = await read(readClient().get_driver_cash({ driver }));
+    // "Hand in everything" must send the exact units held.
+    const asked = toUnits(amount.toFixed(2));
+    const units = toDollars(held) === amount ? held : asked;
+    const { hash } = await run("distributor", (client) =>
+      client.cash_handed_in({ distributor: addressOf("distributor") as string, driver, amount: units }),
+    );
+    return receipt(hash, `Listo. ${nameOf(driverId)} entregó ${formatMoney(toDollars(units))} en efectivo.`);
+  } catch (error) {
+    return failure(error);
+  }
+}
+
 // ---------- demo invoices (the distributor's "Nueva factura de demo") ----------
 
 const DEMO_SHOPS = ["tienda-1", "tienda-2", "tienda-3"] as const;
