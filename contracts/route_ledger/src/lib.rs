@@ -293,7 +293,7 @@ impl RouteLedger {
     }
 
     pub fn is_distributor(env: Env, distributor: Address) -> bool {
-        env.storage().persistent().has(&DataKey::Distributor(distributor))
+        is_approved(&env, &distributor)
     }
 
     pub fn create_invoice(
@@ -306,7 +306,7 @@ impl RouteLedger {
         due: u64,
     ) -> Result<(), Error> {
         distributor.require_auth();
-        if !env.storage().persistent().has(&DataKey::Distributor(distributor.clone())) {
+        if !is_approved(&env, &distributor) {
             return Err(Error::NotApproved);
         }
         if env.storage().persistent().has(&DataKey::Invoice(id)) {
@@ -442,6 +442,12 @@ impl RouteLedger {
         amount: i128,
     ) -> Result<(), Error> {
         distributor.require_auth();
+        // Without this, any address could sign here and zero a driver's cash total.
+        // Still open: an approved distributor can lower any driver's total, because
+        // the contract doesn't record which distributor a driver works for.
+        if !is_approved(&env, &distributor) {
+            return Err(Error::NotApproved);
+        }
         let key = DataKey::DriverCash(driver.clone());
         let held: i128 = env.storage().persistent().get(&key).unwrap_or(0);
         if amount <= 0 || amount > held {
@@ -502,10 +508,11 @@ impl RouteLedger {
         if terms.owed > 0 && now > terms.due_at {
             return Err(Error::Overdue);
         }
-        // 2. Never past the shop's limit.
+        // 2. Never past the shop's limit. A sum too big to fit is past any limit.
         let amount = invoice.amount - invoice.paid;
-        if terms.owed + amount > terms.limit {
-            return Err(Error::OverLimit);
+        match terms.owed.checked_add(amount) {
+            Some(total) if total <= terms.limit => {}
+            _ => return Err(Error::OverLimit),
         }
         // 3. Fees: the distributor gets the amount minus the 1.50% credit fee
         //    (no usage fee on credit: our 0.25% is inside the 1.50%).
@@ -697,6 +704,10 @@ impl RouteLedger {
 /// `amount * bps / 10_000`, rounded down.
 fn bps(amount: i128, bps: i128) -> Result<i128, Error> {
     amount.checked_mul(bps).map(|x| x / 10_000).ok_or(Error::InvalidAmount)
+}
+
+fn is_approved(env: &Env, distributor: &Address) -> bool {
+    env.storage().persistent().has(&DataKey::Distributor(distributor.clone()))
 }
 
 fn send(token: &token::Client, from: &Address, to: &Address, amount: i128) {
