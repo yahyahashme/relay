@@ -88,6 +88,15 @@ export async function payNow(invoiceId: number, amount?: number): Promise<Receip
       units = toUnits(amount.toFixed(2));
     }
     if (units > left) return fail(`El monto es mayor que lo que falta pagar (${formatMoney(toDollars(left))}).`);
+    if (amount !== undefined) {
+      // Leave room for cash the driver recorded, so the shop can still confirm it.
+      const claim = await read(readClient().get_cash_claim({ id: invoice.id }));
+      if (claim > 0n && units > left - claim) {
+        return fail(
+          `Hay ${formatMoney(toDollars(claim))} en efectivo por confirmar. Puede pagar hasta ${formatMoney(toDollars(left - claim))}.`,
+        );
+      }
+    }
 
     const shop = roleOf(invoice.shop);
     if (!SHOP_IDS.includes(shop as Role)) return fail("Esta factura no es de su tienda.");

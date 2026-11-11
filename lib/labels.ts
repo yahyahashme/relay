@@ -40,3 +40,19 @@ export function parseAmount(text: string): number | null {
   const value = Number(clean);
   return value > 0 ? value : null;
 }
+
+/**
+ * Why a part payment can't go ahead, or null. A pending cash claim keeps its
+ * share of what's left, so the shop can still confirm the cash afterwards.
+ */
+export function partPayError(text: string, left: number, cashClaim = 0): string | null {
+  const amount = parseAmount(text);
+  if (amount === null) return "Monto inválido.";
+  const cents = (n: number) => Math.round(n * 100);
+  if (cents(amount) > cents(left)) return "El monto es mayor que lo pendiente.";
+  const room = cents(left) - cents(cashClaim);
+  if (cashClaim > 0 && cents(amount) > room) {
+    return `Hay $${cashClaim.toFixed(2)} en efectivo por confirmar. Puede pagar hasta $${(room / 100).toFixed(2)}.`;
+  }
+  return null;
+}

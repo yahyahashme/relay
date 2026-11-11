@@ -5,7 +5,7 @@ import { useState } from "react";
 import { BackLink, Button, ButtonLink, Card, Chip, LoadError, Loading, NotFound, ReceiptView, Screen } from "@/components/ui";
 import { confirmCash, getDrivers, getInvoice, getShop, payLater, payNow } from "@/lib/api";
 import { formatDay, formatMoney } from "@/lib/format";
-import { invoiceStatus, leftToPay, METHOD_LABEL, parseAmount } from "@/lib/labels";
+import { invoiceStatus, leftToPay, METHOD_LABEL, parseAmount, partPayError } from "@/lib/labels";
 import type { Invoice, Receipt, Shop } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
 
@@ -135,12 +135,9 @@ export default function InvoiceScreen() {
               {partError && <p className="font-medium text-bad">{partError}</p>}
               <Button
                 onClick={() => {
-                  const amount = parseAmount(partText);
-                  if (amount === null) return setPartError("Monto inválido.");
-                  if (Math.round(amount * 100) > Math.round(left * 100)) {
-                    return setPartError("El monto es mayor que lo pendiente.");
-                  }
-                  void run("part", () => payNow(id, amount));
+                  const error = partPayError(partText, left, invoice.cashClaim);
+                  if (error) return setPartError(error);
+                  void run("part", () => payNow(id, parseAmount(partText)!));
                 }}
                 busy={busy === "part"}
                 disabled={busy !== null || partText.trim() === ""}
