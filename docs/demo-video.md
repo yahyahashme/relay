@@ -1,8 +1,9 @@
 # 60-second demo video: shot list (#35)
 
 The script is the table in issue #35. This file turns it into exact clicks. Everything below was clicked
-through on testnet on Nov 10 (labels copied from the screens). Placeholders in **[brackets]** wait on
-the team: the worldwide number (#51) and the product name (#26).
+through on testnet on Nov 10 (labels copied from the screens). **Re-click the table after the Thursday
+redeploy (#52)**: the contract ID changes and #80 adds history and "Ver más" to the dashboard; then update
+this line. Placeholders in **[brackets]** wait on the team: the product name (#26).
 
 ## Before you record (10 min)
 
@@ -12,7 +13,8 @@ the team: the worldwide number (#51) and the product name (#26).
    The script's "$150" becomes whatever the invoice says; say "the shop pays" without a number.
 3. Tienda Don Luis must owe $0 first, or "Pagar en 7 días" may be greyed out: open
    `/tienda/cuenta/tienda-2` and tap **Pagar deuda** if it shows a debt.
-4. Carlos should start at $0 cash: on `/distribuidor`, tap **Marcar efectivo entregado** next to him if not.
+4. Ana should start at $0 cash (the cash shot is Mini Súper, on her route): on `/distribuidor`, tap
+   **Marcar efectivo entregado** next to her if not.
 5. Close other tabs and notifications (Focus mode on). Zoom the browser so text reads well at 1080p.
 6. The grey line at the top of every screen, "Demo en testnet · dinero de prueba · cash-in simulado",
    is the on-screen label the script asks for. Keep it in frame the whole time.
@@ -33,7 +35,7 @@ the team: the worldwide number (#51) and the product name (#26).
 
 | Time | Window | Exact clicks | Wait for |
 |---|---|---|---|
-| 0:00 to 0:08 | Title card (slide) | **[worldwide number, #51]**, then "85,265 tiendas, about $2B a year in deliveries, mostly cash" | |
+| 0:00 to 0:08 | Title card (slide) | The approved opening line (#73), word for word: "Around the world, small businesses in developing countries can't get about $5.7 trillion in credit they need. In El Salvador alone, more than 50,000 neighbourhood shops buy about $2 billion a year from distributors." On screen under it: "Conamype estimate". | |
 | 0:08 to 0:20 | Driver, then shop | Driver: tap the Tienda Rosa row (the QR opens). Shop: the invoice page (as if scanned) → **Pagar ahora** | Shop: green ✓ "Pago recibido…". Driver's chip turns **Pagada** within 5 s |
 | 0:20 to 0:35 | Shop, then dashboard | Open the Tienda Don Luis invoice → **Pagar en 7 días** | ✓ "Listo. Tiene hasta el … para pagar $60.00, sin intereses." Dashboard row: **Crédito**, "recibió $59.10" (the lender keeps 1.5%) |
 | 0:20 to 0:35 (cont.) | Shop | Tap **Mi cuenta** | "Debe $60.00", the due date, the limit |
@@ -41,8 +43,8 @@ the team: the worldwide number (#51) and the product name (#26).
 | 0:45 to 0:55 | Shop | On the green receipt, tap **Ver detalles** (opens stellar.expert) | The transaction page; then the contract page (link below) |
 | 0:55 to 1:00 | End card | App URL and contract ID (below) | |
 
-Mini Súper La Esquina's $85.50 cash payment goes to Ana (motorista-2), so use her route
-(`/ruta/motorista-2`) for that shot, or use a second Tienda Rosa invoice on Carlos's route instead.
+Mini Súper La Esquina's $85.50 cash payment goes to Ana (motorista-2), so switch the left window to her
+route (`/ruta/motorista-2`) for that shot.
 
 Line fix for 0:20 to 0:35: the issue says "$147.60 on a $150 invoice". The app's lender fee is 1.5%,
 so the screen shows $59.10 on $60.00 (and would show $147.75 on $150). Say what the screen shows.
