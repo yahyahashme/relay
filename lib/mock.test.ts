@@ -43,12 +43,12 @@ describe("pay now", () => {
 
 describe("cash", () => {
   it("is a driver claim, then a shop confirm", () => {
-    expect(mock.confirmCash(1001).message).toBe("El motorista aún no registró el efectivo.");
+    expect(mock.confirmCash(1001, 150).message).toBe("El motorista aún no registró el efectivo.");
     expect(mock.claimCash(1001, 150).ok).toBe(true);
     expect(mock.getInvoice(1001)?.cashClaim).toBe(150);
     expect(mock.getInvoice(1001)?.status).toBe("due");
 
-    expect(mock.confirmCash(1001).ok).toBe(true);
+    expect(mock.confirmCash(1001, 150).ok).toBe(true);
     expect(mock.getInvoice(1001)).toMatchObject({ status: "paid", method: "cash" });
     expect(mock.getInvoice(1001)?.cashClaim).toBeUndefined();
     expect(mock.getDrivers()[0].cashHeld).toBe(150);
@@ -56,7 +56,7 @@ describe("cash", () => {
 
   it("marks part cash and part digital as mixed", () => {
     mock.claimCash(1001, 50);
-    mock.confirmCash(1001);
+    mock.confirmCash(1001, 50);
     mock.payNow(1001);
     expect(mock.getInvoice(1001)).toMatchObject({ status: "paid", method: "mixed" });
   });
@@ -127,11 +127,44 @@ describe("repay", () => {
   });
 });
 
+describe("cash confirm", () => {
+  it("refuses a claim changed after the shop looked", () => {
+    mock.claimCash(1001, 10);
+    mock.claimCash(1001, 90);
+    expect(mock.confirmCash(1001, 10).message).toBe("El monto en efectivo cambió. Revise y confirme de nuevo.");
+    expect(mock.getInvoice(1001)?.paid).toBe(0);
+    expect(mock.confirmCash(1001, 90).ok).toBe(true);
+  });
+});
+
+describe("history and totals", () => {
+  it("lists newest first, filtered, with the full count", () => {
+    const all = mock.getHistory({}, 3);
+    expect(all.total).toBe(8);
+    expect(all.invoices.map((i) => i.id)).toEqual([1008, 1007, 1006]);
+    const rosa = mock.getHistory({ shopId: "tienda-1" }, 60);
+    expect(rosa.invoices.map((i) => i.id)).toEqual([1007, 1004, 1001]);
+    expect(mock.getHistory({ driverId: "motorista-2" }, 60).total).toBe(3);
+  });
+
+  it("adds every payment to the running totals", () => {
+    const before = mock.getTotals();
+    expect(before.digital).toBe(0);
+    mock.payNow(1001, 50);
+    mock.claimCash(1001, 100);
+    mock.confirmCash(1001, 100);
+    mock.payLater(1002);
+    mock.createDemoInvoice("tienda-1");
+    const after = mock.getTotals();
+    expect(after).toMatchObject({ digital: 50, cash: 100, credit: 85.5, invoices: before.invoices + 1 });
+  });
+});
+
 describe("cash hand-in", () => {
   it("lowers what the driver holds, never below zero", () => {
     expect(mock.handInCash("motorista-1", 10).message).toBe("Monto inválido.");
     mock.claimCash(1004, 60);
-    mock.confirmCash(1004);
+    mock.confirmCash(1004, 60);
     expect(mock.handInCash("motorista-1", 60)).toMatchObject({ ok: true, message: "Listo. Carlos entregó $60.00 en efectivo." });
     expect(mock.getDrivers().find((d) => d.id === "motorista-1")?.cashHeld).toBe(0);
     expect(mock.handInCash("nadie", 1).ok).toBe(false);

@@ -36,7 +36,8 @@ describe("errors", () => {
   });
   it("says it in Spanish, with a fallback", () => {
     expect(errorMessage(5)).toBe("Esta factura ya está pagada.");
-    expect(errorMessage(13)).toBe(FALLBACK_MESSAGE);
+    expect(errorMessage(15)).toBe("El monto en efectivo cambió. Revise y confirme de nuevo.");
+    expect(errorMessage(99)).toBe(FALLBACK_MESSAGE);
     expect(errorMessage(null)).toBe(FALLBACK_MESSAGE);
     expect(new ContractError(4).message).toBe("El monto es mayor que lo pendiente.");
   });

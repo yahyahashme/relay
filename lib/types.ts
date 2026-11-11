@@ -5,4 +5,10 @@ export type Shop = { id: string; name: string; owner: string; creditLimit: numbe
 export type Driver = { id: string; name: string; cashHeld: number };
 export type Pool = { available: number; buffer: number };
 export type Receipt = { ok: boolean; message: string; txHash?: string; explorerUrl?: string };
+/** Whose invoices to list: everyone's, one shop's or one driver's. */
+export type InvoiceFilter = { shopId?: string; driverId?: string };
+/** A slice of the history, newest first, and how many invoices there are in all. */
+export type InvoiceHistory = { invoices: Invoice[]; total: number };
+/** The distributor's running totals over all history, in dollars. */
+export type Totals = { invoices: number; invoiced: number; digital: number; cash: number; credit: number };
 export type InvoiceRow = { invoiceId: number; shopId: string; driverId: string; amount: string; dueDate: string };

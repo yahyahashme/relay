@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
 import { BackLink, Button, Card, Chip, Label, LoadError, Loading, NotFound, ReceiptView, Screen } from "@/components/ui";
-import { claimCash, getDrivers, getInvoices, getShop } from "@/lib/api";
+import { claimCash, getDrivers, getHistory, getShop } from "@/lib/api";
 import { formatMoney } from "@/lib/format";
 import { invoiceStatus, leftToPay } from "@/lib/labels";
 import type { Receipt, Shop } from "@/lib/types";
@@ -19,8 +19,9 @@ function invoiceUrl(invoiceId: number) {
 export default function RouteScreen() {
   const { driverId } = useParams<{ driverId: string }>();
   const { data, failed, reload } = usePolling(`route-${driverId}`, async () => {
-    const [drivers, invoices] = await Promise.all([getDrivers(), getInvoices()]);
-    const stops = invoices.filter((i) => i.driverId === driverId);
+    // The driver's 60 newest invoices, oldest first like a route.
+    const [drivers, history] = await Promise.all([getDrivers(), getHistory({ driverId }, 60)]);
+    const stops = [...history.invoices].reverse();
     const shopIds = [...new Set(stops.map((i) => i.shopId))];
     const shops = (await Promise.all(shopIds.map(getShop))).filter((s): s is Shop => s !== null);
     return { driver: drivers.find((d) => d.id === driverId) ?? null, stops, shops };

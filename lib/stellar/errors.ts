@@ -15,6 +15,9 @@ const MESSAGES: Record<number, string> = {
   10: "No tiene deuda pendiente.",
   11: "El motorista aún no registró el efectivo.",
   12: "Su tienda aún no tiene crédito.",
+  13: "Esta distribuidora no está aprobada.",
+  14: "Esta tienda no está en mora.",
+  15: "El monto en efectivo cambió. Revise y confirme de nuevo.",
 };
 
 export const FALLBACK_MESSAGE = "No se pudo completar. Intente de nuevo.";

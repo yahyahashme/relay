@@ -11,8 +11,8 @@ import { ContractError, FALLBACK_MESSAGE } from "@/lib/stellar/errors";
 import { toInvoice, toShop } from "@/lib/stellar/map";
 import { read, run } from "@/lib/stellar/send";
 import { toDollars, toUnits } from "@/lib/stellar/units";
-import type { Invoice as ChainInvoice } from "@/packages/route_ledger/src/index";
-import type { Driver, Invoice, Pool, Receipt, Shop } from "@/lib/types";
+import type { Invoice as ChainInvoice, ListFilter } from "@/packages/route_ledger/src/index";
+import type { Driver, Invoice, InvoiceFilter, InvoiceHistory, Pool, Receipt, Shop, Totals } from "@/lib/types";
 
 // ---------- reads ----------
 
@@ -25,6 +25,41 @@ async function withCashClaim(invoice: ChainInvoice): Promise<Invoice> {
 export async function getInvoices(): Promise<Invoice[]> {
   const list = await read(readClient().list_invoices());
   return (await Promise.all(list.map(withCashClaim))).sort((a, b) => a.id - b.id);
+}
+
+const PAGE = 60; // the contract's MAX_LIST
+
+function listFilter({ shopId, driverId }: InvoiceFilter): ListFilter | null {
+  if (shopId) return SHOP_IDS.includes(shopId as Role) ? { tag: "Shop", values: [addressOf(shopId) as string] } : null;
+  if (driverId) return DRIVER_IDS.includes(driverId as Role) ? { tag: "Driver", values: [addressOf(driverId) as string] } : null;
+  return { tag: "All", values: undefined };
+}
+
+/** The newest `limit` invoices (newest first) out of the whole history, a contract page at a time. */
+export async function getHistory(filter: InvoiceFilter = {}, limit = 30): Promise<InvoiceHistory> {
+  const chainFilter = listFilter(filter);
+  if (!chainFilter) return { invoices: [], total: 0 };
+  const want = Math.max(0, Math.min(Math.floor(limit), 600));
+  const found: ChainInvoice[] = [];
+  let total = 0;
+  do {
+    const page = await read(readClient().list_page({ filter: chainFilter, skip: found.length, limit: Math.min(PAGE, want - found.length) }));
+    total = page.total;
+    found.push(...page.invoices);
+    if (page.invoices.length === 0) break;
+  } while (found.length < want && found.length < total);
+  return { invoices: await Promise.all(found.map(withCashClaim)), total };
+}
+
+export async function getTotals(): Promise<Totals> {
+  const t = await read(readClient().get_totals({ distributor: addressOf("distributor") as string }));
+  return {
+    invoices: t.invoices,
+    invoiced: toDollars(t.invoiced),
+    digital: toDollars(t.digital),
+    cash: toDollars(t.cash),
+    credit: toDollars(t.credit),
+  };
 }
 
 async function chainInvoice(id: number) {
@@ -159,15 +194,19 @@ export async function claimCash(invoiceId: number, amount: number): Promise<Rece
 }
 
 /** Cash, step 2: the shop confirms the driver's claim. */
-export async function confirmCash(invoiceId: number): Promise<Receipt> {
+/** `amount` is the claim the shop's screen showed: the contract refuses it if the driver changed it since. */
+export async function confirmCash(invoiceId: number, amount: number): Promise<Receipt> {
   try {
     const invoice = await chainInvoice(invoiceId);
     if (!invoice) return fail("No encontramos esa factura.");
     const shop = roleOf(invoice.shop);
     if (!SHOP_IDS.includes(shop as Role)) return fail("Esta factura no es de su tienda.");
-    const claim = await read(readClient().get_cash_claim({ id: invoice.id }));
+    if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
+    const claim = toUnits(amount.toFixed(2));
 
-    const { hash } = await run(shop as Role, (client) => client.cash_confirm({ shop: invoice.shop, id: invoice.id }));
+    const { hash } = await run(shop as Role, (client) =>
+      client.cash_confirm({ shop: invoice.shop, id: invoice.id, amount: claim }),
+    );
     return receipt(hash, `Listo. Confirmó ${formatMoney(toDollars(claim))} en efectivo.`);
   } catch (error) {
     return failure(error);
@@ -237,8 +276,8 @@ export async function createDemoInvoice(shopId?: string): Promise<Invoice> {
     try {
       await run("distributor", async (client) => {
         // Picked inside the distributor's queue so two taps never pick the same id.
-        const list = await read(readClient().list_invoices());
-        id = list.reduce((max, i) => (i.id > max ? i.id : max), 1000n) + 1n + skip;
+        const newest = (await read(readClient().list_page({ filter: { tag: "All", values: undefined }, skip: 0, limit: 1 }))).invoices[0];
+        id = (newest && newest.id > 1000n ? newest.id : 1000n) + 1n + skip;
         const shop = shopId ?? DEMO_SHOPS[Number(id % 3n)];
         // A few random seconds so two server instances never build the very same
         // transaction: identical ones share a hash, and both judges would get one invoice.

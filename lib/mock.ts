@@ -6,7 +6,7 @@
 // contract) so sums never drift. Everything returned is in dollars.
 
 import { formatDay, formatMoney, plural } from "./format";
-import type { Driver, Invoice, InvoiceRow, PayMethod, Pool, Receipt, Shop } from "./types";
+import type { Driver, Invoice, InvoiceFilter, InvoiceHistory, InvoiceRow, PayMethod, Pool, Receipt, Shop, Totals } from "./types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CREDIT_DAYS = 7;
@@ -47,6 +47,7 @@ type Store = {
   shops: ShopRecord[];
   drivers: DriverRecord[];
   pool: { available: number; buffer: number }; // units
+  totals: { invoices: number; invoiced: number; digital: number; cash: number; credit: number }; // cents
 };
 
 const SEED_INVOICES: [number, string, string, number][] = [
@@ -87,6 +88,13 @@ function seed(now: number): Store {
       { id: "motorista-2", name: "Ana", cashHeld: 0 },
     ],
     pool: { available: 5_000_00 * UNITS_PER_CENT, buffer: 50_00 * UNITS_PER_CENT }, // deploy.sh seeds $50
+    totals: {
+      invoices: SEED_INVOICES.length,
+      invoiced: SEED_INVOICES.reduce((sum, [, , , amount]) => sum + amount, 0),
+      digital: 0,
+      cash: 0,
+      credit: 0,
+    },
   };
 }
 
@@ -159,6 +167,19 @@ export function getInvoices(): Invoice[] {
   return [...db().invoices].sort((a, b) => a.id - b.id).map(toInvoice);
 }
 
+/** Newest first, like the contract's list_page. */
+export function getHistory(filter: InvoiceFilter = {}, limit = 30): InvoiceHistory {
+  const all = db()
+    .invoices.filter((i) => (!filter.shopId || i.shopId === filter.shopId) && (!filter.driverId || i.driverId === filter.driverId))
+    .sort((a, b) => b.id - a.id);
+  return { invoices: all.slice(0, Math.max(0, limit)).map(toInvoice), total: all.length };
+}
+
+export function getTotals(): Totals {
+  const t = db().totals;
+  return { invoices: t.invoices, invoiced: dollars(t.invoiced), digital: dollars(t.digital), cash: dollars(t.cash), credit: dollars(t.credit) };
+}
+
 export function getInvoice(id: number): Invoice | null {
   const invoice = findInvoice(id);
   return invoice ? toInvoice(invoice) : null;
@@ -192,6 +213,8 @@ export function createDemoInvoice(shopId?: string): Invoice {
     dueAt: clock() + CREDIT_DAYS * DAY_MS,
   };
   invoices.push(record);
+  db().totals.invoices += 1;
+  db().totals.invoiced += record.amount;
   return toInvoice(record);
 }
 
@@ -208,6 +231,7 @@ export function payNow(invoiceId: number, amount?: number): Receipt {
 
   invoice.paid += pay;
   invoice.method = nextMethod(invoice.method, "digital");
+  db().totals.digital += pay;
   return pay === left
     ? ok(`Pago recibido: ${money(pay)} en dólares digitales.`)
     : ok(`Pago recibido: ${money(pay)}. Falta ${money(left - pay)}.`);
@@ -242,6 +266,7 @@ export function payLater(invoiceId: number): Receipt {
   shop.cycleBorrowed += amount;
   invoice.paid = invoice.amount;
   invoice.method = nextMethod(invoice.method, "credit");
+  db().totals.credit += amount;
   return ok(`Listo. Tiene hasta el ${formatDay(iso(shop.dueAt))} para pagar ${money(amount)}, sin intereses.`);
 }
 
@@ -257,16 +282,19 @@ export function claimCash(invoiceId: number, amount: number): Receipt {
   return ok("Listo. Ahora la tienda debe tocar «Confirmo».");
 }
 
-export function confirmCash(invoiceId: number): Receipt {
+/** `amount` is what the shop's screen showed; a claim changed since then is refused. */
+export function confirmCash(invoiceId: number, amount: number): Receipt {
   const invoice = findInvoice(invoiceId);
   if (!invoice) return fail("No encontramos esa factura.");
   const cash = invoice.cashClaim;
   if (cash === undefined) return fail("El motorista aún no registró el efectivo.");
+  if (toCents(amount) !== cash) return fail("El monto en efectivo cambió. Revise y confirme de nuevo.");
   if (invoice.paid >= invoice.amount) return fail("Esta factura ya está pagada.");
   if (cash > invoice.amount - invoice.paid) return fail("El efectivo registrado es mayor que lo que falta pagar.");
 
   invoice.paid += cash;
   invoice.method = nextMethod(invoice.method, "cash");
+  db().totals.cash += cash;
   delete invoice.cashClaim;
   const driver = db().drivers.find((d) => d.id === invoice.driverId);
   if (driver) driver.cashHeld += cash;

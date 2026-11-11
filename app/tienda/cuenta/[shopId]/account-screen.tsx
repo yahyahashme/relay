@@ -2,20 +2,34 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BackLink, Button, Card, Chip, Label, LoadError, Loading, NotFound, ReceiptView, Screen } from "@/components/ui";
-import { getInvoices, getShop, repay } from "@/lib/api";
+import { getHistory, getShop, repay } from "@/lib/api";
 import { formatDay, formatMoney, plural } from "@/lib/format";
-import { leftToPay } from "@/lib/labels";
+import { invoiceStatus, leftToPay, METHOD_LABEL } from "@/lib/labels";
 import type { Receipt } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
 
+const PAGE_ROWS = 20;
+
 export default function AccountScreen() {
   const { shopId } = useParams<{ shopId: string }>();
+  const [shown, setShown] = useState(PAGE_ROWS);
+  const [loadingMore, setLoadingMore] = useState(false);
   const { data, failed, reload } = usePolling(`account-${shopId}`, async () => {
-    const [shop, invoices] = await Promise.all([getShop(shopId), getInvoices()]);
-    return { shop, unpaid: invoices.filter((i) => i.shopId === shopId && i.status !== "paid") };
+    const [shop, history] = await Promise.all([getShop(shopId), getHistory({ shopId }, shown)]);
+    return {
+      shop,
+      unpaid: history.invoices.filter((i) => i.status !== "paid"),
+      paid: history.invoices.filter((i) => i.status === "paid"),
+      more: history.invoices.length < history.total,
+    };
   });
+  // "Ver más" grows `shown`; load the bigger page once it has.
+  useEffect(() => {
+    if (!loadingMore) return;
+    void reload().finally(() => setLoadingMore(false));
+  }, [shown]); // eslint-disable-line react-hooks/exhaustive-deps
   const [busy, setBusy] = useState(false);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
 
@@ -28,7 +42,7 @@ export default function AccountScreen() {
     );
   }
 
-  const { shop, unpaid } = data;
+  const { shop, unpaid, paid, more } = data;
   if (!shop) {
     return (
       <Screen>
@@ -119,6 +133,44 @@ export default function AccountScreen() {
             ))}
           </ul>
         </section>
+      )}
+
+      {paid.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <Label>Facturas pagadas</Label>
+          <ul className="flex flex-col divide-y divide-line rounded-2xl border border-line bg-card">
+            {paid.map((invoice) => (
+              <li key={invoice.id}>
+                <Link
+                  href={`/tienda/${invoice.id}`}
+                  className="flex min-h-12 items-center justify-between gap-3 px-4 py-2 active:bg-brand-soft"
+                >
+                  <span className="flex flex-col">
+                    <span className="text-lg">Factura {invoice.id}</span>
+                    <span className="text-sm text-muted">
+                      {invoiceStatus(invoice).label}
+                      {invoice.method ? ` · ${METHOD_LABEL[invoice.method]}` : ""}
+                    </span>
+                  </span>
+                  <span className="text-lg font-semibold tabular-nums">{formatMoney(invoice.amount)}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {more && (
+        <Button
+          variant="secondary"
+          onClick={() => {
+            setLoadingMore(true);
+            setShown((n) => n + PAGE_ROWS);
+          }}
+          busy={loadingMore}
+        >
+          Ver más facturas
+        </Button>
       )}
     </Screen>
   );

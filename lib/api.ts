@@ -8,7 +8,7 @@
 
 import * as live from "@/app/actions";
 import * as mock from "./mock";
-import type { Driver, Invoice, InvoiceRow, Pool, Receipt, Shop } from "./types";
+import type { Driver, Invoice, InvoiceFilter, InvoiceHistory, InvoiceRow, Pool, Receipt, Shop, Totals } from "./types";
 
 export const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS !== "false";
 
@@ -39,6 +39,11 @@ async function write(mockWrite: () => Receipt, liveWrite?: () => Promise<Receipt
 // ---------- reads ----------
 
 export const getInvoices = (): Promise<Invoice[]> => read(mock.getInvoices, live.getInvoices);
+/** The newest `limit` invoices out of all history, newest first, and the full count. */
+export const getHistory = (filter: InvoiceFilter = {}, limit = 30): Promise<InvoiceHistory> =>
+  read(() => mock.getHistory(filter, limit), () => live.getHistory(filter, limit));
+/** The distributor's running totals over all history. */
+export const getTotals = (): Promise<Totals> => read(mock.getTotals, live.getTotals);
 export const getInvoice = (id: number): Promise<Invoice | null> =>
   read(() => mock.getInvoice(id), () => live.getInvoice(id));
 export const getShop = (shopId: string): Promise<Shop | null> =>
@@ -57,8 +62,9 @@ export const payLater = (invoiceId: number) =>
   write(() => mock.payLater(invoiceId), () => live.payLater(invoiceId));
 export const claimCash = (invoiceId: number, amount: number) =>
   write(() => mock.claimCash(invoiceId, amount), () => live.claimCash(invoiceId, amount));
-export const confirmCash = (invoiceId: number) =>
-  write(() => mock.confirmCash(invoiceId), () => live.confirmCash(invoiceId));
+/** `amount` = the cash claim the shop saw; refused if the driver changed it since. */
+export const confirmCash = (invoiceId: number, amount: number) =>
+  write(() => mock.confirmCash(invoiceId, amount), () => live.confirmCash(invoiceId, amount));
 export const repay = (shopId: string, amount: number) =>
   write(() => mock.repay(shopId, amount), () => live.repay(shopId, amount));
 /** The distributor got a driver's cash at the warehouse (only lowers the driver's cash count). */

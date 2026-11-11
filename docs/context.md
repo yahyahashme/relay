@@ -429,7 +429,7 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 
 **Finding, Nov 7 (Yahya, MoneyGram Ramps locator):** MoneyGram has **cash-out** points in El Salvador (USDC to cash), in San Salvador and other cities. The locator shows the nearest 10 at a time, so we don't have a full count. Examples in central San Salvador: Banco Cuscatlán, Super Selectos, Banco Promerica, Banco Integral, Banco Davivienda, Banco Abank and a DLC road market. What it means for us: cash-out has a real answer today, so a distributor can turn digital dollars into cash at a bank or supermarket. **Cash-in (cash to USDC) is still unsolved,** and that's the half shops need.
 
-**Built, Nov 10 (#25):** the cash two-tap now runs on testnet: the driver records the cash, the shop confirms, and the contract counts it as cash held by that driver (`get_driver_cash`). No digital dollars move, so this records cash; it does not convert it. It is the mechanism behind idea 3 and does not solve cash-in. The distributor's "Marcar efectivo entregado" (#32) lowers that count when the driver hands the cash in at the warehouse; still no digital dollars move.
+**Built, Nov 10 (#25):** the cash two-tap now runs on testnet: the driver records the cash, the shop confirms, and the contract counts it as cash held by that driver (`get_driver_cash`). No digital dollars move, so this records cash; it does not convert it. It is the mechanism behind idea 3 and does not solve cash-in. The distributor's "Marcar efectivo entregado" (#32) lowers that count when the driver hands the cash in at the warehouse; still no digital dollars move. v4 (before the Thu redeploy): the shop's "Confirmo" now names the amount it saw, so a driver can't change the cash amount after the shop looks; it still only records cash and converts nothing.
 
 **Still to find out:** what cash-in costs per $100 today, how far the nearest payment point is for a typical shop, and which partner could convert in bulk and already has a bank account.
 
@@ -504,13 +504,13 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 | `create_invoice(distributor, id, shop, driver, amount, due)` | distributor | Stores an invoice. Rejects duplicate IDs and amounts of 0 or less. |
 | `pay(shop, id, amount)` | shop | Moves test dollars from shop to distributor. Part payments are allowed; paying more than what's left is rejected. |
 | `cash_claim(driver, id, amount)` | driver | The driver says they received cash. |
-| `cash_confirm(shop, id)` | shop | The shop agrees. The invoice is marked paid in cash and the driver's cash total goes up. No tokens move. |
+| `cash_confirm(shop, id, amount)` | shop | The shop agrees to the amount its screen showed (refused with `ClaimChanged` if the driver changed it). The invoice is marked paid in cash and the driver's cash total goes up. No tokens move. |
 | `cash_handed_in(distributor, driver, amount)` | distributor | The driver handed cash in at the warehouse. (Should) |
 | `deposit(lender, amount)` | lender | Puts money in the pool. |
 | `set_terms(admin, shop, limit, option)` | admin (the distributor, for real) | Sets a shop's limit and its option: 1, 2 or 3. |
 | `pay_with_credit(shop, id)` | shop | Checks that nothing is overdue, the limit isn't exceeded and the pool has money. The pool pays the distributor the amount minus the fee, and the shop's debt and due date are recorded. |
 | `repay(shop, amount)` | shop | Moves test dollars from the shop to the pool and splits the fee into buffer, lenders and us. If it's on time, the limit grows (demo rule: +$25 per on-time repayment, up to a cap). |
-| `get_invoice`, `list_invoices`, `get_shop`, `get_pool`, `get_driver_cash` | anyone | Read-only, for the dashboard. |
+| `get_invoice`, `list_invoices`, `list_page(filter, skip, limit)`, `get_totals(distributor)`, `get_shop`, `get_pool`, `get_driver_cash` | anyone | Read-only, for the dashboard. `list_page` returns all history newest first, 60 at a time, for everyone, one shop or one driver; `get_totals` keeps running totals (digital, cash, credit, invoiced). |
 
 - Option 3 needs no pool: the invoice just stays due for up to 7 days.
 - Each role sends its own transaction, so `require_auth` is met by whoever signs. Avoid transactions that need two signers; that's why cash is two steps.

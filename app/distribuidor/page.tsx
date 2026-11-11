@@ -2,8 +2,8 @@
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { BackLink, Card, Chip, Label, LoadError, Loading, ReceiptView, Screen } from "@/components/ui";
-import { createDemoInvoice, getDrivers, getInvoices, getShop, handInCash } from "@/lib/api";
-import { formatDay, formatMoney } from "@/lib/format";
+import { createDemoInvoice, getDrivers, getHistory, getShop, getTotals, handInCash } from "@/lib/api";
+import { formatDay, formatMoney, plural } from "@/lib/format";
 import { creditPayout, invoiceStatus, METHOD_LABEL, type StatusTone } from "@/lib/labels";
 import type { Invoice, Receipt, Shop } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
@@ -16,11 +16,18 @@ const STATUS_FILTERS: { label: string; tone?: StatusTone }[] = [
   { label: "Crédito", tone: "credit" },
 ];
 
-async function loadDashboard() {
-  const [invoices, drivers] = await Promise.all([getInvoices(), getDrivers()]);
-  const shopIds = [...new Set(invoices.map((i) => i.shopId))];
-  const shops = (await Promise.all(shopIds.map(getShop))).filter((s): s is Shop => s !== null);
-  return { invoices, drivers, shops };
+const PAGE_ROWS = 30;
+const SHOP_IDS = ["tienda-1", "tienda-2", "tienda-3"];
+
+/** The newest `rows` invoices; the totals always cover all history. */
+async function loadDashboard(rows: number) {
+  const [history, totals, drivers, shops] = await Promise.all([
+    getHistory({}, rows),
+    getTotals(),
+    getDrivers(),
+    Promise.all(SHOP_IDS.map(getShop)),
+  ]);
+  return { invoices: history.invoices, total: history.total, totals, drivers, shops: shops.filter((s): s is Shop => s !== null) };
 }
 
 const HIGHLIGHT_MS = 4000;
@@ -80,7 +87,9 @@ function Total({ label, children }: { label: string; children: ReactNode }) {
 }
 
 export default function Dashboard() {
-  const { data, failed, reload } = usePolling("dashboard", loadDashboard);
+  const [shown, setShown] = useState(PAGE_ROWS);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const { data, failed, reload } = usePolling("dashboard", () => loadDashboard(shown));
   const [statusFilter, setStatusFilter] = useState<StatusTone | "all">("all");
   const [driverFilter, setDriverFilter] = useState("all");
   const [creating, setCreating] = useState(false);
@@ -97,6 +106,16 @@ export default function Dashboard() {
     setCashReceipt(result);
     setHandingIn(null);
   }
+
+  async function showMore() {
+    setLoadingMore(true);
+    setShown((n) => n + PAGE_ROWS);
+  }
+  // Load the bigger page once `shown` has grown (the loader reads the latest value).
+  useEffect(() => {
+    if (!loadingMore) return;
+    void reload().finally(() => setLoadingMore(false));
+  }, [shown]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function newDemoInvoice() {
     setCreating(true);
@@ -136,15 +155,15 @@ export default function Dashboard() {
     );
   }
 
-  const { invoices, drivers, shops } = data;
+  const { invoices, total, totals, drivers, shops } = data;
   const shopName = (id: string) => shops.find((s) => s.id === id)?.name ?? id;
   const driverName = (id: string) => drivers.find((d) => d.id === id)?.name ?? id;
 
-  const collected = sum(invoices.filter((i) => i.method === "digital").map((i) => i.paid));
+  const collected = totals.digital;
   const onCredit = sum(shops.map((s) => s.creditOwed));
   const overdue = sum(shops.filter((s) => s.overdue).map((s) => s.creditOwed));
 
-  const rows = [...invoices].reverse().filter( // newest first
+  const rows = invoices.filter( // newest first
     (i) =>
       (statusFilter === "all" || invoiceStatus(i).tone === statusFilter) &&
       (driverFilter === "all" || i.driverId === driverFilter),
@@ -258,6 +277,22 @@ export default function Dashboard() {
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="flex flex-col items-center gap-2 pb-4">
+        <p className="text-muted">
+          Mostrando {invoices.length} de {plural(total, "factura", "facturas")}
+        </p>
+        {invoices.length < total && (
+          <button
+            type="button"
+            onClick={showMore}
+            disabled={loadingMore}
+            className="min-h-12 rounded-xl border-2 border-brand px-6 text-lg font-semibold text-brand active:bg-brand-soft disabled:border-line disabled:text-muted"
+          >
+            {loadingMore ? "Cargando..." : "Ver más"}
+          </button>
+        )}
       </div>
     </Screen>
   );

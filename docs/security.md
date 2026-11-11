@@ -15,7 +15,7 @@ Every state-changing function takes the signer as its first `Address` and calls 
 | `create_invoice` | the distributor | approved distributor (`NotApproved`), new id (`AlreadyExists`), amount above 0 | nothing. It only records an invoice. |
 | `pay` | the shop on the invoice | invoice is that shop's (`NotYourInvoice`), not already paid, amount above 0, not more than what is left (`Overpay`) | the shop's own tokens: amount minus 0.10% to the distributor, 0.10% to the treasury. Nothing from the pool. |
 | `cash_claim` | the driver on the invoice | invoice's driver (`NotYourInvoice`), not paid, amount above 0, not more than what is left | nothing. It stores one claim per invoice (a new claim replaces the old one). |
-| `cash_confirm` | the shop on the invoice | invoice is that shop's, a claim exists (`NoCashClaim`), not paid, claim still fits what is left | no tokens. It adds to the invoice's `paid`, the driver's cash total and the distributor's usage fee owed, then deletes the claim. |
+| `cash_confirm` | the shop on the invoice | invoice is that shop's, a claim exists (`NoCashClaim`), the claim equals the `amount` the shop saw (`ClaimChanged`), not paid, claim still fits what is left | no tokens. It adds to the invoice's `paid`, the driver's cash total and the distributor's usage fee owed, then deletes the claim. |
 | `cash_handed_in` | an approved distributor | signer is an approved distributor (`NotApproved`), amount above 0 and not more than the driver holds | no tokens. It lowers the driver's cash total. Known limit 4. |
 | `deposit` | the lender | amount above 0 | the lender's own tokens, into the contract, added to `pool.available`. |
 | `set_terms` | admin | signer is `config.admin`, limit not negative | nothing directly. It sets a shop's credit limit. |
@@ -23,7 +23,7 @@ Every state-changing function takes the signer as its first `Address` and calls 
 | `repay` | the shop that owes | something is owed (`NothingOwed`), amount above 0 and not more than the debt | the shop's own tokens, into the contract: to `available`, or to `buffer` if it is paying a written-off debt. |
 | `cover_default` | admin | signer is `config.admin`, the shop owes, and is 4 credit periods late (`NotInDefault`) | nothing leaves the contract. The buffer moves to `available` (back to the lenders), and the shop's debt becomes `written_off`. |
 | `fund_buffer` | whoever pays | amount above 0 | the signer's own tokens, into the contract, added to `pool.buffer`. |
-| `get_invoice`, `list_invoices`, `get_config`, `get_pool`, `get_shop`, `get_driver_cash`, `get_usage_owed`, `get_cash_claim`, `is_distributor` | nobody | reads only (`list_invoices` returns the newest 60) | nothing. |
+| `get_invoice`, `list_invoices`, `list_page`, `get_totals`, `get_config`, `get_pool`, `get_shop`, `get_driver_cash`, `get_usage_owed`, `get_cash_claim`, `is_distributor` | nobody | reads only (one list call returns at most 60; `list_page` pages back through all history) | nothing. |
 
 ### Where pool money can go
 
@@ -73,7 +73,7 @@ The Stellar Development Foundation can wipe testnet, and a wipe deletes our cont
 2. **Distributor approval can't be revoked.** There is no `revoke_distributor`. (Before the #58 review, any address could create invoices as a "distributor" and collect pool money. That is fixed.)
 3. **Lenders can't withdraw, and deposits aren't tracked per lender.** `deposit` adds to the pool total, and only the `Deposited` event says who put in what. Interest to lenders stays in `available`. For real: per-lender shares and a withdraw function.
 4. **`cash_handed_in` can't tell which distributor a driver works for.** The review fix (only an approved distributor may sign) stops outsiders. Any approved distributor can still lower any driver's cash total. These totals are bookkeeping and no tokens move. With one demo distributor it can't happen; with several, the driver would need to be tied to a distributor.
-5. **The shop's cash confirmation doesn't name an amount.** `cash_confirm(shop, id)` confirms whatever claim is stored when it runs, and the driver can replace the claim before that, so the recorded amount can differ from what the shop saw. The fix is `cash_confirm(shop, id, amount)`, which changes the function signature (a redeploy), so it is not part of the #29 fixes.
+5. **Fixed in v4: the shop's cash confirmation names the amount.** `cash_confirm(shop, id, amount)` refuses with `ClaimChanged` if the driver replaced the claim after the shop saw it. Live after the Thursday redeploy (#52).
 6. **Usage fees on cash are recorded but not collected.** `get_usage_owed` shows what each distributor owes us from cash payments; no function settles it.
 7. **The buffer only moves in `cover_default`,** from `buffer` to `available` (back to the lenders); it never leaves the contract. A written-off debt that is repaid later refills the buffer, not the lenders who took the unrecovered part of the loss.
 8. **A cash claim left over from a payment by another route stays in storage.** `get_cash_claim` can show a claim on an invoice that is already paid. `cash_confirm` still rejects it, but the dashboard should ignore claims on paid invoices.
