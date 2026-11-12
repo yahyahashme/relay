@@ -37,11 +37,11 @@ A mobile web app where El Salvador's neighbourhood shops pay distributors in dig
 Target: 120 to 150 words.
 
 <!-- q5 -->
-Around the world, small businesses in developing countries can't get about $5.7 trillion in credit they need. In El Salvador alone, more than 50,000 neighbourhood shops buy about $2 billion a year from distributors (Conamype estimate). (Rohan to confirm) Delivery crews in El Salvador have been robbed and extorted. Short of cash, 6 in 10 informal small businesses have borrowed from loan sharks, about $35 per $100 (2019 survey). (Rohan to confirm)
+Around the world, small businesses in developing countries can't get about $5.7 trillion in credit they need. In El Salvador alone, more than 50,000 neighbourhood shops buy about $2 billion a year from distributors (Conamype estimate). (Rohan to confirm) Delivery crews in El Salvador have been robbed and extorted. Short of cash, 6 in 10 informal small businesses have borrowed from loan sharks, about $35 per $100 (2019 survey).
 
 We built a mobile web app on our public Soroban contract. A shop pays now in test dollars, records cash with two taps, or pays in 7 days, interest-free. On-time repayment raises its limit, up to $500: a credit record it never had. Stellar says payments finalize in about five seconds, with fees under a cent.
 
-Distributors pay, never shops: 1.5% to be paid instantly on pay-in-7-days sales (0.25% ours, the rest to lenders and a loss buffer), and 0.1% of other invoices. (Rohan to confirm, #12)
+Distributors pay, never shops: 1.5% to be paid instantly on pay-in-7-days sales (0.25% ours, the rest to lenders and a loss buffer), and 0.1% of other invoices.
 <!-- /q5 -->
 
 ## 6. Why is your team best suited to solve this problem?
@@ -49,7 +49,7 @@ Distributors pay, never shops: 1.5% to be paid instantly on pay-in-7-days sales 
 Target: 120 to 150 words.
 
 <!-- q6 -->
-Rohan studies FARM (Financial Analysis and Risk Management), which covers the credit and risk side. Three engineers (software, two computer) built and tested our public contract, CAPQ6ZDDWDS3OE42BM5LM3M7YEQ3TJ7IJZ5ZT7A2Z3RTSI35OJKV3I23 on Stellar testnet, and the app: https://tiendas-stellar.vercel.app. Then we asked people: [N] conversations with shop owners, distributors and experts, [N] prototype walkthroughs ([N] usability-only), and [N] emails to banks and cash-in companies (from docs/research.md). We are first-year Waterloo students and none of us has run a shop, so we learned this from them.
+Rohan studies FARM (Financial Analysis and Risk Management), which covers the credit and risk side. Three engineers (software, two computer) built and tested our public contract, CAPQ6ZDDWDS3OE42BM5LM3M7YEQ3TJ7IJZ5ZT7A2Z3RTSI35OJKV3I23 on Stellar testnet, and the app: https://tiendas-stellar.vercel.app. Then we asked for help: 2 advisor calls, and emails to 4 banks and a supermarket chain in El Salvador. We are first-year Waterloo students and none of us has run a shop, so we learned this from them.
 
 We also say the hardest part plainly. Risk #1: turning cash into digital dollars isn't solved in El Salvador, and our demo simulates it; MoneyGram lists cash-out points in El Salvador but, as far as we found, not cash-in. Our plan: shops repay weekly like a bill at a bank or payment point, and a licensed partner converts in bulk and does KYC on shops and KYB on distributors.
 <!-- /q6 -->
@@ -66,15 +66,15 @@ Every number in answers 4 to 6. "Confirm" means Rohan checks it against his fina
 
 | Number | Answer | Source | Status |
 |---|---|---|---|
-| about $5.7 trillion credit gap for small businesses in developing countries | 5 | Opening line in PR #73, `facts.md` entry 22 (IFC/World Bank) | Rohan to confirm. A finance **gap**, never our market. Wording approved by Yahya (Nov 11); PR #73 not merged yet. |
-| more than 50,000 neighbourhood shops | 5 | Opening line in PR #73; `facts.md` entry 3 | Rohan to confirm. Replaces 85,265 (Yahya, Nov 11), because 85,265 also counts eateries and street vendors. |
-| about $2 billion a year from distributors (Conamype estimate) | 5 | `facts.md` entry 1 (merged in #59) | Rohan to confirm. One official, via Diario El Salvador, 27 Feb 2026. The opening line has no "(Conamype estimate)"; we keep it. |
-| 6 in 10 informal small businesses have borrowed from loan sharks | 5 | `facts.md` entry 9 (62.2%) | Rohan to confirm. "Informal" must stay in the sentence. |
-| about $35 per $100 (2019 survey) | 5 | `facts.md` entry 10 | Rohan to confirm. Keep the year. |
+| about $5.7 trillion credit gap for small businesses in developing countries | 5 | Opening line in PR #73, `facts.md` entry 22 (IFC/World Bank) | Rohan to confirm. **Not verified by Claude:** entry 22 exists only in PR #73 (approved, not merged), not in `docs/facts.md` on this branch. The entry's quote is "a finance gap of about US$5.7 trillion". A finance **gap**, never our market. Wording approved by Yahya (Nov 11). |
+| more than 50,000 neighbourhood shops | 5 | Opening line in PR #73; `facts.md` entry 3 | Matches `facts.md` entry 3 (50,133 neighbourhood shops) and the "Say this" table; checked by Claude, 12 Nov. Replaces 85,265 (Yahya, Nov 11), because 85,265 also counts eateries and street vendors. |
+| about $2 billion a year from distributors (Conamype estimate) | 5 | `facts.md` entry 1 (merged in #59) | Matches `facts.md` entry 1 and the "Say this" table; checked by Claude, 12 Nov. One official, via Diario El Salvador, 27 Feb 2026. The opening line has no "(Conamype estimate)"; we keep it. |
+| 6 in 10 informal small businesses have borrowed from loan sharks | 5 | `facts.md` entry 9 (62.2%) | Matches `facts.md` entry 9 (62.2%) and the "Say this" table; checked by Claude, 12 Nov. "Informal" must stay in the sentence. |
+| about $35 per $100 (2019 survey) | 5 | `facts.md` entry 10 | Matches `facts.md` entry 10 (US$35 interest per US$100 loan, 2019 survey); checked by Claude, 12 Nov. Keep the year. |
 | $500 cap on a shop's limit | 5 | `docs/credit-model.md` and context §16; contract `LIMIT_CAP` is $500 and tested | Our design number. Confirm against `assumptions.md` (#12). The start limit (the lower of $200 and one average delivery) is not in the answer. |
-| 1.5% paid by the distributor on a pay-in-7-days sale | 5 | Context §5 and §16; contract `CREDIT_FEE_BPS` = 150 | Added after Yahya's review (Nov 11). Rohan to confirm against #12. |
-| 0.25% of that is ours; the rest goes to lenders and a loss buffer | 5 | Context §5; contract `OUR_BPS` = 25, `LENDER_BPS` = 50, `BUFFER_BPS` = 75 | Rohan to confirm against #12. |
-| 0.1% of other invoices (paid now or in cash) | 5 | Context §5 and §16; contract `USAGE_FEE_BPS` = 10 | Rohan to confirm against #12. |
+| 1.5% paid by the distributor on a pay-in-7-days sale | 5 | Context §5 and §16; contract `CREDIT_FEE_BPS` = 150 | Matches contract `CREDIT_FEE_BPS` = 150 and context §5; checked by Claude, 12 Nov. PR #74's `assumptions.md` (not approved yet) says the same. Added after Yahya's review (Nov 11). |
+| 0.25% of that is ours; the rest goes to lenders and a loss buffer | 5 | Context §5; contract `OUR_BPS` = 25, `LENDER_BPS` = 50, `BUFFER_BPS` = 75 | Matches contract `OUR_BPS` = 25; `LENDER_BPS` 50 and `BUFFER_BPS` 75 make up the rest (the contract asserts they sum to 150); checked by Claude, 12 Nov. |
+| 0.1% of other invoices (paid now or in cash) | 5 | Context §5 and §16; contract `USAGE_FEE_BPS` = 10 | Matches contract `USAGE_FEE_BPS` = 10; context §5 gives 0.05% to 0.1% and says the demo contract uses 0.1%; checked by Claude, 12 Nov. |
 | 7 days | 4, 5 | Product rule, context §7.3 | Design, not a measurement. |
 | about five seconds to finalize; fees "under a cent" | 5 | developers.stellar.org ("Ledgers close in ~5 seconds, and their transactions are final when they do"); stellar.org/solutions/cross-border-payments, updated 2026-11-03 ("network fees under a cent") | Stellar's own claims, so the sentence says "Stellar says". Stellar's own dollar figures for fees disagree, so never state a precise dollar fee. |
 | Delivery crews in El Salvador have been robbed and extorted | 5 | El Diario de Hoy, 23 Jul 2024 (cash robbed from a delivery-truck employee, one 2023 case); Brown, Montero, Schmidt-Padilla and Sviatschi, Review of Economic Studies ("Before making a delivery in gang-controlled territory, truck drivers will stop and meet with a gang representative", data 2012 to 2019); `facts.md` entry 7 | Not a number. Rohan to check the sources before submit. The robbery is one reported case. |
@@ -82,9 +82,11 @@ Every number in answers 4 to 6. "Confirm" means Rohan checks it against his fina
 | Rohan studies FARM (Financial Analysis and Risk Management) | 6 | Yahya's review comment on #64 (Nov 10). Context says only "FARM". | Rohan to confirm the wording. |
 | Three engineers (software, two computer) built and tested the contract and app | 6 | Yahya's review comment on #64; context header lists the programs | Yahya to confirm this fairly describes all three. |
 | Contract `CAPQ6ZDD…` and https://tiendas-stellar.vercel.app | 6 | `config/testnet.json` (`contracts.routeLedger`) and the README table; the URL returned HTTP 200 on Nov 11 | Verified. `CANWPJKT…` in the same file is the test USDC token, not our contract. |
-| [N] conversations, walkthroughs, emails | 6 | `docs/research.md` (#7, #30) | **Still empty.** The file doesn't exist yet. Honest numbers only. |
+| 2 advisor calls | 6 | `docs/research.md` "Advisor calls (Nov 9)", PR #72 (#17); same section in PR #89 | Matches the log (two advisors, both calls Mon Nov 9); checked by Claude, 12 Nov. Neither PR is merged. |
+| emails to 4 banks and a supermarket chain in El Salvador | 6 | `docs/research.md` "Partner outreach", PR #89 (#10): five rows dated Nov 10 (Promerica, Abank, Integral, Davivienda, Súper Selectos) | Checked by Claude, 12 Nov. The Nov 11 email to a Davivienda colleague is not counted again. The log's own pitch line says "6 banks and cash-in companies", which counts that email as a sixth organisation; recount if Rohan sends more tonight. PR #89 is not merged. |
+| Cut: shop-owner and distributor conversations (#7), prototype walkthroughs (#30) | 6 | No count in issues #7, #30 or any `docs/research.md` | Removed Nov 12 because no number is logged. Add one back only if it is logged before submit. |
 
-**Fee wording (resolved Nov 11).** Issue #8 said "0.1% of every invoice plus 0.25% of each pay-in-7-days sale". Context §5, the Nov 10 decision and the contract say credit sales pay **no** usage fee: the distributor pays one 1.5% fee ($98.50 per $100), and our 0.25% is inside it. Yahya confirmed the §5 wording, and answer 5 now states the 1.5% and where it goes, because "0.25%" alone left out who pays the lenders and the buffer. Rohan still confirms against #12.
+**Fee wording (resolved Nov 11).** Issue #8 said "0.1% of every invoice plus 0.25% of each pay-in-7-days sale". Context §5, the Nov 10 decision and the contract say credit sales pay **no** usage fee: the distributor pays one 1.5% fee ($98.50 per $100), and our 0.25% is inside it. Yahya confirmed the §5 wording, and answer 5 now states the 1.5% and where it goes, because "0.25%" alone left out who pays the lenders and the buffer. Claude checked the numbers against the contract constants on Nov 12; PR #74's `assumptions.md` (not approved yet) says the same.
 
 ## Not in the answers (for the Thu 9 PM call)
 
@@ -103,7 +105,7 @@ Counted with `<!-- qN -->` markers: `(Rohan to confirm)` markers excluded, `[pla
 | Answer | Target | As written | What changes at submit |
 |---|---|---|---|
 | 4. One-line summary | about 20 | 20 | Nothing. |
-| 5. Problem and benefit | 120 to 150 | 149 | Nothing: no placeholders left. Only 1 word of room, so cut something before adding anything. |
-| 6. Why our team | 120 to 150 | 149 | Remove "(from docs/research.md)" (3 words): about 146. Each `[N]` stays one word. Only 1 word of room before that. |
+| 5. Problem and benefit | 120 to 150 | 149 | Deleting the one `(Rohan to confirm)` marker left (the $5.7 trillion) doesn't change the count. Only 1 word of room, so cut something before adding anything. |
+| 6. Why our team | 120 to 150 | 142 | Nothing: no placeholders left. 8 words of room. |
 
 Re-count after every edit. The counting script is not in the repo; it splits on spaces and treats "$2" and "pay-in-7-days" as one word each.
