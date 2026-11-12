@@ -37,7 +37,7 @@ A mobile web app where El Salvador's neighbourhood shops pay distributors in dig
 Target: 120 to 150 words.
 
 <!-- q5 -->
-Around the world, small businesses in developing countries can't get about $5.7 trillion in credit they need. In El Salvador alone, more than 50,000 neighbourhood shops buy about $2 billion a year from distributors (Conamype estimate). (Rohan to confirm) Delivery crews in El Salvador have been robbed and extorted. Short of cash, 6 in 10 informal small businesses have borrowed from loan sharks, about $35 per $100 (2019 survey).
+Around the world, small businesses in developing countries can't get about $5.7 trillion in credit they need. In El Salvador alone, more than 50,000 neighbourhood shops buy about $2 billion a year from distributors (Conamype estimate). Delivery crews in El Salvador have been robbed and extorted. Short of cash, 6 in 10 informal small businesses have borrowed from loan sharks, about $35 per $100 (2019 survey).
 
 We built a mobile web app on our public Soroban contract. A shop pays now in test dollars, records cash with two taps, or pays in 7 days, interest-free. On-time repayment raises its limit, up to $500: a credit record it never had. Stellar says payments finalize in about five seconds, with fees under a cent.
 
@@ -66,7 +66,7 @@ Every number in answers 4 to 6. "Confirm" means Rohan checks it against his fina
 
 | Number | Answer | Source | Status |
 |---|---|---|---|
-| about $5.7 trillion credit gap for small businesses in developing countries | 5 | Opening line in PR #73, `facts.md` entry 22 (IFC/World Bank) | Rohan to confirm. **Not verified by Claude:** entry 22 exists only in PR #73 (approved, not merged), not in `docs/facts.md` on this branch. The entry's quote is "a finance gap of about US$5.7 trillion". A finance **gap**, never our market. Wording approved by Yahya (Nov 11). |
+| about $5.7 trillion credit gap for small businesses in developing countries | 5 | Opening line in PR #73, `facts.md` entry 22 (IFC/World Bank) | Checked by Claude, 12 Nov, against entry 22 on `origin/51-worldwide-number` (PR #73, approved, not yet merged, so it is not in `docs/facts.md` on this branch): the claim and the quote "a finance gap of about US$5.7 trillion" match the sentence. A finance **gap**, never our market. Wording approved by Yahya (Nov 11). When #73 merges, merge `origin/main` into this branch. |
 | more than 50,000 neighbourhood shops | 5 | Opening line in PR #73; `facts.md` entry 3 | Matches `facts.md` entry 3 (50,133 neighbourhood shops) and the "Say this" table; checked by Claude, 12 Nov. Replaces 85,265 (Yahya, Nov 11), because 85,265 also counts eateries and street vendors. |
 | about $2 billion a year from distributors (Conamype estimate) | 5 | `facts.md` entry 1 (merged in #59) | Matches `facts.md` entry 1 and the "Say this" table; checked by Claude, 12 Nov. One official, via Diario El Salvador, 27 Feb 2026. The opening line has no "(Conamype estimate)"; we keep it. |
 | 6 in 10 informal small businesses have borrowed from loan sharks | 5 | `facts.md` entry 9 (62.2%) | Matches `facts.md` entry 9 (62.2%) and the "Say this" table; checked by Claude, 12 Nov. "Informal" must stay in the sentence. |
@@ -105,7 +105,7 @@ Counted with `<!-- qN -->` markers: `(Rohan to confirm)` markers excluded, `[pla
 | Answer | Target | As written | What changes at submit |
 |---|---|---|---|
 | 4. One-line summary | about 20 | 20 | Nothing. |
-| 5. Problem and benefit | 120 to 150 | 149 | Deleting the one `(Rohan to confirm)` marker left (the $5.7 trillion) doesn't change the count. Only 1 word of room, so cut something before adding anything. |
+| 5. Problem and benefit | 120 to 150 | 149 | Nothing: no markers or placeholders left. Only 1 word of room, so cut something before adding anything. |
 | 6. Why our team | 120 to 150 | 142 | Nothing: no placeholders left. 8 words of room. |
 
 Re-count after every edit. The counting script is not in the repo; it splits on spaces and treats "$2" and "pay-in-7-days" as one word each.
