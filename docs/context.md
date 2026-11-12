@@ -599,10 +599,22 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 | Cash-out: distributors turning USDC into bank dollars, and crypto firms' trouble getting bank accounts | A licensed partner with banking; daily batch payouts (§6, idea 7) |
 | Adoption: shops and drivers don't change habits | Start inside one distributor's routes; cash still works; credit is the reason to switch |
 | Defaults and fraud | Small limits that grow, no new credit while overdue, the default buffer, and option 2 for shops the distributor knows |
-| Regulation: lending and digital assets need licences | A licensed lender funds the pool; El Salvador licenses digital-asset firms (CNAD); distributors pay the fee, not shops, because of the interest cap |
+| Regulation: lending and digital assets need licences | A licensed lender funds the pool; a partner registered with the CNAD handles digital dollars; distributors pay the fee, not shops, because of the interest cap. Law by law: §11.1 |
 | Privacy on a public ledger | No names on-chain; details off-chain; batching later |
 | Basic phones and weak signal | The shop side opens from a WhatsApp or SMS link; light pages; later, a code-based approval like Tienda Pago's |
 | Nobody on the team has lived this | Interviews and prototype tests (§13); say it honestly |
+
+### 11.1 Laws we touch (Nov 12, #92)
+
+Every number and quote is in `docs/facts.md`. The two right-hand columns are our reading, for a lawyer to confirm before launch.
+
+| Area | Law and who enforces it | What it means for us | Who holds the licence |
+|---|---|---|---|
+| Digital dollars | Digital asset law (2023); the CNAD keeps a public registry of providers (facts 47) | Turning cash into digital dollars, holding them for shops and lending them all look like services that must register (47). 60+ providers are registered, including a bank (46) | A registered partner for now; we'd register only if we did those parts ourselves |
+| Cash agents and e-money | Financial inclusion law (2015), supervised by the SSF; the central bank's rules for bank correspondents (48, 41) | The cash-in counters already run under these rules (41, 45) | The bank or e-money company we partner with (§6) |
+| Interest | Usury law: the central bank sets caps twice a year; the highest is 96.88% a year for Jul to Dec 2026 (18, 49) | Shops pay no interest. The distributor's 1.5% must count as a discount on its own invoice, not interest: per year it would be above every cap (56) | No licence; the caps bind whoever lends to the pool |
+| Lending | Banks, cooperatives and savings-and-loan companies are supervised by the SSF; other regular lenders register with the central bank (18) | We're not the lender (§7.5) | A licensed microfinance institution, cooperative or bank funds the pool |
+| Personal data | Personal data protection law (2024) (50) | Names and phone numbers stay off the public ledger (§8.4); we likely need consent text and a person responsible for data | Us |
 
 ---
 
@@ -707,9 +719,9 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 - *What if a shop doesn't pay?* Small limits that grow, no new credit while overdue, a truck that keeps coming back, a default buffer, and option 2 for shops the distributor knows.
 - *How are you different from Rocket and Tienda Pago?* §10.
 - *Have real users tried it?* The exact numbers from `docs/research.md`, and one thing we changed because of them.
-- *Is it legal?* Shops pay no interest. Distributors pay a fee to be paid early. A licensed partner lends and does KYC. We know about the interest cap and would confirm with a lawyer.
+- *Is it legal?* Shops pay no interest. The distributor takes a discount on its own invoice to be paid early. A licensed lender funds the pool and does KYC, and a partner registered with the CNAD handles the digital dollars; one Salvadoran bank already is registered (facts 46, 47). We know the interest caps (highest 96.88% a year, entry 49) and the 2024 data law (50), and a lawyer confirms the structure before launch (§11.1).
 - *Why Stellar?* USDC is native, and El Salvador already uses dollars. Payments settle in seconds for a fraction of a cent. Anchors connect to cash. Soroban enforces the credit rules. Fee sponsorship and passkeys hide the crypto.
-- *What about privacy?* No names on-chain, details off-chain, batching later.
+- *What about privacy?* No names on-chain, details off-chain, batching later. The off-chain data follows El Salvador's 2024 data protection law (facts 50).
 
 ---
 
