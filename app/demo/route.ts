@@ -27,17 +27,49 @@ const ERROR_PAGE = `<!doctype html>
 </main></body>
 </html>`;
 
+// A burst of five judges can take ~30 s (one distributor account signs every invoice);
+// give the function time to answer with our own page instead of a platform error.
+export const maxDuration = 60;
+
+// A public URL that signs transactions: cap how many invoices one server instance
+// makes per minute, so a bot or a link checker can't fill the contract.
+const MAX_PER_MINUTE = 20;
+let recent: number[] = [];
+
+function allowed(now = Date.now()): boolean {
+  recent = recent.filter((at) => now - at < 60_000);
+  if (recent.length >= MAX_PER_MINUTE) return false;
+  recent.push(now);
+  return true;
+}
+
+function redirect(path: string, request: Request) {
+  const response = NextResponse.redirect(new URL(path, request.url), 303);
+  response.headers.set("cache-control", "no-store"); // never replay a redirect to an earlier invoice
+  return response;
+}
+
+function errorPage() {
+  return new NextResponse(ERROR_PAGE, {
+    status: 503,
+    headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" },
+  });
+}
+
 export async function GET(request: Request) {
   await connection(); // never prerender: every visit is a new invoice
   // The mock store lives in each browser tab, so in mock mode use a seeded invoice.
-  if (USE_MOCKS) return NextResponse.redirect(new URL("/tienda/1001", request.url), 303);
+  if (USE_MOCKS) return redirect("/tienda/1001", request);
+  if (!allowed()) return errorPage();
   try {
     const invoice = await createDemoInvoice();
-    return NextResponse.redirect(new URL(`/tienda/${invoice.id}`, request.url), 303);
+    return redirect(`/tienda/${invoice.id}`, request);
   } catch {
-    return new NextResponse(ERROR_PAGE, {
-      status: 503,
-      headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" },
-    });
+    return errorPage();
   }
+}
+
+/** Next would answer HEAD by running GET; a link checker or `curl -I` must not make an invoice. */
+export async function HEAD() {
+  return new Response(null, { status: 204, headers: { "cache-control": "no-store" } });
 }
