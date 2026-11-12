@@ -168,7 +168,7 @@ export default function InvoiceScreen() {
                   <p className="text-lg">
                     {driver?.name ?? "El motorista"} registró <strong>{formatMoney(invoice.cashClaim)}</strong> en efectivo.
                   </p>
-                  <Button onClick={() => run("cash", () => confirmCash(id, invoice.cashClaim ?? 0))} busy={busy === "cash"} disabled={busy !== null}>
+                  <Button onClick={() => run("cash", () => confirmCash(id))} busy={busy === "cash"} disabled={busy !== null}>
                     Confirmo
                   </Button>
                 </>

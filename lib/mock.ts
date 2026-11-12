@@ -6,7 +6,7 @@
 // contract) so sums never drift. Everything returned is in dollars.
 
 import { formatDay, formatMoney, plural } from "./format";
-import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type InvoiceRow, type PayMethod, type Pool, type Receipt, type Shop, type Totals } from "./types";
+import type { Driver, Invoice, InvoiceRow, PayMethod, Pool, Receipt, Shop } from "./types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CREDIT_DAYS = 7;
@@ -159,23 +159,6 @@ export function getInvoices(): Invoice[] {
   return [...db().invoices].sort((a, b) => a.id - b.id).map(toInvoice);
 }
 
-export function getInvoiceHistory(pages: number): InvoiceHistory {
-  const all = getInvoices().reverse();
-  return { invoices: all.slice(0, Math.max(1, pages) * HISTORY_PAGE), total: all.length };
-}
-
-/** Demo data only tracks one method per invoice, so a mixed invoice counts as digital here. */
-export function getTotals(): Totals {
-  const totals: Totals = { invoices: db().invoices.length, digital: 0, cash: 0, credit: 0 };
-  for (const invoice of db().invoices) {
-    const paid = dollars(invoice.paid);
-    if (invoice.method === "cash") totals.cash += paid;
-    else if (invoice.method === "credit") totals.credit += paid;
-    else totals.digital += paid;
-  }
-  return totals;
-}
-
 export function getInvoice(id: number): Invoice | null {
   const invoice = findInvoice(id);
   return invoice ? toInvoice(invoice) : null;
@@ -274,14 +257,11 @@ export function claimCash(invoiceId: number, amount: number): Receipt {
   return ok("Listo. Ahora la tienda debe tocar «Confirmo».");
 }
 
-export function confirmCash(invoiceId: number, amount: number): Receipt {
+export function confirmCash(invoiceId: number): Receipt {
   const invoice = findInvoice(invoiceId);
   if (!invoice) return fail("No encontramos esa factura.");
   const cash = invoice.cashClaim;
   if (cash === undefined) return fail("El motorista aún no registró el efectivo.");
-  if (cash !== toCents(amount)) {
-    return fail("El motorista cambió el monto. Revise el nuevo monto y confirme de nuevo.");
-  }
   if (invoice.paid >= invoice.amount) return fail("Esta factura ya está pagada.");
   if (cash > invoice.amount - invoice.paid) return fail("El efectivo registrado es mayor que lo que falta pagar.");
 
