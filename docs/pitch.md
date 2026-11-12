@@ -15,7 +15,7 @@ Status as of Wed Nov 11. Update the "Status" column when an input lands, and del
 | 3 | Pitcher (#26) | Everyone | **Open.** | Written for one speaker, in first person. |
 | 4 | "What we heard from N people" (#30). | Rohan | **Open.** `docs/research.md` does not exist yet. | `[N]` and `[what we changed]` in the script and on the board (yellow). If N is under 5, say the real number (context §13). |
 | 5 | Three real phone screenshots. `docs/screenshots/mock-screens-nov10.png` is a mock, not for the board | Jack | **Open.** | Three yellow phone frames on the board. Files go in `docs/trifold/img/` as `shop-pay.png`, `shop-credit.png`, `driver-cash.png`: 360 px wide, device pixel ratio 3 (1080 px wide, 180 pixels per inch at 6 in), grey testnet banner in frame. |
-| 6 | Demo QR `public/qr-demo.png` (#55, PR #70) | Yahya | **Ready, not merged.** The file is on PR #70's branch (1200 x 1200 px, well over 200 pixels per inch at its printed size). I decoded it on Nov 11: it opens `https://tiendas-stellar.vercel.app/demo`. | The layout reads `public/qr-demo.png` and shows a yellow box until #70 merges. |
+| 6 | Demo QR `public/qr-demo.png` (#55, PR #70) | Yahya | **Merged** (PR #70, Nov 12). The file is `public/qr-demo.png` on `main` (1200 x 1200 px, well over 200 pixels per inch at its printed size). I decoded it on Nov 11: it opens `https://tiendas-stellar.vercel.app/demo`. Scan the printed copy on 3 phones (#40). | The layout reads `public/qr-demo.png` and now renders it. |
 | 7 | Board size: do the panels fold 12 + 24 + 12 in or 16 + 16 + 16 in? | Jack | **Open: measure the board** (see section 1). | Both layouts are built and pass the same checks. Pick one when measured. |
 | 8 | Paper sketch agreed, print-ready file link in the group chat | Team | **Not done by this PR.** The layout builds a 48 x 36 in PDF in both versions (`node docs/trifold/render.mjs`), but it carries yellow placeholders until rows 2, 4, 5 and 6 close. These are two of the three "Done means" lines of #37. | The PDFs are not committed (`out/` is git-ignored); Jack builds the final one and shares it. |
 | 9 | The video (#35). Its first shot is also the worldwide number (context §3.7, PR #77) | Yahya | **Open.** My review of #77 asked for the #73 opening line there too. | The pitch opens with that number at 0:00, so the video should open on the shop screens, or the number is said twice in the first minute. |
@@ -117,7 +117,7 @@ Source check, Nov 12: the crew line has no `docs/facts.md` entry yet except entr
 > Live on Stellar testnet with test dollars. Cash-in is simulated.
 
 - **Three phone screenshots, left to right:** the shop's "Pagar ahora / Pagar en 7 días / Pagué en efectivo" screen; the shop's "Debe … vence …" screen after a credit payment; the driver's "Recibí efectivo" screen. The app is in Spanish, so the captions above are in English.
-- **QR:** `public/qr-demo.png` from #55 (not on `main` yet).
+- **QR:** `public/qr-demo.png` from #55 (on `main` since PR #70 merged, Nov 12).
 - **Diagram:** `docs/img/architecture.png` (#62), titled "How it works on Stellar". It says "Amounts are public. Names are not."
 - Leave the contract ID off the board. It changes at the Thursday redeploy (#52); the QR and README always carry the current one.
 
