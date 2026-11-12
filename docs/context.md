@@ -429,6 +429,8 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 
 **Finding, Nov 7 (Yahya, MoneyGram Ramps locator):** MoneyGram has **cash-out** points in El Salvador (USDC to cash), in San Salvador and other cities. The locator shows the nearest 10 at a time, so we don't have a full count. Examples in central San Salvador: Banco Cuscatlán, Super Selectos, Banco Promerica, Banco Integral, Banco Davivienda, Banco Abank and a DLC road market. What it means for us: cash-out has a real answer today, so a distributor can turn digital dollars into cash at a bank or supermarket. **Cash-in (cash to USDC) is still unsolved,** and that's the half shops need.
 
+**Source check, Nov 12 (not confirmed by a person):** moneygram.com/stellar says "Cash-out is available in 170+ countries and territories and cash-in in 25+ countries", so "MoneyGram covers cash-out only" is false in general. For El Salvador the page's coverage map appears to list cash-out but not cash-in; that comes from the page HTML, and nobody has checked it by eye. The one-pager now says "as far as we found". Check the map by hand before we say cash-in is missing.
+
 **Built, Nov 10 (#25):** the cash two-tap now runs on testnet: the driver records the cash, the shop confirms, and the contract counts it as cash held by that driver (`get_driver_cash`). No digital dollars move, so this records cash; it does not convert it. It is the mechanism behind idea 3 and does not solve cash-in.
 
 **Still to find out:** what cash-in costs per $100 today, how far the nearest payment point is for a typical shop, and which partner could convert in bulk and already has a bank account.
