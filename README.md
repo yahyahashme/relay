@@ -40,6 +40,17 @@ Stellar testnet, deployed 2026-11-10 by `scripts/deploy.sh`.
 Test USDC is our own, issued by `tiendas-issuer`, not Circle's.
 <!-- contract-ids:end -->
 
+## Before the showcase
+
+Run on the laptop that ran `scripts/setup.sh` (it holds `tiendas-issuer`). Shop addresses (`G...`) are in `config/testnet.json` under `accounts.shops`.
+
+1. Check a shop's test dollars (each starts with $500):
+   `stellar token balance --id <test USDC ID from the table above> --account <shop G...> --network testnet --decimal`
+2. Add $500 if it's low:
+   `stellar token mint --id <test USDC ID from the table above> --to <shop G...> --amount 5000000000 --source-account tiendas-issuer --network testnet`
+3. Open each shop's cuenta page (`/tienda/cuenta/tienda-1`, `-2`, `-3`) and tap "Pagar deuda" so credit is available again.
+4. The trifold QR (`public/qr-demo.png`) opens `/demo`, which makes a new invoice for the judge and opens it. Put `/distribuidor` on the laptop screen. No Wi-Fi: use a phone hotspot. Last resort: the demo video.
+
 ## Never commit secret keys
 
 Stellar secret keys start with `S`. They go in `.env.local` on your computer and in Vercel's settings, never in this repo.

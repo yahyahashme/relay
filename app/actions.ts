@@ -212,7 +212,10 @@ export async function createDemoInvoice(shopId?: string): Promise<Invoice> {
         const list = await read(readClient().list_invoices());
         id = list.reduce((max, i) => (i.id > max ? i.id : max), 1000n) + 1n + skip;
         const shop = shopId ?? DEMO_SHOPS[Number(id % 3n)];
-        const due = BigInt(Math.floor(Date.now() / 1000)) + WEEK_SECS;
+        // A few random seconds so two server instances never build the very same
+        // transaction: identical ones share a hash, and both judges would get one invoice.
+        const jitter = BigInt(Math.floor(Math.random() * 600));
+        const due = BigInt(Math.floor(Date.now() / 1000)) + WEEK_SECS + jitter;
         return client.create_invoice({
           distributor: addressOf("distributor") as string,
           id,
@@ -227,6 +230,9 @@ export async function createDemoInvoice(shopId?: string): Promise<Invoice> {
         skip += 1n;
         continue;
       }
+      // Another server instance took the same id between our simulation and the
+      // ledger (the transaction fails with no code). Pick again from a fresh list.
+      if (error instanceof ContractError && error.code === null) continue;
       console.error("[actions]", error);
       throw new Error(error instanceof ContractError ? error.message : FALLBACK_MESSAGE);
     }
