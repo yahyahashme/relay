@@ -291,9 +291,9 @@ export type Driver = { id: string; name: string; cashHeld: number };
 
 | Time | Show | Say |
 |---|---|---|
-| 0:00 to 0:08 | Title card with two numbers | "In El Salvador, neighbourhood shops pay delivery trucks in cash, and 62% of small businesses have borrowed from loan sharks." |
+| 0:00 to 0:08 | Title card: the opening line from `docs/facts.md` (#73) | "Around the world, small businesses in developing countries can't get about $5.7 trillion in credit they need. In El Salvador alone, more than 50,000 neighbourhood shops buy about $2 billion a year from distributors." (Conamype estimate) |
 | 0:08 to 0:20 | Driver's route, Tienda Rosa, QR code; the shop pays $150; the driver's screen turns "Pagada" | "The shop pays in digital dollars at the door. The driver sees it in seconds." |
-| 0:20 to 0:35 | Tienda Don Luis picks "Pagar en 7 días"; the distributor gets $147.60; the shop sees "Debe $150, vence 20 nov" | "Short on cash? Pay in 7 days, no interest. Our lender pool pays the distributor now." |
+| 0:20 to 0:35 | Tienda Don Luis picks "Pagar en 7 días"; the distributor gets $147.75 (1.5% credit fee); the shop sees "Debe $150, vence 20 nov" | "Short on cash? Pay in 7 days, no interest. Our lender pool pays the distributor now." |
 | 0:35 to 0:45 | Driver taps "Recibí efectivo", shop taps "Confirmo"; the dashboard shows the driver's cash | "Cash still works. Both sides confirm it, so the owner knows who's holding what." |
 | 0:45 to 0:55 | Dashboard, then the contract call on a Stellar explorer | "Every payment and every fee split is on a public Stellar record." |
 | 0:55 to 1:00 | App URL and contract ID | "Shops never pay fees. Live on Stellar testnet." |
