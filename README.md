@@ -12,7 +12,7 @@ Three screens (a website that works like a phone app): the **shop** pays an invo
 - **Cash in two taps:** the driver taps "Recibí efectivo", the shop taps "Confirmo". It's recorded on-chain as cash the driver holds for the distributor; no tokens move.
 - **Pagar en 7 días:** a lender pool pays the distributor now, minus a 1.5% fee the distributor pays (0.75% safety buffer, 0.50% lenders, 0.25% us). The shop repays within 7 days, with no interest.
 - **Credit record:** a shop's limit starts at $200 and grows $25 per on-time repayment (cycles of $40+, at most once a week) up to $500; late repayments are recorded and lower it.
-- **Fees:** distributors pay a 0.1% usage fee on digital and cash payments. Shops never pay fees.
+- **Fees:** distributors pay a 0.1% usage fee on digital and cash payments (for cash it's recorded and billed later). Shops never pay fees.
 
 **Demo vs real product:** in the demo the server signs for each role with test keys. The real product uses passkey smart wallets on the users' phones, and a licensed partner does KYC on shop owners and KYB on distributors.
 
@@ -59,11 +59,13 @@ The demo uses test dollars, with cash-in simulated and labelled on screen.
 
 ## Run it locally
 
-You need Node and the Stellar CLI (version 30 or newer).
+**Just to look around:** `npm install`, then `npm run dev` and open http://localhost:3000. With no `.env.local` the app runs on demo data: no keys, no Stellar CLI, nothing on testnet.
+
+**With the real contract** you need Node, the Stellar CLI (version 30 or newer) and Rust (https://rustup.rs, for the contract build and `cargo test`).
 
 1. `npm install`
 2. `./scripts/setup.sh` creates the demo accounts and test dollars and writes `config/testnet.json` and `.env.local` (add `--fresh` to start over; testnet is reset sometimes).
-3. `./scripts/deploy.sh` deploys the contract, credit terms, pool money and demo invoices.
+3. `./scripts/deploy.sh` deploys the contract, credit terms, pool money and demo invoices. In your own clone this overwrites `config/testnet.json` with your own accounts and contract, which is fine. Teammates: don't run `deploy.sh` on the shared setup; Yahya owns the shared deploy.
 4. Check `.env.local`: nine `STELLAR_SECRET_...` lines, and `NEXT_PUBLIC_USE_MOCKS=false` to use the contract (`true` = demo data only, no keys needed).
 5. `npm run dev` and open http://localhost:3000.
 
