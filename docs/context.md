@@ -291,9 +291,9 @@ export type Driver = { id: string; name: string; cashHeld: number };
 
 | Time | Show | Say |
 |---|---|---|
-| 0:00 to 0:08 | Title card with two numbers | "In El Salvador, neighbourhood shops pay delivery trucks in cash, and 62% of small businesses have borrowed from loan sharks." |
+| 0:00 to 0:08 | Title card: the opening line from `docs/facts.md` (#73) | "Around the world, small businesses in developing countries can't get about $5.7 trillion in credit they need. In El Salvador alone, more than 50,000 neighbourhood shops buy about $2 billion a year from distributors." (Conamype estimate) |
 | 0:08 to 0:20 | Driver's route, Tienda Rosa, QR code; the shop pays $150; the driver's screen turns "Pagada" | "The shop pays in digital dollars at the door. The driver sees it in seconds." |
-| 0:20 to 0:35 | Tienda Don Luis picks "Pagar en 7 días"; the distributor gets $147.60; the shop sees "Debe $150, vence 20 nov" | "Short on cash? Pay in 7 days, no interest. Our lender pool pays the distributor now." |
+| 0:20 to 0:35 | Tienda Don Luis picks "Pagar en 7 días"; the distributor gets $147.75 (1.5% credit fee); the shop sees "Debe $150, vence 20 nov" | "Short on cash? Pay in 7 days, no interest. Our lender pool pays the distributor now." |
 | 0:35 to 0:45 | Driver taps "Recibí efectivo", shop taps "Confirmo"; the dashboard shows the driver's cash | "Cash still works. Both sides confirm it, so the owner knows who's holding what." |
 | 0:45 to 0:55 | Dashboard, then the contract call on a Stellar explorer | "Every payment and every fee split is on a public Stellar record." |
 | 0:55 to 1:00 | App URL and contract ID | "Shops never pay fees. Live on Stellar testnet." |
@@ -429,6 +429,8 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 
 **Finding, Nov 7 (Yahya, MoneyGram Ramps locator):** MoneyGram has **cash-out** points in El Salvador (USDC to cash), in San Salvador and other cities. The locator shows the nearest 10 at a time, so we don't have a full count. Examples in central San Salvador: Banco Cuscatlán, Super Selectos, Banco Promerica, Banco Integral, Banco Davivienda, Banco Abank and a DLC road market. What it means for us: cash-out has a real answer today, so a distributor can turn digital dollars into cash at a bank or supermarket. **Cash-in (cash to USDC) is still unsolved,** and that's the half shops need.
 
+**Built, Nov 10 (#25):** the cash two-tap now runs on testnet: the driver records the cash, the shop confirms, and the contract counts it as cash held by that driver (`get_driver_cash`). No digital dollars move, so this records cash; it does not convert it. It is the mechanism behind idea 3 and does not solve cash-in. The distributor's "Marcar efectivo entregado" (#32) lowers that count when the driver hands the cash in at the warehouse; still no digital dollars move.
+
 **Still to find out:** what cash-in costs per $100 today, how far the nearest payment point is for a typical shop, and which partner could convert in bulk and already has a bank account.
 
 ---
@@ -502,13 +504,14 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 | `create_invoice(distributor, id, shop, driver, amount, due)` | distributor | Stores an invoice. Rejects duplicate IDs and amounts of 0 or less. |
 | `pay(shop, id, amount)` | shop | Moves test dollars from shop to distributor. Part payments are allowed; paying more than what's left is rejected. |
 | `cash_claim(driver, id, amount)` | driver | The driver says they received cash. |
-| `cash_confirm(shop, id)` | shop | The shop agrees. The invoice is marked paid in cash and the driver's cash total goes up. No tokens move. |
+| `cash_confirm(shop, id, amount)` | shop | The shop agrees to exactly the amount it was shown (if the driver changed the claim since, it fails). The invoice is marked paid in cash and the driver's cash total goes up. No tokens move. |
 | `cash_handed_in(distributor, driver, amount)` | distributor | The driver handed cash in at the warehouse. (Should) |
 | `deposit(lender, amount)` | lender | Puts money in the pool. |
 | `set_terms(admin, shop, limit, option)` | admin (the distributor, for real) | Sets a shop's limit and its option: 1, 2 or 3. |
 | `pay_with_credit(shop, id)` | shop | Checks that nothing is overdue, the limit isn't exceeded and the pool has money. The pool pays the distributor the amount minus the fee, and the shop's debt and due date are recorded. |
 | `repay(shop, amount)` | shop | Moves test dollars from the shop to the pool and splits the fee into buffer, lenders and us. If it's on time, the limit grows (demo rule: +$25 per on-time repayment, up to a cap). |
 | `get_invoice`, `list_invoices`, `get_shop`, `get_pool`, `get_driver_cash` | anyone | Read-only, for the dashboard. |
+| `invoice_count`, `list_invoices_page(before, limit)`, `get_totals` | anyone | Read-only: the full history a page at a time (30 per call, newest first), and running totals by payment method. |
 
 - Option 3 needs no pool: the invoice just stays due for up to 7 days.
 - Each role sends its own transaction, so `require_auth` is met by whoever signs. Avoid transactions that need two signers; that's why cash is two steps.
@@ -712,7 +715,7 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 
 - **Repo:** public from day one (judges need it). Board columns: Backlog, This week, In progress, In review, Done. Labels: contract, app, setup, business, research, pitch, team, learning, bug, risk-1, blocked.
 - **Issues:** one task each, one owner, a due time, a "Done means" list. Since Nov 9 the issues are the plan, written so an AI can follow them: paste the whole issue into your AI with this file.
-- **Branches and pull requests:** one branch per issue (like `12-cash-confirm`); the PR says "Closes #12"; PRs stay small and get merged daily. **Reviews (Nov 9):** Yahya reviews every PR; Jack reviews Yahya's (Yahya can merge his own with his admin bypass if Jack is busy). Docs-only work can be done on github.com: open the file, click the pencil, then "Create a new branch for this commit and start a pull request".
+- **Branches and pull requests:** one branch per issue (like `12-cash-confirm`); the PR says "Closes #12"; PRs stay small and get merged daily. **Reviews:** Yahya reviews every PR; Jack reviews Yahya's. Since Nov 10, Yahya's PRs wait for Jack's approval: the admin bypass is a rare exception, not the habit. Docs-only work can be done on github.com: open the file, click the pencil, then "Create a new branch for this commit and start a pull request".
 - **AI chats:** one per workstream. Contract, app and deploy (Yahya, Claude Code); scripts, safety review and pitch documents (Jack); small helper cards (Ruhaan, Codex); outreach and facts (Rohan). Start each one by pasting the issue and attaching this file. When a chat leads to a decision, add it to §16 in a PR. Never paste secret keys into a chat.
 - **Check-ins:** a 9 PM text every day (Done / Next / Blocked); in person Wed Nov 11, 5 to 7 PM; a 20-minute call Thu Nov 12 at 9 PM for the one-pager.
 - **Notion:** skipped. GitHub covers it.
@@ -748,6 +751,7 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 | Nov 9 | The deploy script moved from Jack to Yahya, so Yahya's work waits only on Jack's setup script (#15). |
 | Nov 10 | Credit sales pay no usage fee: the distributor gets $98.50 per $100 (one 1.5% fee; our 0.25% is inside it). The limit grows only after a $40+ cycle, once per credit period; late repayment drops it $25. The buffer covers defaults 4 credit periods late (`cover_default`), and only approved distributors can invoice. |
 | Nov 10 | Only Yahya contacts the advisors (Adam Chu, Misha Stastna), with at most two follow-ups each (#17). |
+| Nov 10 | Yahya's PRs wait for Jack's review before they merge; the admin bypass is a rare exception, not the habit. |
 
 ---
 
