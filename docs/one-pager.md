@@ -39,7 +39,7 @@ Target: 120 to 150 words.
 <!-- q5 -->
 Around the world, small businesses in developing countries can't get about $5.7 trillion in credit they need. In El Salvador alone, more than 50,000 neighbourhood shops buy about $2 billion a year from distributors (Conamype estimate). (Rohan to confirm) Shops pay trucks in cash, with no record of who collected what. Short of cash, 6 in 10 informal small businesses have borrowed from loan sharks, about $35 per $100 (2019 survey). (Rohan to confirm)
 
-We built a mobile web app on our open Soroban contract. A shop pays now in digital dollars (USDC), records cash with two taps, or pays in 7 days, interest-free. On-time repayment raises its limit, up to $500: a credit record it never had. Stellar settles in seconds for a fraction of a cent.
+We built a mobile web app on our public Soroban contract. A shop pays now in test dollars, records cash with two taps, or pays in 7 days, interest-free. On-time repayment raises its limit, up to $500: a credit record it never had. Stellar settles in seconds for a fraction of a cent.
 
 Distributors pay, never shops: 1.5% to be paid instantly on pay-in-7-days sales (0.25% ours, the rest to lenders and a loss buffer), and 0.1% of other invoices. (Rohan to confirm, #12)
 <!-- /q5 -->
@@ -49,7 +49,7 @@ Distributors pay, never shops: 1.5% to be paid instantly on pay-in-7-days sales 
 Target: 120 to 150 words.
 
 <!-- q6 -->
-Rohan studies FARM (Financial Analysis and Risk Management), which covers the credit and risk side. Three engineers (software, two computer) built and tested our open contract, CAPQ6ZDDWDS3OE42BM5LM3M7YEQ3TJ7IJZ5ZT7A2Z3RTSI35OJKV3I23 on Stellar testnet, and the app: https://tiendas-stellar.vercel.app. Then we asked people: [N] conversations with shop owners, distributors and experts, [N] prototype walkthroughs ([N] usability-only), and [N] emails to banks and cash-in companies (from docs/research.md). We are first-year Waterloo students and none of us has run a shop, so we learned this from them.
+Rohan studies FARM (Financial Analysis and Risk Management), which covers the credit and risk side. Three engineers (software, two computer) built and tested our public contract, CAPQ6ZDDWDS3OE42BM5LM3M7YEQ3TJ7IJZ5ZT7A2Z3RTSI35OJKV3I23 on Stellar testnet, and the app: https://tiendas-stellar.vercel.app. Then we asked people: [N] conversations with shop owners, distributors and experts, [N] prototype walkthroughs ([N] usability-only), and [N] emails to banks and cash-in companies (from docs/research.md). We are first-year Waterloo students and none of us has run a shop, so we learned this from them.
 
 We also say the hardest part plainly. Risk #1: turning cash into digital dollars isn't solved in El Salvador, and our demo simulates it; MoneyGram covers cash-out only. Our plan: shops repay weekly like a bill at a bank or payment point, and a licensed partner converts in bulk and does KYC on shops and KYB on distributors.
 <!-- /q6 -->
@@ -99,7 +99,7 @@ Counted with `<!-- qN -->` markers: `(Rohan to confirm)` markers excluded, `[pla
 | Answer | Target | As written | What changes at submit |
 |---|---|---|---|
 | 4. One-line summary | about 20 | 20 | Nothing. |
-| 5. Problem and benefit | 120 to 150 | 149 | Nothing: no placeholders left. Only 1 word of room, so cut something before adding anything. |
+| 5. Problem and benefit | 120 to 150 | 148 | Nothing: no placeholders left. Only 2 words of room, so cut something before adding anything. |
 | 6. Why our team | 120 to 150 | 138 | Remove "(from docs/research.md)" (3 words): about 135. Each `[N]` stays one word. |
 
 Re-count after every edit. The counting script is not in the repo; it splits on spaces and treats "$2" and "pay-in-7-days" as one word each.
