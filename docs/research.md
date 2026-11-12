@@ -36,3 +36,27 @@ Yahya took both calls on Mon Nov 9. Both advisors prefer LinkedIn.
 | | Adam Chu | LinkedIn | Thanks + "For cash-in, would you approach a bank first or a payment-point network?" | |
 | | Misha Stastna | LinkedIn | Thanks + "For 7-day supplier credit to small shops, what default rate would you assume for a first pilot?" | |
 | after Thu Nov 12 | Both | LinkedIn | One-pager for pitch feedback (#31) | |
+
+## Partner outreach
+
+Sent from Rohan's university email. Organisation and role only (the repo is public).
+
+| Date | Organisation | Person and role | Channel | What we asked | Reply | Next step |
+|---|---|---|---|---|---|---|
+| Nov 10 | Banco Promerica | General inbox | Email | Cash-to-USDC deposits for small shops; cost per $100; 15-min call | None yet | Follow-up Fri Nov 13 |
+| Nov 10 | Banco Abank | Customer service | Email | Same | None yet | Follow-up Fri Nov 13 |
+| Nov 10 | Súper Selectos | Customer service | Email | Same | None yet | Follow-up Fri Nov 13 |
+| Nov 10 | Banco Integral | Press contact | Email | Same | None yet | Follow-up Fri Nov 13 |
+| Nov 10 | Banco Davivienda | Treasury manager | Email | Same | Out-of-office auto-reply pointing to a colleague | Jack wrote to that colleague on Nov 11 |
+| Nov 11 | Banco Davivienda | Colleague named in the auto-reply | Email (Jack) | Cash-in for small shops; shop owners' trust in digital dollars; biggest obstacle | None yet | Wait to Mon Nov 16 |
+| | MoneyGram | Business team | Contact form | Cash-to-USDC deposits for small shops; cost per $100 | | Not sent yet |
+| | Banco Cuscatlán | Digital/innovation team | LinkedIn | Same | | Not sent yet |
+| | Conamype | General | Social media message | Best cash-in option for tiendas; which partners to talk to | | Not sent yet |
+| | Distribución Dinámica | Director | LinkedIn | How many tiendas buy on credit; how they deposit cash; would distributors pay 1.5% | | Not sent yet |
+| | Tienda Pago | CEO | LinkedIn | Default rate in first pilots; how shops repay in cash | | Not sent yet |
+
+### Stellar anchor check (Nov 12)
+- The Stellar Anchor Directory (anchors.stellar.org), filtered to El Salvador and the "Cash" payment rail, lists two anchors: **MoneyGram Ramps** and **Bitnovo**. The directory doesn't say whether each one supports cash-in, cash-out or both in El Salvador, so Bitnovo is a new outreach target to ask. Without the cash filter it also lists Amero Exchange and Dollarize for El Salvador.
+- Raven (raven.stellar.org) is now an MCP server that needs sign-in, so the "Which anchors support cash-in to USDC in El Salvador?" question wasn't asked yet.
+
+**Pitch line (so far):** "We contacted 6 banks and cash-in companies in El Salvador; one has passed us to the right person so far."
