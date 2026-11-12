@@ -6,7 +6,7 @@ Interviews (#7), walkthroughs (#30), partner outreach (#10) and advisor calls (#
 
 Yahya took both calls on Mon Nov 9. Both advisors prefer LinkedIn.
 
-### Adam Chu (startup founder)
+### Advisor 1 (startup founder)
 - The tech is believable. Judges will ask about go-to-market: how do we actually get into El Salvador?
 - Cash is the roadblock. Partner with cash-in/cash-out companies and banks that already have a reputation there, instead of going shop by shop.
 - Cold-email cash-in/cash-out companies and banks about Stellar (#10). A real reply would impress Stellar.
@@ -15,7 +15,7 @@ Yahya took both calls on Mon Nov 9. Both advisors prefer LinkedIn.
 - Show it's a real business, not just a fun idea.
 - He floated secure ATMs (about $5k each). We're not doing ATMs (cash rules and safety). He also mentioned a $30 wallet bonus and fuel discounts: those were Chivo perks from 2021 and aren't current, so we don't use them.
 
-### Misha Stastna (finance)
+### Advisor 2 (finance)
 - Loved the idea. How we deliver the pitch decides it.
 - Pick a name (Wed Nov 11, #26).
 - Build our own credit record, and know what El Salvador's credit bureaus are called (#50: Equifax, TransUnion and INFORED, supervised by the SSF; `docs/facts.md` entries 15 and 16). Know what a DUNS number is in case a judge asks (most tiendas won't have one; entry 17).
@@ -31,8 +31,4 @@ Yahya took both calls on Mon Nov 9. Both advisors prefer LinkedIn.
 
 ### Follow-ups
 
-| Date | Advisor | Channel | What we sent | Reply |
-|---|---|---|---|---|
-| | Adam Chu | LinkedIn | Thanks + "For cash-in, would you approach a bank first or a payment-point network?" | |
-| | Misha Stastna | LinkedIn | Thanks + "For 7-day supplier credit to small shops, what default rate would you assume for a first pilot?" | |
-| after Thu Nov 12 | Both | LinkedIn | One-pager for pitch feedback (#31) | |
+Advisor contact isn't tracked here. Yahya reaches out when we have a genuine question worth their time: startups and customers for Advisor 1, technical and financial for Advisor 2.
