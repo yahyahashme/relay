@@ -483,6 +483,27 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 - Savers funding the pool (Space 1 "fair financial assets"; needs licences).
 - Then other countries: Ecuador and Panama (they also use the US dollar), then Guatemala and Honduras, then Mexico and Peru.
 
+### 7.7 First customer and pilot (proposal, Nov 12, #94: waiting for team approval)
+
+**Who we'd ask first** (every number is in `docs/facts.md`)
+
+| Who | Why them | How we reach them |
+|---|---|---|
+| Distribuidora Zablah (DISZASA) | Its rating agency calls it the leading consumer-goods distributor; 24,000 active clients, 14% of sales by route (facts 54) | Through people who already know it: its rating agencies (we've emailed Zumma Ratings) and ADES |
+| DISNA (same group) | 9,500 active clients, some of them served by route (54) | Same |
+| Members of ADES, the distributors' association | ADES already works with Conamype and the state bank BFA on tiendas (55) | ADES directly, and Distribución Dinámica, the firm behind the shop count (facts 2) |
+
+The target is still a mid-size distributor with a few routes (§9). The big group is on the list because we can check its numbers and reach it; its route channel is only a slice of its sales.
+
+**Pilot plan: one route, about 8 weeks (guess)**
+1. **Phase 1: one route, the distributor's own money.** Invoices, the cash two-tap and digital payments on one route of about 60 shops (the §5 route, guess). "Pay in 7 days" runs as option 3, the distributor's own trade credit: no lender and no credit fee, so we earn only the usage fee. That keeps phase 1 out of lending (lawyer to confirm, §11) while every shop builds a record.
+2. **Phase 2: add the pool and the cash-in partner.** A licensed lender funds option 2 for known shops and option 1 for new ones (§5), and a partner registered with the CNAD handles digital dollars (§6).
+3. **Phase 3: a second distributor on the same shops.** A shared record is what one distributor's database can't give (§14).
+
+**What the pilot measures** (from §9): the share of invoices paid digitally, driver cash gaps caught, on-time repayments, shops whose limit grew, and defaults as a share of credit sales.
+
+**Go or no-go after phase 1 (guess):** the distributor keeps using it without us pushing, and defaults stay under 0.75% of credit sales, the most option 1's buffer can absorb (§5).
+
 ---
 
 ## 8. Tech design
@@ -552,7 +573,7 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 
 ## 9. The problem and the evidence
 
-**Who:** neighbourhood shops in El Salvador and the distributors whose trucks restock them. First customer **(guess, confirm in interviews)**: one mid-size distributor of snacks, drinks or dairy with a few routes.
+**Who:** neighbourhood shops in El Salvador and the distributors whose trucks restock them. First customer **(guess, confirm in interviews)**: one mid-size distributor of snacks, drinks or dairy with a few routes. Shortlist and pilot plan: §7.7.
 
 **Numbers we can use** (say "regional" when it is)
 - **85,265 neighbourhood shops and small retailers (2025), about 50,133 of them tiendas proper, up 23% in a decade** (Distribución Dinámica study, via Diario El Mundo, 24 Feb and 1 Mar 2026). The total also counts eateries, street vendors and tortilla shops. This replaces the older "about 70,000 (USDA)".
@@ -614,7 +635,7 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 |---|---|---|
 | A real problem with evidence, and how we'd measure impact | §9 numbers and impact measures | Rohan |
 | Why we're better than the alternatives, including Stellar's benefits | §10, and "Why Stellar?" in §14 | Yahya |
-| A specific, reachable first customer, and market size | One distributor's routes; worldwide number first, then 85,265 shops and small retailers and $2B a year from distributors | Rohan (facts), Jack (one-pager) |
+| A specific, reachable first customer, and market size | One distributor's route first, with a named shortlist and a pilot plan (§7.7); worldwide number first, then 85,265 shops and small retailers and $2B a year from distributors | Rohan (facts), Jack (one-pager) |
 | A revenue model, affordable pricing, costs | §5 and `docs/assumptions.md` | Rohan (numbers), Jack (one-pager) |
 | A prototype tested with real users, and what we changed | §13 walkthroughs; "what we heard, what we changed" | Rohan, Yahya |
 
@@ -700,7 +721,7 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 
 **What judges will probably ask** (practise 20-second answers)
 - *How do you make money (30 seconds)?* Distributors pay us, shops never do: 0.1% of every invoice paid in cash or digitally, plus 0.25% of each "pay in 7 days" sale (inside the 1.5% credit fee, so the distributor gets $98.50 per $100), built into an open contract.
-- *How do you get into El Salvador?* One mid-size distributor's routes first, with a bank or cash-in partner for cash and a licensed lender or cooperative funding the pool.
+- *How do you get into El Salvador?* One distributor's route first, on its own money (option 3), so the first phase needs no lender. Then a licensed lender for the pool and a registered partner for digital dollars, then a second distributor on the same shops (§7.7). The leading distributor alone serves 24,000 clients (facts 54), and the distributors' association already works with the government on tiendas (55).
 - *Why not just Transfer365 and a database?* Transfer365 only moves money between bank accounts, and about half of small businesses don't have a bank relationship. It doesn't do credit, invoice matching or driver cash records. One distributor's database isn't a record other distributors and lenders can trust. Our contract enforces the credit rules and fee split in the open, settles in seconds for a fraction of a cent, and lets lenders fund a pool directly.
 - *How does a shop get digital dollars?* Risk #1. Say it first, then ideas 1, 6 and 3 from §6.
 - *Who are the lenders?* A test account in the demo. For real, a licensed microfinance institution or cooperative. We're not the lender.
