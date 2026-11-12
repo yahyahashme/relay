@@ -79,13 +79,22 @@ describe("checkOnePager", () => {
     expect(r.infos[0]).toContain("149 of 150");
   });
 
-  it("fails on confirm markers, placeholders, TODO and file paths", () => {
+  it("fails on confirm markers, placeholders, TODO and file paths, each with its line", () => {
     const q6 = words(120, "about $2 billion (Rohan to confirm) [N] conversations TBD (from docs/research.md)");
-    const r = checkOnePager(onePager({ q6 }), CONFIG);
-    expect(r.fails.some((f) => f.includes("to confirm"))).toBe(true);
-    expect(r.fails).toContain("Answer 6: placeholder [N] not filled in.");
-    expect(r.fails).toContain("Answer 6: TBD left in.");
-    expect(r.fails.some((f) => f.includes("docs/research.md"))).toBe(true);
+    const text = onePager({ q6 });
+    const line = text.split("\n").findIndex((l) => l.includes("[N]")) + 1;
+    const fails = checkOnePager(text, CONFIG).fails;
+    expect(fails).toContain(`Answer 6, line ${line}: placeholder [N] not filled in.`);
+    expect(fails).toContain(`Answer 6, line ${line}: TBD left in.`);
+    expect(fails.some((f) => f.startsWith(`Answer 6, line ${line}: "(Rohan to confirm)" marker left in, after "`) && f.includes('about $2 billion"'))).toBe(true);
+    expect(fails.some((f) => f.includes("docs/research.md"))).toBe(true);
+  });
+
+  it("reports every marker and placeholder, even several on one line", () => {
+    const q5 = words(120, "a (Rohan to confirm) b (Yahya to confirm, #12) [N] and [N]");
+    const fails = checkOnePager(onePager({ q5 }), CONFIG).fails;
+    expect(fails.filter((f) => f.includes("marker left in"))).toHaveLength(2);
+    expect(fails.filter((f) => f.includes("placeholder [N]"))).toHaveLength(2);
   });
 
   it("does not mistake a markdown link for a placeholder", () => {
@@ -111,12 +120,26 @@ describe("checkOnePager", () => {
     expect(checkOnePager(onePager({ q6: words(120, TOKEN) }), CONFIG).fails[0]).toContain("test USDC token");
   });
 
+  it("fails when config/testnet.json here is behind origin/main, and passes when they match", () => {
+    const q6 = words(120, OURS);
+    const behind = { ...CONFIG, originContractId: "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" };
+    expect(checkOnePager(onePager({ q6 }), behind).fails[0]).toContain("git merge origin/main");
+    expect(checkOnePager(onePager({ q6 }), { ...CONFIG, originContractId: OURS }).fails).toEqual([]);
+  });
+
+  it("warns, without failing, when origin/main's config could not be read", () => {
+    const r = checkOnePager(onePager({ q6: words(120, OURS) }), { ...CONFIG, originContractId: null });
+    expect(r.fails).toEqual([]);
+    expect(r.warns[0]).toContain("origin/main");
+  });
+
   it("fails form fields that are still TODO or TBD", () => {
-    const r = checkOnePager(onePager({ team: "**TBD.** We pick the name Wed.", number: "**TODO**", devpost: "**TODO.**" }), CONFIG);
-    expect(r.fails).toEqual([
-      "Form field 1 (Team Topic & Number (picker)) is still TODO or TBD.",
-      "Form field 2 (Team Name) is still TODO or TBD.",
-      "Form field 7 (Submit your Devpost link) is still TODO or TBD.",
+    const text = onePager({ team: "**TBD.** We pick the name Wed.", number: "**TODO**", devpost: "**TODO.**" });
+    const at = (needle) => text.split("\n").findIndex((l) => l.includes(needle)) + 1;
+    expect(checkOnePager(text, CONFIG).fails).toEqual([
+      `Form field 1 (Team Topic & Number (picker)), line ${at("Number:")}: still TODO or TBD.`,
+      `Form field 2 (Team Name), line ${at("We pick the name")}: still TODO or TBD.`,
+      `Form field 7 (Submit your Devpost link), line ${at("**TODO.**")}: still TODO or TBD.`,
     ]);
   });
 
