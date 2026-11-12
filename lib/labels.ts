@@ -32,3 +32,27 @@ export function creditPayout(amount: number): number {
   const units = Math.round(amount * 100) * 100_000;
   return (units - Math.floor((units * CREDIT_FEE_BPS) / 10_000)) / 10_000_000;
 }
+
+/** "12,50" or "12.5" -> 12.5; null if it isn't a positive amount with at most 2 decimals. */
+export function parseAmount(text: string): number | null {
+  const clean = text.trim().replace(",", ".");
+  if (!/^\d+(\.\d{1,2})?$/.test(clean)) return null;
+  const value = Number(clean);
+  return value > 0 ? value : null;
+}
+
+/**
+ * Why a part payment can't go ahead, or null. A pending cash claim keeps its
+ * share of what's left, so the shop can still confirm the cash afterwards.
+ */
+export function partPayError(text: string, left: number, cashClaim = 0): string | null {
+  const amount = parseAmount(text);
+  if (amount === null) return "Monto inválido.";
+  const cents = (n: number) => Math.round(n * 100);
+  if (cents(amount) > cents(left)) return "El monto es mayor que lo pendiente.";
+  const room = cents(left) - cents(cashClaim);
+  if (cashClaim > 0 && cents(amount) > room) {
+    return `Hay $${cashClaim.toFixed(2)} en efectivo por confirmar. Puede pagar hasta $${(room / 100).toFixed(2)}.`;
+  }
+  return null;
+}
