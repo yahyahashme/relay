@@ -12,7 +12,7 @@ import { toInvoice, toShop } from "@/lib/stellar/map";
 import { read, run } from "@/lib/stellar/send";
 import { toDollars, toUnits } from "@/lib/stellar/units";
 import type { Invoice as ChainInvoice } from "@/packages/route_ledger/src/index";
-import type { Driver, Invoice, Pool, Receipt, Shop } from "@/lib/types";
+import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type Pool, type Receipt, type Shop, type Totals } from "@/lib/types";
 
 // ---------- reads ----------
 
@@ -25,6 +25,22 @@ async function withCashClaim(invoice: ChainInvoice): Promise<Invoice> {
 export async function getInvoices(): Promise<Invoice[]> {
   const list = await read(readClient().list_invoices());
   return (await Promise.all(list.map(withCashClaim))).sort((a, b) => a.id - b.id);
+}
+
+/** The newest `pages` pages of the whole history, newest first. */
+export async function getInvoiceHistory(pages: number): Promise<InvoiceHistory> {
+  const total = await read(readClient().invoice_count());
+  const count = Math.max(1, Math.min(Math.floor(pages) || 1, 100));
+  const befores = Array.from({ length: count }, (_, i) => total - i * HISTORY_PAGE).filter((b) => b > 0);
+  const lists = await Promise.all(
+    befores.map((before) => read(readClient().list_invoices_page({ before, limit: HISTORY_PAGE }))),
+  );
+  return { invoices: await Promise.all(lists.flat().map(withCashClaim)), total };
+}
+
+export async function getTotals(): Promise<Totals> {
+  const t = await read(readClient().get_totals());
+  return { invoices: t.invoices, digital: toDollars(t.digital), cash: toDollars(t.cash), credit: toDollars(t.credit) };
 }
 
 async function chainInvoice(id: number) {
@@ -88,6 +104,15 @@ export async function payNow(invoiceId: number, amount?: number): Promise<Receip
       units = toUnits(amount.toFixed(2));
     }
     if (units > left) return fail(`El monto es mayor que lo que falta pagar (${formatMoney(toDollars(left))}).`);
+    if (amount !== undefined) {
+      // Leave room for cash the driver recorded, so the shop can still confirm it.
+      const claim = await read(readClient().get_cash_claim({ id: invoice.id }));
+      if (claim > 0n && units > left - claim) {
+        return fail(
+          `Hay ${formatMoney(toDollars(claim))} en efectivo por confirmar. Puede pagar hasta ${formatMoney(toDollars(left - claim))}.`,
+        );
+      }
+    }
 
     const shop = roleOf(invoice.shop);
     if (!SHOP_IDS.includes(shop as Role)) return fail("Esta factura no es de su tienda.");
@@ -150,16 +175,20 @@ export async function claimCash(invoiceId: number, amount: number): Promise<Rece
 }
 
 /** Cash, step 2: the shop confirms the driver's claim. */
-export async function confirmCash(invoiceId: number): Promise<Receipt> {
+/** `amount` is the cash claim the shop was shown; the contract refuses if the driver changed it since. */
+export async function confirmCash(invoiceId: number, amount: number): Promise<Receipt> {
   try {
     const invoice = await chainInvoice(invoiceId);
     if (!invoice) return fail("No encontramos esa factura.");
     const shop = roleOf(invoice.shop);
     if (!SHOP_IDS.includes(shop as Role)) return fail("Esta factura no es de su tienda.");
-    const claim = await read(readClient().get_cash_claim({ id: invoice.id }));
+    if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
+    const units = toUnits(amount.toFixed(2));
 
-    const { hash } = await run(shop as Role, (client) => client.cash_confirm({ shop: invoice.shop, id: invoice.id }));
-    return receipt(hash, `Listo. Confirmó ${formatMoney(toDollars(claim))} en efectivo.`);
+    const { hash } = await run(shop as Role, (client) =>
+      client.cash_confirm({ shop: invoice.shop, id: invoice.id, amount: units }),
+    );
+    return receipt(hash, `Listo. Confirmó ${formatMoney(toDollars(units))} en efectivo.`);
   } catch (error) {
     return failure(error);
   }
@@ -192,6 +221,25 @@ export async function repay(shopId: string, amount: number): Promise<Receipt> {
   }
 }
 
+/** The distributor got a driver's cash at the warehouse. No money moves on chain. */
+export async function handInCash(driverId: string, amount: number): Promise<Receipt> {
+  try {
+    const driver = addressOf(driverId);
+    if (!driver || !DRIVER_IDS.includes(driverId as Role)) return fail("No encontramos a ese motorista.");
+    if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
+    const held = await read(readClient().get_driver_cash({ driver }));
+    // "Hand in everything" must send the exact units held.
+    const asked = toUnits(amount.toFixed(2));
+    const units = toDollars(held) === amount ? held : asked;
+    const { hash } = await run("distributor", (client) =>
+      client.cash_handed_in({ distributor: addressOf("distributor") as string, driver, amount: units }),
+    );
+    return receipt(hash, `Listo. ${nameOf(driverId)} entregó ${formatMoney(toDollars(units))} en efectivo.`);
+  } catch (error) {
+    return failure(error);
+  }
+}
+
 // ---------- demo invoices (the distributor's "Nueva factura de demo") ----------
 
 const DEMO_SHOPS = ["tienda-1", "tienda-2", "tienda-3"] as const;
@@ -212,7 +260,10 @@ export async function createDemoInvoice(shopId?: string): Promise<Invoice> {
         const list = await read(readClient().list_invoices());
         id = list.reduce((max, i) => (i.id > max ? i.id : max), 1000n) + 1n + skip;
         const shop = shopId ?? DEMO_SHOPS[Number(id % 3n)];
-        const due = BigInt(Math.floor(Date.now() / 1000)) + WEEK_SECS;
+        // A few random seconds so two server instances never build the very same
+        // transaction: identical ones share a hash, and both judges would get one invoice.
+        const jitter = BigInt(Math.floor(Math.random() * 600));
+        const due = BigInt(Math.floor(Date.now() / 1000)) + WEEK_SECS + jitter;
         return client.create_invoice({
           distributor: addressOf("distributor") as string,
           id,
@@ -227,6 +278,9 @@ export async function createDemoInvoice(shopId?: string): Promise<Invoice> {
         skip += 1n;
         continue;
       }
+      // Another server instance took the same id between our simulation and the
+      // ledger (the transaction fails with no code). Pick again from a fresh list.
+      if (error instanceof ContractError && error.code === null) continue;
       console.error("[actions]", error);
       throw new Error(error instanceof ContractError ? error.message : FALLBACK_MESSAGE);
     }
