@@ -35,9 +35,9 @@ this line. Placeholders in **[brackets]** wait on the team: the product name (#2
 
 | Time | Window | Exact clicks | Wait for |
 |---|---|---|---|
-| 0:00 to 0:08 | Title card (slide) | The approved opening line (#73), word for word: "Around the world, small businesses in developing countries can't get about $5.7 trillion in credit they need. In El Salvador alone, more than 50,000 neighbourhood shops buy about $2 billion a year from distributors." On screen under it: "Conamype estimate". | |
+| 0:00 to 0:08 | Title card (slide) | Shown as text, not spoken (spoken it takes about 15 s); narration starts on the next shot. The approved opening line (#73), word for word: "Around the world, small businesses in developing countries can't get about $5.7 trillion in credit they need. In El Salvador alone, more than 50,000 neighbourhood shops buy about $2 billion a year from distributors." On screen under it: "Conamype estimate". | |
 | 0:08 to 0:20 | Driver, then shop | Driver: tap the Tienda Rosa row (the QR opens). Shop: the invoice page (as if scanned) → **Pagar ahora** | Shop: green ✓ "Pago recibido…". Driver's chip turns **Pagada** within 5 s |
-| 0:20 to 0:35 | Shop, then dashboard | Open the Tienda Don Luis invoice → **Pagar en 7 días** | ✓ "Listo. Tiene hasta el … para pagar $60.00, sin intereses." Dashboard row: **Crédito**, "recibió $59.10" (the lender keeps 1.5%) |
+| 0:20 to 0:35 | Shop, then dashboard | Open the Tienda Don Luis invoice → **Pagar en 7 días** | ✓ "Listo. Tiene hasta el … para pagar $60.00, sin intereses." Dashboard row: **Crédito**, "recibió $59.10" (the distributor pays a 1.5% fee) |
 | 0:20 to 0:35 (cont.) | Shop | Tap **Mi cuenta** | "Debe $60.00", the due date, the limit |
 | 0:35 to 0:45 | Driver, then shop | Driver: tap the Mini Súper row → **Recibí efectivo**. Shop: that invoice → **Pagué en efectivo** → **Confirmo** | Dashboard: Ana's cash under "Efectivo por motorista" goes up |
 | 0:45 to 0:55 | Shop | On the green receipt, tap **Ver detalles** (opens stellar.expert) | The transaction page; then the contract page (link below) |
