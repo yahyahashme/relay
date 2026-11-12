@@ -5,11 +5,12 @@ import { useState } from "react";
 import { BackLink, Button, ButtonLink, Card, Chip, LoadError, Loading, NotFound, ReceiptView, Screen } from "@/components/ui";
 import { confirmCash, getDrivers, getInvoice, getShop, payLater, payNow } from "@/lib/api";
 import { formatDay, formatMoney } from "@/lib/format";
-import { invoiceStatus, leftToPay, METHOD_LABEL } from "@/lib/labels";
+import { invoiceStatus, leftToPay, METHOD_LABEL, parseAmount, partPayError } from "@/lib/labels";
 import type { Invoice, Receipt, Shop } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
 
-type Action = "now" | "later" | "cash";
+type Action = "now" | "part" | "later" | "cash";
+
 
 /** Why "Pagar en 7 días" is greyed out, or null if the shop can use it. */
 function creditBlocked(shop: Shop | null, invoice: Invoice): string | null {
@@ -31,6 +32,9 @@ export default function InvoiceScreen() {
   const [busy, setBusy] = useState<Action | null>(null);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const [showCash, setShowCash] = useState(false);
+  const [showPart, setShowPart] = useState(false);
+  const [partText, setPartText] = useState("");
+  const [partError, setPartError] = useState<string | null>(null);
 
   async function run(action: Action, write: () => Promise<Receipt>) {
     setBusy(action);
@@ -38,6 +42,8 @@ export default function InvoiceScreen() {
     const result = await write();
     if (result.ok) {
       setShowCash(false);
+      setShowPart(false);
+      setPartText("");
       await reload(); // show the receipt and the new status together
     }
     setReceipt(result);
@@ -101,6 +107,47 @@ export default function InvoiceScreen() {
           <Button onClick={() => run("now", () => payNow(id))} busy={busy === "now"} disabled={busy !== null} hint="Con dólares digitales">
             Pagar ahora
           </Button>
+          <button
+            type="button"
+            onClick={() => setShowPart((open) => !open)}
+            disabled={busy !== null}
+            className="-mt-1 min-h-12 self-center px-2 text-base font-medium text-brand underline"
+          >
+            Pagar otro monto
+          </button>
+
+          {showPart && (
+            <Card className="flex flex-col gap-3">
+              <label className="flex flex-col gap-1 text-lg">
+                ¿Cuánto paga ahora? <span className="text-base text-muted">Falta {formatMoney(left)}</span>
+                <input
+                  inputMode="decimal"
+                  autoComplete="off"
+                  placeholder="0.00"
+                  value={partText}
+                  onChange={(e) => {
+                    setPartText(e.target.value);
+                    setPartError(null);
+                  }}
+                  className="min-h-12 rounded-xl border border-line bg-card px-3 text-xl tabular-nums"
+                />
+              </label>
+              {partError && <p className="font-medium text-bad">{partError}</p>}
+              <Button
+                onClick={() => {
+                  const error = partPayError(partText, left, invoice.cashClaim);
+                  if (error) return setPartError(error);
+                  void run("part", () => payNow(id, parseAmount(partText)!));
+                }}
+                busy={busy === "part"}
+                disabled={busy !== null || partText.trim() === ""}
+                hint="Con dólares digitales"
+              >
+                Pagar este monto
+              </Button>
+            </Card>
+          )}
+
           <Button
             variant="secondary"
             onClick={() => run("later", () => payLater(id))}
@@ -121,7 +168,7 @@ export default function InvoiceScreen() {
                   <p className="text-lg">
                     {driver?.name ?? "El motorista"} registró <strong>{formatMoney(invoice.cashClaim)}</strong> en efectivo.
                   </p>
-                  <Button onClick={() => run("cash", () => confirmCash(id))} busy={busy === "cash"} disabled={busy !== null}>
+                  <Button onClick={() => run("cash", () => confirmCash(id, invoice.cashClaim ?? 0))} busy={busy === "cash"} disabled={busy !== null}>
                     Confirmo
                   </Button>
                 </>

@@ -26,7 +26,11 @@ export const Error = {
   11 : { message: "NoCashClaim" },
   12 : { message: "NoCreditTerms" },
   13 : { message: "NotApproved" },
-  14 : { message: "NotInDefault" }
+  14 : { message: "NotInDefault" },
+  /**
+   * The driver's cash claim isn't the amount the shop confirmed.
+   */
+  15 : { message: "ClaimChanged" }
 }
 
 /**
@@ -37,6 +41,18 @@ export interface Config {
   credit_period_secs: bigint;
   token: string;
   treasury: string;
+}
+
+/**
+ * Everything ever paid, by method, so the dashboard's totals cover the
+ * whole history and not just the invoices it has loaded.
+ */
+export interface Totals {
+  cash: bigint;
+  credit: bigint;
+  digital: bigint;
+  invoiced: bigint;
+  invoices: number;
 }
 
 /**
