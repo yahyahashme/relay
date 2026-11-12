@@ -487,7 +487,7 @@ _Entries 36 to 40 come from web pages Claude opened on Nov 12, 2026. Every one i
 - **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude fetched both pages on 12 Nov 2026 and both sentences matched; PR #81's 6,677 stroops read from its description.)
 
 ## 38. MoneyGram's Stellar service: where cash-out and cash-in work
-- **Claim:** MoneyGram's Stellar service offers cash-out in 170+ countries and territories and cash-in in 25+ countries.
+- **Claim:** MoneyGram Ramps (the service the moneygram.com/stellar page describes; the page covers Solana and Stellar together) offers cash-out in 170+ countries and territories and cash-in in 25+ countries.
 - **Number:** 170+ countries and territories (cash-out); 25+ countries (cash-in); 480,000+ MoneyGram locations (same sentence of the page)
 - **Source:** MoneyGram, "Stellar", https://www.moneygram.com/stellar (retrieved 12 Nov 2026). It is the page's FAQ answer to "Where is it available?"
 - **Exact quote:** "Cash-out is available in 170+ countries and territories and cash-in in 25+ countries"
@@ -496,10 +496,12 @@ _Entries 36 to 40 come from web pages Claude opened on Nov 12, 2026. Every one i
 - **Caveat:**
   - The same answer says "Coverage varies by country; the coverage map on this page shows what each country supports."
   - So "MoneyGram covers cash-out only" is false in general. Cash-in exists in about 25 countries.
-  - El Salvador: the page's own data appears to list it as cash-out only. A prior reading of the page's HTML icons says the same. No human has confirmed it, so say only "to verify on the coverage map".
+  - The page redirects (301) to xramps.moneygram.com, titled "MoneyGram Ramps ... on Solana & Stellar". The 170+ and 25+ figures are for Ramps as a whole, not for Stellar alone.
+  - El Salvador: the page's own data lists it as cash-out only. A second check on 12 Nov 2026 (by Claude, independent of the first) fetched the page's coverage data, `/api/v1/public/coverage`, which returns `{"iso3":"SLV","cashIn":false,"cashOut":true}`; of 168 countries, 27 are "both" and 141 are cash-out only. No human has confirmed it by eye. 30-second check: open moneygram.com/stellar, scroll to "Global coverage", find El Salvador: it has no "both" icon (a missing icon alone cannot tell cash-out-only from cash-in-only, so also look at the Network tab for the coverage call).
+  - The deprecated developer docs and the Stellar anchor directory gave no El Salvador data (the directory page is JS-rendered). A news article from April 2026 says the MoneyGram app lets users cash out at MoneyGram locations in El Salvador; it does not mention cash-in.
   - Limits of $5 to $950 per cash-in and $5 to $2,500 per cash-out come from MoneyGram's deprecated developer docs page (https://developer.moneygram.com/moneygram-developer/docs/moneygram-ramps, updated 2026-08-20). Claude did not open that page, so treat the limits as unconfirmed and don't say them.
   - This is MoneyGram describing its own product.
-  - Safe wording: "MoneyGram's Stellar service offers cash-out in 170+ countries and cash-in in about 25; check El Salvador on the coverage map."
+  - Safe wording: "MoneyGram Ramps offers cash-out in 170+ countries and cash-in in about 25. For El Salvador, its coverage data lists cash-out but, as far as we found, not cash-in." Keep the "as far as we found" until a person has looked at the map.
 - **Checked:** Pending: a teammate must open the link and confirm the quote. (The page returned 403 to the first fetch tool; Claude read the quote from the page's own FAQ text fetched with curl on 12 Nov 2026, where it matched. A browser may show the answer collapsed.)
 
 ## 39. The US dollar is El Salvador's legal tender
@@ -533,7 +535,7 @@ _Entries 36 to 40 come from web pages Claude opened on Nov 12, 2026. Every one i
 - **Translation:** El Diario de Hoy: "to steal cash from an employee of a truck delivering products". The study is in English.
 - **Use in:** Q&A / pitch background (never as a headline number)
 - **Caveat:**
-  - One case. The article is about court hearings for people detained under the state of exception, in El Zacatal, Santa Ana. We did not check how the case ended.
+  - One case. The article is about court hearings for people detained under the state of exception, in El Zacatal, Santa Ana. It reports an accusation at a hearing (the suspect is "acusado de ..."), not a conviction, and we did not check how the case ended. So "have been robbed" rests on one reported accusation; "have reportedly been robbed" is the cautious form.
   - The study's data is 2012 to 2019, so it is historical (see entry 7 for the post-2022 change). Its payments are extortion fees, not cash-collection robberies.
   - It does NOT show that shops pay trucks in cash in El Salvador. Entry 11 covers four countries, not El Salvador alone.
   - "No record of who collected what" has no source. It is our assumption. The same study says its distributor keeps per-delivery sales data ("sales data for all goods delivered ... from 2012 through 2019") and a security team confirms each extortion amount, so don't state it as a fact.
