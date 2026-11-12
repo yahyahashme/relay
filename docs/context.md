@@ -504,13 +504,14 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 | `create_invoice(distributor, id, shop, driver, amount, due)` | distributor | Stores an invoice. Rejects duplicate IDs and amounts of 0 or less. |
 | `pay(shop, id, amount)` | shop | Moves test dollars from shop to distributor. Part payments are allowed; paying more than what's left is rejected. |
 | `cash_claim(driver, id, amount)` | driver | The driver says they received cash. |
-| `cash_confirm(shop, id)` | shop | The shop agrees. The invoice is marked paid in cash and the driver's cash total goes up. No tokens move. |
+| `cash_confirm(shop, id, amount)` | shop | The shop agrees to exactly the amount it was shown (if the driver changed the claim since, it fails). The invoice is marked paid in cash and the driver's cash total goes up. No tokens move. |
 | `cash_handed_in(distributor, driver, amount)` | distributor | The driver handed cash in at the warehouse. (Should) |
 | `deposit(lender, amount)` | lender | Puts money in the pool. |
 | `set_terms(admin, shop, limit, option)` | admin (the distributor, for real) | Sets a shop's limit and its option: 1, 2 or 3. |
 | `pay_with_credit(shop, id)` | shop | Checks that nothing is overdue, the limit isn't exceeded and the pool has money. The pool pays the distributor the amount minus the fee, and the shop's debt and due date are recorded. |
 | `repay(shop, amount)` | shop | Moves test dollars from the shop to the pool and splits the fee into buffer, lenders and us. If it's on time, the limit grows (demo rule: +$25 per on-time repayment, up to a cap). |
 | `get_invoice`, `list_invoices`, `get_shop`, `get_pool`, `get_driver_cash` | anyone | Read-only, for the dashboard. |
+| `invoice_count`, `list_invoices_page(before, limit)`, `get_totals` | anyone | Read-only: the full history a page at a time (30 per call, newest first), and running totals by payment method. |
 
 - Option 3 needs no pool: the invoice just stays due for up to 7 days.
 - Each role sends its own transaction, so `require_auth` is met by whoever signs. Avoid transactions that need two signers; that's why cash is two steps.

@@ -12,7 +12,7 @@ import { toInvoice, toShop } from "@/lib/stellar/map";
 import { read, run } from "@/lib/stellar/send";
 import { toDollars, toUnits } from "@/lib/stellar/units";
 import type { Invoice as ChainInvoice } from "@/packages/route_ledger/src/index";
-import type { Driver, Invoice, Pool, Receipt, Shop } from "@/lib/types";
+import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type Pool, type Receipt, type Shop, type Totals } from "@/lib/types";
 
 // ---------- reads ----------
 
@@ -25,6 +25,22 @@ async function withCashClaim(invoice: ChainInvoice): Promise<Invoice> {
 export async function getInvoices(): Promise<Invoice[]> {
   const list = await read(readClient().list_invoices());
   return (await Promise.all(list.map(withCashClaim))).sort((a, b) => a.id - b.id);
+}
+
+/** The newest `pages` pages of the whole history, newest first. */
+export async function getInvoiceHistory(pages: number): Promise<InvoiceHistory> {
+  const total = await read(readClient().invoice_count());
+  const count = Math.max(1, Math.min(Math.floor(pages) || 1, 100));
+  const befores = Array.from({ length: count }, (_, i) => total - i * HISTORY_PAGE).filter((b) => b > 0);
+  const lists = await Promise.all(
+    befores.map((before) => read(readClient().list_invoices_page({ before, limit: HISTORY_PAGE }))),
+  );
+  return { invoices: await Promise.all(lists.flat().map(withCashClaim)), total };
+}
+
+export async function getTotals(): Promise<Totals> {
+  const t = await read(readClient().get_totals());
+  return { invoices: t.invoices, digital: toDollars(t.digital), cash: toDollars(t.cash), credit: toDollars(t.credit) };
 }
 
 async function chainInvoice(id: number) {
@@ -159,16 +175,20 @@ export async function claimCash(invoiceId: number, amount: number): Promise<Rece
 }
 
 /** Cash, step 2: the shop confirms the driver's claim. */
-export async function confirmCash(invoiceId: number): Promise<Receipt> {
+/** `amount` is the cash claim the shop was shown; the contract refuses if the driver changed it since. */
+export async function confirmCash(invoiceId: number, amount: number): Promise<Receipt> {
   try {
     const invoice = await chainInvoice(invoiceId);
     if (!invoice) return fail("No encontramos esa factura.");
     const shop = roleOf(invoice.shop);
     if (!SHOP_IDS.includes(shop as Role)) return fail("Esta factura no es de su tienda.");
-    const claim = await read(readClient().get_cash_claim({ id: invoice.id }));
+    if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
+    const units = toUnits(amount.toFixed(2));
 
-    const { hash } = await run(shop as Role, (client) => client.cash_confirm({ shop: invoice.shop, id: invoice.id }));
-    return receipt(hash, `Listo. Confirmó ${formatMoney(toDollars(claim))} en efectivo.`);
+    const { hash } = await run(shop as Role, (client) =>
+      client.cash_confirm({ shop: invoice.shop, id: invoice.id, amount: units }),
+    );
+    return receipt(hash, `Listo. Confirmó ${formatMoney(toDollars(units))} en efectivo.`);
   } catch (error) {
     return failure(error);
   }
