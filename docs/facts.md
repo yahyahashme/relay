@@ -4,7 +4,7 @@ Every number we say in the one-pager, pitch, trifold and deck comes from this fi
 
 - **Checked** says who opened the link and confirmed the quote, and when. Claude checked entries 1–3, 7 and 9–21 on Nov 9 and copied entries 4–8 from the live pages on Nov 10; a teammate can add their initials too.
 
-**Never use:** the $7 billion market, "about 70,000 shops", $5 billion as our market, the Chivo $30 bonus or fuel discounts, MoneyGram's 5%.
+**Never use:** the $7 billion market, "about 70,000 shops", $5 billion as our market, the Chivo $30 bonus or fuel discounts, MoneyGram's 5%, "$98.40 per $100" or "$0.35 per credit sale", a "$2.5 million" revenue figure (entries 29 and 30).
 
 ## Opening line
 
@@ -319,3 +319,226 @@ _Added in #51._
 - **Use in:** pitch / one-pager (always with "according to Conamype")
 - **Caveat:** Paul Steiner, Conamype's president, said it in a TV interview (Entrevista AM) and cited no study. Strong line, soft evidence, so attribute it every time. In the same interview he said the BFA line (entry 20) lends even to informal shops.
 - **Checked:** Claude, 9 Nov 2026 (link opened, quote matches the page)
+
+---
+
+## Our own numbers: the contract, the demo and the safety review (#61)
+
+_Entries 29 to 35 come from this repo, not from a web page. Claude read the code at commit dfdc33c (`main` after #66) on Nov 11, 2026 and checked each number against it; no teammate has confirmed them yet. Quotes are copied from the code or from `docs/security.md`. They describe the contract as built on testnet, with test dollars. If the contract changes (open PR #80 changes `cash_confirm`), re-check before saying any of them._
+
+**Pitch highlights from these entries** (strongest first; each is safe to say out loud, the entry has the source). Move them into the main Pitch highlights list at the top once #73 has merged. Entries 30 and 33 have no line on purpose: a revenue scenario and demo data are not things to say as results.
+
+1. Money leaves our contract in exactly one function, and every function that changes state needs the right person's signature (34).
+2. Distributors pay us, shops never do: 0.1% of a cash or digital invoice, or one 1.5% fee when the lender pool pays them at delivery, so they get $98.50 per $100 (29).
+3. A shop's credit limit starts at $200 and grows $25 for each on-time repayment, but only after a loan of $40 or more and once a week, so nobody can farm it with tiny loans (31).
+4. Our own safety review found and fixed two bugs, and we publish the 11 limits that are still open (35).
+5. If a shop never pays, the loss buffer, filled by 0.75% of every credit sale, repays the lenders first (32).
+
+## 29. What we charge: the fee constants
+- **Claim:** The distributor pays us 0.10% of an invoice paid by cash or digitally, or one 1.50% fee when the lender pool pays the invoice up front ("pay in 7 days"). The shop never pays a fee.
+- **Number:**
+  - Usage fee 0.10% (10 basis points) on cash and digital invoices. Per $100: the distributor receives $99.90 and we get $0.10.
+  - Credit fee 1.50% (150 basis points), only on credit sales. Per $100: the distributor receives $98.50 at delivery. The $1.50 splits into $0.75 for the loss buffer, $0.50 for the lenders and $0.25 for us.
+  - No usage fee on top of the credit fee.
+- **Source:** `contracts/route_ledger/src/lib.rs` lines 17 to 29 (`USAGE_FEE_BPS`, `CREDIT_FEE_BPS`, `BUFFER_BPS`, `LENDER_BPS`, `OUR_BPS`) and the `pay` and `pay_with_credit` functions, commit dfdc33c. The app uses the same numbers (`lib/labels.ts:25`, `lib/mock.ts:18`). Also `docs/security.md` section 1 and `docs/context.md` section 5.
+- **Exact quote:** "Credit sales don't pay it: our cut there is inside the 1.50% credit fee, so the distributor sees one number ($98.50 for every $100)." (code comment, line breaks removed)
+- **Translation:** n/a (English source)
+- **Use in:** one-pager / pitch / trifold / deck ("how do you make money")
+- **Caveat:**
+  - Demo parameters on testnet, set when the contract is deployed. Fees round down.
+  - The shop pays the invoice's face value and no interest, but the distributor's 1.50% is a fee to be paid early. A lawyer should confirm it isn't treated as interest under the usury law (entry 18).
+  - The cash usage fee is recorded (`get_usage_owed`) but nothing collects it yet (`docs/security.md` known limit 6). Digital payments collect it on the spot.
+  - Don't say "$98.40 per $100" or "$0.35 per credit sale". Those add the 0.10% on top of the 1.50%, which the contract doesn't do. The draft assumptions doc (open PR #74) still shows them.
+- **Checked:** Claude, 11 Nov 2026 (`lib.rs` read at dfdc33c; the split adds up: 98.50 + 0.25 + 0.75 + 0.50 = 100.00)
+
+## 30. Revenue scenarios with the fees as built (our maths)
+- **Claim:** If every dollar of the $2 billion moved through us by cash or digital payment, we would earn $2 million a year. If 10% of it used "pay in 7 days" instead, we would earn $2.3 million, not $2.5 million.
+- **Number:**
+  - All cash or digital: 0.1% × $2,000,000,000 = **$2,000,000**.
+  - 10% on credit: credit volume $200,000,000 × 0.25% (our share of the 1.50%) = **$500,000**, plus usage fee on the other $1,800,000,000 × 0.1% = **$1,800,000**. Total **$2,300,000**.
+- **Source:** Our arithmetic from entry 1 ($2 billion) and entry 29 (the fees). Not a quote from anyone.
+- **Exact quote:** n/a (computed; the inputs are in entries 1 and 29)
+- **Translation:** n/a
+- **Use in:** Q&A / deck backup. Always say "scenario, not a forecast".
+- **Caveat:**
+  - It assumes every dollar of the $2 billion goes through us. That sizes the market; it is not a revenue forecast or a prediction of our share.
+  - Adding "$2M + $500K = $2.5M" (issue #61's list, open PR #74) charges the 0.1% usage fee on the credit volume as well. The contract doesn't (`docs/context.md` section 5, Nov 10 change), so that sum is $200,000 too high.
+  - Our cash usage fee is billed later, not collected on the spot (entry 29).
+- **Checked:** Claude, 11 Nov 2026 (arithmetic redone; the 0.1% and 0.25% match `lib.rs`)
+
+## 31. How a shop's credit limit grows and drops
+- **Claim:** A shop's credit limit grows $25 each time it repays on time, up to $500. It drops $25 when it pays late, and a shop can't grow its limit by borrowing tiny amounts.
+- **Number:**
+  - Start: $200 in the demo (the admin sets it with `set_terms`).
+  - +$25 (`LIMIT_STEP`) per on-time repayment, cap $500 (`LIMIT_CAP`).
+  - It only grows if the shop borrowed at least $40 (`MIN_BORROW_TO_GROW`) in that cycle, and at most once per credit period (7 days; 2 minutes in the demo).
+  - A late repayment drops it $25, never below $0. No new credit while a payment is overdue.
+  - The limit changes only when the shop's whole balance is repaid.
+- **Source:** `contracts/route_ledger/src/lib.rs` lines 31 to 39 and the `repay` function (line 574), commit dfdc33c; `scripts/deploy.sh` lines 113 and 115 (the $200); `docs/credit-model.md` sections 3 to 5.
+- **Exact quote:** "Together these stop a shop from taking $1 of credit and repaying it over and over to reach $500." (code comment, line breaks removed)
+- **Translation:** n/a (English source)
+- **Use in:** pitch / deck / Q&A ("how do you stop fraud?")
+- **Caveat:**
+  - Demo parameters; they are guesses to test in interviews (#7), not real repayment data.
+  - The contract has no default start limit; the $200 is set shop by shop at deploy. A limit the admin sets above $500 is left alone. `docs/credit-model.md` section 3 says the start should be the lower of $200 and one average delivery. That is a proposal, not built.
+  - The limit is our own credit record. It is not a bureau score (entry 15).
+- **Checked:** Claude, 11 Nov 2026 (`repay` and the constants read at dfdc33c)
+
+## 32. When a shop never pays
+- **Claim:** A shop four credit periods (28 days) past its due date can be written off. The loss buffer repays the lenders what it can, the shop's limit goes to $0, and the debt stays on its record.
+- **Number:**
+  - 4 credit periods (`DEFAULT_AFTER_PERIODS`) = 28 days late for real; 8 minutes with the 2-minute demo period.
+  - The buffer grows by 0.75% of every credit sale. The demo seeds it with $50.
+  - Later payments on a written-off debt go back into the buffer.
+- **Source:** `contracts/route_ledger/src/lib.rs` lines 41 to 43 and `cover_default` (line 637), commit dfdc33c; `scripts/deploy.sh` line 127; `docs/credit-model.md` sections 5 and 9.
+- **Exact quote:** "A shop this many credit periods past its due date can be written off: 4 x 7 days = 28 days late for real, 8 minutes with the 2-minute demo period." (code comment)
+- **Translation:** n/a (English source)
+- **Use in:** Q&A / deck ("what if a shop doesn't pay?")
+- **Caveat:**
+  - The admin calls `cover_default` by hand. It is not automatic.
+  - The buffer pays first. Anything past the buffer is a loss to the lenders (`docs/security.md` known limit 11), so never say "no risk" about the lenders. "No risk" is about the distributor, who is paid at delivery.
+  - The stress test in `docs/credit-model.md` section 9 adds up: 0.75% × $150,000 = $1,125 a week, so losses of $1,500, $7,500, $4,000 and $15,000 are about 1.3, 6.7, 3.6 and 13.3 weeks of buffer. Its inputs (1,000 shops, $150 outstanding each) are guesses.
+- **Checked:** Claude, 11 Nov 2026 (`cover_default` and the constants read at dfdc33c; stress-test arithmetic redone)
+
+## 33. What's loaded in the demo (test dollars)
+- **Claim:** The testnet demo holds test dollars we issued: $5,000 in the lender pool, a $50 loss buffer, three shops with a $200 limit, and 8 seed invoices.
+- **Number:** $5,000 pool; $50 buffer; 3 shops × $200 limit; 8 invoices of $150.00, $85.50, $220.00, $60.00, $130.00, $95.25, $40.00 and $175.00 (total $955.75). Invoice 1003 ($220.00) is over the $200 limit on purpose, to show the refusal.
+- **Source:** `scripts/deploy.sh` lines 113 to 152, commit dfdc33c. The contract ID is in `config/testnet.json` and the README ("Contract IDs"); it changes on every deploy.
+- **Exact quote:** "The lender puts $5,000 in the pool" (the script's own step message)
+- **Translation:** n/a (English source)
+- **Use in:** demo video / Q&A only. Never as traction.
+- **Caveat:**
+  - Test dollars on testnet, seeded by us. These are not users, volume or revenue. Say "demo data" whenever they are shown.
+  - The Stellar Development Foundation can reset testnet, which would delete the contract and these balances (`docs/security.md` section 5).
+- **Checked:** Claude, 11 Nov 2026 (`deploy.sh` read at dfdc33c; the invoice total added up by hand)
+
+## 34. Who can move the money
+- **Claim:** Money leaves the contract in exactly one function, `pay_with_credit`. Every function that changes state needs the right person's signature.
+- **Number:**
+  - 1 function sends tokens out of the contract (`lib.rs` lines 533 and 534). The three other transfers (`deposit`, `repay`, `fund_buffer`) move tokens into it.
+  - 12 signature checks (`require_auth`), each covered by tests. Deleting any one of them in turn fails at least 2 tests (a one-off check described in PR #66).
+  - 62 contract tests (44 before the review, 18 added in #66). `cargo test`: 62 passed (as stated in PR #66).
+  - 11 known limits published in `docs/security.md` section 6.
+- **Source:** `docs/security.md` sections 1 and 6; PR #66, merged 11 Nov 2026; `contracts/route_ledger/src/lib.rs` and `test.rs`, commit dfdc33c.
+- **Exact quote:** "Tokens leave the contract in exactly one function: `pay_with_credit`, to the distributor (the payout) and the treasury (our 0.25%)." (`docs/security.md`)
+- **Translation:** n/a (English source)
+- **Use in:** pitch / deck / Q&A ("who can move the money?")
+- **Caveat:**
+  - A testnet demo with no outside audit. Say "we reviewed it ourselves", never "audited".
+  - The admin is trusted: it can approve distributors and set limits (known limit 1). Lenders can't withdraw yet (limit 3).
+  - Recount the tests after PR #80 merges. The "deleting each `require_auth`" check was run once and isn't scripted in the repo, so re-run it before saying it out loud.
+  - I counted 62 `#[test]` functions and 12 `require_auth` calls and confirmed where tokens leave the contract; I did not re-run `cargo test` (no Rust on this machine).
+- **Checked:** Claude, 11 Nov 2026 (the three counts above matched the code at dfdc33c; test results are quoted from PR #66, not re-run)
+
+## 35. Bugs our own review found
+- **Claim:** Our safety review found two real bugs and we fixed them. A third problem, the shop's cash confirmation not naming an amount, is found and its fix is in review.
+- **Number:** 2 bugs fixed (#66); 1 found, fix proposed in open PR #80; 11 known limits published.
+  - Any address could sign `cash_handed_in` and zero a driver's cash total. Now only an approved distributor can.
+  - A huge invoice made the credit-limit check overflow and crash instead of being refused. It never moved money. It now returns `OverLimit`.
+  - `cash_confirm(shop, id)` confirms whatever claim is stored when it runs, so a driver could swap the amount after the shop looked (a $10 claim became $90 in a test).
+- **Source:** PR #66 body ("What changed" and "Found but not fixed here"); `docs/security.md` section 6, limits 4 and 5.
+- **Exact quote:** "any address could sign and zero a driver's cash total" (PR #66)
+- **Translation:** n/a (English source)
+- **Use in:** Q&A (a judge asks "did you review it?"). It shows we test our own work and are honest about what's open.
+- **Caveat:**
+  - Don't claim the third problem is fixed until PR #80 is merged and deployed.
+  - Known limits are not fixed bugs: the admin is trusted, distributor approval can't be revoked, lenders can't withdraw. Say them before a judge finds them.
+  - The $10-to-$90 swap came from a throwaway test described in the PR; it isn't in the repo's tests.
+- **Checked:** Claude, 11 Nov 2026 (PR #66 body and `docs/security.md` read; the first two fixes are in `lib.rs` at dfdc33c)
+
+---
+
+## Outside findings added under #61 (retrieved 12 Nov 2026)
+
+_Entries 36 to 40 come from web pages Claude opened on Nov 12, 2026. Every one is **pending**: a teammate must open the link and confirm the quote before we say it out loud. None has a line in the Pitch highlights list yet._
+
+## 36. Stellar settles in about five seconds
+- **Claim:** Stellar ledgers close in about 5 seconds, and the transactions in them are final when they do.
+- **Number:** ~5 seconds per ledger
+- **Source:** Stellar Development Foundation, developer homepage, https://developers.stellar.org/ (retrieved 12 Nov 2026)
+- **Exact quote:** "Ledgers close in ~5 seconds, and their transactions are final when they do."
+- **Translation:** n/a (English source)
+- **Use in:** Q&A / deck (backup)
+- **Caveat:**
+  - It is Stellar describing its own network, on its marketing homepage. The ledgers page in the docs (https://developers.stellar.org/docs/learn/fundamentals/stellar-data-structures/ledgers) gives no interval, so the whole claim rests on this one line.
+  - "~5" is an approximate time, not a guarantee. When the network is busy, fees rise under surge pricing (entry 37) and a transaction may wait for a later ledger.
+  - It is the network's time. Our own screens also wait for our app and the contract call, so don't promise "5 seconds" for a delivery or a payment.
+  - Safe wording: "Stellar payments finalize in about five seconds, and Stellar describes its fees as under a cent." (entries 36 and 37)
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude fetched the page on 12 Nov 2026 and the sentence matched.)
+
+## 37. Stellar network fees are under a cent
+- **Claim:** Stellar says its network fees are under a cent. The fee for a plain transaction is 100 stroops, which the docs write as .00001 XLM.
+- **Number:** "under a cent" (Stellar's own wording); 100 stroops = .00001 XLM, the minimum inclusion fee. No dollar figure.
+- **Source:**
+  - Stellar Development Foundation, "Cross-border payments", https://stellar.org/solutions/cross-border-payments (retrieved 12 Nov 2026)
+  - Stellar docs, "Fees, resource limits and metering", https://developers.stellar.org/docs/learn/fundamentals/fees-resource-limits-metering (retrieved 12 Nov 2026)
+- **Exact quote:**
+  - stellar.org: "Pay in one currency, deliver in another, with network fees under a cent."
+  - Docs: "each would pay the minimum inclusion fee of 100 stroops (.00001 XLM)."
+- **Translation:** n/a (English source)
+- **Use in:** Q&A / deck (backup)
+- **Caveat:**
+  - Stellar's own dollar figures conflict: the developer homepage says "<$0.001" under "Avg. transaction cost", and stellar.org/learn/stablecoins says "$0.000005 per operation". So cite only "under a cent" and attribute it to Stellar.
+  - In the docs sentence, 100 stroops is what every transaction pays when the ledger isn't full ("the network is not in surge pricing mode"). The same page calls 100 stroops per operation the network minimum, so a plain one-operation payment costs about that much. Under surge pricing the fee is higher.
+  - Our own contract calls cost more. A simulated testnet contract call in open PR #81 (read-only `get_pool`) showed an inner fee of 6,677 stroops: 100 inclusion plus 6,577 resource. Don't say our calls cost "100 stroops".
+  - Don't turn stroops into dollars without an XLM price on a stated date. We have none.
+  - The text we fetched from the two pages showed no update dates (the earlier reading noted 3 Nov for stellar.org and 22 Oct for the docs; unconfirmed).
+  - Safe wording: "Stellar payments finalize in about five seconds, and Stellar describes its fees as under a cent." (entries 36 and 37)
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude fetched both pages on 12 Nov 2026 and both sentences matched; PR #81's 6,677 stroops read from its description.)
+
+## 38. MoneyGram's Stellar service: where cash-out and cash-in work
+- **Claim:** MoneyGram Ramps (the service the moneygram.com/stellar page describes; the page covers Solana and Stellar together) offers cash-out in 170+ countries and territories and cash-in in 25+ countries.
+- **Number:** 170+ countries and territories (cash-out); 25+ countries (cash-in); 480,000+ MoneyGram locations (same sentence of the page)
+- **Source:** MoneyGram, "Stellar", https://www.moneygram.com/stellar (retrieved 12 Nov 2026). It is the page's FAQ answer to "Where is it available?"
+- **Exact quote:** "Cash-out is available in 170+ countries and territories and cash-in in 25+ countries"
+- **Translation:** n/a (English source)
+- **Use in:** Q&A / deck
+- **Caveat:**
+  - The same answer says "Coverage varies by country; the coverage map on this page shows what each country supports."
+  - So "MoneyGram covers cash-out only" is false in general. Cash-in exists in about 25 countries.
+  - The page redirects (301) to xramps.moneygram.com, titled "MoneyGram Ramps ... on Solana & Stellar". The 170+ and 25+ figures are for Ramps as a whole, not for Stellar alone.
+  - El Salvador: the page's own data lists it as cash-out only. A second check on 12 Nov 2026 (by Claude, independent of the first) fetched the page's coverage data, `/api/v1/public/coverage`, which returns `{"iso3":"SLV","cashIn":false,"cashOut":true}`; of 168 countries, 27 are "both" and 141 are cash-out only. No human has confirmed it by eye. 30-second check: open moneygram.com/stellar, scroll to "Global coverage", find El Salvador: it has no "both" icon (a missing icon alone cannot tell cash-out-only from cash-in-only, so also look at the Network tab for the coverage call).
+  - The deprecated developer docs and the Stellar anchor directory gave no El Salvador data (the directory page is JS-rendered). A news article from April 2026 says the MoneyGram app lets users cash out at MoneyGram locations in El Salvador; it does not mention cash-in.
+  - Limits of $5 to $950 per cash-in and $5 to $2,500 per cash-out come from MoneyGram's deprecated developer docs page (https://developer.moneygram.com/moneygram-developer/docs/moneygram-ramps, updated 2026-08-20). Claude did not open that page, so treat the limits as unconfirmed and don't say them.
+  - This is MoneyGram describing its own product.
+  - Safe wording: "MoneyGram Ramps offers cash-out in 170+ countries and cash-in in about 25. For El Salvador, its coverage data lists cash-out but, as far as we found, not cash-in." Keep the "as far as we found" until a person has looked at the map.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (The page returned 403 to the first fetch tool; Claude read the quote from the page's own FAQ text fetched with curl on 12 Nov 2026, where it matched. A browser may show the answer collapsed.)
+
+## 39. The US dollar is El Salvador's legal tender
+- **Claim:** The US dollar has been El Salvador's legal tender since 1 January 2001.
+- **Number:** 1 Jan 2001 (the law was approved 30 Nov 2000)
+- **Source:**
+  - IMF, Country Report No. 25/58, March 2025, https://www.imf.org/-/media/files/publications/cr/2025/english/1slvea2025001-print-pdf.pdf (PDF pages 88 and 62)
+  - Backup: Banco Central de Reserva (BCR), "El dinero en El Salvador", published 16 Dec 2020, https://www.bcr.gob.sv/2020/12/16/el-dinero-en-el-salvador/
+- **Exact quote:**
+  - IMF, PDF p. 88: "As the U.S. dollar is the official legal tender since January 1st, 2001"
+  - IMF, PDF p. 62: "El Salvador is officially dollarized."
+  - BCR: "La Ley fue aprobada en sesión plenaria del 30 de noviembre de 2000 entrando en vigencia a partir del 1 de enero de 2001."
+- **Translation:** BCR: "The law was approved in plenary session on 30 November 2000 and came into force on 1 January 2001." The IMF quotes are in English.
+- **Use in:** deck / Q&A (why dollars, why no new currency)
+- **Caveat:**
+  - The IMF's sentence on p. 88 sits in a note about program exchange rates, and its grammar is the IMF's own ("is ... since"). Copy it as it is.
+  - Say only that the dollar is legal tender. Don't imply digital dollars are legal tender, or that people already hold them: only 43% to 47% of adults have an account (entries 12 and 13).
+  - A recent reform of the Bitcoin Law made private-sector acceptance of Bitcoin voluntary (IMF 25/58 para 26, PDF p. 19; the amendment was published in the Official Gazette on 30 January). Keep Bitcoin out of the sentence.
+  - Safe wording: "The US dollar has been El Salvador's legal tender since 1 January 2001."
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude matched the BCR sentence on the live page on 12 Nov 2026, and both IMF quotes in text extracted from the downloaded PDF, at PDF pages 88 and 62.)
+
+## 40. Delivery crews in El Salvador carry cash and have been targeted
+- **Claim:** Delivery crews in El Salvador have been robbed and extorted. One reported case is a robbery of a delivery-truck employee's cash. A study of a major distributor shows drivers stopping to deal with gangs before they deliver.
+- **Number:** none for the robbery (one case, incident 10 Feb 2023). The study covers over 50,000 extortion payments, 2012 to 2019 (its title: "Evidence from 50,000 Extortion Payments").
+- **Source:**
+  - El Diario de Hoy (elsalvador.com), Cristian Díaz, 23 Jul 2024, https://www.elsalvador.com/h-noticias/h-nacional/santa-ana-este-centro-detenidos-regimen-de-excepcion-audiencias-robos-asaltos-isss-/1157091/2024/
+  - Brown, Montero, Schmidt-Padilla and Sviatschi, "Market Structure and Extortion: Evidence from 50,000 Extortion Payments", Review of Economic Studies (final version accepted Aug 2023), https://www.restud.com/wp-content/uploads/2024/05/CompetitionForExtortion.pdf (PDF p. 9)
+- **Exact quote:**
+  - El Diario de Hoy: "robar dinero en efectivo al empleado de un camión repartidor de productos"
+  - Study: "Before making a delivery in gang-controlled territory, truck drivers will stop and meet with a gang representative."
+- **Translation:** El Diario de Hoy: "to steal cash from an employee of a truck delivering products". The study is in English.
+- **Use in:** Q&A / pitch background (never as a headline number)
+- **Caveat:**
+  - One case. The article is about court hearings for people detained under the state of exception, in El Zacatal, Santa Ana. It reports an accusation at a hearing (the suspect is "acusado de ..."), not a conviction, and we did not check how the case ended. So "have been robbed" rests on one reported accusation; "have reportedly been robbed" is the cautious form.
+  - The study's data is 2012 to 2019, so it is historical (see entry 7 for the post-2022 change). Its payments are extortion fees, not cash-collection robberies.
+  - It does NOT show that shops pay trucks in cash in El Salvador. Entry 11 covers four countries, not El Salvador alone.
+  - "No record of who collected what" has no source. It is our assumption. The same study says its distributor keeps per-delivery sales data ("sales data for all goods delivered ... from 2012 through 2019") and a security team confirms each extortion amount, so don't state it as a fact.
+  - Do not cite our own GitHub README as a source for any of this.
+  - Safe wording: "Delivery crews in El Salvador have been robbed and extorted."
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude matched the El Diario de Hoy phrase on the live page on 12 Nov 2026, and the study sentence in text extracted from the downloaded PDF, at PDF p. 9.)
