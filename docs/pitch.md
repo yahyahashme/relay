@@ -20,6 +20,7 @@ Status as of Wed Nov 11. Update the "Status" column when an input lands, and del
 | 8 | Paper sketch agreed, print-ready file link in the group chat | Team | **Not done by this PR.** The layout builds a 48 x 36 in PDF in both versions (`node docs/trifold/render.mjs`), but it carries yellow placeholders until rows 2, 4, 5 and 6 close. These are two of the three "Done means" lines of #37. | The PDFs are not committed (`out/` is git-ignored); Jack builds the final one and shares it. |
 | 9 | The video (#35). Its first shot is also the worldwide number (context §3.7, PR #77) | Yahya | **Open.** My review of #77 asked for the #73 opening line there too. | The pitch opens with that number at 0:00, so the video should open on the shop screens, or the number is said twice in the first minute. |
 | 10 | A sharper diagram: `docs/img/architecture.png` is 1920 x 1080 px, which is 113 pixels per inch on the 12 + 24 + 12 board and 132 on the 16 + 16 + 16 one | Owner of the slide renders (PR #85's scaffold), asked through Jack | **Not asked yet.** Request text is in section 1. | The layout uses the 1x file and prints a warning. It picks up `architecture@2x.png` by itself when it exists. |
+| 11 | Copy the Nov 12 source-check edits from this file into `docs/trifold/trifold.html`: the left-panel crews and cash line (+12 words and a source line) and the right-panel "and sells more" cut (-3 words). Then run `node docs/trifold/render.mjs` and re-measure the word count and text share in section 1 | Jack | **Open.** `trifold.html` still has the old lines (about lines 146 and 228). | The board copy and this file disagree until it is done. The spoken script is not affected. |
 
 **Fee fix needed.** Issue #37 and Rohan's assumptions draft (PR #74) say the distributor gets **$98.40** on a $100 sale. The contract pays **$98.50**. $98.40 was the older version with a 0.10% usage fee on top of the 1.5% credit fee. That fee was dropped for credit sales on Nov 10 (context §16; `lib.rs:19` and `:519`). This file uses $98.50. Rohan should correct #74 before the finals.
 
@@ -86,7 +87,7 @@ The layout picks up `architecture@2x.png` by itself when it exists, and `render.
 
 > **The problem**
 > Rosa's truck is at the door and she is short on cash. A loan shark hands her the money today, at about $35 for every $100.
-> Back at the warehouse, nobody can easily see which driver collected what cash.
+> Delivery crews in El Salvador have been robbed and extorted, and in a four-country survey, 8 in 10 small businesses pay suppliers mainly in cash.
 >
 > **$5.7 trillion**
 > in credit that small businesses in developing countries need and can't get
@@ -102,6 +103,9 @@ Small print (14 pt):
 - $5.7 trillion: IFC and SME Finance Forum, "MSME Finance Gap", Mar 2025 (2019 data). Facts entry 22.
 - $2 billion: Conamype estimate, via Diario El Salvador, 27 Feb 2026. Shop count: Distribución Dinámica, via Diario El Mundo, 1 Mar 2026. Entries 1 and 3.
 - $35 per $100: CIOPS (UTEC) survey of 1,285 merchants, 2019, via Revista E&N. 6 in 10: FUSAI and ASOMI, via El Diario de Hoy, Jul 2026. Entries 9 and 10.
+- Crews: robbed, El Diario de Hoy, 23 Jul 2024; extorted, Brown et al., Review of Economic Studies. Cash: El Salvador, Guatemala, Honduras and Mexico, 2022 survey, via Diario El Mundo, 10 Apr 2025. Entry 11.
+
+Source check, Nov 12: the crew line has no `docs/facts.md` entry yet except entry 11 (cash). One robbery case (2023, reported 2024) and extortion data from 2012 to 2019 are all we have, so the line says "have been", not "are". Add entries before print. We cut "nobody can easily see which driver collected what cash": it was our assumption, not a sourced fact. If we keep the idea, say it as our view ("we think...").
 
 ### Middle panel: how it works
 
@@ -124,7 +128,7 @@ Small print (14 pt):
 > The lender pool pays the distributor now: **$98.50**
 > The shop repays in 7 days: **$100**, no interest
 > The 1.5% fee: $0.75 buffer, $0.50 lenders, $0.25 us
-> The distributor pays because it is paid at the door, carries no risk of the shop not paying, and sells more.
+> The distributor pays because it is paid at the door and carries no risk of the shop not paying.
 >
 > **Our plan**
 > One distributor's routes first
@@ -144,7 +148,7 @@ Small print (14 pt):
 
 ## 2. Pitch script v1 (3:00, one speaker, the 1-minute video included)
 
-**Re-timed Nov 11 at 140 words a minute.** The first draft was 275 spoken words: 117.9 s, so 2:58 with the video and no time to start or stop it, and three segments ran past their windows. This version is shorter and timed as one run, not window by window. The pool-pays-the-distributor line was said twice (0:25 and 1:55); it is now only in the 1:55 segment. Counts are spoken lines only, and a `[placeholder]` counts one word per word inside it. Re-count with the table below after every edit, and time it aloud in the first run-through (#39): 140 wpm is an average, and a slower speaker will need the cuts listed under the table.
+**Re-timed Nov 11 at 140 words a minute.** The first draft was 275 spoken words: 117.9 s, so 2:58 with the video and no time to start or stop it, and three segments ran past their windows. This version is shorter and timed as one run, not window by window. The pool-pays-the-distributor line was said twice (0:25 and 1:55); it is now only in the 1:55 segment. Counts are spoken lines only, and a `[placeholder]` counts one word per word inside it. **Nov 12 source check:** the 0:25 segment is now 60 words (was 57) and the total 257 (was 254), because the dollar and Stellar lines were rewritten to match their sources. Re-count with the table below after every edit, and time it aloud in the first run-through (#39): 140 wpm is an average, and a slower speaker will need the cuts listed under the table.
 
 ### 0:00 to 0:25
 
@@ -152,7 +156,7 @@ Small print (14 pt):
 
 ### 0:25 to 0:55
 
-> So we built [NAME]. A shop pays in digital dollars, pays cash that driver and shop confirm with two taps, or pays in seven days at full price, no interest. The rules and fees sit in a public Stellar contract: El Salvador already uses dollars, and Stellar settles in seconds for a fraction of a cent. Watch.
+> So we built [NAME]. A shop pays in digital dollars, pays cash that driver and shop confirm with two taps, or pays in seven days at full price, no interest. The rules and fees sit in a public Stellar contract, and Stellar finalizes payments in about five seconds. The US dollar has been El Salvador's legal tender since 2001. Watch.
 
 ### 0:55 to 1:55: the video (#35)
 
@@ -177,17 +181,17 @@ The headings above are the issue's windows. Because the first two segments are s
 | Part | Words | Seconds | Starts at | Ends at |
 |---|---|---|---|---|
 | 0:00 segment | 53 | 22.7 | 0:00.0 | 0:22.7 |
-| 0:25 segment, ends on "Watch." | 57 | 24.4 | 0:22.7 | 0:47.1 |
-| Start the video | | 2.0 | 0:47.1 | 0:49.1 |
-| The video (#35), silent | | 60.0 | 0:49.1 | 1:49.1 |
-| Stop the video, step back to the mic | | 2.0 | 1:49.1 | 1:51.1 |
-| 1:55 segment | 75 | 32.1 | 1:51.1 | 2:23.2 |
-| 2:30 segment | 48 | 20.6 | 2:23.2 | 2:43.8 |
-| Close | 21 | 9.0 | 2:43.8 | 2:52.8 |
-| **Total** | **254** | | | **2:52.8** |
+| 0:25 segment, ends on "Watch." | 60 | 25.7 | 0:22.7 | 0:48.4 |
+| Start the video | | 2.0 | 0:48.4 | 0:50.4 |
+| The video (#35), silent | | 60.0 | 0:50.4 | 1:50.4 |
+| Stop the video, step back to the mic | | 2.0 | 1:50.4 | 1:52.4 |
+| 1:55 segment | 75 | 32.1 | 1:52.4 | 2:24.5 |
+| 2:30 segment | 48 | 20.6 | 2:24.5 | 2:45.1 |
+| Close | 21 | 9.0 | 2:45.1 | 2:54.1 |
+| **Total** | **257** | | | **2:54.1** |
 
-That leaves **7.2 s** under the 3:00 limit. A speaker at 130 words a minute needs about 8 s more, so cut from this list, in this order, until a timed run comes in under 2:55:
-1. 0:25 segment: "El Salvador already uses dollars, and" (6 words, 2.6 s). The board and the 1:55 segment still say it uses the dollar.
+That leaves **5.9 s** under the 3:00 limit (it was 7.2 s before the Nov 12 source-check edit to the 0:25 segment, which went from 57 to 60 words). A speaker at 130 words a minute needs about 8.5 s more, so cut from this list, in this order, until a timed run comes in under 2:55:
+1. 0:25 segment: "The US dollar has been El Salvador's legal tender since 2001." (11 words, 4.7 s). The 1:55 segment and the board still say Ecuador and Panama "also use the US dollar".
 2. 1:55 segment: "That 1.5% fee is 75 cents to a default buffer, 50 to lenders, 25 to us." (16 words, 6.9 s). The board carries the split.
 3. 1:55 segment: "and builds a record it never had" (7 words, 3.0 s). Keep it if there is time: it is the credit-record point.
 
@@ -211,6 +215,10 @@ Do not cut "says Conamype", "(2019 survey)", or "KYC and KYB". The fact sheet an
 | Names stay off the public ledger | Context §8.4; the diagram | Matches. Amounts are public. |
 | "Public contract", not "open source" | #48 removed the MIT licence; the code is all rights reserved | The repo is public and the contract is checkable on Stellar. Do not say "open source". |
 | Ecuador and Panama use the US dollar | Context §7.6 (order); entries 25 and 26 are in PR #73 | Order matches `main`. Sources arrive with #73. |
+| "The US dollar has been El Salvador's legal tender since 2001" (0:25 segment) | IMF Country Report 25/58 (Mar 2025), p. 88: "As the U.S. dollar is the official legal tender since January 1st, 2001" | Sourced. No facts.md entry yet. It says nothing about digital dollars: never say or imply they are legal tender or widely held. |
+| "Stellar finalizes payments in about five seconds"; "fees under a cent" (five seconds in the 0:25 segment; both in answer 6) | developers.stellar.org: "Ledgers close in ~5 seconds, and their transactions are final when they do."; stellar.org/solutions/cross-border-payments: "network fees under a cent." | Sourced. No facts.md entry yet. Stellar's own pages give conflicting USD fee figures, so the script gives no dollar fee and attributes the claim ("Stellar says ... fees under a cent"). |
+| Delivery crews in El Salvador have been robbed and extorted; 8 in 10 small businesses in four countries pay suppliers mainly in cash (left panel) | Robbery: El Diario de Hoy, 23 Jul 2024 (one 2023 case). Extortion: Brown et al., Review of Economic Studies (data 2012 to 2019). Cash: facts.md entry 11 | Cash matches entry 11 (regional). Robbery and extortion have no facts.md entry yet. |
+| MoneyGram lists cash-out in El Salvador, we found no cash-in (answer 3) | moneygram.com/stellar: "Cash-out is available in 170+ countries and territories and cash-in in 25+ countries" | We only say what we found for El Salvador. "Cash-out only" is false in general. |
 | Fee sponsorship and passkeys | Not on `main`. The diagram says "Will pay the network fees". | **Not claimed** in either text. |
 
 ## 4. Never say
@@ -247,16 +255,16 @@ The eight questions from #39, each with an answer that fits **20 seconds (46 wor
 - **Facts:** context §14; Adam Chu (§14): partner with banks and cash-in companies that already have a reputation in El Salvador. The count of emails and replies comes from `docs/research.md`.
 - **Must include:** one distributor first; a partner for cash; a licensed lender; that none of it is agreed.
 - **Never:** that any bank, cash-in company or lender has agreed to anything.
-- **If they push, "why would a distributor switch?":** > It is paid at the door instead of a week later, sells more because shops can buy beyond their cash, and carries less cash and less risk. (27 words; context §5.)
+- **If they push, "why would a distributor switch?":** > It is paid at the door instead of a week later, and carries less cash and less risk. (18 words; context §5. "Sells more" was cut Nov 12: it is our assumption, not a fact.)
 
 ### 3. How does a shop get digital dollars? (Risk #1)
 
-> Our biggest risk, and not solved: cash-in. MoneyGram covers cash-out only. Our plan: shops repay weekly like a bill, at a bank or payment point, and a licensed partner converts the cash in bulk. No shop pre-loads money. Our demo simulates cash-in.
+> Our biggest risk, and not solved: cash-in. MoneyGram lists cash-out in El Salvador, but we found no cash-in. Our plan: shops repay weekly like a bill, at a bank or payment point, and a licensed partner converts the cash in bulk. Our demo simulates cash-in.
 
-42 words, 18.0 s.
-- **Facts:** context §6: the Nov 7 finding (MoneyGram has cash-out points, cash-in is open), ideas 1 (repay like a bill), 2 and 10 (one weekly trip, no deposit at sign-up) and 12 (partner, don't build). README "Risk #1". The demo labels cash-in as simulated on screen.
+45 words, 19.3 s. ("No shop pre-loads money." was cut to fit 20 s after the MoneyGram hedge; say it if asked.)
+- **Facts:** context §6: the Nov 7 finding (MoneyGram has cash-out points in El Salvador, cash-in is open; MoneyGram's own page, moneygram.com/stellar, says cash-out in 170+ countries and territories and cash-in in 25+, so "cash-out only" is false in general and we only say what we found here), ideas 1 (repay like a bill), 2 and 10 (one weekly trip, no deposit at sign-up) and 12 (partner, don't build). README "Risk #1". The demo labels cash-in as simulated on screen.
 - **Must include:** say it first, say "not solved", then the plan.
-- **Never:** that cash-in is solved, that a partner exists, or that shops can already convert cash cheaply.
+- **Never:** that cash-in is solved, that a partner exists, that shops can already convert cash cheaply, or that MoneyGram covers "cash-out only".
 - **If they push, "what does cash-in cost?":** > We don't know yet what cash-in costs per $100, or how far a typical shop is from a payment point. Finding that out is the next step with a partner. (30 words; context §6 "Still to find out".)
 
 ### 4. What if a shop doesn't pay?
@@ -281,12 +289,12 @@ The eight questions from #39, each with an answer that fits **20 seconds (46 wor
 
 ### 6. Why Stellar, and not Transfer365 plus a database?
 
-> Transfer365 only moves money between bank accounts; fewer than half of adults have one. No credit, no invoice matching. A distributor's database isn't a record lenders trust. Our public contract enforces the rules, and Stellar settles in seconds for a fraction of a cent.
+> Transfer365 only moves money between bank accounts; fewer than half of adults have one. No credit, no invoice matching. A distributor's database isn't a record lenders trust. Our public contract enforces the rules. Stellar says payments are final in about five seconds, fees under a cent.
 
-44 words, 18.9 s.
+46 words, 19.7 s.
 - **Facts:** entry 14 (Transfer365: free, between bank accounts, more than $4 billion a month; say "more than 9 in 10", not 93% or 95.3%); entries 12 and 13 ("fewer than half of adults"); context §14 for the reasoning.
-- **Must include:** Transfer365 is free and good but needs an account; no credit or invoice records; a shared, checkable record; settles fast and cheap.
-- **Never:** that cheaper transfers are our pitch, "open source" (say "public contract"), or fee sponsorship and passkeys as built.
+- **Must include:** Transfer365 is free and good but needs an account; no credit or invoice records; a shared, checkable record; Stellar's own figures: final in about five seconds, fees "under a cent" (developers.stellar.org; stellar.org/solutions/cross-border-payments).
+- **Never:** that cheaper transfers are our pitch, "open source" (say "public contract"), fee sponsorship and passkeys as built, or a dollar fee for Stellar (its own pages give conflicting USD figures; attribute it: "Stellar says ... fees under a cent").
 
 ### 7. What do El Salvador's credit bureaus already cover? Do tiendas have DUNS numbers?
 
