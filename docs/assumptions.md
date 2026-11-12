@@ -4,7 +4,7 @@ Every number links to a `docs/facts.md` entry or is marked **(guess, check in in
 
 ## 30-second answer: "How do you make money?"
 
-> "Distributors pay us, shops never do. We take 0.1% of every invoice we process, cash or digital, plus 0.25% of each 'pay in 7 days' sale, built into an open contract. Distributors pay because they sell to shops that are short on cash, get paid at delivery and carry no risk of the shop not paying."
+> "Distributors pay, shops never do. 0.1% of each invoice paid at delivery, and on a 'pay in 7 days' sale the distributor pays 1.5% to be paid now: 0.25% to us, the rest to the lenders and a loss buffer."
 
 ## Assumptions
 
@@ -17,7 +17,7 @@ Every number links to a `docs/facts.md` entry or is marked **(guess, check in in
 | Precedent: short stock credit size | under $500 per loan, about 3 a month | Tienda Pago in Mexico and Peru | facts.md entry 28 (replaces the unsourced "$250 to $300" in context §7.3) |
 | Share of sales on "pay in 7 days" | 20% for one distributor; 10% for the ceiling | Only shops short on cash use it | (guess, check in interviews) |
 | Default rate | under 0.75% of credit volume per 7-day cycle | Limits start at $200, grow $25 per on-time repayment, and freeze when overdue (`docs/credit-model.md`) | (guess, check in interviews) |
-| Our usage fee | 0.1% of every invoice | Contract parameter | context §16 |
+| Our usage fee | 0.1% of every invoice paid at delivery (not on pay-in-7-days sales) | Contract parameter | context §5, §16 |
 | Credit fee, paid by the distributor | 1.5% of each credit sale: 0.75% buffer, 0.50% lenders, 0.25% us | Contract parameter | context §16 |
 | Why a distributor accepts 1.5% | Paid at delivery instead of in 7 days, no default risk, less cash and extortion risk; or it waits and gets 100% | Same logic as card fees and early-payment discounts | context §5, facts.md entry 7 |
 | Loan-shark cost for the shop | about $35 per $100 (2019); $0 with us | CIOPS survey | facts.md entry 10 |
@@ -31,19 +31,19 @@ The contract rounds fees down: fee = amount × bps ÷ 10,000 (100 bps = 1%).
 
 | Who | Amount | How |
 |---|---|---|
-| Distributor receives today | $98.40 | $100 − $1.50 credit fee − $0.10 usage fee |
+| Distributor receives today | $98.50 | $100 − $1.50 credit fee (no usage fee on credit sales) |
 | Default buffer | $0.75 | 0.75% of $100 |
 | Lenders | $0.50 | 0.50% of $100 |
-| Us | $0.35 | $0.25 credit share + $0.10 usage fee |
+| Us | $0.25 | Our share of the 1.5% credit fee |
 | Shop repays on day 7 | $100 | No interest |
 
-The pool puts in $99.50 at delivery ($98.40 + $0.75 + $0.35) and gets back $100 on day 7, so lenders earn $0.50.
+The pool puts in $99.50 at delivery ($98.50 + $0.75 + $0.25) and gets back $100 on day 7, so lenders earn $0.50.
 
 ### Ceiling (ceiling, not a forecast)
 
-- Usage fee on the whole market: 0.1% × $2B = **$2M a year**.
-- If 10% of that volume uses "pay in 7 days": 10% × $2B × 0.25% = **$500K a year**.
-- Total ceiling: **$2.5M a year**.
+- If 10% of the volume uses "pay in 7 days", the usage fee applies to the other 90%: 0.1% × 90% × $2B = **$1.8M a year**.
+- Our credit share on the 10%: 10% × $2B × 0.25% = **$500K a year**.
+- Total ceiling: **$2.3M a year**.
 
 ### Realistic first year: one mid-size distributor
 
@@ -57,10 +57,10 @@ The pool puts in $99.50 at delivery ($98.40 + $0.75 + $0.35) and gets back $100 
 
 Step by step:
 1. Yearly invoices: 10 × 100 × 1 × 52 × $150 = **$7,800,000**
-2. Usage fee: 0.1% × $7,800,000 = **$7,800**
+2. Usage fee on the 80% paid at delivery: 0.1% × 80% × $7,800,000 = **$6,240**
 3. Credit volume: 20% × $7,800,000 = $1,560,000
 4. Our credit share: 0.25% × $1,560,000 = **$3,900**
-5. **Our revenue: $11,700 a year**
+5. **Our revenue: $6,240 + $3,900 = $10,140 a year**
 6. Lenders earn: 0.50% × $1,560,000 = $7,800
 7. Buffer collects: 0.75% × $1,560,000 = $11,700
 8. Money the pool needs out at any time: $1,560,000 ÷ 52 = **about $30,000**
@@ -74,7 +74,7 @@ Step by step:
 | Network fees | a fraction of a cent per payment; fee sponsorship means users never hold XLM | context §3.3 |
 | Support and signing up distributors | about $300K a year for a small team | (guess) |
 
-**Break-even:** $300,000 ÷ $11,700 per distributor ≈ **26 distributors** (guess). This is a volume business, so sales should target groups of distributors and big brands, not single shops.
+**Break-even:** $300,000 ÷ $10,140 per distributor ≈ **30 distributors** (guess). This is a volume business, so sales should target groups of distributors and big brands, not single shops.
 
 ### Numbers a finance judge will check
 
