@@ -20,9 +20,9 @@ Status as of Wed Nov 11. Update the "Status" column when an input lands, and del
 | 8 | Paper sketch agreed, print-ready file link in the group chat | Team | **Not done by this PR.** The layout builds a 48 x 36 in PDF in both versions (`node docs/trifold/render.mjs`), but it carries yellow placeholders until rows 2, 4, 5 and 6 close. These are two of the three "Done means" lines of #37. | The PDFs are not committed (`out/` is git-ignored); Jack builds the final one and shares it. |
 | 9 | The video (#35). Its first shot is also the worldwide number (context §3.7, PR #77) | Yahya | **Open.** My review of #77 asked for the #73 opening line there too. | The pitch opens with that number at 0:00, so the video should open on the shop screens, or the number is said twice in the first minute. |
 | 10 | A sharper diagram: `docs/img/architecture.png` is 1920 x 1080 px, which is 113 pixels per inch on the 12 + 24 + 12 board and 132 on the 16 + 16 + 16 one | Owner of the slide renders (PR #85's scaffold), asked through Jack | **Not asked yet.** Request text is in section 1. | The layout uses the 1x file and prints a warning. It picks up `architecture@2x.png` by itself when it exists. |
-| 11 | Copy the Nov 12 source-check edits from this file into `docs/trifold/trifold.html`: the left-panel crews and cash line (+12 words and a source line) and the right-panel "and sells more" cut (-3 words). Then run `node docs/trifold/render.mjs` and re-measure the word count and text share in section 1 | Jack | **Open.** `trifold.html` still has the old lines (about lines 146 and 228). | The board copy and this file disagree until it is done. The spoken script is not affected. |
+| 11 | Copy the Nov 12 source-check edits from this file into `docs/trifold/trifold.html`: the left-panel crews and cash line (+12 words and a source line) and the right-panel "and sells more" cut (-3 words). Then run `node docs/trifold/render.mjs` and re-measure the word count and text share in section 1 | Jack | **Done Nov 12.** `trifold.html` has the new crews and cash line (+12 words), its source line (+35 words) and the "and sells more" cut (net -2 words, because "and" had to be added before "carries"). Re-rendered: the board is now 446 words (was 401), text share 15.5% (A) and 15% (B), all panels fit. | None: the board copy and this file agree. The spoken script was not affected. |
 
-**Fee fix needed.** Issue #37 and Rohan's assumptions draft (PR #74) say the distributor gets **$98.40** on a $100 sale. The contract pays **$98.50**. $98.40 was the older version with a 0.10% usage fee on top of the 1.5% credit fee. That fee was dropped for credit sales on Nov 10 (context §16; `lib.rs:19` and `:519`). This file uses $98.50. Rohan should correct #74 before the finals.
+**Fee fix needed.** Issue #37 and Rohan's assumptions draft (PR #74) say the distributor gets **$98.40** on a $100 sale. The contract pays **$98.50**. $98.40 was the older version with a 0.10% usage fee on top of the 1.5% credit fee. That fee was dropped for credit sales on Nov 10 (context §16; `lib.rs:19` and `:580`). This file uses $98.50. Rohan should correct #74 before the finals.
 
 ## 1. Trifold
 
@@ -41,7 +41,7 @@ Nobody has measured our board. Most 36 x 48 in tri-fold boards are 36 in tall an
 | Phones, each | 6 in wide | 3.95 in wide |
 | Two key points | 50 pt | 40 pt |
 | Diagram | 17 in wide: 113 pixels per inch at 1x | 14.5 in wide: 132 pixels per inch at 1x |
-| Text share of the board | 15% | 14.5% |
+| Text share of the board | 15.5% | 15% |
 
 **To measure:** open the board flat. With a tape measure, write down the height, then the distance from the left edge to the first crease, from the first crease to the second, and from the second to the right edge. If it reads about 12, 24, 12, use A. If it reads three equal panels, use B. If it is something else, the widths are two lines of CSS at the top of `trifold.html`; send me the numbers.
 
@@ -60,10 +60,10 @@ A: 12 + 24 + 12 in                                B: 16 + 16 + 16 in
 +----------+--------------------+----------+     +--------------+--------------+--------------+
 ```
 
-### What the layout checks (Nov 11, both layouts pass)
+### What the layout checks (re-measured Nov 12, both layouts pass)
 
-- Nothing runs past the bottom or the sides of a panel, so nothing crosses a fold. Blocks are spread from top to bottom; the biggest gap between blocks is 9.8 in on the left wing in A, so it still looks airy, not crowded.
-- Text covers 15% (A) and 14.5% (B) of the board, against the 25% limit. The board carries **401 words**, 81 of them 16 pt source lines. (The first draft guessed "about 300 words" and 9%; this is the measured figure.)
+- Nothing runs past the bottom or the sides of a panel, so nothing crosses a fold. Blocks are spread from top to bottom; the biggest gap between blocks is 9.2 in on the left wing in A, so it still looks airy, not crowded.
+- Text covers 15.5% (A) and 15% (B) of the board, against the 25% limit. The board carries **446 words** (401 before the Nov 12 source-check edits), 116 of them 16 pt source lines. (The first draft guessed "about 300 words" and 9%; this is the measured figure.)
 - Type: body 32 pt (the top of Velocity's 24 to 32 pt), captions 28 pt, headings 38 to 40 pt, title 96 pt, source lines 16 pt. The three big numbers (104 pt) and the two key points (50 pt or 40 pt) are display type, on purpose larger than a heading.
 - The QR is 5 in square with a white border (the assembly spec in PR #85, `docs/trifold-assembly.md`, asks for at least 4 in). The PDF is one page, 3456 x 2592 pt, with the fonts embedded and the text kept as text.
 
@@ -206,11 +206,11 @@ Do not cut "says Conamype", "(2019 survey)", or "KYC and KYB". The fact sheet an
 
 | What the pitch or trifold says | Checked against | Result |
 |---|---|---|
-| The distributor gets $98.50 per $100 paid in 7 days | `lib.rs:19`, `:519` (payout = amount minus `CREDIT_FEE_BPS` = 150); `lib/labels.ts` | Matches. Issue #37 and PR #74 say $98.40, which is out of date. |
+| The distributor gets $98.50 per $100 paid in 7 days | `lib.rs:19`, `:580` (payout = amount minus `CREDIT_FEE_BPS` = 150); `lib/labels.ts` | Matches. Issue #37 and PR #74 say $98.40, which is out of date. |
 | The 1.5% splits $0.75 buffer, $0.50 lenders, $0.25 us | `lib.rs:22-29`, with a compile-time check that the three add up | Matches |
-| The shop pays no fee and no interest | `lib.rs:354-357` (the usage fee comes out of the distributor's side, so the shop pays the invoice amount); `:544` (the shop owes only `amount`) | Matches |
+| The shop pays no fee and no interest | `lib.rs:385-388` (the usage fee comes out of the distributor's side, so the shop pays the invoice amount); `:605` (the shop owes only `amount`) | Matches |
 | 0.1% on invoices paid now or in cash | `USAGE_FEE_BPS = 10` (`lib.rs:20`); context §5 | Matches. Credit sales pay no usage fee. |
-| Repaying on time builds a record | The limit grows by $25 up to $500 (`LIMIT_STEP`, `LIMIT_CAP`, `lib.rs:32-34`, `:617`), only after a $40+ cycle and once per credit period (context §16, Nov 10) | Matches. The script says "builds a record" and no more. |
+| Repaying on time builds a record | The limit grows by $25 up to $500 (`LIMIT_STEP`, `LIMIT_CAP`, `lib.rs:32-34`, `:678`), only after a $40+ cycle and once per credit period (context §16, Nov 10) | Matches. The script says "builds a record" and no more. |
 | Live on Stellar testnet with test dollars, cash-in simulated | Context §6; the diagram says "Stellar testnet" and "Test USDC" | Matches |
 | Names stay off the public ledger | Context §8.4; the diagram | Matches. Amounts are public. |
 | "Public contract", not "open source" | #48 removed the MIT licence; the code is all rights reserved | The repo is public and the contract is checkable on Stellar. Do not say "open source". |
