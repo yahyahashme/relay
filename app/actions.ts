@@ -12,7 +12,8 @@ import { toInvoice, toShop } from "@/lib/stellar/map";
 import { read, run } from "@/lib/stellar/send";
 import { toDollars, toUnits } from "@/lib/stellar/units";
 import type { Invoice as ChainInvoice } from "@/packages/route_ledger/src/index";
-import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type Pool, type Receipt, type Shop, type Totals } from "@/lib/types";
+import { toUnixSeconds } from "@/lib/dates";
+import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type InvoiceRow, type Pool, type Receipt, type Shop, type Totals } from "@/lib/types";
 
 // ---------- reads ----------
 
@@ -247,6 +248,65 @@ const DEMO_DRIVER: Record<string, string> = { "tienda-1": "motorista-1", "tienda
 const DEMO_AMOUNTS = ["45.00", "60.00", "85.50"]; // several fit under a $200 limit
 const WEEK_SECS = 7n * 24n * 60n * 60n;
 const DEMO_TRIES = 3;
+
+// Each invoice is its own transaction (about 5 s), and the server action has 60 s
+// (app/distribuidor/layout.tsx), so 10 per file stays well inside it.
+const MAX_IMPORT = 10;
+const AMOUNT = /^\d+(\.\d{1,7})?$/;
+
+/**
+ * CSV import (#32): checks every row first (shop and driver known, id not on
+ * the contract yet), then creates them one at a time, signed by the
+ * distributor. If one fails midway, says how many were created.
+ */
+export async function createInvoices(rows: InvoiceRow[]): Promise<Receipt> {
+  if (rows.length === 0) return fail("No hay facturas para crear.");
+  if (rows.length > MAX_IMPORT) return fail(`Máximo ${MAX_IMPORT} facturas por archivo.`);
+  let created = 0;
+  let lastHash = "";
+  try {
+    // Check everything before sending anything: the rows come from the browser.
+    const ids = new Set<number>();
+    for (const [index, row] of rows.entries()) {
+      const line = `Fila ${index + 1}`;
+      if (!SHOP_IDS.includes(row.shopId as Role)) return fail(`${line}: tienda desconocida.`);
+      if (!DRIVER_IDS.includes(row.driverId as Role)) return fail(`${line}: motorista desconocido.`);
+      if (!Number.isSafeInteger(row.invoiceId) || row.invoiceId <= 0) return fail(`${line}: número de factura inválido.`);
+      if (ids.has(row.invoiceId)) return fail(`${line}: la factura ${row.invoiceId} está repetida.`);
+      ids.add(row.invoiceId);
+      const amount = String(row.amount).trim();
+      if (!AMOUNT.test(amount) || toUnits(amount) <= 0n) return fail(`${line}: monto inválido.`);
+      try {
+        toUnixSeconds(row.dueDate);
+      } catch {
+        return fail(`${line}: fecha inválida.`);
+      }
+    }
+    for (const [index, row] of rows.entries()) {
+      if (await chainInvoice(row.invoiceId)) return fail(`Fila ${index + 1}: la factura ${row.invoiceId} ya existe.`);
+    }
+    for (const row of rows) {
+      const { hash } = await run("distributor", (client) =>
+        client.create_invoice({
+          distributor: addressOf("distributor") as string,
+          id: BigInt(row.invoiceId),
+          shop: addressOf(row.shopId) as string,
+          driver: addressOf(row.driverId) as string,
+          amount: toUnits(String(row.amount).trim()),
+          due: BigInt(toUnixSeconds(row.dueDate)),
+        }),
+      );
+      created += 1;
+      lastHash = hash;
+    }
+    const message = created === 1 ? "Listo. Se creó 1 factura." : `Listo. Se crearon ${created} facturas.`;
+    return receipt(lastHash, message);
+  } catch (error) {
+    const result = failure(error);
+    if (created === 0) return result;
+    return { ...result, message: `Se crearon ${created} de ${rows.length} facturas. ${result.message}` };
+  }
+}
 
 /** A new invoice from the approved distributor. Throws a Spanish message if it can't. */
 export async function createDemoInvoice(shopId?: string): Promise<Invoice> {
