@@ -53,7 +53,7 @@ Neighbourhood shops (tiendas) in El Salvador pay the trucks that restock them in
 - **Space 1 fit:** fair, cheap credit for stock, and a payment record, for people whose only option today is a loan shark.
 - **Not doing:** cross-border or diaspora money, Bitcoin, more than one country (others go on a "future" slide).
 - **Form (decided Nov 9):** a mobile web app (a website that works like a phone app, opened from the driver's QR code or a WhatsApp link, nothing to install) on our own open Soroban contract. In the pitch, the contract is the engine that partners (banks, cash-in companies, distributors' ordering systems) plug into. Not a native app, and not a feature inside someone else's wallet.
-- **Name:** not chosen, and not "RUTA". Ideas: *Fiado* (shop slang for "on credit"), *CuentaClara* ("clear account"), *Cuadre* ("balancing the till"). Pick one by Wed Nov 11.
+- **Name: Relay**, with the tagline *Paga tu ruta* ("pay your route") shown under it (decided Nov 12). URLs, the repo (`yahyahashme/relay`) and code use "relay" only; the tagline never appears in a URL.
 
 ## 2. Key dates
 
@@ -390,6 +390,14 @@ A shop buys $100 of stock and picks "pay in 7 days".
 
 **What lenders earn:** $0.50 per $100 per week is about 25% a year if the pool's money is always lent out (it won't be). Idle money could sit in tokenized US Treasuries at about 3.6% a year (stretch).
 
+**The 1.5% in yearly terms (Nov 12, #93; our maths in facts 56)**
+- A finance judge will annualize it, so we say it first: being paid 7 days early for 1.5% is about 79% a year simple, or about 120% compounded.
+- The shop pays 0%. The distributor chooses the fee on its own invoice, and it buys two things: cash at the door, and no default risk (the buffer).
+- For comparison: suppliers that offer "2/10 net 30" give up about 37% a year just to be paid sooner (facts 52). A bank loan under a year averages about 7.6% a year for those who qualify (51); most tiendas don't (§9).
+- So option 1 is the premium choice, for new shops. For shops the distributor knows, lead with option 2: 0.25%, about 13% to 14% a year (56).
+- Legal check: if the 1.5% were ever treated as interest, about 120% a year is above the highest legal maximum, 96.88% (facts 49). It has to stay a discount on the distributor's own invoice, and a lawyer confirms it (§11).
+- Precedent: a Salvadoran fintech already turns small businesses' invoices into cash within 24 hours, on a US$50 million credit line from a US fund (53).
+
 **Costs (early thinking):** network fees are a tiny fraction of a cent per transaction (they exist to stop spam; they aren't revenue for the Stellar Development Foundation, which is a non-profit), and hosting is nearly free. The real costs are signing up distributors and training drivers, partner fees for cash-in and cash-out, the licensed lender's share, and support.
 
 **What could break it**
@@ -426,6 +434,9 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 | 10 | **No big deposit at sign-up.** Because of credit, a shop never pre-loads money: it takes stock on credit, sells it, then turns cash into digital dollars once a week, only for what it owes. Shops can't afford to lock up money they need for stock. | Nov 7 | Built into the design |
 | 11 | **Ask the banks that already work with MoneyGram** (Cuscatlán, Davivienda, Promerica) whether they could also take cash in, so the same counters handle both directions. | Nov 7 | Question |
 | 12 | **Partner instead of building cash points.** Work with a bank or cash-in/cash-out company that already has a reputation in El Salvador (Adam Chu, Nov 9). Secure ATMs (about $5k each) came up and were rejected: cash rules and safety. Rohan is emailing banks and cash-in companies. | Nov 9 | In progress |
+| 13 | **Use the counters that already exist.** Banks run 8,900 correspondent points inside small businesses (facts 41). One bank's customers deposit at PuntoXpress at no extra cost (42), and a wallet tops up at 748+ Punto Express points without surcharge (43). A banked shop deposits there and pays from its account; Transfer365 is free (14). | Nov 12 | Most promising for banked shops |
+| 14 | **Idea 1 already works for loans.** CrediCampo borrowers repay through Tigo Money's 2,500+ agents, and Banco Integral's through AKÍ Pago's about 1,000 points (facts 44). We need a partner that does the same and credits digital dollars. | Nov 12 | Precedent found |
+| 15 | **Ask partners that already hold the licences.** A bank that is also registered as a digital asset provider (Banco Atlántida El Salvador, facts 46) has banking and a digital asset registration; a licensed e-money company (Tigo Money, 45) has the cash agents. Contact them first. | Nov 12 | To contact |
 
 **Finding, Nov 7 (Yahya, MoneyGram Ramps locator):** MoneyGram has **cash-out** points in El Salvador (USDC to cash), in San Salvador and other cities. The locator shows the nearest 10 at a time, so we don't have a full count. Examples in central San Salvador: Banco Cuscatlán, Super Selectos, Banco Promerica, Banco Integral, Banco Davivienda, Banco Abank and a DLC road market. What it means for us: cash-out has a real answer today, so a distributor can turn digital dollars into cash at a bank or supermarket. **Cash-in (cash to USDC) is still unsolved,** and that's the half shops need.
 
@@ -433,7 +444,12 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 
 **Built, Nov 10 (#25):** the cash two-tap now runs on testnet: the driver records the cash, the shop confirms, and the contract counts it as cash held by that driver (`get_driver_cash`). No digital dollars move, so this records cash; it does not convert it. It is the mechanism behind idea 3 and does not solve cash-in. The distributor's "Marcar efectivo entregado" (#32) lowers that count when the driver hands the cash in at the warehouse; still no digital dollars move.
 
-**Still to find out:** what cash-in costs per $100 today, how far the nearest payment point is for a typical shop, and which partner could convert in bulk and already has a bank account.
+**Found, Nov 12 (#91, facts 41 to 46):** the counters exist. The missing piece is a partner that turns a cash deposit into digital dollars.
+- **Cost to the shop:** $0 at the counters we found (facts 42, 43), and $0 for a banked shop paying by Transfer365 (14). What a network charges its partner per deposit isn't published.
+- **How close:** we have network sizes, not distances: 8,900 bank correspondents (41), about 2,500 Tigo Money agents (45), about 1,000 AKÍ Pago points (44) and 748+ Punto Express points (43). They overlap, so never add them up. Many tiendas are themselves service points (55).
+- **Partner:** first call, a bank that is also registered with the CNAD as a digital asset provider (46). Our reading of the law (47), for a lawyer to confirm: the digital-dollar step needs a registered provider.
+
+**Still to find out:** what a partner pays per deposit, whether a partner will credit digital dollars rather than a bank account, and how far the nearest counter is for a typical shop (ask it in interviews, §13 question 6).
 
 ---
 
@@ -620,10 +636,22 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 | Cash-out: distributors turning USDC into bank dollars, and crypto firms' trouble getting bank accounts | A licensed partner with banking; daily batch payouts (§6, idea 7) |
 | Adoption: shops and drivers don't change habits | Start inside one distributor's routes; cash still works; credit is the reason to switch |
 | Defaults and fraud | Small limits that grow, no new credit while overdue, the default buffer, and option 2 for shops the distributor knows |
-| Regulation: lending and digital assets need licences | A licensed lender funds the pool; El Salvador licenses digital-asset firms (CNAD); distributors pay the fee, not shops, because of the interest cap |
+| Regulation: lending and digital assets need licences | A licensed lender funds the pool; a partner registered with the CNAD handles digital dollars; distributors pay the fee, not shops, because of the interest cap. Law by law: §11.1 |
 | Privacy on a public ledger | No names on-chain; details off-chain; batching later |
 | Basic phones and weak signal | The shop side opens from a WhatsApp or SMS link; light pages; later, a code-based approval like Tienda Pago's |
 | Nobody on the team has lived this | Interviews and prototype tests (§13); say it honestly |
+
+### 11.1 Laws we touch (Nov 12, #92)
+
+Every number and quote is in `docs/facts.md`. The two right-hand columns are our reading, for a lawyer to confirm before launch.
+
+| Area | Law and who enforces it | What it means for us | Who holds the licence |
+|---|---|---|---|
+| Digital dollars | Digital asset law (2023); the CNAD keeps a public registry of providers (facts 47) | Turning cash into digital dollars, holding them for shops and lending them all look like services that must register (47). 60+ providers are registered, including a bank (46) | A registered partner for now; we'd register only if we did those parts ourselves |
+| Cash agents and e-money | Financial inclusion law (2015), supervised by the SSF; the central bank's rules for bank correspondents (48, 41) | The cash-in counters already run under these rules (41, 45) | The bank or e-money company we partner with (§6) |
+| Interest | Usury law: the central bank sets caps twice a year; the highest is 96.88% a year for Jul to Dec 2026 (18, 49) | Shops pay no interest. The distributor's 1.5% must count as a discount on its own invoice, not interest: per year it would be above every cap (56) | No licence; the caps bind whoever lends to the pool |
+| Lending | Banks, cooperatives and savings-and-loan companies are supervised by the SSF; other regular lenders register with the central bank (18) | We're not the lender (§7.5) | A licensed microfinance institution, cooperative or bank funds the pool |
+| Personal data | Personal data protection law (2024) (50) | Names and phone numbers stay off the public ledger (§8.4); we likely need consent text and a person responsible for data | Us |
 
 ---
 
@@ -723,14 +751,15 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 - *How do you make money (30 seconds)?* Distributors pay us, shops never do: 0.1% of every invoice paid in cash or digitally, plus 0.25% of each "pay in 7 days" sale (inside the 1.5% credit fee, so the distributor gets $98.50 per $100), built into an open contract.
 - *How do you get into El Salvador?* One distributor's route first, on its own money (option 3), so the first phase needs no lender. Then a licensed lender for the pool and a registered partner for digital dollars, then a second distributor on the same shops (§7.7). The leading distributor alone serves 24,000 clients (facts 54), and the distributors' association already works with the government on tiendas (55).
 - *Why not just Transfer365 and a database?* Transfer365 only moves money between bank accounts, and about half of small businesses don't have a bank relationship. It doesn't do credit, invoice matching or driver cash records. One distributor's database isn't a record other distributors and lenders can trust. Our contract enforces the credit rules and fee split in the open, settles in seconds for a fraction of a cent, and lets lenders fund a pool directly.
-- *How does a shop get digital dollars?* Risk #1. Say it first, then ideas 1, 6 and 3 from §6.
+- *How does a shop get digital dollars?* Risk #1, said first. The counters already exist: banks run 8,900 correspondent points, and lenders like CrediCampo already take loan payments through Tigo Money's agents (facts 41, 44). The shop pays cash there with a reference number, and a licensed partner credits it in digital dollars (§6 ideas 1, 13 and 14). Banked shops pay by Transfer365, which is free (idea 6). Not solved yet: signing that partner (idea 15).
 - *Who are the lenders?* A test account in the demo. For real, a licensed microfinance institution or cooperative. We're not the lender.
 - *What if a shop doesn't pay?* Small limits that grow, no new credit while overdue, a truck that keeps coming back, a default buffer, and option 2 for shops the distributor knows.
+- *Isn't 1.5% a week expensive?* Per year it's about 79%, and the shop pays none of it. The distributor chooses it to be paid at the door with no risk of default, so it's factoring plus insurance. For shops it already trusts, it picks option 2: 0.25%, about 14% a year. Suppliers already give up about 37% a year with standard early-payment discounts (facts 52, 56).
 - *How are you different from Rocket and Tienda Pago?* §10.
 - *Have real users tried it?* The exact numbers from `docs/research.md`, and one thing we changed because of them.
-- *Is it legal?* Shops pay no interest. Distributors pay a fee to be paid early. A licensed partner lends and does KYC. We know about the interest cap and would confirm with a lawyer.
+- *Is it legal?* Shops pay no interest. The distributor takes a discount on its own invoice to be paid early. A licensed lender funds the pool and does KYC, and a partner registered with the CNAD handles the digital dollars; one Salvadoran bank already is registered (facts 46, 47). We know the interest caps (highest 96.88% a year, entry 49) and the 2024 data law (50), and a lawyer confirms the structure before launch (§11.1).
 - *Why Stellar?* USDC is native, and El Salvador already uses dollars. Payments settle in seconds for a fraction of a cent. Anchors connect to cash. Soroban enforces the credit rules. Fee sponsorship and passkeys hide the crypto.
-- *What about privacy?* No names on-chain, details off-chain, batching later.
+- *What about privacy?* No names on-chain, details off-chain, batching later. The off-chain data follows El Salvador's 2024 data protection law (facts 50).
 
 ---
 
@@ -754,6 +783,7 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 | Nov 5 | Work in GitHub (repo, board, docs) with one AI chat per workstream. Skip Notion. No long generated reports. |
 | Nov 6 | Domestic only, El Salvador first. No cross-border or diaspora money. Other countries only on a "future" slide. |
 | Nov 6 | "RUTA" was a placeholder name; we won't use it. |
+| Nov 12 | Name: **Relay**, tagline *Paga tu ruta* under it (Yahya). Repo renamed to `yahyahashme/relay`; URLs say "relay" only. |
 | Nov 6 | Design: invoices with due dates; pay now, cash recorded with two taps, or pay in 7 days; the contract tracks paid, part-paid and due, and blocks double payment. |
 | Nov 6 | Cash allowed at delivery only, always recorded, doesn't build credit. No discount for paying digitally. |
 | Nov 6 | Credit: full price, no interest, due by the next delivery (7 days at most), limits that grow, nothing new while overdue. |
