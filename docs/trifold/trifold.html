@@ -11,8 +11,9 @@
     ?layout=a   12 + 24 + 12 in   (the usual 36 x 48 in tri-fold: a wide centre, two narrow wings)
     ?layout=b   16 + 16 + 16 in   (what the first #37 draft assumed)
 
-  Anything still missing is a yellow box or yellow text (class "todo"): the team name, the numbers from
-  #30, the three phone screenshots (docs/trifold/img/) and the QR (public/qr-demo.png, PR #70).
+  Anything still missing is a yellow box or yellow text (class "todo"): the numbers from #30, the three
+  phone screenshots (docs/trifold/img/) and the QR if its file is missing (public/qr-demo.png, PR #70).
+  The name is Relay, tagline "Paga tu ruta" (PR #100); the app is at relay-sv.vercel.app.
   `node docs/trifold/render.mjs --final` refuses to build while any yellow is left.
 
   Screenshots expected in docs/trifold/img/ (take them at 360 px wide, device pixel ratio 3, with the grey
@@ -77,6 +78,7 @@
 
   h1 { margin: 0; font-size: 96pt; line-height: 1; font-weight: 800; letter-spacing: -0.01em; color: var(--brand-dark); }
   .tagline { margin: 0.15in 0 0; font-size: 36pt; line-height: 1.15; font-weight: 600; }
+  .tagline.slogan { font-size: 48pt; font-weight: 800; color: var(--brand); }
   h2 {
     margin: 0; padding-bottom: 0.1in; font-size: 40pt; line-height: 1.1; font-weight: 800; letter-spacing: 0.03em;
     text-transform: uppercase; color: var(--brand); border-bottom: 0.08in solid var(--brand);
@@ -112,6 +114,7 @@
   .qrbox .qr { width: 5in; height: 5in; padding: 0.3in; background: #fff; border: 0.03in solid var(--ink); flex: none; }
   html[data-layout="b"] .qrbox .qr { width: 4.6in; height: 4.6in; }
   .qrtext p { font-size: 28pt; line-height: 1.18; }
+  .qrtext .url { font-size: 32pt; font-weight: 800; color: var(--brand-dark); line-height: 1.1; margin-bottom: 0.1in; overflow-wrap: normal; }
   .qrtext .scan { font-size: 44pt; font-weight: 800; color: var(--brand-dark); line-height: 1.05; margin-bottom: 0.1in; }
   .diagram { margin: 0; flex: 1; min-width: 0; width: 100%; }
   .diagram img { display: block; width: 100%; height: auto; border: 0.02in solid #cfd6e0; }
@@ -173,7 +176,8 @@
   <!-- CENTRE: name, two key points, how it works -->
   <section class="panel mid" id="mid">
     <div>
-      <h1><span class="todo">[NAME]</span></h1>
+      <h1>Relay</h1>
+      <p class="tagline slogan">Paga tu ruta</p>
       <p class="tagline">Pay the truck now, in cash, or in 7 days. No interest.</p>
     </div>
 
@@ -205,6 +209,7 @@
         <img class="qr" src="../../public/qr-demo.png" alt="QR code that opens the demo" onerror="missing(this, 'QR: public/qr-demo.png (PR #70)')">
         <div class="qrtext">
           <p class="scan">Scan to try it</p>
+          <p class="url">relay-sv.vercel.app</p>
           <p>Live on Stellar testnet with test dollars. Cash-in is simulated.</p>
         </div>
       </div>

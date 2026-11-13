@@ -1,6 +1,6 @@
 # Trifold print and assembly (#40)
 
-Scaffold written Wed Nov 11. This is the checklist and the spec; the content of the board is in `docs/pitch.md` (#37). Fill in the blanks as we learn them.
+Scaffold written Wed Nov 11; updated Thu Nov 12 late evening for the name (Relay) and the live URL. This is the checklist and the spec; the content of the board is in `docs/pitch.md` (#37) and the print file is `docs/trifold/trifold.html`, both on `main` since PR #83. Fill in the blanks as we learn them.
 
 **Deadline:** Sun Nov 15, 6:00 PM ET, with a photo of the finished board in the group chat. **Owner:** Jack, and anyone free helps. **Time:** about 2 h of assembly, plus the print shop's turnaround.
 **Needs first:** the print-ready layout from #37 (Sat Nov 14). **Then:** the showcase is Mon Nov 16 (setup 4:00 PM, judging 4:30 to 7:00 PM, Innovation Arena, 280 Joseph St, Kitchener).
@@ -10,7 +10,8 @@ Scaffold written Wed Nov 11. This is the checklist and the spec; the content of 
 | Item | Spec | Status |
 |---|---|---|
 | Board | Tri-fold, 36 x 48 in (the size #40 names) | **Do we have one?** If not, email velocity.events@uwaterloo.ca, subject "Blockchain Innovation Challenge Powered by Stellar". Ask early. |
-| Panels | Most 36 x 48 in tri-fold boards fold as 12 in + 24 in + 12 in (a wide centre, two narrow wings). The #37 draft (PR #83) assumes three equal panels of about 16 x 36 in. **Measure our board before the layout is final**, because the two layouts are very different. | `[measured: ___ + ___ + ___ in]` |
+| Panels | Most 36 x 48 in tri-fold boards fold as 12 in + 24 in + 12 in (a wide centre, two narrow wings). PR #83 (merged) builds both: `node docs/trifold/render.mjs` makes a 12 + 24 + 12 in version and a 16 + 16 + 16 in version (about 16 x 36 in per panel). **Measure our board before the layout is final**, because the two layouts are very different. | `[measured: ___ + ___ + ___ in]` |
+| Title | **Relay**, with **Paga tu ruta** under it (decided Nov 12, PR #100; context §1). The board title is still `[NAME]` in `docs/trifold/trifold.html` and `docs/pitch.md` on `main`: replace it with "Relay" before `node docs/trifold/render.mjs --final`, which fails while any yellow placeholder is left (the "what we heard" count and the phone screenshots are placeholders too). | to do: fill `[NAME]` |
 | Type sizes | Title about 96 pt, headings 30 to 40 pt, body 24 to 32 pt (Velocity's tips) | from context §3.8 |
 | Text share | At most 25% of the board is text | check on the real layout |
 | Message | Two key points only. Sketch on paper, and have someone outside the team read it first. | from context §3.8 |
@@ -30,14 +31,14 @@ Scaffold written Wed Nov 11. This is the checklist and the spec; the content of 
 
 | Item | Spec | Status |
 |---|---|---|
-| Points to | The live app's final URL (README v1, PR #71; the live URL is added after the Vercel deploy). The demo QR image is `public/qr-demo.png` (#55, PR #70, not merged). | `[final URL: ___]` |
-| Order | Make the QR **last**, after the URL is final. A QR that points at an old URL fails silently. | |
+| Points to | **https://relay-sv.vercel.app/demo** (Yahya, in his review of PR #104: print this one). The README names https://relay-sv.vercel.app, and `public/qr-demo.png` was regenerated for it in PR #102 (merged). Decoded Thu Nov 12 evening with macOS CoreImage, from the file on `main`: it opens `https://relay-sv.vercel.app/demo`. The old https://tiendas-stellar.vercel.app only redirects there (HTTP 307): do not print it. | `[final URL: https://relay-sv.vercel.app/demo]` |
+| Order | Make the QR **last**, after the URL is final. A QR that points at an old URL fails silently. The URL is final now, so use `public/qr-demo.png` as it is on `main`; do not regenerate it unless the domain changes again. | |
 | Size | Our suggestion: at least 4 x 4 in with a clear white border, and a test from arm's length (about 1 m). Not a standard, so the phone test below decides. | |
 | Caption | "Scan to try it. Live on Stellar testnet with test dollars." | |
 
 ## 4. Questions for the print shop (Sat)
 
-Call or email at least two. Write the answers in the table in section 7.
+Call or email at least two. Write the answers in the table in section 7. Shops to call first: the shortlist in section 8.
 
 1. Are you open Sunday, and until what time? Last time for pickup?
 2. How long does a 36 x 48 in print (or three panel prints) take? Can it be ready by Sunday morning?
@@ -92,6 +93,63 @@ Call or email at least two. Write the answers in the table in section 7.
 | 3 | | | | | |
 
 If any phone fails, fix the code size, glare or URL, reprint the QR if needed, and test all three again.
+
+## 8. Print shop shortlist (researched Thu Nov 12)
+
+Retrieved Thu Nov 12, 2026, from the shops' own pages where we could open them, plus web search. Hours change and pages go stale, so **call before relying on any of this.** No prices are listed unless a page quoted them.
+
+**What we found.** Only two shops near Waterloo and Kitchener list Sunday hours with print services, and both are Staples stores. Staples' wide-format page says posters go "up to 24" x 36"", not 36 x 48 in. So **a 36 x 48 in print on Sunday is not confirmed anywhere.** The other shops we checked either list Sunday as closed or give no Sunday hours (see "Sunday hours not confirmed" and "Checked and closed" below). Two things follow, and the team decides:
+
+- Ask Staples whether per-panel prints (each within 24 x 36 in) are an option. The 16 + 16 + 16 in layout from #37 has panels of about 16 x 36 in, which would fit. The real board may fold 12 + 24 + 12 in instead (section 1), so measure first.
+- FASTSIGNS, Minuteman Press and W Print are closed on both Saturday and Sunday, so they only work if the file goes out on **Fri Nov 13**. #37 is due Sat Nov 14. The two UPS Stores in "Checked and closed" are open on Saturday from 10:00 am to 3:00 pm, and #398 lists posters and banners, so a Saturday print is possible there if the file is ready by then.
+
+### Listed open on Sunday
+
+**1. Staples Print, The Boardwalk (Kitchener)**
+- Address: 5-225 The Boardwalk, Kitchener, ON N2N 0B1
+- Phone: 519-579-2768 (print desk, per the print page). The store page lists 519-579-1614.
+- Sunday hours as listed: "Sunday 11:00am - 5:00pm" (Mon to Fri 9:00am to 8:00pm, Sat 9:00am to 5:00pm)
+- What the page says: banner and graphic printing, signs, posters and engineering prints; "Print oversized documents, technical drawings, presentation boards and large-format materials." No maximum size is given.
+- Source: https://stores.staplescopyandprint.ca/on/kitchener/print-marketing-ca-cp-445.html and https://stores.staples.ca/staples-kitchener-3 (retrieved Thu Nov 12, 2026)
+- Hours doubt: a search snippet and a Bell store-locator listing showed Sunday 12:00pm to 5:00pm. Staples' own pages said 11:00am.
+- **Jack must call to confirm: 36 x 48 in, file size, turnaround, Sunday pickup.**
+
+**2. Staples, Strasburg Road (Kitchener)**
+- Address: 245 Strasburg Road, Kitchener, ON N2E 3W7
+- Phone: 519-571-7420
+- Sunday hours as listed: "Sunday 11:00am - 5:00pm" (Mon to Fri 9:00am to 8:00pm, Sat 9:00am to 5:00pm). Same doubt as above (12:00pm in a search snippet).
+- What the page says: "print and copy services in our store". It does not mention posters or large format, and we found no separate print page for this store.
+- Source: https://stores.staples.ca/staples-kitchener-2 (retrieved Thu Nov 12, 2026)
+- Size limit for Staples wide-format posters: "We can print posters and engineering prints in wide format in sizes up to 24" x 36"." Source: https://www.staplescopyandprint.ca/PrintOnlineInfo/FileSubmissionInfo.aspx (retrieved Thu Nov 12, 2026). A search snippet of a staples.ca poster page listed sizes up to 40 x 60 in; we could not open that page (HTTP 429), so treat it as unconfirmed.
+- **Jack must call to confirm: 36 x 48 in, file size, turnaround, Sunday pickup.**
+
+### Sunday hours not confirmed
+
+**3. Staples, Waterloo**
+- Address: 620 King Street North, Waterloo, ON N2J 4G8. Phone: 519-888-1716.
+- Sunday hours: **not found.** The store's own page has a "Store Hours" heading with no times. Two third-party directories disagree (one says Sunday 11 to 5, another 12 to 6), so we do not trust either. The page does list "Print & Marketing Services".
+- Source: https://stores.staples.ca/on/waterloo (retrieved Thu Nov 12, 2026)
+- **Jack must call to confirm: 36 x 48 in, file size, turnaround, Sunday pickup.**
+
+**4. The UPS Store #66, Highland at Westmount (Kitchener)**
+- Address: 525 Highland Rd W, Kitchener, ON N2M 5P4. Phone: (519) 744-2774 or (519) 744-7621.
+- Sunday hours: **not found.** The page shows a "Sunday" heading with no times. It lists Mon to Fri 9:00 am to 6:30 pm and Sat 10:00 am to 3:00 pm. It says it prints posters "in a number of sizes" and can mount and laminate them, with no maximum size stated.
+- Source: https://www.theupsstore.ca/66/services/printing/ (retrieved Thu Nov 12, 2026)
+- **Jack must call to confirm: 36 x 48 in, file size, turnaround, Sunday pickup.**
+
+### Checked and closed on Sunday (do not spend calls here)
+
+| Shop | Address | What the page lists | Source (retrieved Thu Nov 12, 2026) |
+|---|---|---|---|
+| FASTSIGNS of Kitchener-Waterloo | 62 McBrine Place, Units 11 & 12, Kitchener. (226) 240-4164 | Mon to Fri 8:30 AM to 5:00 PM, Sat and Sun "Closed". Its structured data conflicts with the visible Friday hours. The page does not mention posters. | https://www.fastsigns.com/kitchener-waterloo-on/ |
+| Minuteman Press Waterloo | 16-620 Davenport Road, Waterloo. 519-725-4441 | Mon to Thu 9:00 to 5:00, Fri 9:00 to 4:00, Sat and Sun "Closed" | https://minuteman.com/ca/locations/on/waterloo/ |
+| The UPS Store #398 | 7-871 Victoria St N, Kitchener. (519) 569-7336 | Sat 10:00 am to 3:00 pm, Sunday "Closed". Offers wide-format banners and posters. | https://www.theupsstore.ca/398/ |
+| The UPS Store #195 | 55 Northfield Drive E, Waterloo. (519) 884-4012 | Sat 10:00 am to 3:00 pm, Sunday "Closed". Large format not mentioned. | https://www.theupsstore.ca/195/ |
+| University of Waterloo W Print | General Services Complex, University of Waterloo. wprint@uwaterloo.ca | Mon to Fri 8:30 to 4:30, "Saturday + Sunday CLOSED". Its poster page says 24-hour turnaround for orders placed in business hours and quotes $6.00 (matte) and $9.50 (glossy) per square foot. Whether a team without a UW account can order: not known yet. | https://wstore.uwaterloo.ca/pages/location-hours and https://wstore.uwaterloo.ca/pages/poster-printing |
+
+Also seen, not on the list: SpeedPro in Guelph (650 Woodlawn Rd W Unit 3A, (519) 829-2100) lists "Monday to Friday 8:30am - 4:30pm" with no weekend hours (https://speedprocanada.com/cambridge-guelph-kitchener-waterloo/). Search listings also showed Print2Go (Kitchener) and Custom Press as closed Sundays; we did not open their pages.
+
+Write what each shop tells you in the "Print shop answers" table in section 7.
 
 ## Done means (from #40)
 
