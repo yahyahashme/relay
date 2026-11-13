@@ -15,7 +15,7 @@ Three screens (a website that works like a phone app): the **shop** pays an invo
 - **Pagar en 7 días:** a lender pool pays the distributor now, minus a 1.5% fee the distributor pays (0.75% safety buffer, 0.50% lenders, 0.25% us). The shop repays within 7 days, with no interest.
 - **Credit record:** a shop's limit starts at $200 and grows $25 per on-time repayment (cycles of $40+, at most once a week) up to $500; late repayments are recorded and lower it.
 - **Fees:** distributors pay a 0.1% usage fee on digital and cash payments (for cash it's recorded and billed later). Shops never pay fees.
-- **Network fee sponsorship (not switched on yet):** `lib/stellar/sponsor.ts` wraps a shop's signed transaction in a fee bump paid by our sponsor account, but the app doesn't call it yet (#32). Until then the sending account pays its own network fee.
+- **Network fee sponsorship:** every transaction goes out inside a fee bump paid by our sponsor account (`lib/stellar/sponsor.ts`, used by `lib/stellar/send.ts`), so shops, drivers and the distributor never hold or spend XLM for fees.
 
 **Demo vs real product:** in the demo the server signs for each role with test keys. The real product uses passkey smart wallets on the users' phones, and a licensed partner does KYC on shop owners and KYB on distributors.
 
