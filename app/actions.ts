@@ -5,7 +5,7 @@
 // everything under lib/stellar starts with `import "server-only"`.
 
 import { formatDay, formatMoney } from "@/lib/format";
-import { addressOf, DRIVER_IDS, explorerTx, nameOf, roleOf, SHOP_IDS, type Role } from "@/lib/stellar/config";
+import { addressOf, config, DRIVER_IDS, explorerTx, nameOf, roleOf, SHOP_IDS, type Role } from "@/lib/stellar/config";
 import { readClient } from "@/lib/stellar/client";
 import { ContractError, FALLBACK_MESSAGE } from "@/lib/stellar/errors";
 import { toInvoice, toShop } from "@/lib/stellar/map";
@@ -13,7 +13,7 @@ import { read, run } from "@/lib/stellar/send";
 import { toDollars, toUnits } from "@/lib/stellar/units";
 import type { Invoice as ChainInvoice } from "@/packages/route_ledger/src/index";
 import { toUnixSeconds } from "@/lib/dates";
-import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type InvoiceRow, type Pool, type Receipt, type Shop, type Totals } from "@/lib/types";
+import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type InvoiceRow, type Pool, type Receipt, type Shop, type Supplier, type Totals } from "@/lib/types";
 
 // ---------- reads ----------
 
@@ -74,6 +74,24 @@ export async function getDrivers(): Promise<Driver[]> {
       cashHeld: toDollars(await read(readClient().get_driver_cash({ driver: addressOf(id) as string }))),
     })),
   );
+}
+
+/** The shop's test dollars on hand, read from Horizon (its trustline balance). */
+export async function getBalance(shopId: string): Promise<number | null> {
+  const address = addressOf(shopId);
+  if (!address || !SHOP_IDS.includes(shopId as Role)) return null;
+  const res = await fetch(`${config.horizonUrl}/accounts/${address}`, { cache: "no-store" });
+  if (!res.ok) return 0;
+  const account = (await res.json()) as { balances?: { asset_code?: string; asset_issuer?: string; balance: string }[] };
+  const line = account.balances?.find((b) => b.asset_code === config.token.code && b.asset_issuer === config.token.issuer);
+  return line ? Number(line.balance) : 0;
+}
+
+/** The distributors this shop buys from: today the one in config/testnet.json. */
+export async function getSuppliers(shopId: string): Promise<Supplier[]> {
+  const mine = (await getInvoices()).filter((i) => i.shopId === shopId);
+  if (mine.length === 0) return [];
+  return [{ id: "distributor", name: nameOf("distributor"), invoices: mine.length, unpaid: mine.filter((i) => i.status !== "paid").length }];
 }
 
 export async function getPool(): Promise<Pool> {

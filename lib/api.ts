@@ -8,7 +8,7 @@
 
 import * as live from "@/app/actions";
 import * as mock from "./mock";
-import type { Driver, Invoice, InvoiceHistory, InvoiceRow, Pool, Receipt, Shop, Totals } from "./types";
+import type { Driver, Invoice, InvoiceHistory, InvoiceRow, Pool, Profile, Receipt, Shop, Supplier, Totals } from "./types";
 
 export const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS !== "false";
 
@@ -50,6 +50,15 @@ export const getInvoiceHistory = (pages: number): Promise<InvoiceHistory> =>
   read(() => mock.getInvoiceHistory(pages), () => live.getInvoiceHistory(pages));
 /** Everything ever paid, by method, for the dashboard's totals. */
 export const getTotals = (): Promise<Totals> => read(mock.getTotals, live.getTotals);
+/** The shop's dollars digitales on hand. */
+export const getBalance = (shopId: string): Promise<number | null> =>
+  read(() => mock.getBalance(shopId), () => live.getBalance(shopId));
+export const getSuppliers = (shopId: string): Promise<Supplier[]> =>
+  read(() => mock.getSuppliers(shopId), () => live.getSuppliers(shopId));
+// The shop's details aren't on chain. Until accounts (#129) they stay with the demo data in both modes.
+export const getProfile = (shopId: string): Promise<Profile | null> => read(() => mock.getProfile(shopId), async () => mock.getProfile(shopId));
+export const saveProfile = (shopId: string, profile: Profile) =>
+  write(() => mock.saveProfile(shopId, profile), async () => mock.saveProfile(shopId, profile));
 export const createDemoInvoice = (shopId?: string): Promise<Invoice> =>
   read(() => mock.createDemoInvoice(shopId), () => live.createDemoInvoice(shopId));
 
