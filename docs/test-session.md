@@ -2,7 +2,7 @@
 
 For Wed Nov 11, 5 to 7 PM ET, 1st floor IDEAs Clinic. Everyone does the same four things, in this order: test the flows, file the bugs, pick the name, pick the pitcher.
 
-**Written against `main` (dfdc33c), checked on Nov 11.** "Pagar otro monto" (#75) and "Marcar efectivo entregado" (#76) were merged into the stacked branch `28-readme-v1`, not into `main`, so they are marked "only if present" below. The live app at https://tiendas-stellar.vercel.app returned 404 for `/demo` (a page that exists only in #70), which suggests production is not running that stack, but I could not see which branch it tracks. Step 0 asks Yahya.
+**Written against `main` (dfdc33c), checked on Nov 11.** "Pagar otro monto" (#75) and "Marcar efectivo entregado" (#76) were merged into the stacked branch `28-readme-v1`, not into `main`, so they are marked "only if present" below. The live app (checked on the old address; it is now https://relay-sv.vercel.app) returned 404 for `/demo` (a page that exists only in #70), which suggests production is not running that stack, but I could not see which branch it tracks. Step 0 asks Yahya.
 
 | Time | What | Who |
 |---|---|---|
@@ -81,7 +81,7 @@ Test step: <# from docs/test-session.md>
 
 ## 3. Pick the name
 
-Rules from #26: not RUTA, Misha said to pick one, and it must not be an existing fintech in Central America. Ideas so far: Fiado, CuentaClara, Cuadre, or a new one.
+Rules from #26: not RUTA, our technical and finance advisor said to pick one, and it must not be an existing fintech in Central America. Ideas so far: Fiado, CuentaClara, Cuadre, or a new one.
 
 ### Five quick checks (about 5 minutes per name)
 
