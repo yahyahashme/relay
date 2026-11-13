@@ -81,7 +81,7 @@ Tests: `cargo test` (contract) and `npm test` (app). After a contract change, `.
 3. Tap **Ver detalles** on the receipt. In Stellar Expert, check that the transaction is on **Testnet** and succeeded. The [Route Ledger contract](https://stellar.expert/explorer/testnet/contract/CDHDZX7VVOPY7TNKA744EQP24BPO5MJIZQOGJGYNGA7N7ZIZWQBQMYUR) is also listed in the contract table above.
 4. Return to the dashboard and find the same invoice number. After the dashboard refreshes, the invoice should be marked **Pagada**.
 
-See the [architecture diagram](docs/img/architecture.png), [security review](docs/security.md), and [research log](docs/research.md).
+See the [shop payment](docs/trifold/img/shop-pay.png), [shop credit](docs/trifold/img/shop-credit.png), and [driver cash](docs/trifold/img/driver-cash.png) screenshots, the [architecture diagram](docs/img/architecture.png), the [security review](docs/security.md), and the [research log](docs/research.md). Relay is also listed on [Devpost](https://devpost.com/software/tiendas).
 
 ## Before the showcase
 
