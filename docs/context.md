@@ -489,7 +489,7 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 
 | Who | Why them | How we reach them |
 |---|---|---|
-| Distribuidora Zablah (DISZASA) | Its rating agency calls it the leading consumer-goods distributor; 24,000 active clients, 14% of sales by route (facts 54) | Through people who already know it: its rating agencies (we've emailed Zumma Ratings) and ADES |
+| Distribuidora Zablah (DISZASA) | Its rating agency calls it the leading consumer-goods distributor; 24,000 active clients, 14% of sales by route (facts 54) | Through people who already know it: its rating agencies (an email to Zumma Ratings is drafted, not sent yet) and ADES |
 | DISNA (same group) | 9,500 active clients, some of them served by route (54) | Same |
 | Members of ADES, the distributors' association | ADES already works with Conamype and the state bank BFA on tiendas (55) | ADES directly, and Distribución Dinámica, the firm behind the shop count (facts 2) |
 
