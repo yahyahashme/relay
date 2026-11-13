@@ -47,6 +47,18 @@ On Nov 12–13 (ET), Ruhaan sent seven interview requests through public WhatsAp
 | Nov 13 | DISNA | Awaiting reply. |
 | Nov 13 | Grupo Sabor Amigo | Automated reply outside business hours. |
 
+### Nonprofit outreach (Nov 13)
+
+Ruhaan emailed five nonprofits through university Outlook. Each message asked how neighbourhood shops pay suppliers and who could advise on turning cash into digital money. All five appeared in Sent Items. This brings the confirmed #7 outreach to 12 messages, with no completed interviews logged yet.
+
+| Sent (ET) | Organisation | Role |
+|---|---|---|
+| Nov 13 | FUSAI | Communications team |
+| Nov 13 | FADEMYPE | General enquiries |
+| Nov 13 | TechnoServe El Salvador | Country office |
+| Nov 13 | ADEL Morazán | General management |
+| Nov 13 | FUNDAMICRO | General enquiries |
+
 ## Partner outreach
 
 Sent from Rohan's university email. Organisation and role only (the repo is public).
