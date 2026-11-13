@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 export function Ticket({ children }: { children: ReactNode }) {
   return (
     <div className="ticket-shadow">
-      <section className="ticket flex flex-col gap-3.5 rounded-t-2xl bg-card px-5 pb-7 pt-4">{children}</section>
+      <section className="ticket flex flex-col gap-3.5 rounded-t-2xl bg-card px-[17px] pb-7 pt-4">{children}</section>
     </div>
   );
 }
@@ -26,7 +26,7 @@ export function TicketRow({ label, children, strong = false }: { label: string; 
 export function Stamp({ children, tone, fresh = false }: { children: ReactNode; tone: "paid" | "credit"; fresh?: boolean }) {
   return (
     <span
-      className={`stamp shrink-0 rounded-md border-[3px] px-2.5 py-0.5 text-lg font-extrabold uppercase tracking-wide ${
+      className={`stamp ml-auto shrink-0 rounded-md border-[3px] px-2 py-0.5 text-lg font-extrabold uppercase tracking-wide ${
         tone === "paid" ? "border-ok text-ok" : "border-credit text-credit"
       } ${fresh ? "stamp-fresh" : ""}`}
     >
@@ -40,7 +40,7 @@ function Chevron({ open }: { open: boolean }) {
     <svg
       aria-hidden
       viewBox="0 0 20 20"
-      className={`size-5 shrink-0 transition-transform duration-200 ease-(--ease-out) ${open ? "rotate-90" : ""}`}
+      className={`size-5 shrink-0 transition-transform duration-200 ease-snap ${open ? "rotate-90" : ""}`}
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
@@ -50,6 +50,11 @@ function Chevron({ open }: { open: boolean }) {
       <path d="M7.5 4.5 13 10l-5.5 5.5" />
     </svg>
   );
+}
+
+/** Brings a panel that just unfolded into view, clear of the bottom bar. Stable, so it runs once per opening. */
+function reveal(panel: HTMLDivElement | null) {
+  panel?.scrollIntoView({ block: "nearest" });
 }
 
 /** The other ways to pay, as one quiet list instead of a stack of equal buttons. */
@@ -71,7 +76,7 @@ export function Option({
   onClick: () => void;
   disabled?: boolean;
   busy?: boolean;
-  /** Set for options that unfold a panel; leave out for options that act at once. */
+  /** Set for options that unfold a panel; leave out for a row that can't be opened. */
   open?: boolean;
   children?: ReactNode;
 }) {
@@ -90,7 +95,11 @@ export function Option({
         </span>
         {open !== undefined && <Chevron open={open} />}
       </button>
-      {open && children && <div className="option-panel flex flex-col gap-3 px-4 pb-4">{children}</div>}
+      {open && children && (
+        <div ref={reveal} className="option-panel flex scroll-mb-28 flex-col gap-3 px-4 pb-4">
+          {children}
+        </div>
+      )}
     </div>
   );
 }
@@ -98,7 +107,7 @@ export function Option({
 /** Keeps the one main action under the thumb while the rest of the screen scrolls. */
 export function ThumbBar({ children }: { children: ReactNode }) {
   return (
-    <div className="sticky bottom-0 -mx-4 mt-auto bg-linear-to-t from-paper from-70% to-transparent px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-4">
+    <div className="pointer-events-none sticky bottom-0 -mx-4 -mb-10 mt-auto bg-linear-to-t from-paper from-70% to-transparent px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-4 *:pointer-events-auto">
       {children}
     </div>
   );

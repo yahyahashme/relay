@@ -12,7 +12,7 @@ import type { Invoice, Receipt, Shop } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
 
 type Action = "now" | "part" | "later" | "cash";
-
+type Panel = "later" | "part" | "cash";
 
 /** Why "Pagar en 7 días" is greyed out, or null if the shop can use it. */
 function creditBlocked(shop: Shop | null, invoice: Invoice): string | null {
@@ -33,8 +33,9 @@ export default function InvoiceScreen() {
   });
   const [busy, setBusy] = useState<Action | null>(null);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
-  const [showCash, setShowCash] = useState(false);
-  const [showPart, setShowPart] = useState(false);
+  // Which option is unfolded (one at a time). undefined = the shop hasn't picked yet,
+  // so a cash amount the driver registered opens its own panel.
+  const [choice, setChoice] = useState<Panel | null | undefined>(undefined);
   const [partText, setPartText] = useState("");
   const [partError, setPartError] = useState<string | null>(null);
 
@@ -44,8 +45,7 @@ export default function InvoiceScreen() {
     const result = await write();
     if (result.ok) {
       await reload(); // show the receipt and the new status together
-      setShowCash(false);
-      setShowPart(false);
+      setChoice(undefined);
       setPartText("");
     }
     setReceipt(result);
@@ -78,6 +78,16 @@ export default function InvoiceScreen() {
   const driver = drivers.find((d) => d.id === invoice.driverId);
 
   const settled = isPaid && receipt?.ok === true; // paid on this visit: let the stamp land
+  const hasClaim = invoice.cashClaim !== undefined;
+  const partAmount = parseAmount(partText);
+  const partOk = partAmount !== null && partPayError(partText, left, invoice.cashClaim) === null;
+
+  let panel: Panel | null = choice === undefined ? (hasClaim ? "cash" : null) : choice;
+  if (panel === "later" && blocked !== null) panel = null;
+  const toggle = (next: Panel) => setChoice(panel === next ? null : next);
+  // A panel with its own button takes over from the bottom bar, so there is one main button at a time.
+  const panelHasButton = panel === "later" || panel === "part" || (panel === "cash" && hasClaim);
+
   return (
     <Screen>
       <div className="flex items-center justify-between">
@@ -90,6 +100,9 @@ export default function InvoiceScreen() {
       </div>
 
       {failed && <LoadError />}
+      <p role="status" className="sr-only">
+        {busy !== null ? "Procesando..." : ""}
+      </p>
 
       <Ticket>
         <header>
@@ -110,8 +123,8 @@ export default function InvoiceScreen() {
               {isPaid ? `Pagada${invoice.method ? ` · ${METHOD_LABEL[invoice.method]}` : ""}` : `Vence el ${formatDay(invoice.dueDate)}`}
             </span>
           </p>
-          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-            <p className="text-5xl font-bold tracking-tight tabular-nums">{formatMoney(isPaid ? invoice.amount : left)}</p>
+          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-2">
+            <p className={`text-5xl font-bold tracking-tight tabular-nums ${isPaid ? "-mr-6" : ""}`}>{formatMoney(isPaid ? invoice.amount : left)}</p>
             {isPaid ? (
               <Stamp tone={status.tone === "credit" ? "credit" : "paid"} fresh={settled}>
                 {status.label}
@@ -131,11 +144,18 @@ export default function InvoiceScreen() {
             <Option
               title="Pagar en 7 días"
               hint={blocked ?? "Sin intereses"}
-              onClick={() => run("later", () => payLater(id))}
-              busy={busy === "later"}
+              open={blocked === null ? panel === "later" : undefined}
+              onClick={() => toggle("later")}
               disabled={busy !== null || blocked !== null}
-            />
-            <Option title="Pagar otro monto" open={showPart} onClick={() => setShowPart((open) => !open)} disabled={busy !== null}>
+            >
+              <p className="text-lg">
+                Hoy no paga nada. Paga <strong>{formatMoney(left)}</strong> en 7 días.
+              </p>
+              <Button onClick={() => run("later", () => payLater(id))} busy={busy === "later"} disabled={busy !== null}>
+                Confirmo
+              </Button>
+            </Option>
+            <Option title="Pagar otro monto" open={panel === "part"} onClick={() => toggle("part")} disabled={busy !== null}>
               <label className="flex flex-col gap-1 text-lg">
                 ¿Cuánto paga ahora? <span className="text-base text-muted">Falta {formatMoney(left)}</span>
                 <input
@@ -144,11 +164,12 @@ export default function InvoiceScreen() {
                   placeholder="0.00"
                   autoFocus
                   value={partText}
+                  aria-invalid={partError !== null}
                   onChange={(e) => {
                     setPartText(e.target.value);
                     setPartError(null);
                   }}
-                  className="min-h-14 rounded-xl border-2 border-line bg-card px-3 scroll-mb-28 text-2xl font-semibold tabular-nums placeholder:font-normal placeholder:text-muted focus:border-brand focus:outline-none"
+                  className="min-h-14 scroll-mb-28 rounded-xl border-2 border-line bg-card px-3 text-2xl font-semibold tabular-nums placeholder:font-normal placeholder:text-muted focus:border-brand focus:outline-none aria-invalid:border-bad"
                 />
               </label>
               {partError && (
@@ -159,28 +180,29 @@ export default function InvoiceScreen() {
               <Button
                 onClick={() => {
                   const error = partPayError(partText, left, invoice.cashClaim);
-                  if (error) return setPartError(error);
-                  void run("part", () => payNow(id, parseAmount(partText)!));
+                  if (error || partAmount === null) return setPartError(error ?? "Monto inválido.");
+                  void run("part", () => payNow(id, partAmount));
                 }}
                 busy={busy === "part"}
                 disabled={busy !== null || partText.trim() === ""}
-                hint="Con dólares digitales"
+                hint={partOk ? `${formatMoney(partAmount)} con dólares digitales` : "Con dólares digitales"}
               >
                 Pagar este monto
               </Button>
             </Option>
-            <Option title="Pagué en efectivo" open={showCash} onClick={() => setShowCash((open) => !open)} disabled={busy !== null}>
+            <Option
+              title="Pagué en efectivo"
+              hint={hasClaim ? "Efectivo por confirmar" : undefined}
+              open={panel === "cash"}
+              onClick={() => toggle("cash")}
+              disabled={busy !== null}
+            >
               {invoice.cashClaim !== undefined ? (
                 <>
                   <p className="text-lg">
                     {driver?.name ?? "El motorista"} registró <strong>{formatMoney(invoice.cashClaim)}</strong> en efectivo.
                   </p>
-                  <Button
-                    variant="secondary"
-                    onClick={() => run("cash", () => confirmCash(id, invoice.cashClaim ?? 0))}
-                    busy={busy === "cash"}
-                    disabled={busy !== null}
-                  >
+                  <Button onClick={() => run("cash", () => confirmCash(id, invoice.cashClaim ?? 0))} busy={busy === "cash"} disabled={busy !== null}>
                     Confirmo
                   </Button>
                 </>
@@ -190,7 +212,7 @@ export default function InvoiceScreen() {
             </Option>
           </OptionList>
 
-          {!showPart && (
+          {!panelHasButton && (
             <ThumbBar>
               <Button
                 onClick={() => run("now", () => payNow(id))}

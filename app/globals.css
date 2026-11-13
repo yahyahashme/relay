@@ -18,6 +18,8 @@
   --color-bad-soft: #fde6e3;
   --color-credit: #5b3fa6;
   --color-credit-soft: #efeafb;
+  /* a strong ease-out for presses, panels and the stamp */
+  --ease-snap: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @theme inline {
@@ -36,7 +38,6 @@ body {
 /* ---------- motion and browser surfaces ---------- */
 
 :root {
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   accent-color: var(--color-brand);
   caret-color: var(--color-brand);
 }
@@ -61,7 +62,8 @@ body {
 }
 
 .ticket-shadow {
-  filter: drop-shadow(0 0 1px rgb(20 32 46 / 0.25)) drop-shadow(0 6px 10px rgb(20 32 46 / 0.08));
+  filter: drop-shadow(0 0 1px color-mix(in srgb, var(--color-ink) 25%, transparent))
+    drop-shadow(0 6px 10px color-mix(in srgb, var(--color-ink) 8%, transparent));
 }
 
 .stamp {
@@ -69,11 +71,11 @@ body {
 }
 
 .stamp-fresh {
-  animation: stamp-land 280ms var(--ease-out) both;
+  animation: stamp-land 280ms var(--ease-snap) both;
 }
 
 .option-panel {
-  animation: panel-in 200ms var(--ease-out) both;
+  animation: panel-in 200ms var(--ease-snap) both;
 }
 
 @keyframes stamp-land {

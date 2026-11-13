@@ -5,7 +5,7 @@ import type { Receipt } from "@/lib/types";
 
 export function Screen({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
   return (
-    <main className={`mx-auto flex w-full flex-col gap-5 px-4 pb-10 pt-4 ${wide ? "max-w-6xl" : "max-w-md"}`}>
+    <main className={`mx-auto flex w-full flex-1 flex-col gap-5 px-4 pb-10 pt-4 ${wide ? "max-w-6xl" : "max-w-md"}`}>
       {children}
     </main>
   );
@@ -33,10 +33,10 @@ export function Label({ children }: { children: ReactNode }) {
 type Variant = "primary" | "secondary";
 
 const BUTTON =
-  "flex min-h-14 w-full flex-col items-center justify-center rounded-xl px-5 py-2 text-center text-lg font-semibold transition-[background-color,scale] duration-150 ease-(--ease-out) active:scale-[0.97] disabled:cursor-not-allowed disabled:active:scale-100";
+  "flex min-h-14 w-full flex-col items-center justify-center rounded-xl px-5 py-2 text-center text-lg font-semibold transition-[background-color,scale] duration-150 ease-snap active:scale-[0.97] disabled:cursor-not-allowed disabled:active:scale-100";
 const VARIANT: Record<Variant, string> = {
-  primary: "bg-brand text-white active:bg-brand-dark disabled:bg-line disabled:text-muted",
-  secondary: "border-2 border-brand bg-card text-brand active:bg-brand-soft disabled:border-line disabled:text-muted",
+  primary: "bg-brand text-white active:bg-brand-dark disabled:bg-line disabled:text-muted aria-busy:disabled:bg-brand-dark aria-busy:disabled:text-white",
+  secondary: "border-2 border-brand bg-card text-brand active:bg-brand-soft disabled:border-line disabled:text-muted aria-busy:disabled:border-brand aria-busy:disabled:text-brand",
 };
 
 export function Button({
@@ -55,7 +55,7 @@ export function Button({
   variant?: Variant;
 }) {
   return (
-    <button type="button" onClick={onClick} disabled={disabled || busy} className={`${BUTTON} ${VARIANT[variant]}`}>
+    <button type="button" onClick={onClick} disabled={disabled || busy} aria-busy={busy} className={`${BUTTON} ${VARIANT[variant]}`}>
       <span>{busy ? "Procesando..." : children}</span>
       {hint && <span className="text-sm font-normal opacity-85">{hint}</span>}
     </button>
