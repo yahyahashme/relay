@@ -86,5 +86,5 @@ Copy the winner into the print-shop table in `docs/trifold-assembly.md` (from PR
 
 - Send the files, and ask for a reply in writing that says the pickup time.
 - Check the proof, or the PDF at 100%, for typos first. The names, numbers and the QR are on the board for the whole showcase.
-- Make the QR last, after the app's final URL is fixed (`docs/trifold-assembly.md` section 3). The one in `public/qr-demo.png` opens `https://tiendas-stellar.vercel.app/demo`.
+- The app's address is fixed: **relay-sv.vercel.app** (the old tiendas-stellar address only redirects). The QR in `public/qr-demo.png` was regenerated for it in PR #102 and opens `https://relay-sv.vercel.app/demo`; the board also prints the address under the QR. If the address ever changes again, regenerate the QR before the final render (`docs/trifold-assembly.md` section 3).
 - Ask for a shop phone number you can call on Sunday morning if the print isn't ready.
