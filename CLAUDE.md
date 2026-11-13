@@ -23,11 +23,10 @@ Read docs/context.md first (sections relevant to your issue). It is the source o
   - Only approved distributors can create invoices (`approve_distributor`), so tests and scripts
     must approve one first.
 - App: Next.js + TS + Tailwind at the repo root (pages in app/), Spanish UI, mobile-first (360px).
-  - Spanish first, with an English switch (ES | EN in the top banner). Write every on-screen string in
-    Spanish inside t("...") from `lib/i18n.tsx` and add its English to `EN` there; messages that come back
-    from the server or the demo data go through msg(), dates through day(). `lib/i18n.test.ts` fails on a
-    missing translation.
   All data via lib/api.ts. Run `npm run build`, `npm run lint` and `npm test` at the repo root.
+  Every screen also has English (ES/EN switch in the top banner). New screen text goes through
+  `t("español", "English")` from `useT()` in lib/i18n.tsx. New server/contract messages stay Spanish
+  and need a rule in lib/translate.ts (lib/translate.test.ts fails if one is missing).
 - Done = tests pass, PR open, "Done means" line from the issue is met.
 - Any change touching cash-in or cash-out must also update the Risk #1 notes (docs/context.md section 6).
 - Screens say "dólares digitales", never blockchain, wallet or crypto (docs/context.md section 3.5).

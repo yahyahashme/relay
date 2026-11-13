@@ -1,7 +1,7 @@
 "use client";
 
 import { type InputHTMLAttributes, type ReactNode, useId, useState } from "react";
-import { useI18n } from "@/lib/i18n";
+import { useT } from "@/lib/i18n";
 
 export const INPUT =
   "min-h-14 w-full rounded-xl border-2 border-line bg-card px-3 text-lg placeholder:text-muted focus:border-brand focus:outline-none aria-invalid:border-bad";
@@ -32,7 +32,7 @@ export function PasswordField({
 }: { label: string; hint?: ReactNode } & InputHTMLAttributes<HTMLInputElement>) {
   const id = useId();
   const [shown, setShown] = useState(false);
-  const { t } = useI18n();
+  const { t } = useT();
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-base font-semibold">
@@ -45,7 +45,7 @@ export function PasswordField({
           onClick={() => setShown((s) => !s)}
           className="absolute inset-y-1 right-1 min-w-20 rounded-lg px-3 text-base font-semibold text-brand active:bg-brand-soft"
         >
-          {shown ? t("Ocultar") : t("Mostrar")}
+          {shown ? t("Ocultar", "Hide") : t("Mostrar", "Show")}
         </button>
       </div>
       {hint && <p className="text-sm text-muted">{hint}</p>}

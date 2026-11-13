@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import type { ReactNode } from "react";
-import { TopBar } from "@/components/top-bar";
+import { DemoBanner } from "@/components/ui";
 import { APP_NAME, TAGLINE } from "@/lib/brand";
 import "./globals.css";
 
@@ -18,7 +18,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es" className={`${sans.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
-        <TopBar />
+        <DemoBanner />
         {children}
       </body>
     </html>

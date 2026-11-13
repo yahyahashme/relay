@@ -5,17 +5,16 @@ import { type FormEvent, useState } from "react";
 import { signUpDistributorAction } from "@/app/distributor-actions";
 import { FormError, PasswordField, TextField } from "@/components/form";
 import { Button } from "@/components/ui";
-import { useI18n } from "@/lib/i18n";
+import { useT } from "@/lib/i18n";
+import { SELLS, sellLabel } from "@/lib/sells";
 
-// The same list as lib/server/distributors.ts SELLS (the server checks it again).
-const SELLS = ["Snacks", "Bebidas", "Pan", "Lácteos", "Abarrotes", "Limpieza", "Otros"];
 
 /**
  * Distributor sign-up (#130): "Su empresa" then "Su cuenta". Two steps on a
  * phone; on a laptop both sections sit side by side and it's one screen.
  */
 export function DistributorForm() {
-  const { t, msg } = useI18n();
+  const { lang, t, msg } = useT();
   const router = useRouter();
   const [step, setStep] = useState<1 | 2>(1);
   const [businessName, setBusinessName] = useState("");
@@ -76,15 +75,15 @@ export function DistributorForm() {
       <div className="grid gap-6 lg:grid-cols-2">
         <fieldset className={`flex-col gap-4 ${step === 1 ? "flex" : "hidden lg:flex"}`}>
           <legend className="mb-4 text-xl font-semibold">
-            <span className="lg:hidden">{t("Paso {n} de 2", { n: 1 })} · </span>
-            {t("Su empresa")}
+            <span className="lg:hidden">{t(`Paso ${1} de 2`, `Step ${1} of 2`)} · </span>
+            {t("Su empresa", "Your business")}
           </legend>
-          <TextField label={t("Nombre de la empresa")} autoComplete="organization" required value={businessName} onChange={(e) => setBusinessName(e.target.value)} />
-          <TextField label={t("NIT")} hint={t("14 dígitos, con o sin guiones.")} inputMode="numeric" required value={nit} onChange={(e) => setNit(e.target.value)} />
-          <TextField label={t("Dirección")} autoComplete="street-address" required value={address} onChange={(e) => setAddress(e.target.value)} />
+          <TextField label={t("Nombre de la empresa", "Business name")} autoComplete="organization" required value={businessName} onChange={(e) => setBusinessName(e.target.value)} />
+          <TextField label={t("NIT", "Tax ID (NIT)")} hint={t("14 dígitos, con o sin guiones.", "14 digits, with or without dashes.")} inputMode="numeric" required value={nit} onChange={(e) => setNit(e.target.value)} />
+          <TextField label={t("Dirección", "Address")} autoComplete="street-address" required value={address} onChange={(e) => setAddress(e.target.value)} />
           <div className="flex flex-col gap-1.5">
             <p className="text-base font-semibold" id="sells">
-              {t("¿Qué vende?")}
+              {t("¿Qué vende?", "What do you sell?")}
             </p>
             <div className="flex flex-wrap gap-2" role="group" aria-labelledby="sells">
               {SELLS.map((item) => (
@@ -97,26 +96,26 @@ export function DistributorForm() {
                     sells.includes(item) ? "border-brand bg-brand text-white" : "border-line bg-card active:bg-brand-soft"
                   }`}
                 >
-                  {t(item)}
+                  {sellLabel(item, lang)}
                 </button>
               ))}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <TextField label={t("Tiendas (aprox.)")} inputMode="numeric" value={shopsApprox} onChange={(e) => setShopsApprox(e.target.value)} />
-            <TextField label={t("Motoristas (aprox.)")} inputMode="numeric" value={driversApprox} onChange={(e) => setDriversApprox(e.target.value)} />
+            <TextField label={t("Tiendas (aprox.)", "Shops (approx.)")} inputMode="numeric" value={shopsApprox} onChange={(e) => setShopsApprox(e.target.value)} />
+            <TextField label={t("Motoristas (aprox.)", "Drivers (approx.)")} inputMode="numeric" value={driversApprox} onChange={(e) => setDriversApprox(e.target.value)} />
           </div>
         </fieldset>
 
         <fieldset className={`flex-col gap-4 ${step === 2 ? "flex" : "hidden lg:flex"}`}>
           <legend className="mb-4 text-xl font-semibold">
-            <span className="lg:hidden">{t("Paso {n} de 2", { n: 2 })} · </span>
-            {t("Su cuenta")}
+            <span className="lg:hidden">{t(`Paso ${2} de 2`, `Step ${2} of 2`)} · </span>
+            {t("Su cuenta", "Your account")}
           </legend>
-          <TextField label={t("Nombre de la persona de contacto")} autoComplete="name" required={step === 2} value={name} onChange={(e) => setName(e.target.value)} />
+          <TextField label={t("Nombre de la persona de contacto", "Contact person's name")} autoComplete="name" required={step === 2} value={name} onChange={(e) => setName(e.target.value)} />
           <TextField
-            label={t("Teléfono o correo")}
-            hint={t("Teléfono de El Salvador (8 dígitos) o correo.")}
+            label={t("Teléfono o correo", "Phone or email")}
+            hint={t("Teléfono de El Salvador (8 dígitos) o correo.", "A Salvadoran phone number (8 digits) or an email.")}
             autoComplete="username"
             inputMode="email"
             required={step === 2}
@@ -124,8 +123,8 @@ export function DistributorForm() {
             onChange={(e) => setContact(e.target.value)}
           />
           <PasswordField
-            label={t("Contraseña")}
-            hint={t("Al menos 8 caracteres.")}
+            label={t("Contraseña", "Password")}
+            hint={t("Al menos 8 caracteres.", "At least 8 characters.")}
             autoComplete="new-password"
             minLength={8}
             required={step === 2}
@@ -133,7 +132,7 @@ export function DistributorForm() {
             onChange={(e) => setPassword(e.target.value)}
           />
           <p className="rounded-xl bg-brand-soft px-3 py-2 text-brand">
-            {t("En el producto real, un socio con licencia verifica la empresa antes de aprobarla.")}
+            {t("En el producto real, un socio con licencia verifica la empresa antes de aprobarla.", "In the real product, a licensed partner checks the business before approving it.")}
           </p>
         </fieldset>
       </div>
@@ -142,19 +141,19 @@ export function DistributorForm() {
 
       {step === 1 && (
         <div className="lg:hidden">
-          <Button onClick={next}>{t("Siguiente")}</Button>
+          <Button onClick={next}>{t("Siguiente", "Next")}</Button>
         </div>
       )}
       <div className={`flex-col gap-3 ${step === 2 ? "flex" : "hidden lg:flex"}`}>
         <Button type="submit" busy={busy}>
-          {t("Crear cuenta")}
+          {t("Crear cuenta", "Create account")}
         </Button>
         {step === 2 && (
           <button type="button" onClick={() => setStep(1)} disabled={busy} className="min-h-12 text-lg font-semibold text-brand lg:hidden">
-            {t("Atrás")}
+            {t("Atrás", "Back")}
           </button>
         )}
-        {busy && <p className="text-center text-muted">{t("Estamos creando su cuenta de dólares digitales. Toma unos segundos.")}</p>}
+        {busy && <p className="text-center text-muted">{t("Estamos creando su cuenta de dólares digitales. Toma unos segundos.", "We're creating your digital dollar account. It takes a few seconds.")}</p>}
       </div>
     </form>
   );

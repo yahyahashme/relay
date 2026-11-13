@@ -15,6 +15,31 @@ const fold = (text: string) =>
     .replace(/\s+/g, " ")
     .toLowerCase();
 
+/** One CSV line into its fields. A field in double quotes may hold commas ("Tienda Marta, frente a la iglesia"); "" is a quote. */
+function splitLine(line: string): string[] {
+  const values: string[] = [];
+  let value = "";
+  let quoted = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (quoted) {
+      if (ch === '"' && line[i + 1] === '"') {
+        value += '"';
+        i++;
+      } else if (ch === '"') quoted = false;
+      else value += ch;
+    } else if (ch === '"' && value.trim() === "") {
+      quoted = true;
+      value = "";
+    } else if (ch === ",") {
+      values.push(value.trim());
+      value = "";
+    } else value += ch;
+  }
+  values.push(value.trim());
+  return values;
+}
+
 /** Id or name -> id. A name two of them share stays ambiguous (null). */
 function lookup(list: Known[]): (text: string) => string | null | undefined {
   const ids = new Set<string>();
@@ -47,7 +72,7 @@ export function parseInvoiceCsv(
     if (!rawLine.trim()) continue;
 
     const line = index + 2;
-    const values = rawLine.split(",").map((value) => value.trim());
+    const values = splitLine(rawLine);
     if (values.length !== 5) {
       errors.push({ line, message: "La fila debe tener 5 columnas" });
       continue;

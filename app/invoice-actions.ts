@@ -4,6 +4,7 @@
 // their shops, signed on the server with their own key (#129).
 
 import { getDb } from "@/lib/server/db";
+import { getDirectory } from "@/lib/server/directory";
 import { checkInvoice, choices, cleanAmount, dueAt, type InvoiceInput, myApprovedDistributor, notesFor, saveNote, todayInSv } from "@/lib/server/invoices";
 import { readClient } from "@/lib/stellar/client";
 import { explorerTx } from "@/lib/stellar/config";
@@ -90,4 +91,18 @@ export async function createInvoiceAction(input: InvoiceInput): Promise<Receipt 
 export async function getInvoiceNotes(ids: number[]): Promise<Record<number, string>> {
   if (!getDb() || ids.length === 0) return {};
   return notesFor(ids.filter((id) => Number.isSafeInteger(id)).slice(0, 100));
+}
+
+/** Who sent an invoice, and its note: for the top of the shop's invoice (#133). */
+export async function getInvoiceSource(id: number): Promise<{ distributorName: string; note: string | null } | null> {
+  if (!Number.isSafeInteger(id) || id <= 0) return null;
+  try {
+    const result = await read(readClient().get_invoice({ id: BigInt(id) }));
+    if (!result.isOk()) return null;
+    const party = (await getDirectory()).byAddress(result.unwrap().distributor);
+    const notes = getDb() ? await notesFor([id]) : {};
+    return { distributorName: party?.name ?? "", note: notes[id] ?? null };
+  } catch {
+    return null;
+  }
 }

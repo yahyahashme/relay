@@ -6,27 +6,27 @@ import { FormError, TextField } from "@/components/form";
 import { ShopInvite } from "@/components/shop-invite";
 import { BackLink, Button, Card, Chip, Label, Loading, Screen } from "@/components/ui";
 import { formatMoney, formatPhone } from "@/lib/format";
-import { useI18n } from "@/lib/i18n";
+import { useT } from "@/lib/i18n";
 
 type Match = Awaited<ReturnType<typeof searchShopsAction>>[number];
 
-const STATUS: Record<MyShops["shops"][number]["status"], { label: string; tone: "paid" | "due" | "part" }> = {
-  activa: { label: "Activa", tone: "paid" },
-  invitada: { label: "Invitada", tone: "due" },
-  sin_cuenta: { label: "Sin cuenta", tone: "part" },
+const STATUS: Record<MyShops["shops"][number]["status"], { label: [string, string]; tone: "paid" | "due" | "part" }> = {
+  activa: { label: ["Activa", "Active"], tone: "paid" },
+  invitada: { label: ["Invitada", "Invited"], tone: "due" },
+  sin_cuenta: { label: ["Sin cuenta", "No account"], tone: "part" },
 };
 
 function DriverSelect({ drivers, value, onChange }: { drivers: MyShops["drivers"]; value: string; onChange: (id: string) => void }) {
-  const { t } = useI18n();
+  const { t } = useT();
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-base font-semibold">{t("Motorista que la visita")}</span>
+      <span className="text-base font-semibold">{t("Motorista que la visita", "Driver who visits it")}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="min-h-14 rounded-xl border-2 border-line bg-card px-3 text-lg focus:border-brand focus:outline-none"
       >
-        <option value="">{t("Sin asignar")}</option>
+        <option value="">{t("Sin asignar", "Not assigned")}</option>
         {drivers.map((d) => (
           <option key={d.id} value={d.id}>
             {d.name}
@@ -39,7 +39,7 @@ function DriverSelect({ drivers, value, onChange }: { drivers: MyShops["drivers"
 
 /** The distributor's shops (#132): find them on Relay, or add one by name and invite it. */
 export default function Shops() {
-  const { t, msg } = useI18n();
+  const { t, msg } = useT();
   const [data, setData] = useState<MyShops | null | undefined>(undefined);
   const [mode, setMode] = useState<"buscar" | "nueva">("buscar");
   const [query, setQuery] = useState("");
@@ -110,8 +110,8 @@ export default function Shops() {
   if (data === null) {
     return (
       <Screen>
-        <BackLink href="/distribuidor" label={t("Panel")} />
-        <p className="text-lg">{t("Solo la distribuidora aprobada puede hacer esto.")}</p>
+        <BackLink href="/distribuidor" label={t("Panel", "Dashboard")} />
+        <p className="text-lg">{t("Solo la distribuidora aprobada puede hacer esto.", "Only the approved distributor can do this.")}</p>
       </Screen>
     );
   }
@@ -133,17 +133,17 @@ export default function Shops() {
 
   return (
     <Screen>
-      <BackLink href="/distribuidor" label={t("Panel")} />
+      <BackLink href="/distribuidor" label={t("Panel", "Dashboard")} />
       <header className="flex flex-col gap-1">
-        <h1 className="text-3xl font-bold">{t("Tiendas")}</h1>
+        <h1 className="text-3xl font-bold">{t("Tiendas", "Shops")}</h1>
         <p className="text-lg text-muted">{data.distributorName}</p>
       </header>
 
       <Card className="flex flex-col gap-4">
-        <h2 className="text-xl font-semibold">{t("Agregar tienda")}</h2>
+        <h2 className="text-xl font-semibold">{t("Agregar tienda", "Add shop")}</h2>
         <div role="tablist" className="flex gap-1 rounded-xl bg-paper p-1">
-          {tab("buscar", t("Buscar en Relay"))}
-          {tab("nueva", t("Agregar sin cuenta"))}
+          {tab("buscar", t("Buscar en Relay", "Find on Relay"))}
+          {tab("nueva", t("Agregar sin cuenta", "Add without an account"))}
         </div>
 
         {data.drivers.length > 0 && <DriverSelect drivers={data.drivers} value={driverId} onChange={setDriverId} />}
@@ -152,7 +152,7 @@ export default function Shops() {
           <>
             <form onSubmit={search} className="flex flex-col gap-3">
               <TextField
-                label={t("Nombre de la tienda o teléfono")}
+                label={t("Nombre de la tienda o teléfono", "Shop name or phone")}
                 autoComplete="off"
                 required
                 minLength={2}
@@ -163,12 +163,12 @@ export default function Shops() {
                 }}
               />
               <Button type="submit" variant="secondary">
-                {t("Buscar")}
+                {t("Buscar", "Search")}
               </Button>
             </form>
             {matches !== null &&
               (matches.length === 0 ? (
-                <p className="text-muted">{t("No encontramos esa tienda en Relay. Agréguela sin cuenta y la invitamos.")}</p>
+                <p className="text-muted">{t("No encontramos esa tienda en Relay. Agréguela sin cuenta y la invitamos.", "We didn't find that shop on Relay. Add it without an account and we'll invite it.")}</p>
               ) : (
                 <ul className="flex flex-col divide-y divide-line rounded-xl border border-line">
                   {matches.map((m) => (
@@ -183,7 +183,7 @@ export default function Shops() {
                         disabled={busy}
                         className="min-h-12 shrink-0 rounded-xl bg-brand px-4 text-base font-semibold text-white active:bg-brand-dark disabled:bg-line"
                       >
-                        {t("Agregar")}
+                        {t("Agregar", "Add")}
                       </button>
                     </li>
                   ))}
@@ -193,42 +193,42 @@ export default function Shops() {
         ) : (
           <form onSubmit={add} className="flex flex-col gap-4">
             <TextField
-              label={t("Cómo la llama usted")}
-              hint={t("Cualquier nombre que le sirva, por ejemplo «Tienda de Doña Marta, frente a la iglesia». Solo usted lo ve.")}
+              label={t("Cómo la llama usted", "What you call it")}
+              hint={t("Cualquier nombre que le sirva, por ejemplo «Tienda de Doña Marta, frente a la iglesia». Solo usted lo ve.", "Any name that works for you, for example “Marta's shop, across from the church”. Only you see it.")}
               autoComplete="off"
               required
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
             />
-            <TextField label={t("Dirección (si la sabe)")} autoComplete="off" value={address} onChange={(e) => setAddress(e.target.value)} />
+            <TextField label={t("Dirección (si la sabe)", "Address (if you know it)")} autoComplete="off" value={address} onChange={(e) => setAddress(e.target.value)} />
             <TextField
-              label={t("Teléfono (si lo sabe)")}
-              hint={t("Para enviarle la invitación por WhatsApp.")}
+              label={t("Teléfono (si lo sabe)", "Phone (if you know it)")}
+              hint={t("Para enviarle la invitación por WhatsApp.", "To send the invitation on WhatsApp.")}
               inputMode="tel"
               autoComplete="off"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
             />
             <Button type="submit" busy={busy}>
-              {t("Agregar tienda")}
+              {t("Agregar tienda", "Add shop")}
             </Button>
-            {busy && <p className="text-center text-muted">{t("Estamos creando su cuenta de dólares digitales. Toma unos segundos.")}</p>}
+            {busy && <p className="text-center text-muted">{t("Estamos creando su cuenta de dólares digitales. Toma unos segundos.", "We're creating your digital dollar account. It takes a few seconds.")}</p>}
           </form>
         )}
         {error && <FormError>{msg(error)}</FormError>}
         {fresh && (
           <div className="flex flex-col gap-2">
-            <p className="font-semibold text-ok">{t("Tienda agregada. Ya puede hacerle facturas.")}</p>
+            <p className="font-semibold text-ok">{t("Tienda agregada. Ya puede hacerle facturas.", "Shop added. You can invoice it now.")}</p>
             <ShopInvite code={fresh.code} distributorName={data.distributorName} phone={fresh.phone} />
           </div>
         )}
       </Card>
 
       <section className="flex flex-col gap-2">
-        <Label>{t("Sus tiendas")}</Label>
+        <Label>{t("Sus tiendas", "Your shops")}</Label>
         {data.shops.length === 0 ? (
           <Card>
-            <p className="text-center text-lg text-muted">{t("Todavía no tiene tiendas.")}</p>
+            <p className="text-center text-lg text-muted">{t("Todavía no tiene tiendas.", "You don't have any shops yet.")}</p>
           </Card>
         ) : (
           <ul className="flex flex-col gap-3">
@@ -240,25 +240,25 @@ export default function Shops() {
                       <span className="text-lg font-semibold">{shop.nickname ?? shop.name}</span>
                       {shop.status === "activa" && (
                         <span className="text-sm text-muted">
-                          {shop.nickname && shop.nickname !== shop.name ? `${t("En Relay: {name}", { name: shop.name })} · ` : ""}
+                          {shop.nickname && shop.nickname !== shop.name ? `${t(`En Relay: ${shop.name}`, `On Relay: ${shop.name}`)} · ` : ""}
                           {shop.ownerName}
                         </span>
                       )}
                       {shop.phone && <span className="text-sm text-muted tabular-nums">{formatPhone(shop.phone)}</span>}
                     </div>
-                    <Chip tone={STATUS[shop.status].tone}>{t(STATUS[shop.status].label)}</Chip>
+                    <Chip tone={STATUS[shop.status].tone}>{t(...STATUS[shop.status].label)}</Chip>
                   </div>
                   <dl className="grid grid-cols-3 gap-2 text-base">
                     <div>
-                      <dt className="text-sm text-muted">{t("Límite")}</dt>
+                      <dt className="text-sm text-muted">{t("Límite", "Limit")}</dt>
                       <dd className="font-semibold tabular-nums">{formatMoney(shop.creditLimit)}</dd>
                     </div>
                     <div>
-                      <dt className="text-sm text-muted">{t("Debe")}</dt>
+                      <dt className="text-sm text-muted">{t("Debe", "Owes")}</dt>
                       <dd className="font-semibold tabular-nums">{formatMoney(shop.creditOwed)}</dd>
                     </div>
                     <div className="min-w-0">
-                      <dt className="text-sm text-muted">{t("Motorista")}</dt>
+                      <dt className="text-sm text-muted">{t("Motorista", "Driver")}</dt>
                       <dd className="truncate font-semibold">{shop.driverName ?? "—"}</dd>
                     </div>
                   </dl>
@@ -269,7 +269,7 @@ export default function Shops() {
                         onClick={() => setOpen(open === shop.id ? null : shop.id)}
                         className="min-h-12 self-start rounded-xl border-2 border-brand px-4 text-base font-semibold text-brand active:bg-brand-soft"
                       >
-                        {open === shop.id ? t("Ocultar invitación") : t("Ver invitación")}
+                        {open === shop.id ? t("Ocultar invitación", "Hide invitation") : t("Ver invitación", "See invitation")}
                       </button>
                       {open === shop.id && <ShopInvite code={shop.inviteCode} distributorName={data.distributorName} phone={shop.phone} />}
                     </>

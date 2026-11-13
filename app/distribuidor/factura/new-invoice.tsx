@@ -6,7 +6,7 @@ import { type FormEvent, useEffect, useId, useMemo, useState } from "react";
 import { createInvoiceAction, getInvoiceForm, type InvoiceForm } from "@/app/invoice-actions";
 import { FormError, INPUT, TextField } from "@/components/form";
 import { BackLink, Button, ButtonLink, Card, Loading, ReceiptView, Screen } from "@/components/ui";
-import { useI18n } from "@/lib/i18n";
+import { useT } from "@/lib/i18n";
 import type { Receipt } from "@/lib/types";
 
 const fold = (text: string) =>
@@ -26,7 +26,7 @@ type Shop = InvoiceForm["shops"][number];
 
 /** Search the distributor's own shops, then show the picked one with "Cambiar". */
 function ShopPicker({ shops, value, onChange }: { shops: Shop[]; value: Shop | null; onChange: (shop: Shop | null) => void }) {
-  const { t } = useI18n();
+  const { t } = useT();
   const id = useId();
   const [query, setQuery] = useState("");
   const matches = useMemo(() => {
@@ -37,14 +37,14 @@ function ShopPicker({ shops, value, onChange }: { shops: Shop[]; value: Shop | n
   if (value) {
     return (
       <div className="flex flex-col gap-1.5">
-        <span className="text-base font-semibold">{t("Tienda")}</span>
+        <span className="text-base font-semibold">{t("Tienda", "Shop")}</span>
         <div className="flex min-h-14 items-center justify-between gap-3 rounded-xl border-2 border-brand bg-brand-soft px-3">
           <span className="flex min-w-0 flex-col py-2">
             <span className="text-lg font-semibold">{value.name}</span>
             {value.owner && <span className="text-sm text-muted">{value.owner}</span>}
           </span>
           <button type="button" onClick={() => onChange(null)} className="min-h-12 shrink-0 px-2 text-base font-semibold text-brand underline">
-            {t("Cambiar")}
+            {t("Cambiar", "Change")}
           </button>
         </div>
       </div>
@@ -53,18 +53,18 @@ function ShopPicker({ shops, value, onChange }: { shops: Shop[]; value: Shop | n
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-base font-semibold">
-        {t("Tienda")}
+        {t("Tienda", "Shop")}
       </label>
       <input
         id={id}
         className={INPUT}
-        placeholder={t("Buscar entre sus tiendas")}
+        placeholder={t("Buscar entre sus tiendas", "Search your shops")}
         autoComplete="off"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
       {matches.length === 0 ? (
-        <p className="text-muted">{t("No hay tiendas con ese nombre.")}</p>
+        <p className="text-muted">{t("No hay tiendas con ese nombre.", "No shops with that name.")}</p>
       ) : (
         <ul className="flex flex-col divide-y divide-line rounded-xl border border-line bg-card">
           {matches.map((shop) => (
@@ -87,7 +87,7 @@ function ShopPicker({ shops, value, onChange }: { shops: Shop[]; value: Shop | n
 
 /** "Nueva factura" (#133): shop, driver, amount, due date, number, note. */
 export default function NewInvoice() {
-  const { t, msg } = useI18n();
+  const { t, msg } = useT();
   const params = useSearchParams();
   const [form, setForm] = useState<InvoiceForm | null | undefined>(undefined);
   const [shop, setShop] = useState<Shop | null>(null);
@@ -162,8 +162,8 @@ export default function NewInvoice() {
   if (form === null) {
     return (
       <Screen>
-        <BackLink href="/distribuidor" label={t("Panel")} />
-        <p className="text-lg">{t("Su distribuidora todavía no está aprobada para crear facturas.")}</p>
+        <BackLink href="/distribuidor" label={t("Panel", "Dashboard")} />
+        <p className="text-lg">{t("Su distribuidora todavía no está aprobada para crear facturas.", "Your distributor isn't approved to create invoices yet.")}</p>
       </Screen>
     );
   }
@@ -171,16 +171,16 @@ export default function NewInvoice() {
   if (done?.ok) {
     return (
       <Screen>
-        <BackLink href="/distribuidor" label={t("Panel")} />
-        <h1 className="text-3xl font-bold">{t("Factura creada")}</h1>
+        <BackLink href="/distribuidor" label={t("Panel", "Dashboard")} />
+        <h1 className="text-3xl font-bold">{t("Factura creada", "Invoice created")}</h1>
         <ReceiptView receipt={done} />
         <Card className="flex flex-col gap-1">
           <p className="text-lg font-semibold">{shop?.name}</p>
-          <p className="text-muted">{t("Ya está en la ruta de {driver} y en la cuenta de la tienda.", { driver: form.drivers.find((d) => d.id === driverId)?.name ?? "" })}</p>
+          <p className="text-muted">{t(`Ya está en la ruta de ${form.drivers.find((d) => d.id === driverId)?.name ?? ""} y en la cuenta de la tienda.`, `It's already on ${form.drivers.find((d) => d.id === driverId)?.name ?? ""}'s route and in the shop's account.`)}</p>
         </Card>
-        <Button onClick={another}>{t("Crear otra factura")}</Button>
+        <Button onClick={another}>{t("Crear otra factura", "Create another invoice")}</Button>
         <ButtonLink href="/distribuidor" variant="secondary">
-          {t("Ir al panel")}
+          {t("Ir al panel", "Go to the dashboard")}
         </ButtonLink>
       </Screen>
     );
@@ -191,19 +191,19 @@ export default function NewInvoice() {
   return (
     <Screen wide>
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-5">
-        <BackLink href="/distribuidor" label={t("Panel")} />
+        <BackLink href="/distribuidor" label={t("Panel", "Dashboard")} />
         <header className="flex flex-col gap-1">
-          <h1 className="text-3xl font-bold">{t("Nueva factura")}</h1>
+          <h1 className="text-3xl font-bold">{t("Nueva factura", "New invoice")}</h1>
           <p className="text-lg text-muted">{form.distributorName}</p>
         </header>
 
         {missing ? (
           <Card className="flex flex-col gap-3">
             <p className="text-lg">
-              {missing === "tiendas" ? t("Primero agregue una tienda.") : t("Primero agregue un motorista.")}
+              {missing === "tiendas" ? t("Primero agregue una tienda.", "First add a shop.") : t("Primero agregue un motorista.", "First add a driver.")}
             </p>
             <ButtonLink href={missing === "tiendas" ? "/distribuidor/tiendas" : "/distribuidor/motoristas"}>
-              {missing === "tiendas" ? t("Agregar sus tiendas") : t("Agregar sus motoristas")}
+              {missing === "tiendas" ? t("Agregar sus tiendas", "Add your shops") : t("Agregar sus motoristas", "Add your drivers")}
             </ButtonLink>
           </Card>
         ) : (
@@ -213,11 +213,11 @@ export default function NewInvoice() {
                 <ShopPicker shops={form.shops} value={shop} onChange={pickShop} />
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor={driverField} className="text-base font-semibold">
-                    {t("Motorista")}
+                    {t("Motorista", "Driver")}
                   </label>
                   <select id={driverField} required value={driverId} onChange={(e) => setDriverId(e.target.value)} className={INPUT}>
                     <option value="" disabled>
-                      {t("Elija un motorista")}
+                      {t("Elija un motorista", "Choose a driver")}
                     </option>
                     {form.drivers.map((d) => (
                       <option key={d.id} value={d.id}>
@@ -229,7 +229,7 @@ export default function NewInvoice() {
               </div>
               <div className="flex flex-col gap-5">
                 <TextField
-                  label={t("Monto (USD)")}
+                  label={t("Monto (USD)", "Amount (USD)")}
                   inputMode="decimal"
                   autoComplete="off"
                   placeholder="0.00"
@@ -237,10 +237,10 @@ export default function NewInvoice() {
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                 />
-                <div className="grid grid-cols-2 gap-3">
-                  <TextField label={t("Vence")} type="date" required min={form.today} value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+                <div className="grid gap-5 sm:grid-cols-2 sm:gap-3">
+                  <TextField label={t("Vence", "Due")} type="date" required min={form.today} value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
                   <TextField
-                    label={t("Número")}
+                    label={t("Número", "Number")}
                     inputMode="numeric"
                     autoComplete="off"
                     required
@@ -250,7 +250,7 @@ export default function NewInvoice() {
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor={noteField} className="text-base font-semibold">
-                    {t("Nota o productos (opcional)")}
+                    {t("Nota o productos (opcional)", "Note or products (optional)")}
                   </label>
                   <textarea
                     id={noteField}
@@ -258,7 +258,7 @@ export default function NewInvoice() {
                     maxLength={300}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    placeholder={t("Por ejemplo: 3 cajas de agua, 2 de jugos")}
+                    placeholder={t("Por ejemplo: 3 cajas de agua, 2 de jugos", "For example: 3 boxes of water, 2 of juice")}
                     className={`${INPUT} py-3`}
                   />
                 </div>
@@ -267,14 +267,14 @@ export default function NewInvoice() {
             {error && <FormError>{msg(error)}</FormError>}
             <div className="flex flex-col gap-2 lg:mx-auto lg:w-96">
               <Button type="submit" busy={busy}>
-                {t("Crear factura")}
+                {t("Crear factura", "Create invoice")}
               </Button>
-              {busy && <p className="text-center text-muted">{t("Registrando la factura. Toma unos segundos.")}</p>}
+              {busy && <p className="text-center text-muted">{t("Registrando la factura. Toma unos segundos.", "Recording the invoice. It takes a few seconds.")}</p>}
             </div>
             <p className="text-center text-sm text-muted">
-              {t("¿Muchas facturas a la vez?")}{" "}
+              {t("¿Muchas facturas a la vez?", "Many invoices at once?")}{" "}
               <Link href="/distribuidor#importar" className="text-brand underline">
-                {t("Importe un archivo CSV")}
+                {t("Importe un archivo CSV", "Import a CSV file")}
               </Link>
             </p>
           </form>

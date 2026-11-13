@@ -6,10 +6,10 @@ import { type FormEvent, useState } from "react";
 import { signInAction } from "@/app/auth-actions";
 import { FormError, PasswordField, TextField } from "@/components/form";
 import { BackLink, Button, Screen } from "@/components/ui";
-import { useI18n } from "@/lib/i18n";
+import { useT } from "@/lib/i18n";
 
 export default function SignIn() {
-  const { t, msg } = useI18n();
+  const { t, msg } = useT();
   const router = useRouter();
   const [contact, setContact] = useState("");
   const [password, setPassword] = useState("");
@@ -32,10 +32,10 @@ export default function SignIn() {
   return (
     <Screen>
       <BackLink />
-      <h1 className="text-3xl font-bold">{t("Entrar")}</h1>
+      <h1 className="text-3xl font-bold">{t("Entrar", "Sign in")}</h1>
       <form onSubmit={submit} className="flex flex-col gap-4">
         <TextField
-          label={t("Teléfono o correo")}
+          label={t("Teléfono o correo", "Phone or email")}
           autoComplete="username"
           inputMode="email"
           required
@@ -43,7 +43,7 @@ export default function SignIn() {
           onChange={(e) => setContact(e.target.value)}
         />
         <PasswordField
-          label={t("Contraseña")}
+          label={t("Contraseña", "Password")}
           autoComplete="current-password"
           required
           value={password}
@@ -51,13 +51,13 @@ export default function SignIn() {
         />
         {error && <FormError>{msg(error)}</FormError>}
         <Button type="submit" busy={busy}>
-          {t("Entrar")}
+          {t("Entrar", "Sign in")}
         </Button>
       </form>
       <p className="text-center text-lg">
-        {t("¿No tiene cuenta?")}{" "}
+        {t("¿No tiene cuenta?", "Don't have an account?")}{" "}
         <Link href="/registro" className="font-semibold text-brand underline">
-          {t("Crear cuenta")}
+          {t("Crear cuenta", "Create account")}
         </Link>
       </p>
     </Screen>
