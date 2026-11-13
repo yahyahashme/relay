@@ -34,3 +34,13 @@ export function reminderLink({
 
   return `https://wa.me/503${digits}?text=${encodeURIComponent(message)}`;
 }
+
+/** A wa.me link to an El Salvador number with any message ready (e.g. a driver invite, #131). */
+export function chatLink(phone: string, message: string): string {
+  const compact = phone.replace(/[ -]/g, "").replace(/^\+/, "");
+  const digits = /^503\d{8}$/.test(compact) ? compact.slice(3) : compact;
+  if (!/^[267]\d{7}$/.test(digits)) {
+    throw new Error("Número de teléfono inválido: use 8 dígitos de El Salvador, por ejemplo 7123-4567");
+  }
+  return `https://wa.me/503${digits}?text=${encodeURIComponent(message)}`;
+}

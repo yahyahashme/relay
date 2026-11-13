@@ -141,6 +141,14 @@ const LIVE = [
   "Elija qué vende.",
   "Escriba un número aproximado.",
   "Solo para administradores de Relay.",
+  // Drivers (#131)
+  "Escriba el nombre del motorista.",
+  "Escriba un teléfono de El Salvador (8 dígitos).",
+  "Ya invitó a ese teléfono. Comparta el mismo enlace.",
+  "Esta invitación ya no es válida. Pida otra a su distribuidora.",
+  "Esta invitación ya se usó. Entre con su contraseña.",
+  "Solo la distribuidora aprobada puede hacer esto.",
+  "No encontramos a ese motorista.",
   FALLBACK_MESSAGE,
   ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15].map((code) => errorMessage(code)),
 ];

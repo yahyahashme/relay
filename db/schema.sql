@@ -83,3 +83,16 @@ ALTER TABLE distributors ADD COLUMN IF NOT EXISTS shops_approx INTEGER;
 ALTER TABLE distributors ADD COLUMN IF NOT EXISTS drivers_approx INTEGER;
 ALTER TABLE distributors ADD COLUMN IF NOT EXISTS decided_at TIMESTAMPTZ;
 CREATE INDEX IF NOT EXISTS distributors_owner ON distributors (owner_user_id);
+
+-- #131: drivers join by invite link. A removed driver keeps their history (active = false).
+ALTER TABLE drivers ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT true;
+CREATE TABLE IF NOT EXISTS driver_invites (
+  token          TEXT PRIMARY KEY,
+  distributor_id TEXT NOT NULL REFERENCES distributors(id),
+  name           TEXT NOT NULL,
+  phone          TEXT NOT NULL,
+  driver_id      TEXT REFERENCES drivers(id),  -- set when the driver signs up
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+  removed_at     TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS driver_invites_distributor ON driver_invites (distributor_id);

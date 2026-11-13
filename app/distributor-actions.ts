@@ -161,7 +161,7 @@ export async function getDistributorView(pages: number): Promise<DistributorView
     totals = { invoices: theirs.length, digital: sum("Digital"), cash: sum("Cash"), credit: sum("Credit") };
   }
 
-  const driverParties = directory.ofKind("driver").filter((d) => (d.distributorId ?? DEMO_ID) === scopeId);
+  const driverParties = directory.ofKind("driver").filter((d) => (d.distributorId ?? DEMO_ID) === scopeId && d.active !== false);
   const drivers = await Promise.all(
     driverParties.map(async (d) => ({ id: d.id, name: d.name, cashHeld: toDollars(await read(readClient().get_driver_cash({ driver: d.address }))) })),
   );

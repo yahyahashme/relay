@@ -84,8 +84,13 @@ export type SignUpInput = { role: Role; name: string; contact: string; password:
  * A new user with their own Stellar account (funded, with the USDC trustline).
  * Drivers only come in through a distributor's invite (#131), admins by hand.
  */
-export async function signUp(input: SignUpInput, network?: WalletNetwork): Promise<AuthResult> {
-  if (input.role !== "tienda" && input.role !== "distribuidora") {
+export async function signUp(
+  input: SignUpInput,
+  network?: WalletNetwork,
+  options: { viaInvite?: boolean } = {},
+): Promise<AuthResult> {
+  const allowed = options.viaInvite ? ["motorista"] : ["tienda", "distribuidora"];
+  if (!allowed.includes(input.role)) {
     return { ok: false, message: "Los motoristas se registran con la invitación de su distribuidora." };
   }
   const name = input.name.trim().replace(/\s+/g, " ");

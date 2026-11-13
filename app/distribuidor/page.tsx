@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { BackLink, Card, Chip, Label, LoadError, Loading, ReceiptView, Screen } from "@/components/ui";
 import { CsvImport } from "@/components/csv-import";
@@ -31,8 +32,8 @@ const loadDashboard = (pages: number) => getDistributorView(pages);
 /** "Primeros pasos" for a new distributor (#130): done when there is at least one of each. */
 function FirstSteps({ drivers, shops, invoices }: { drivers: number; shops: number; invoices: number }) {
   const { t } = useI18n();
-  const steps = [
-    { label: t("Agregar sus motoristas"), done: drivers > 0 },
+  const steps: { label: string; done: boolean; href?: string }[] = [
+    { label: t("Agregar sus motoristas"), done: drivers > 0, href: "/distribuidor/motoristas" },
     { label: t("Agregar sus tiendas"), done: shops > 0 },
     { label: t("Crear su primera factura"), done: invoices > 0 },
   ];
@@ -51,7 +52,13 @@ function FirstSteps({ drivers, shops, invoices }: { drivers: number; shops: numb
             >
               {step.done ? "✓" : index + 1}
             </span>
-            <span className={step.done ? "text-muted line-through" : ""}>{step.label}</span>
+            {step.href && !step.done ? (
+              <Link href={step.href} className="font-semibold text-brand underline">
+                {step.label}
+              </Link>
+            ) : (
+              <span className={step.done ? "text-muted line-through" : ""}>{step.label}</span>
+            )}
             <span className="sr-only">{step.done ? t("Hecho") : t("Por hacer")}</span>
           </li>
         ))}
@@ -188,6 +195,16 @@ export default function Dashboard() {
         <h1 className="min-h-9 text-3xl font-bold">{data?.scope.name ?? ""}</h1>
         <p className="text-muted">{t("Se actualiza cada 5 segundos.")}</p>
       </div>
+      {data && !data.scope.isDemo && (
+        <nav className="flex flex-wrap gap-2">
+          <Link
+            href="/distribuidor/motoristas"
+            className="flex min-h-12 items-center rounded-xl border-2 border-brand px-4 text-base font-semibold text-brand active:bg-brand-soft"
+          >
+            {t("Motoristas")}
+          </Link>
+        </nav>
+      )}
       {data?.scope.isDemo && (
         <button
           type="button"

@@ -3,7 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { type CurrentUser, getCurrentUser, signOutAction } from "@/app/auth-actions";
+import { getMyDriverId } from "@/app/driver-actions";
 import { BackLink, Button, ButtonLink, Card, Label, Loading, Screen } from "@/components/ui";
+import { formatPhone } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 
 const ROLE_LABEL: Record<CurrentUser["role"], string> = {
@@ -22,6 +24,7 @@ export default function Account() {
   const router = useRouter();
   const [user, setUser] = useState<CurrentUser | null | undefined>(undefined);
   const [leaving, setLeaving] = useState(false);
+  const [driverId, setDriverId] = useState<string | null>(null);
 
   useEffect(() => {
     let live = true;
@@ -29,6 +32,7 @@ export default function Account() {
       if (!live) return;
       if (!found) router.replace("/entrar");
       else setUser(found);
+      if (found?.role === "motorista") void getMyDriverId().then((id) => live && setDriverId(id));
     });
     return () => {
       live = false;
@@ -64,7 +68,7 @@ export default function Account() {
         </div>
         <div>
           <Label>{t("Teléfono o correo")}</Label>
-          <p className="text-lg font-semibold break-all">{user.contact}</p>
+          <p className="text-lg font-semibold break-all">{formatPhone(user.contact)}</p>
         </div>
         <div>
           <Label>{t("Cuenta de dólares digitales")}</Label>
@@ -76,6 +80,7 @@ export default function Account() {
       </Card>
 
       {user.role === "distribuidora" && <ButtonLink href="/distribuidor/espera">{t("Ir a mi panel")}</ButtonLink>}
+      {user.role === "motorista" && driverId && <ButtonLink href={`/ruta/${driverId}`}>{t("Ir a mi ruta")}</ButtonLink>}
       {user.role === "admin" && <ButtonLink href="/admin">{t("Distribuidoras por aprobar")}</ButtonLink>}
       <ButtonLink href="/" variant="secondary">
         {t("Ir al inicio")}

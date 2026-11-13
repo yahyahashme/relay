@@ -69,11 +69,12 @@ export async function getShop(shopId: string): Promise<Shop | null> {
 }
 
 export async function getDrivers(): Promise<Driver[]> {
-  const drivers = (await getDirectory()).ofKind("driver");
+  const drivers = (await getDirectory()).ofKind("driver").filter((driver) => driver.active !== false);
   return Promise.all(
     drivers.map(async (driver) => ({
       id: driver.id,
       name: driver.name,
+      distributorId: driver.distributorId,
       cashHeld: toDollars(await read(readClient().get_driver_cash({ driver: driver.address }))),
     })),
   );
