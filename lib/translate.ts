@@ -1,0 +1,116 @@
+// English for the messages the server, the mock and the contract send back. They are
+// always written in Spanish (lib/stellar/errors.ts, app/actions.ts, lib/mock.ts,
+// lib/csv.ts, lib/labels.ts), so the screens translate them here when English is on.
+// lib/translate.test.ts runs every one of them through this list.
+
+const MONEY = String.raw`(\$[\d,]+\.\d{2})`;
+const DATE = String.raw`(\d{1,2}) (ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)`;
+const NUM = String.raw`(\d+)`;
+
+const MONTH_EN: Record<string, string> = {
+  ene: "Jan", feb: "Feb", mar: "Mar", abr: "Apr", may: "May", jun: "Jun",
+  jul: "Jul", ago: "Aug", sep: "Sep", oct: "Oct", nov: "Nov", dic: "Dec",
+};
+
+/** "17 nov" -> "Nov 17" */
+export function englishDay(day: string, month: string): string {
+  return `${MONTH_EN[month] ?? month} ${day}`;
+}
+
+type Rule = [RegExp, string | ((...groups: string[]) => string)];
+
+const exact = (es: string, en: string): Rule => [new RegExp(`^${es.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`), en];
+const pattern = (es: string, en: Rule[1]): Rule => [new RegExp(`^${es}$`), en];
+
+const RULES: Rule[] = [
+  // Payments
+  pattern(String.raw`Pago recibido: ${MONEY} en dólares digitales\.`, "Payment received: $1 in digital dollars."),
+  pattern(String.raw`Pago recibido: ${MONEY}\. Falta ${MONEY}\.`, "Payment received: $1. $2 left to pay."),
+  pattern(String.raw`Listo\. Tiene hasta el ${DATE} para pagar ${MONEY}, sin intereses\.`, (_, d, m, money) =>
+    `Done. You have until ${englishDay(d, m)} to pay ${money}, with no interest.`),
+  exact("Listo. Ahora la tienda debe tocar «Confirmo».", "Done. Now the shop has to tap “Confirm”."),
+  pattern(String.raw`Listo\. Confirmó ${MONEY} en efectivo\.`, "Done. You confirmed $1 in cash."),
+  pattern(String.raw`Listo\. (.+) entregó ${MONEY} en efectivo\.`, "Done. $1 handed in $2 in cash."),
+  pattern(String.raw`Deuda pagada con atraso\. Su límite bajó a ${MONEY}\.`, "Debt paid late. Your limit went down to $1."),
+  exact("Deuda pagada con atraso.", "Debt paid late."),
+  pattern(String.raw`Deuda pagada a tiempo\. Su límite subió a ${MONEY}\.`, "Debt paid on time. Your limit went up to $1."),
+  exact("Deuda pagada a tiempo. Gracias.", "Debt paid on time. Thank you."),
+  pattern(String.raw`El monto es mayor que lo que falta pagar \(${MONEY}\)\.`, "The amount is more than what's left to pay ($1)."),
+  exact("El monto es mayor que lo que falta pagar.", "The amount is more than what's left to pay."),
+  pattern(String.raw`Hay ${MONEY} en efectivo por confirmar\. Puede pagar hasta ${MONEY}\.`,
+    "$1 in cash is waiting to be confirmed. You can pay up to $2."),
+  exact("El efectivo registrado es mayor que lo que falta pagar.", "The cash registered is more than what's left to pay."),
+
+  // CSV import
+  exact("Listo. Se creó 1 factura.", "Done. 1 invoice created."),
+  pattern(String.raw`Listo\. Se crearon ${NUM} facturas\.`, "Done. $1 invoices created."),
+  exact("Se creó 1 factura.", "1 invoice created."),
+  pattern(String.raw`Se crearon ${NUM} facturas\.`, "$1 invoices created."),
+  pattern(String.raw`Se crearon ${NUM} de ${NUM} facturas\. (.+)`, (_, done, all, rest) =>
+    `${done} of ${all} invoices created. ${translateMessage(rest)}`),
+  exact("No hay facturas para crear.", "There are no invoices to create."),
+  pattern(String.raw`Máximo ${NUM} facturas por archivo\.`, "At most $1 invoices per file."),
+  pattern(String.raw`Fila ${NUM}: tienda desconocida\.`, "Row $1: unknown shop."),
+  pattern(String.raw`Fila ${NUM}: motorista desconocido\.`, "Row $1: unknown driver."),
+  pattern(String.raw`Fila ${NUM}: número de factura inválido\.`, "Row $1: invalid invoice number."),
+  pattern(String.raw`Fila ${NUM}: la factura ${NUM} está repetida\.`, "Row $1: invoice $2 appears twice."),
+  pattern(String.raw`Fila ${NUM}: la factura ${NUM} ya existe\.`, "Row $1: invoice $2 already exists."),
+  pattern(String.raw`Fila ${NUM}: monto inválido\.`, "Row $1: invalid amount."),
+  pattern(String.raw`Fila ${NUM}: fecha inválida\.`, "Row $1: invalid date."),
+  pattern(String.raw`Encabezado inválido\. Use: (.+)`, "Invalid header. Use: $1"),
+  exact("La fila debe tener 5 columnas", "The row must have 5 columns"),
+  exact("Falta el número de factura", "Missing invoice number"),
+  pattern(String.raw`Número de factura inválido: (.*)`, "Invalid invoice number: $1"),
+  pattern(String.raw`Factura repetida: (.*)`, "Invoice appears twice: $1"),
+  exact("Falta la tienda", "Missing shop"),
+  pattern(String.raw`Tienda desconocida: (.*)`, "Unknown shop: $1"),
+  exact("Falta el motorista", "Missing driver"),
+  pattern(String.raw`Motorista desconocido: (.*)`, "Unknown driver: $1"),
+  exact("Falta el monto", "Missing amount"),
+  pattern(String.raw`Monto inválido: (.*)`, "Invalid amount: $1"),
+  exact("El monto debe ser mayor que 0", "The amount must be more than 0"),
+  exact("Falta la fecha", "Missing date"),
+  exact("Fecha inválida (use AAAA-MM-DD)", "Invalid date (use YYYY-MM-DD)"),
+  exact("El archivo no tiene facturas", "The file has no invoices"),
+
+  // Refusals (the contract's codes, lib/stellar/errors.ts, and the same checks in the mock)
+  exact("Esa factura ya existe.", "That invoice already exists."),
+  exact("No encontramos esa factura.", "We couldn't find that invoice."),
+  exact("Monto inválido.", "Invalid amount."),
+  exact("El monto es mayor que lo pendiente.", "The amount is more than what's left to pay."),
+  exact("Esta factura ya está pagada.", "This invoice is already paid."),
+  exact("Esta factura no es de su tienda.", "This invoice isn't for your shop."),
+  exact("Tiene un pago vencido. Pague su deuda para volver a usar crédito.", "You have an overdue payment. Pay your debt to use credit again."),
+  exact("Tiene un pago vencido.", "You have an overdue payment."),
+  exact("Esta compra supera su límite de crédito.", "This purchase is over your credit limit."),
+  exact("Supera su límite de crédito.", "It's over your credit limit."),
+  exact("El crédito no está disponible en este momento.", "Credit isn't available right now."),
+  exact("Hoy no hay fondos para crédito. Intente más tarde.", "There's no credit money available today. Try again later."),
+  exact("No tiene deuda pendiente.", "You have no debt to pay."),
+  exact("No tiene deudas pendientes.", "You have no debts to pay."),
+  exact("El motorista aún no registró el efectivo.", "The driver hasn't registered the cash yet."),
+  exact("Su tienda aún no tiene crédito.", "Your shop doesn't have credit yet."),
+  exact("Esta tienda todavía no tiene crédito.", "This shop doesn't have credit yet."),
+  exact("El motorista cambió el monto. Revise el nuevo monto y confirme de nuevo.", "The driver changed the amount. Check the new amount and confirm again."),
+  exact("Este motorista no está en la ruta.", "This driver isn't on the route."),
+  exact("No encontramos esa tienda.", "We couldn't find that shop."),
+  exact("No encontramos a ese motorista.", "We couldn't find that driver."),
+  exact("Tienda desconocida.", "Unknown shop."),
+  exact("No se pudo completar. Intente de nuevo.", "Couldn't complete it. Please try again."),
+  exact("Algo salió mal. Intente de nuevo.", "Something went wrong. Please try again."),
+  exact("Todavía no está conectado al contrato.", "Not connected to the contract yet."),
+];
+
+/**
+ * The English for a Spanish message from the server, the mock or the contract.
+ * Anything not in the list comes back unchanged (lib/translate.test.ts keeps the list complete).
+ */
+export function translateMessage(text: string): string {
+  const trimmed = text.trim();
+  for (const [regex, english] of RULES) {
+    const match = regex.exec(trimmed);
+    if (!match) continue;
+    return typeof english === "string" ? trimmed.replace(regex, english) : english(...match);
+  }
+  return text;
+}
