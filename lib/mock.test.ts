@@ -82,6 +82,14 @@ describe("pay in 7 days", () => {
     expect(mock.getPool()).toEqual({ available: 4850.75, buffer: 51.125 });
   });
 
+  it("charges a lower credit fee when the shop paid part up front", () => {
+    expect(mock.payLater(1001).ok).toBe(true);
+    expect(mock.getInvoice(1001)?.creditFee).toBe(2.25); // all $150 on credit: 1.50%
+    mock.payNow(1004, 30); // $60 invoice, half up front
+    mock.payLater(1004);
+    expect(mock.getInvoice(1004)?.creditFee).toBe(0.366); // $30 at 1.22%
+  });
+
   it("stops at the limit and while overdue", () => {
     expect(mock.payLater(1003).message).toBe("Supera su límite de crédito.");
     mock.payLater(1001); // tienda-1 owes $150
@@ -106,11 +114,36 @@ describe("repay", () => {
     expect(mock.repay("tienda-1", 1).message).toBe("No tiene deudas pendientes.");
   });
 
-  it("drops the limit $25 when paid late", () => {
+  it("counts one day late as on time (grace day)", () => {
     mock.payLater(1001);
     now = NOW + 8 * DAY;
+    expect(mock.repay("tienda-1", 150).message).toBe("Deuda pagada a tiempo. Su límite subió a $225.00.");
+    expect(mock.getShop("tienda-1")).toMatchObject({ onTime: 1, late: 0, maxDaysLate: 1 });
+  });
+
+  it("drops the limit $25 when paid 2-7 days late", () => {
+    mock.payLater(1001);
+    now = NOW + 9 * DAY;
     expect(mock.repay("tienda-1", 150).message).toBe("Deuda pagada con atraso. Su límite bajó a $175.00.");
-    expect(mock.getShop("tienda-1")).toMatchObject({ creditLimit: 175, onTime: 0, late: 1 });
+    expect(mock.getShop("tienda-1")).toMatchObject({ creditLimit: 175, onTime: 0, late: 1, lateMinor: 1, lateMajor: 0, maxDaysLate: 2 });
+  });
+
+  it("drops the limit $50 and stops raises for 4 weeks when paid 8+ days late", () => {
+    mock.payLater(1001);
+    now = NOW + 15 * DAY;
+    expect(mock.repay("tienda-1", 150).message).toBe("Deuda pagada con atraso. Su límite bajó a $150.00.");
+    expect(mock.getShop("tienda-1")).toMatchObject({ creditLimit: 150, lateMinor: 0, lateMajor: 1, maxDaysLate: 8 });
+    mock.payLater(1004); // $60, on time, but inside the 4 weeks
+    expect(mock.repay("tienda-1", 60).message).toBe("Deuda pagada a tiempo. Gracias.");
+    now = NOW + 15 * DAY + 28 * DAY;
+    mock.payLater(1007);
+    expect(mock.repay("tienda-1", 40).message).toBe("Deuda pagada a tiempo. Su límite subió a $175.00.");
+  });
+
+  it("grows after a cycle under $40 when half of every credited invoice was paid up front", () => {
+    mock.payNow(1007, 20); // $40 invoice, $20 up front
+    mock.payLater(1007); // $20 on credit
+    expect(mock.repay("tienda-1", 20).message).toBe("Deuda pagada a tiempo. Su límite subió a $225.00.");
   });
 
   it("only grows after a $40+ cycle, once per week", () => {

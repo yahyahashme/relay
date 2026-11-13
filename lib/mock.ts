@@ -6,6 +6,7 @@
 // contract) so sums never drift. Everything returned is in dollars.
 
 import { formatDay, formatMoney, plural } from "./format";
+import { creditFeeBps } from "./labels";
 import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type InvoiceRow, type PayMethod, type Pool, type Receipt, type Shop, type Totals } from "./types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -15,9 +16,11 @@ const LIMIT_STEP = 25_00; // +$25 per on-time repayment...
 const LIMIT_CAP = 500_00; // ...up to $500,
 const MIN_BORROW_TO_GROW = 40_00; // ...only if the cycle borrowed at least $40,
 const RAISE_EVERY_MS = CREDIT_DAYS * DAY_MS; // ...and at most once per credit period
-const CREDIT_FEE_BPS = 150;
-const BUFFER_BPS = 75;
-const OUR_BPS = 25;
+const LENDER_BPS = 50; // the credit fee slides 1.00%-1.50% (lib/labels.ts); lenders always get 0.50%
+const GRACE_DAYS = 1; // repaid up to 1 day late still counts as on time (#137)
+const MINOR_LATE_DAYS = 7; // 2-7 days late: limit -$25; 8+ days: -$50 and no raise for 4 periods
+const MAJOR_LATE_STEP = 50_00;
+const NO_RAISE_MS = 4 * CREDIT_DAYS * DAY_MS;
 
 type InvoiceRecord = {
   id: number;
@@ -28,6 +31,7 @@ type InvoiceRecord = {
   dueAt: number;
   method?: PayMethod;
   cashClaim?: number;
+  creditFee?: number; // units
 };
 type ShopRecord = {
   id: string;
@@ -40,6 +44,12 @@ type ShopRecord = {
   late: number;
   cycleBorrowed: number; // borrowed since owed was last 0
   lastRaiseAt: number; // 0 if never
+  halfUpFront: boolean; // every invoice credited this cycle had half or more paid first
+  lateMinor: number;
+  lateMajor: number;
+  maxDaysLate: number;
+  firstCreditAt: number; // 0 if never
+  noRaiseUntil: number;
 };
 type DriverRecord = { id: string; name: string; cashHeld: number };
 type Store = {
@@ -72,6 +82,7 @@ let store: Store | null = null;
 function seed(now: number): Store {
   const shop = (id: string, name: string, owner: string): ShopRecord => ({
     id, name, owner, limit: 200_00, owed: 0, dueAt: 0, onTime: 0, late: 0, cycleBorrowed: 0, lastRaiseAt: 0,
+    halfUpFront: false, lateMinor: 0, lateMajor: 0, maxDaysLate: 0, firstCreditAt: 0, noRaiseUntil: 0,
   });
   return {
     invoices: SEED_INVOICES.map(([id, shopId, driverId, amount]) => ({
@@ -125,6 +136,7 @@ function toInvoice(r: InvoiceRecord): Invoice {
   };
   if (r.method) invoice.method = r.method;
   if (r.cashClaim !== undefined) invoice.cashClaim = dollars(r.cashClaim);
+  if (r.creditFee) invoice.creditFee = r.creditFee / (UNITS_PER_CENT * 100);
   return invoice;
 }
 
@@ -138,8 +150,12 @@ function toShop(s: ShopRecord): Shop {
     overdue: s.owed > 0 && clock() > s.dueAt,
     onTime: s.onTime,
     late: s.late,
+    lateMinor: s.lateMinor,
+    lateMajor: s.lateMajor,
+    maxDaysLate: s.maxDaysLate,
   };
   if (s.owed > 0) shop.creditDue = iso(s.dueAt);
+  if (s.firstCreditAt > 0) shop.firstCredit = iso(s.firstCreditAt);
   return shop;
 }
 
@@ -242,10 +258,14 @@ export function payLater(invoiceId: number): Receipt {
   if (shop.owed + amount > shop.limit) return fail("Supera su límite de crédito.");
 
   const units = amount * UNITS_PER_CENT;
-  // No usage fee on credit: our cut is inside the 1.5% (the distributor gets $98.50 per $100).
-  const payout = units - bps(units, CREDIT_FEE_BPS);
-  const toBuffer = bps(units, BUFFER_BPS);
-  const fromPool = payout + bps(units, OUR_BPS) + toBuffer;
+  // No usage fee on credit: our cut is inside the credit fee, which slides from 1.50% (all on
+  // credit, $98.50 per $100) down to 1.00% the more the shop paid up front (#135).
+  const rate = creditFeeBps(amount, invoice.amount);
+  const rest = rate - LENDER_BPS; // splits 3:1 buffer : us, the odd part to the buffer
+  const ours = bps(units, Math.floor(rest / 4));
+  const toBuffer = bps(units, rest - Math.floor(rest / 4));
+  const payout = units - bps(units, rate);
+  const fromPool = payout + ours + toBuffer;
   const { pool } = db();
   if (pool.available < fromPool) return fail("Hoy no hay fondos para crédito. Intente más tarde.");
 
@@ -254,9 +274,13 @@ export function payLater(invoiceId: number): Receipt {
   if (shop.owed === 0) {
     shop.dueAt = now + CREDIT_DAYS * DAY_MS;
     shop.cycleBorrowed = 0;
+    shop.halfUpFront = true;
   }
+  if (shop.firstCreditAt === 0) shop.firstCreditAt = now;
+  shop.halfUpFront &&= invoice.paid * 2 >= invoice.amount;
   shop.owed += amount;
   shop.cycleBorrowed += amount;
+  invoice.creditFee = units - payout;
   invoice.paid = invoice.amount;
   invoice.method = nextMethod(invoice.method, "credit");
   return ok(`Listo. Tiene hasta el ${formatDay(iso(shop.dueAt))} para pagar ${money(amount)}, sin intereses.`);
@@ -304,18 +328,27 @@ export function repay(shopId: string, amount: number): Receipt {
   if (shop.owed > 0) return ok(`Pago recibido: ${money(pay)}. Falta ${money(shop.owed)}.`);
 
   const now = clock();
-  const onTime = now <= shop.dueAt;
-  const borrowed = shop.cycleBorrowed;
+  const daysLate = now <= shop.dueAt ? 0 : Math.ceil((now - shop.dueAt) / DAY_MS);
+  const bigEnough = shop.cycleBorrowed >= MIN_BORROW_TO_GROW || shop.halfUpFront;
   shop.dueAt = 0;
   shop.cycleBorrowed = 0;
-  if (!onTime) {
+  shop.halfUpFront = false;
+  shop.maxDaysLate = Math.max(shop.maxDaysLate, daysLate);
+  if (daysLate > GRACE_DAYS) {
     shop.late += 1;
-    shop.limit = Math.max(shop.limit - LIMIT_STEP, 0);
+    if (daysLate <= MINOR_LATE_DAYS) {
+      shop.lateMinor += 1;
+      shop.limit = Math.max(shop.limit - LIMIT_STEP, 0);
+    } else {
+      shop.lateMajor += 1;
+      shop.limit = Math.max(shop.limit - MAJOR_LATE_STEP, 0);
+      shop.noRaiseUntil = now + NO_RAISE_MS;
+    }
     return ok(`Deuda pagada con atraso. Su límite bajó a ${money(shop.limit)}.`);
   }
   shop.onTime += 1;
   const waited = shop.lastRaiseAt === 0 || now >= shop.lastRaiseAt + RAISE_EVERY_MS;
-  if (shop.limit >= LIMIT_CAP || borrowed < MIN_BORROW_TO_GROW || !waited) {
+  if (shop.limit >= LIMIT_CAP || !bigEnough || !waited || now < shop.noRaiseUntil) {
     return ok("Deuda pagada a tiempo. Gracias.");
   }
   shop.limit = Math.min(shop.limit + LIMIT_STEP, LIMIT_CAP);

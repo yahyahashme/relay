@@ -66,6 +66,7 @@ describe("map", () => {
     due: 1_795_154_400n,
     status: { tag: "PartPaid", values: undefined },
     method: { tag: "Digital", values: undefined },
+    credit_fee: 0n,
   } as const;
 
   it("turns a contract invoice into the screens' invoice", () => {
@@ -93,7 +94,7 @@ describe("map", () => {
   });
 
   it("turns a ShopView into the screens' shop", () => {
-    const view = { limit: 2_000_000_000n, owed: 500_000_000n, due_at: 1_795_154_400n, overdue: false, on_time: 2, late: 0, total_repaid: 0n, written_off: 0n };
+    const view = { limit: 2_000_000_000n, owed: 500_000_000n, due_at: 1_795_154_400n, overdue: false, on_time: 2, late: 0, total_repaid: 0n, written_off: 0n, late_minor: 0, late_major: 0, max_days_late: 0, first_credit_at: 0n };
     expect(toShop("tienda-1", view)).toEqual({
       id: "tienda-1",
       name: "Tienda Rosa",
@@ -104,6 +105,9 @@ describe("map", () => {
       overdue: false,
       onTime: 2,
       late: 0,
+      lateMinor: 0,
+      lateMajor: 0,
+      maxDaysLate: 0,
     });
     expect(toShop("tienda-1", { ...view, owed: 0n, due_at: 0n })).not.toHaveProperty("creditDue");
   });

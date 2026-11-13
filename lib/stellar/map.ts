@@ -31,6 +31,7 @@ export function toInvoice(i: ChainInvoice, cashClaim = 0n): Invoice {
   const method = METHOD[i.method.tag];
   if (method) invoice.method = method;
   if (cashClaim > 0n) invoice.cashClaim = toDollars(cashClaim);
+  if (i.credit_fee > 0n) invoice.creditFee = toDollars(i.credit_fee);
   return invoice;
 }
 
@@ -44,7 +45,11 @@ export function toShop(shopId: string, v: ShopView): Shop {
     overdue: v.overdue,
     onTime: v.on_time,
     late: v.late,
+    lateMinor: v.late_minor,
+    lateMajor: v.late_major,
+    maxDaysLate: v.max_days_late,
   };
   if (v.owed > 0n && v.due_at > 0n) shop.creditDue = iso(v.due_at);
+  if (v.first_credit_at > 0n) shop.firstCredit = iso(v.first_credit_at);
   return shop;
 }
