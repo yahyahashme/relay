@@ -37,6 +37,9 @@ pub const LIMIT_CAP: i128 = 5_000_000_000;
 /// that cycle (about one small delivery), unless it paid at least half of
 /// every credited invoice up front (#135)...
 pub const MIN_BORROW_TO_GROW: i128 = 400_000_000;
+/// The half-up-front waiver still needs $10 on credit in the cycle, so a $1
+/// invoice paid half up front can't farm the limit (Jack's review of #139).
+pub const MIN_BORROW_WITH_HALF: i128 = 100_000_000;
 // ...and at most once per credit period. Together these stop a shop from
 // taking $1 of credit and repaying it over and over to reach $500.
 
@@ -715,12 +718,12 @@ impl RouteLedger {
             if days <= GRACE_DAYS {
                 terms.on_time += 1;
                 // +$25 for paying on time, never past $500, and only if the shop
-                // borrowed at least $40 this cycle (or paid half of every credited
-                // invoice up front), wasn't raised in the last credit period, and
+                // borrowed at least $40 this cycle (or $10, with half of every credited
+                // invoice paid up front), wasn't raised in the last credit period, and
                 // isn't serving a no-raise after a major late payment. A limit the
                 // admin set above $500 is left alone.
-                let big_enough =
-                    terms.cycle_borrowed >= MIN_BORROW_TO_GROW || terms.cycle_half_up_front;
+                let big_enough = terms.cycle_borrowed >= MIN_BORROW_TO_GROW
+                    || (terms.cycle_half_up_front && terms.cycle_borrowed >= MIN_BORROW_WITH_HALF);
                 let waited =
                     terms.last_raise_at == 0 || now >= terms.last_raise_at + period;
                 if big_enough && waited && now >= terms.no_raise_until && terms.limit < LIMIT_CAP {

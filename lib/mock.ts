@@ -14,6 +14,7 @@ const CREDIT_DAYS = 7;
 const UNITS_PER_CENT = 100_000; // $1 = 10,000,000 units
 const LIMIT_STEP = 25_00; // +$25 per on-time repayment...
 const LIMIT_CAP = 500_00; // ...up to $500,
+const MIN_BORROW_WITH_HALF = 10_00; // or $10 with half of every credited invoice paid up front
 const MIN_BORROW_TO_GROW = 40_00; // ...only if the cycle borrowed at least $40,
 const RAISE_EVERY_MS = CREDIT_DAYS * DAY_MS; // ...and at most once per credit period
 const LENDER_BPS = 50; // the credit fee slides 1.00%-1.50% (lib/labels.ts); lenders always get 0.50%
@@ -329,7 +330,7 @@ export function repay(shopId: string, amount: number): Receipt {
 
   const now = clock();
   const daysLate = now <= shop.dueAt ? 0 : Math.ceil((now - shop.dueAt) / DAY_MS);
-  const bigEnough = shop.cycleBorrowed >= MIN_BORROW_TO_GROW || shop.halfUpFront;
+  const bigEnough = shop.cycleBorrowed >= MIN_BORROW_TO_GROW || (shop.halfUpFront && shop.cycleBorrowed >= MIN_BORROW_WITH_HALF);
   shop.dueAt = 0;
   shop.cycleBorrowed = 0;
   shop.halfUpFront = false;

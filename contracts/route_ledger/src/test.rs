@@ -1466,6 +1466,32 @@ fn half_up_front_waives_the_40_dollar_minimum_to_grow() {
 }
 
 #[test]
+fn half_up_front_on_a_tiny_invoice_does_not_grow_the_limit() {
+    let t = setup();
+    t.with_credit();
+    // $1 invoice, $0.50 up front and $0.50 on credit, repaid every week: never grows.
+    for week in 0..3u64 {
+        t.env.ledger().set_timestamp(START + week * WEEK);
+        let id = week + 1;
+        t.invoice(id, USD);
+        t.client.pay(&t.shop, &id, &(USD / 2));
+        t.client.pay_with_credit(&t.shop, &id);
+        let owed = t.client.get_shop(&t.shop).owed;
+        t.client.repay(&t.shop, &owed);
+    }
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!((shop.on_time, shop.limit), (3, 2_000_000_000));
+
+    // $10 on credit with half up front is enough.
+    t.env.ledger().set_timestamp(START + 3 * WEEK);
+    t.invoice(9, 20 * USD);
+    t.client.pay(&t.shop, &9, &(10 * USD));
+    t.client.pay_with_credit(&t.shop, &9);
+    t.client.repay(&t.shop, &(10 * USD));
+    assert_eq!(t.client.get_shop(&t.shop).limit, 2_250_000_000);
+}
+
+#[test]
 fn one_credited_invoice_without_half_up_front_keeps_the_40_dollar_minimum() {
     let t = setup();
     t.with_credit();

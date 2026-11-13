@@ -94,7 +94,7 @@ export default function AccountScreen() {
             <p className="text-2xl font-semibold tabular-nums">{formatMoney(available)}</p>
           </div>
         </div>
-        <p className="rounded-xl bg-brand-soft px-3 py-2 text-brand">+$25 por pago a tiempo (una vez por período de crédito, si compró $40 o más o pagó la mitad al recibir), hasta $500. Tiene un día de gracia. De 2 a 7 días tarde baja $25; 8 días o más, baja $50.</p>
+        <p className="rounded-xl bg-brand-soft px-3 py-2 text-brand">+$25 por pago a tiempo (una vez por período de crédito, si compró $40 o más a crédito, o $10 o más pagando la mitad al recibir), hasta $500. Tiene un día de gracia. De 2 a 7 días tarde baja $25; 8 días o más, baja $50.</p>
         <p>
           Historial: {plural(shop.onTime, "pago", "pagos")} a tiempo, {shop.late} tarde
         </p>
