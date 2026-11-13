@@ -26,7 +26,7 @@ Stellar testnet, deployed 2026-11-13 by `scripts/deploy.sh`.
 
 | What | ID | Explorer |
 |---|---|---|
-| `route_ledger` contract | `CCHSYKQOISV2BUZPRTQOB3MM4NOXTZGHL3FD6SSSMSKEUPWHLJZFWU4J` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CCHSYKQOISV2BUZPRTQOB3MM4NOXTZGHL3FD6SSSMSKEUPWHLJZFWU4J) |
+| `route_ledger` contract | `CAGCZ3I7CQHZDELPV5OB2W4D4LHA7MPSOBP4NO2AV4JO2G6HED7HV4ML` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CAGCZ3I7CQHZDELPV5OB2W4D4LHA7MPSOBP4NO2AV4JO2G6HED7HV4ML) |
 | Test USDC token | `CANWPJKTWATAQKWD4VNDRMPHHWONWJ5IMCIJ2OTJNYFZ5IDQWX2E2NUP` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CANWPJKTWATAQKWD4VNDRMPHHWONWJ5IMCIJ2OTJNYFZ5IDQWX2E2NUP) |
 
 Test USDC is our own, issued by `tiendas-issuer`, not Circle's.
