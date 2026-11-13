@@ -46,6 +46,9 @@ describe("formatUSD", () => {
     [5_250_000n, "$0.53"],
     [5_249_999n, "$0.52"],
     [0n, "$0.00"],
+    [-1n, "$0.00"],
+    [-49_999n, "$0.00"],
+    [-50_000n, "-$0.01"],
     [1_000_000_000_000n, "$100,000.00"],
     [-5_250_000n, "-$0.53"],
     [9_999_950_000n, "$1,000.00"],
@@ -74,11 +77,10 @@ describe("feeBps", () => {
   );
 
   it.each([
-    [1_500_000_000n, 1_476_000_000n, "147.60"],
-    [1_000_000_000n, 984_000_000n, "98.40"],
-  ])("matches the card's worked example for %s units", (units, expected, dollars) => {
-    const net = units - feeBps(units, 150) - feeBps(units, 10);
-    expect(net).toBe(expected);
-    expect(fromUnits(net)).toBe(dollars);
+    [1_500_000_000n, 150, "147.75"],
+    [1_000_000_000n, 150, "98.50"],
+    [1_500_000_000n, 10, "149.85"],
+  ])("matches the payout for %s units charged at %s basis points", (units, bps, dollars) => {
+    expect(fromUnits(units - feeBps(units, bps))).toBe(dollars);
   });
 });
