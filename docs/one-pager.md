@@ -49,7 +49,7 @@ Distributors pay, never shops: 1.5% to be paid instantly on pay-in-7-days sales 
 Target: 120 to 150 words.
 
 <!-- q6 -->
-Rohan studies FARM (Financial Analysis and Risk Management), which covers the credit and risk side. Three engineers (software, two computer) built and tested our public contract, CAPQ6ZDDWDS3OE42BM5LM3M7YEQ3TJ7IJZ5ZT7A2Z3RTSI35OJKV3I23 on Stellar testnet, and the app: https://tiendas-stellar.vercel.app. Then we asked for help: 2 advisor calls, and emails to 4 banks and a supermarket chain in El Salvador. We are first-year Waterloo students and none of us has run a shop, so we learned this from them.
+Rohan studies FARM (Financial Analysis and Risk Management), which covers the credit and risk side. Three engineers (software, two computer) built and tested our public contract, CDHDZX7VVOPY7TNKA744EQP24BPO5MJIZQOGJGYNGA7N7ZIZWQBQMYUR on Stellar testnet, and the app: https://relay.vercel.app. Then we asked for help: 2 advisor calls, and emails to 4 banks and a supermarket chain in El Salvador. We are first-year Waterloo students and none of us has run a shop, so we learned this from them.
 
 We also say the hardest part plainly. Risk #1: turning cash into digital dollars isn't solved in El Salvador, and our demo simulates it; MoneyGram lists cash-out points in El Salvador but, as far as we found, not cash-in. Our plan: shops repay weekly like a bill at a bank or payment point, and a licensed partner converts in bulk and does KYC on shops and KYB on distributors.
 <!-- /q6 -->
@@ -81,7 +81,7 @@ Every number in answers 4 to 6. "Confirm" means Rohan checks it against his fina
 | four first-year students | 6 | Context header | True as of Nov 10. |
 | Rohan studies FARM (Financial Analysis and Risk Management) | 6 | Yahya's review comment on #64 (Nov 10). Context says only "FARM". | Rohan to confirm the wording. |
 | Three engineers (software, two computer) built and tested the contract and app | 6 | Yahya's review comment on #64; context header lists the programs | Yahya to confirm this fairly describes all three. |
-| Contract `CAPQ6ZDD…` and https://tiendas-stellar.vercel.app | 6 | `config/testnet.json` (`contracts.routeLedger`) and the README table; the URL returned HTTP 200 on Nov 11 | Verified. `CANWPJKT…` in the same file is the test USDC token, not our contract. |
+| Contract `CDHDZX7V…` (redeployed Nov 12) and https://relay.vercel.app | 6 | `config/testnet.json` (`contracts.routeLedger`) and the README table; the URL returned HTTP 200 on Nov 11 | Verified. `CANWPJKT…` in the same file is the test USDC token, not our contract. |
 | 2 advisor calls | 6 | `docs/research.md` "Advisor calls (Nov 9)", PR #72 (#17); same section in PR #89 | Matches the log (two advisors, both calls Mon Nov 9); checked by Claude, 12 Nov. Neither PR is merged. |
 | emails to 4 banks and a supermarket chain in El Salvador | 6 | `docs/research.md` "Partner outreach", PR #89 (#10): five rows dated Nov 10 (Promerica, Abank, Integral, Davivienda, Súper Selectos) | Checked by Claude, 12 Nov. The Nov 11 email to a Davivienda colleague is not counted again. The log's own pitch line says "6 banks and cash-in companies", which counts that email as a sixth organisation; recount if Rohan sends more tonight. PR #89 is not merged. |
 | Cut: shop-owner and distributor conversations (#7), prototype walkthroughs (#30) | 6 | No count in issues #7, #30 or any `docs/research.md` | Removed Nov 12 because no number is logged. Add one back only if it is logged before submit. |

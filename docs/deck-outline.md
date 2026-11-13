@@ -80,7 +80,7 @@ For slide 3 and the trifold's middle panel. They have to come from the live app 
 **When:** after the Thursday redeploy (#52), because the redeploy gives a new contract and new demo invoices. Best in the same sitting as Yahya's video (#35), so the demo is only changed once. Shot 2 makes a real testnet payment with test dollars and changes what the video shows (see "Side effects").
 
 **Setup (Chrome on a Mac)**
-1. Open https://tiendas-stellar.vercel.app. Check the testnet banner is at the top and the page isn't an old preview.
+1. Open https://relay.vercel.app. Check the testnet banner is at the top and the page isn't an old preview.
 2. Open Chrome DevTools (Cmd+Opt+I), then the device toolbar (Cmd+Shift+M). In the toolbar choose "Responsive" and type width **360** and height **740**. Click the toolbar's three dots, choose "Add device pixel ratio", and set it to **3**.
 3. To capture: three dots in the device toolbar, "Capture screenshot" (not "full size"). It saves only the 360 px phone view, without DevTools or the browser bar, as a PNG in Downloads about 1080 px wide.
 
