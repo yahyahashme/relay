@@ -831,7 +831,7 @@ Opened by Rohan on 12 Nov to fill gaps in context §5, §6, §9 and §11: what c
   - The percentages are channel shares, our reading of the report's list. The reports don't count routes, trucks or credit days.
   - Most of its sales go to wholesalers and supermarkets, so routes are a slice.
   - Moody's Local says its liquidity depends on receivables and inventory. The group already sells future cash flows to investors through the fund above.
-  - We have emailed Zumma Ratings (outreach log in `docs/research.md`). Nobody at DISZASA has been contacted.
+  - Nobody has contacted Zumma Ratings or DISZASA yet. The email to Zumma Ratings was written on Nov 12 but not sent; Ruhaan sends it (#120).
 - **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude's fetch of the PDF on 12 Nov 2026 returned this phrase on p. 2.)
 
 ## 55. The distributors' association works with the state on tiendas
