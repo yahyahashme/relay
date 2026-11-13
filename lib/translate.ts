@@ -109,6 +109,11 @@ const RULES: Rule[] = [
   exact("No pudimos crear su cuenta en este momento. Intente de nuevo en un minuto.", "We couldn't create your account right now. Try again in a minute."),
   exact("Teléfono, correo o contraseña incorrectos.", "Wrong phone, email or password."),
   exact("Ya hay una cuenta con ese teléfono o correo. Entre con su contraseña.", "There's already an account with that phone or email. Sign in with your password."),
+
+  // Who may act, and rate limits (Jack's review of #145)
+  exact("Entre a su cuenta para hacer esto. Solo el dueño de la cuenta puede.", "Sign in to do this. Only the account's owner can."),
+  exact("Demasiados intentos. Espere unos minutos e intente de nuevo.", "Too many tries. Wait a few minutes and try again."),
+  exact("Esa contraseña es muy fácil de adivinar. Use otra.", "That password is too easy to guess. Use another one."),
 ];
 
 /**

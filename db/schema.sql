@@ -76,3 +76,10 @@ CREATE TABLE IF NOT EXISTS sessions (
 
 CREATE INDEX IF NOT EXISTS sessions_user ON sessions (user_id);
 CREATE INDEX IF NOT EXISTS drivers_distributor ON drivers (distributor_id);
+
+-- Rate limits (sign-ups per IP, wrong passwords per phone/email and IP), shared by every server instance.
+CREATE TABLE IF NOT EXISTS rate_events (
+  key TEXT NOT NULL,
+  at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS rate_events_key_at ON rate_events (key, at);
