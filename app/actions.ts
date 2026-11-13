@@ -249,7 +249,9 @@ const DEMO_AMOUNTS = ["45.00", "60.00", "85.50"]; // several fit under a $200 li
 const WEEK_SECS = 7n * 24n * 60n * 60n;
 const DEMO_TRIES = 3;
 
-const MAX_IMPORT = 50;
+// Each invoice is its own transaction (about 5 s), and the server action has 60 s
+// (app/distribuidor/layout.tsx), so 10 per file stays well inside it.
+const MAX_IMPORT = 10;
 
 /**
  * CSV import (#32): checks every row first (shop and driver known, id not on

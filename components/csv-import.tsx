@@ -9,7 +9,7 @@ import type { InvoiceRow, Receipt } from "@/lib/types";
 
 // The demo's shops and drivers (the ids in the CSV's shop_id and driver_id columns).
 const KNOWN = { shops: ["tienda-1", "tienda-2", "tienda-3"], drivers: ["motorista-1", "motorista-2"] };
-const MAX_ROWS = 50;
+const MAX_ROWS = 10; // same limit as createInvoices in app/actions.ts
 
 type Parsed = { fileName: string; rows: InvoiceRow[]; errors: CsvError[] };
 
