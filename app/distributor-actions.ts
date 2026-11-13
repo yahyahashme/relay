@@ -4,6 +4,7 @@
 // the /admin decisions, and the dashboard scoped to the signed-in distributor.
 
 import { signUp } from "@/lib/server/accounts";
+import { signUpBlocked, TOO_MANY } from "@/lib/server/rate-limit";
 import { requireDb, getDb } from "@/lib/server/db";
 import { getDirectory } from "@/lib/server/directory";
 import {
@@ -46,6 +47,7 @@ export async function signUpDistributorAction(input: {
   const problem = checkDetails(input.details); // before anything is created
   if (problem) return { ok: false, message: problem };
   try {
+    if (await signUpBlocked()) return { ok: false, message: TOO_MANY };
     const result = await signUp({ role: "distribuidora", name: input.name, contact: input.contact, password: input.password });
     if (!result.ok) return result;
     await registerDistributor(result.user, input.details);

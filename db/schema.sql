@@ -96,3 +96,10 @@ CREATE TABLE IF NOT EXISTS driver_invites (
   removed_at     TIMESTAMPTZ
 );
 CREATE INDEX IF NOT EXISTS driver_invites_distributor ON driver_invites (distributor_id);
+
+-- Rate limits (sign-ups per IP, wrong passwords per phone/email and IP), shared by every server instance.
+CREATE TABLE IF NOT EXISTS rate_events (
+  key TEXT NOT NULL,
+  at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS rate_events_key_at ON rate_events (key, at);
