@@ -118,3 +118,13 @@ CREATE TABLE IF NOT EXISTS invoice_notes (
   note TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+-- Who may read a note (Jack's review of #149): the invoice's shop and driver.
+ALTER TABLE invoice_notes ADD COLUMN IF NOT EXISTS shop_id TEXT;
+ALTER TABLE invoice_notes ADD COLUMN IF NOT EXISTS driver_id TEXT;
+
+-- Rate limits (sign-ups per IP, wrong passwords per phone/email and IP), shared by every server instance.
+CREATE TABLE IF NOT EXISTS rate_events (
+  key TEXT NOT NULL,
+  at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS rate_events_key_at ON rate_events (key, at);

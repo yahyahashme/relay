@@ -135,8 +135,16 @@ let cached: { at: number; directory: Promise<Directory> } | null = null;
 export function getDirectory(): Promise<Directory> {
   if (cached && Date.now() - cached.at < TTL_MS) return cached.directory;
   const directory = (async () => {
-    const fromDb = await partiesFromDb();
     const seed = seedParties();
+    let fromDb: Party[] | null;
+    try {
+      fromDb = await partiesFromDb();
+    } catch (error) {
+      // Postgres down or slow: the demo accounts still work, and the next read tries again.
+      console.error("[directory] database", error instanceof Error ? error.message : error);
+      cached = null;
+      return new Directory(seed);
+    }
     if (!fromDb) return new Directory(seed);
     const known = new Set(fromDb.map((party) => party.id));
     return new Directory([...fromDb, ...seed.filter((party) => !known.has(party.id))]);
