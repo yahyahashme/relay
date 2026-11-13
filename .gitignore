@@ -169,3 +169,6 @@ test_snapshots/
 .pnpm-debug.log*
 .vercel
 next-env.d.ts
+
+# Print-size slide images (SCALE=3 node docs/slides/render.mjs): big, rebuilt on demand
+docs/img/*@*x.png

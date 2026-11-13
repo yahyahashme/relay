@@ -60,7 +60,7 @@ Neighbourhood shops (tiendas) in El Salvador pay the trucks that restock them in
 | When (ET) | What | Who |
 |---|---|---|
 | Fri Nov 6, 12:00 PM | Devpost opens. Register, then write its submission deadline into this table. | Yahya |
-| Mon Nov 9 | Advisor calls done: Adam Chu and Misha Stastna. What they said is in §14. | Yahya |
+| Mon Nov 9 | Advisor calls done: our startup advisor and our technical and finance advisor. What they said is in §14. | Yahya |
 | Tue Nov 10, 5 to 6 PM | Technical Workshop (virtual). Bring a real bug. | Yahya, Jack |
 | Wed Nov 11, 5 to 7 PM | Working Session #2, then the Pitch Prep Workshop. 1st floor IDEAs Clinic, PSE. | Everyone |
 | **Fri Nov 13, 8:30 AM** | **One-page solution form. Decides the Top 16.** We submit Thu night. [Form](https://airtable.com/apprwC5wqwb4We3jo/pageD4iVuMUuoOvFs/form) | Jack |
@@ -406,7 +406,7 @@ A shop buys $100 of stock and picks "pay in 7 days".
 - If turning cash into digital dollars costs shops much, nobody switches (Risk #1, §6).
 - Distributors may say 1.5% is too much. Ask them (§13).
 
-**Market size (sourced Nov 9):** distributors sell about **$2 billion a year** to El Salvador's **85,265 neighbourhood shops and small retailers** (about 50,133 of them are tiendas proper). The $2B is a Conamype estimate: its president, Paul Steiner, citing unnamed market studies, via Diario El Salvador, 27 Feb 2026. The shop count is Distribución Dinámica's. Details and caveats: `docs/facts.md` entries 1 to 3. Ceiling, not a forecast: if 10% of it went through "pay in 7 days", our 0.25% share of that is $500K a year, and the 0.1% usage fee on the other 90% is $1.8M (credit sales don't pay the usage fee), so about $2.3M in total. Lead with a worldwide number first, then this one (Misha); Rohan is finding and sourcing it. Never use the unsourced $7B.
+**Market size (sourced Nov 9):** distributors sell about **$2 billion a year** to El Salvador's **85,265 neighbourhood shops and small retailers** (about 50,133 of them are tiendas proper). The $2B is a Conamype estimate: its president, Paul Steiner, citing unnamed market studies, via Diario El Salvador, 27 Feb 2026. The shop count is Distribución Dinámica's. Details and caveats: `docs/facts.md` entries 1 to 3. Ceiling, not a forecast: if 10% of it went through "pay in 7 days", our 0.25% share of that is $500K a year, and the 0.1% usage fee on the other 90% is $1.8M (credit sales don't pay the usage fee), so about $2.3M in total. Lead with a worldwide number first, then this one (our technical and finance advisor); Rohan is finding and sourcing it. Never use the unsourced $7B.
 
 ---
 
@@ -433,14 +433,14 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 | 9 | **Cash-out via MoneyGram.** Distributors can collect cash from their digital dollars at MoneyGram Ramps points (banks, Super Selectos), as a stand-in until a partner pays them into their bank (idea 7). | Nov 7 | Found, check fees |
 | 10 | **No big deposit at sign-up.** Because of credit, a shop never pre-loads money: it takes stock on credit, sells it, then turns cash into digital dollars once a week, only for what it owes. Shops can't afford to lock up money they need for stock. | Nov 7 | Built into the design |
 | 11 | **Ask the banks that already work with MoneyGram** (Cuscatlán, Davivienda, Promerica) whether they could also take cash in, so the same counters handle both directions. | Nov 7 | Question |
-| 12 | **Partner instead of building cash points.** Work with a bank or cash-in/cash-out company that already has a reputation in El Salvador (Adam Chu, Nov 9). Secure ATMs (about $5k each) came up and were rejected: cash rules and safety. Rohan is emailing banks and cash-in companies. | Nov 9 | In progress |
+| 12 | **Partner instead of building cash points.** Work with a bank or cash-in/cash-out company that already has a reputation in El Salvador (our startup advisor, Nov 9). Secure ATMs (about $5k each) came up and were rejected: cash rules and safety. Rohan is emailing banks and cash-in companies. | Nov 9 | In progress |
 | 13 | **Use the counters that already exist.** Banks run 8,900 correspondent points inside small businesses (facts 41). One bank's customers deposit at PuntoXpress at no extra cost (42), and a wallet tops up at 748+ Punto Express points without surcharge (43). A banked shop deposits there and pays from its account; Transfer365 is free (14). | Nov 12 | Most promising for banked shops |
 | 14 | **Idea 1 already works for loans.** CrediCampo borrowers repay through Tigo Money's 2,500+ agents, and Banco Integral's through AKÍ Pago's about 1,000 points (facts 44). We need a partner that does the same and credits digital dollars. | Nov 12 | Precedent found |
 | 15 | **Ask partners that already hold the licences.** A bank that is also registered as a digital asset provider (Banco Atlántida El Salvador, facts 46) has banking and a digital asset registration; a licensed e-money company (Tigo Money, 45) has the cash agents. Contact them first. | Nov 12 | To contact |
 
 **Finding, Nov 7 (Yahya, MoneyGram Ramps locator):** MoneyGram has **cash-out** points in El Salvador (USDC to cash), in San Salvador and other cities. The locator shows the nearest 10 at a time, so we don't have a full count. Examples in central San Salvador: Banco Cuscatlán, Super Selectos, Banco Promerica, Banco Integral, Banco Davivienda, Banco Abank and a DLC road market. What it means for us: cash-out has a real answer today, so a distributor can turn digital dollars into cash at a bank or supermarket. **Cash-in (cash to USDC) is still unsolved,** and that's the half shops need.
 
-**Source check, Nov 12 (not confirmed by a person):** moneygram.com/stellar says "Cash-out is available in 170+ countries and territories and cash-in in 25+ countries", so "MoneyGram covers cash-out only" is false in general. For El Salvador the page's coverage map appears to list cash-out but not cash-in; that comes from the page HTML, and nobody has checked it by eye. The one-pager now says "as far as we found". Check the map by hand before we say cash-in is missing.
+**Source check, Nov 12 (not confirmed by a person):** moneygram.com/stellar says "Cash-out is available in 170+ countries and territories and cash-in in 25+ countries", so "MoneyGram covers cash-out only" is false in general. For El Salvador the page's coverage map appears to list cash-out but not cash-in; that comes from the page HTML, and nobody has checked it by eye. The one-pager and the README (Risk #1) now say "as far as we found". Check the map by hand before we say cash-in is missing.
 
 **Built, Nov 10 (#25):** the cash two-tap now runs on testnet: the driver records the cash, the shop confirms, and the contract counts it as cash held by that driver (`get_driver_cash`). No digital dollars move, so this records cash; it does not convert it. It is the mechanism behind idea 3 and does not solve cash-in. The distributor's "Marcar efectivo entregado" (#32) lowers that count when the driver hands the cash in at the warehouse; still no digital dollars move.
 
@@ -505,7 +505,7 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 
 | Who | Why them | How we reach them |
 |---|---|---|
-| Distribuidora Zablah (DISZASA) | Its rating agency calls it the leading consumer-goods distributor; 24,000 active clients, 14% of sales by route (facts 54) | Through people who already know it: its rating agencies (we've emailed Zumma Ratings) and ADES |
+| Distribuidora Zablah (DISZASA) | Its rating agency calls it the leading consumer-goods distributor; 24,000 active clients, 14% of sales by route (facts 54) | Through people who already know it: its rating agencies (our email to Zumma Ratings isn't sent yet; Ruhaan sends it, #120) and ADES |
 | DISNA (same group) | 9,500 active clients, some of them served by route (54) | Same |
 | Members of ADES, the distributors' association | ADES already works with Conamype and the state bank BFA on tiendas (55) | ADES directly, and Distribución Dinámica, the firm behind the shop count (facts 2) |
 
@@ -743,9 +743,9 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 5. What's the best wallet setup for shop owners on cheap phones: passkeys, SMS links, something else?
 
 **What the advisors said (Mon Nov 9)**
-- **Adam Chu** (startup founder; LinkedIn https://www.linkedin.com/in/adamwchu/): the tech is believable; judges will ask about go-to-market. Partner with banks and cash-in/cash-out companies that already have a reputation in El Salvador, and cold-email them about Stellar (a real reply would stand out). State assumptions clearly and argue for them. Lead with market size, backed by transaction counts times our fee. Show it's a real business.
-- **Misha Stastna** (finance; LinkedIn https://www.linkedin.com/in/misha-stastna-b93192335/): pick a name; build our own credit record and know what El Salvador's credit bureaus are called; know what a DUNS number is in case asked (most tiendas won't have one); lead with the worldwide number, then El Salvador's; have a 30-second answer to "how do you make money?"; say KYC/KYB; show one slide of real contract code; delivery decides it.
-- **Our corrections:** don't compare to MoneyGram's 5% (that's a cross-border fee, and Transfer365 is free); compare to loan sharks (about $35 per $100) versus $0 for shops. The $0.75 buffer is our own number. The $30 wallet bonus and fuel discounts Adam mentioned were Chivo perks from 2021: don't use them.
+- **Our startup advisor** (a startup founder): the tech is believable; judges will ask about go-to-market. Partner with banks and cash-in/cash-out companies that already have a reputation in El Salvador, and cold-email them about Stellar (a real reply would stand out). State assumptions clearly and argue for them. Lead with market size, backed by transaction counts times our fee. Show it's a real business.
+- **Our technical and finance advisor** (finance): pick a name; build our own credit record and know what El Salvador's credit bureaus are called; know what a DUNS number is in case asked (most tiendas won't have one); lead with the worldwide number, then El Salvador's; have a 30-second answer to "how do you make money?"; say KYC/KYB; show one slide of real contract code; delivery decides it.
+- **Our corrections:** don't compare to MoneyGram's 5% (that's a cross-border fee, and Transfer365 is free); compare to loan sharks (about $35 per $100) versus $0 for shops. The $0.75 buffer is our own number. The $30 wallet bonus and fuel discounts our startup advisor mentioned were Chivo perks from 2021: don't use them.
 
 **What judges will probably ask** (practise 20-second answers)
 - *How do you make money (30 seconds)?* Distributors pay us, shops never do: 0.1% of every invoice paid in cash or digitally, plus 0.25% of each "pay in 7 days" sale (inside the 1.5% credit fee, so the distributor gets $98.50 per $100), built into an open contract.
@@ -803,7 +803,7 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 | Nov 9 | Reviews: Yahya reviews every PR; Jack reviews Yahya's. |
 | Nov 9 | The deploy script moved from Jack to Yahya, so Yahya's work waits only on Jack's setup script (#15). |
 | Nov 10 | Credit sales pay no usage fee: the distributor gets $98.50 per $100 (one 1.5% fee; our 0.25% is inside it). The limit grows only after a $40+ cycle, once per credit period; late repayment drops it $25. The buffer covers defaults 4 credit periods late (`cover_default`), and only approved distributors can invoice. |
-| Nov 10 | Only Yahya contacts the advisors (Adam Chu, Misha Stastna), with at most two follow-ups each (#17). |
+| Nov 10 | Only Yahya contacts the advisors (our startup advisor and our technical and finance advisor), with at most two follow-ups each (#17). |
 | Nov 10 | Yahya's PRs wait for Jack's review before they merge; the admin bypass is a rare exception, not the habit. |
 
 ---
