@@ -25,7 +25,7 @@ vi.mock("../../config/testnet.json", () => ({
   },
 }));
 
-import { sendSponsored } from "./sponsor";
+import { canSponsor, innerResultCode, sendSponsored, sponsorFeeBump } from "./sponsor";
 
 const sponsor = Keypair.random();
 const shop = Keypair.random();
@@ -256,5 +256,44 @@ describe("sendSponsored", () => {
     expect(out).toMatchObject({
       error: { message: "STELLAR_SECRET_SPONSOR is not set" },
     });
+  });
+});
+
+describe("sponsorFeeBump (what lib/stellar/send.ts uses)", () => {
+  afterEach(() => {
+    delete process.env.STELLAR_SECRET_SPONSOR;
+  });
+
+  it("wraps the signed transaction in a fee bump the sponsor pays and signs, without sending it", () => {
+    process.env.STELLAR_SECRET_SPONSOR = sponsor.secret();
+    const send = vi.spyOn(rpc.Server.prototype, "sendTransaction");
+    const inner = signedContractCall();
+
+    const bump = sponsorFeeBump(inner);
+
+    expect(bump.feeSource).toBe(sponsor.publicKey());
+    expect(Buffer.from(bump.innerTransaction.hash()).toString("hex")).toBe(Buffer.from(inner.hash()).toString("hex"));
+    expect(bump.signatures).toHaveLength(1);
+    expect(send).not.toHaveBeenCalled();
+    send.mockRestore();
+  });
+
+  it("is only used when the sponsor key is set", () => {
+    expect(canSponsor()).toBe(false);
+    expect(() => sponsorFeeBump(signedInner())).toThrow("STELLAR_SECRET_SPONSOR is not set");
+    process.env.STELLAR_SECRET_SPONSOR = sponsor.secret();
+    expect(canSponsor()).toBe(true);
+  });
+});
+
+describe("innerResultCode", () => {
+  it("finds txBadSeq inside a failed fee bump, so send.ts retries it", () => {
+    expect(innerResultCode(innerBadSeq())).toBe("txBadSeq");
+  });
+
+  it("is undefined for a plain result", () => {
+    expect(innerResultCode(badSeq())).toBeUndefined();
+    expect(innerResultCode(failedUnderfunded())).toBeUndefined();
+    expect(innerResultCode(undefined)).toBeUndefined();
   });
 });

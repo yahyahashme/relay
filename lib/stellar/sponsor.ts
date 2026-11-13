@@ -1,6 +1,7 @@
 import "server-only";
 import {
   BASE_FEE,
+  FeeBumpTransaction,
   Keypair,
   Transaction,
   TransactionBuilder,
@@ -37,7 +38,7 @@ function codeName(value: unknown): string {
 // Describes why the network said no, e.g. "txFailed (paymentUnderfunded)" or
 // "txFeeBumpInnerFailed (txBadSeq)". Never throws: the error you read in the
 // logs must not be replaced by an error from reading the error.
-function describeResult(txResult: unknown): string {
+export function describeResult(txResult: unknown): string {
   try {
     const result = (txResult as { result?: unknown }).result;
     const code = codeName(result);
@@ -70,18 +71,21 @@ function describeOperations(result: unknown): string | undefined {
   }
 }
 
+/** True when the sponsor key is set, so transactions can be sponsored. */
+export function canSponsor(): boolean {
+  return Boolean(process.env.STELLAR_SECRET_SPONSOR);
+}
+
 /**
- * Wraps a transaction the shop already signed in a fee bump paid by the
- * sponsor, sends it and waits until it is in a ledger.
- * Returns the hash of the fee-bump transaction (the one stellar.expert shows).
+ * Wraps a transaction someone already signed in a fee bump paid and signed by
+ * the sponsor. The signer's own account pays nothing. Nothing is sent here:
+ * lib/stellar/send.ts sends it, so its retries for racing server instances
+ * keep working.
  */
-export async function sendSponsored(
-  signedInner: Transaction,
-): Promise<{ hash: string }> {
+export function sponsorFeeBump(signedInner: Transaction): FeeBumpTransaction {
   const secret = process.env.STELLAR_SECRET_SPONSOR;
   if (!secret) throw new Error("STELLAR_SECRET_SPONSOR is not set");
   const sponsor = Keypair.fromSecret(secret);
-
   // baseFee is the inclusion fee per operation, not the inner transaction's
   // total. For a contract call the SDK counts only the inclusion part against
   // it and adds the inner resource fee itself (checked on testnet with a
@@ -93,6 +97,32 @@ export async function sendSponsored(
     config.networkPassphrase,
   );
   feeBump.sign(sponsor);
+  return feeBump;
+}
+
+/** The inner result code of a fee bump that failed, e.g. "txBadSeq". Never throws. */
+export function innerResultCode(txResult: unknown): string | undefined {
+  try {
+    const result = (txResult as { result?: { type?: string } }).result;
+    if (result?.type !== "txFeeBumpInnerFailed") return undefined;
+    const inner = (result as unknown as { innerResultPair: { result: { result: { type?: string } } } })
+      .innerResultPair.result.result;
+    return inner.type;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Wraps a transaction the shop already signed in a fee bump paid by the
+ * sponsor, sends it and waits until it is in a ledger. Used by
+ * scripts/sponsor-check.ts; the app sends through lib/stellar/send.ts.
+ * Returns the hash of the fee-bump transaction (the one stellar.expert shows).
+ */
+export async function sendSponsored(
+  signedInner: Transaction,
+): Promise<{ hash: string }> {
+  const feeBump = sponsorFeeBump(signedInner);
 
   const server = new rpc.Server(config.rpcUrl);
 

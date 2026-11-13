@@ -6,6 +6,7 @@ import type { Client } from "@/packages/route_ledger/src/index";
 import { clientFor } from "./client";
 import { config, type Role } from "./config";
 import { ContractError, contractErrorCode } from "./errors";
+import { canSponsor, describeResult, innerResultCode, sponsorFeeBump } from "./sponsor";
 
 const server = new rpc.Server(config.rpcUrl);
 const MAX_RETRIES = 6;
@@ -48,15 +49,23 @@ async function sequenceUsed(signed: Transaction): Promise<boolean> {
 }
 
 /**
- * The ONLY place that submits a transaction. #32 swaps the body for Jack's
- * sendSponsored (#33) so users never need XLM for fees.
+ * The ONLY place that submits a transaction. With the sponsor key set (#33),
+ * each transaction goes out inside a fee bump the sponsor pays, so shops,
+ * drivers and the distributor never need XLM for fees. Without it (local
+ * runs), the signer pays its own fee.
  */
 export async function submitSigned(signed: Transaction): Promise<{ hash: string }> {
-  const sent = await server.sendTransaction(signed);
+  const outgoing = canSponsor() ? sponsorFeeBump(signed) : signed;
+  const sent = await server.sendTransaction(outgoing);
   if (sent.status === "ERROR") {
     const code: string | undefined = sent.errorResult?.result.type;
-    if (code === "txBadSeq") throw new BadSequence();
-    throw new Error(`sendTransaction failed: ${code ?? "unknown"}`);
+    // Inside a fee bump, a used sequence number shows up as the inner result.
+    if (code === "txBadSeq" || innerResultCode(sent.errorResult) === "txBadSeq") throw new BadSequence();
+    // Another instance's transaction with the same sequence number is still
+    // pending: to the network, a fee bump for that number looks like an attempt
+    // to replace it, which needs 10x the fee. Same race, so wait and rebuild.
+    if (outgoing !== signed && code === "txInsufficientFee") throw new BadSequence();
+    throw new Error(`sendTransaction failed: ${describeResult(sent.errorResult)}`);
   }
   if (sent.status === "TRY_AGAIN_LATER") throw new BadSequence();
 
