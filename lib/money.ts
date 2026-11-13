@@ -25,9 +25,9 @@ export function fromUnits(units: bigint): string {
 }
 
 export function formatUSD(units: bigint): string {
-  const sign = units < 0n ? "-" : "";
   const magnitude = units < 0n ? -units : units;
   const cents = (magnitude + UNITS_PER_CENT / 2n) / UNITS_PER_CENT;
+  const sign = units < 0n && cents > 0n ? "-" : "";
   const dollars = dollarGrouping.format(cents / 100n);
   const fraction = (cents % 100n).toString().padStart(2, "0");
 

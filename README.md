@@ -2,7 +2,7 @@
 
 *Paga tu ruta*
 
-Neighbourhood shops (tiendas) in El Salvador pay their suppliers in cash when the truck arrives, and often borrow from loan sharks to buy stock. This app lets a shop pay its supplier in digital dollars, or take the stock now and pay in 7 days with no interest, while a Stellar smart contract keeps the record and enforces the credit rules.
+Neighbourhood shops (tiendas) in El Salvador buy their stock from distributors. In a four-country survey, 8 in 10 small businesses in El Salvador, Guatemala, Honduras and Mexico pay suppliers mainly in cash, and in El Salvador 6 in 10 informal small businesses have borrowed from loan sharks. This app lets a shop pay its supplier in digital dollars, or take the stock now and pay in 7 days with no interest, while a Stellar smart contract keeps the record and enforces the credit rules.
 
 **Live app:** [relay-sv.vercel.app](https://relay-sv.vercel.app) · Built for the Velocity x Stellar challenge (Nov 2026) by Yahya, Jack, Rohan and Ruhaan. Plan and decisions: [docs/context.md](docs/context.md).
 
@@ -15,6 +15,7 @@ Three screens (a website that works like a phone app): the **shop** pays an invo
 - **Pagar en 7 días:** a lender pool pays the distributor now, minus a 1.5% fee the distributor pays (0.75% safety buffer, 0.50% lenders, 0.25% us). The shop repays within 7 days, with no interest.
 - **Credit record:** a shop's limit starts at $200 and grows $25 per on-time repayment (cycles of $40+, at most once a week) up to $500; late repayments are recorded and lower it.
 - **Fees:** distributors pay a 0.1% usage fee on digital and cash payments (for cash it's recorded and billed later). Shops never pay fees.
+- **Network fee sponsorship:** every transaction goes out inside a fee bump paid by our sponsor account (`lib/stellar/sponsor.ts`, used by `lib/stellar/send.ts`), so shops, drivers and the distributor never hold or spend XLM for fees.
 
 **Demo vs real product:** in the demo the server signs for each role with test keys. The real product uses passkey smart wallets on the users' phones, and a licensed partner does KYC on shop owners and KYB on distributors.
 
@@ -50,7 +51,7 @@ The test USDC is our own asset, issued by `tiendas-issuer` on testnet. It is not
 
 ## Risk #1: turning cash into digital dollars
 
-Shops are paid in cash. For digital payments to work, that cash has to become digital dollars somewhere, cheaply. We haven't solved this yet. As of Nov 7, the other direction does exist: MoneyGram lets people turn USDC into cash at banks and supermarkets across El Salvador, so distributors can cash out. Getting cash in is the open problem. Our ideas so far are in section 6 of [docs/context.md](docs/context.md).
+We think shops are mostly paid in cash. For digital payments to work, that cash has to become digital dollars somewhere, cheaply. We haven't solved this yet. As of Nov 7, the other direction seems to exist: MoneyGram lists cash-out points in El Salvador, such as banks and supermarkets in San Salvador, so distributors may be able to cash out (its locator shows only the nearest 10, so we have no full count). For El Salvador, its coverage data lists cash-out but, as far as we found, not cash-in, and no person has checked its map yet. Getting cash in is the open problem. Our ideas so far are in section 6 of [docs/context.md](docs/context.md).
 
 **Our plan:**
 - The shop repays like a bill: cash at a bank or payment point with a reference number, and a licensed partner converts the cash in bulk.

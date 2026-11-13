@@ -25,7 +25,7 @@ Written Thu Nov 12 evening; updated late that evening for the product name (Rela
 - The live app is **https://relay-sv.vercel.app** (README). The old https://tiendas-stellar.vercel.app only redirects there (HTTP 307), so do not print it.
 - The QR image `public/qr-demo.png` was regenerated for the new URL (PR #102, merged). Decoded Thu Nov 12 evening with macOS CoreImage, from the file on `main`: it opens `https://relay-sv.vercel.app/demo`. **That checks the file, not the print: scan the printed QR once before Monday to check it opens `/demo`.**
 - The contract was redeployed on Thu Nov 12 (PR #90). The contract ID is `contracts.routeLedger` in `config/testnet.json`.
-- `docs/pitch.md` and the trifold files (`docs/trifold/`) are on `main` (PR #83, merged). The product name is decided: **Relay**, tagline **"Paga tu ruta"** (PR #100, `lib/brand.ts`, context §1). `[NAME]` is still in `docs/pitch.md` and in `docs/trifold/trifold.html` on `main`: fill it with "Relay" before the final render.
+- `docs/pitch.md` and the trifold files (`docs/trifold/`) are on `main` (PR #83, merged). The product name is decided: **Relay**, tagline **"Paga tu ruta"** (PR #100, `lib/brand.ts`, context §1). `[NAME]` became "Relay" in `docs/pitch.md` and `docs/trifold/trifold.html` in PR #107 (merged), so no name placeholder is left; the `[N]` ("what we heard") and phone screenshot placeholders are still open.
 
 ### Packing list
 
@@ -77,7 +77,7 @@ Use the laptop that ran `scripts/setup.sh`: it holds the test-dollar issuer. Yah
 3. Questions. The note-taker writes each one down, word for word, with the judge's role.
 4. Thank them. Check the dashboard before the next judge.
 
-**Open decision for the team:** the 3-minute pitch plays the video from 0:55 to 1:55 (context §3.8), while issue #43 makes the live demo the main thing and the video the fallback. Pick one: (a) play the video inside the pitch, then offer the live demo, or (b) skip the video and run the live demo inside the pitch. Decided: `[ ]`.
+**Showcase format:** play the full one-minute working-prototype video during the three-minute pitch. Offer the live QR demo after the pitch and keep the local video ready if the live demo fails. [Velocity's Devpost requirements](https://blockchain-stellar-ic.devpost.com/#requirements)
 
 ### If something fails
 

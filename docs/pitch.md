@@ -16,7 +16,7 @@ Status as of Thu Nov 12, evening. Update the "Status" column when an input lands
 | 6 | Demo QR `public/qr-demo.png` (#55, PR #70) | Yahya | **Merged** (PR #70, Nov 12). The file is `public/qr-demo.png` on `main` (1200 x 1200 px, well over 200 pixels per inch at its printed size). PR #102 (Nov 12) regenerated it for the new address. Decoded on Nov 12 evening with macOS CoreImage, from the file on `main`: it opens `https://relay-sv.vercel.app/demo`. `curl -sI https://relay-sv.vercel.app` answers 200. Scan the printed copy on 3 phones (#40). | The layout reads `public/qr-demo.png` and now renders it. |
 | 7 | Board size: do the panels fold 12 + 24 + 12 in or 16 + 16 + 16 in? | Jack | **Open: measure the board** (see section 1). | Both layouts are built and pass the same checks. Pick one when measured. |
 | 8 | Paper sketch agreed, print-ready file link in the group chat | Team | **Not done by this PR.** The layout builds a 48 x 36 in PDF in both versions (`node docs/trifold/render.mjs`), but it carries yellow placeholders until rows 4 and 5 close. These are two of the three "Done means" lines of #37. | The PDFs are not committed (`out/` is git-ignored); Jack builds the final one and shares it. |
-| 9 | The video (#35). Its first 8 seconds are a title card with the worldwide number (`docs/demo-video.md`, PR #77) | Yahya | **Open.** #77 is merged: the title card is now shown as text, not spoken, and narration starts at 0:08 on the shop screens. The video is not recorded yet (#35 is open). | The pitch says the opening line once, at 0:00, and plays the video from 0:08, after the title card, so the video runs 52 s, not 60. The full video stays as it is for Devpost. If the title card changes length, change the 52.0 s in the timing table. |
+| 9 | The one-minute demo video (#35) | Yahya | **Open.** The shot list is in `docs/demo-video.md`. | Rehearse with the full 60-second file from 0:00. Keep the same cut available offline for the showcase. |
 | 10 | A sharper diagram: `docs/img/architecture.png` is 1920 x 1080 px, which is 113 pixels per inch on the 12 + 24 + 12 board and 132 on the 16 + 16 + 16 one | Owner of the slide renders (PR #85's scaffold), asked through Jack | **Not asked yet.** Request text is in section 1. | The layout uses the 1x file and prints a warning. It picks up `architecture@2x.png` by itself when it exists. |
 | 11 | Copy the Nov 12 source-check edits from this file into `docs/trifold/trifold.html`: the left-panel crews and cash line (+12 words and a source line) and the right-panel "and sells more" cut (-3 words). Then run `node docs/trifold/render.mjs` and re-measure the word count and text share in section 1 | Jack | **Done Nov 12.** `trifold.html` has the new crews and cash line (+12 words), its source line (+35 words) and the "and sells more" cut (net -2 words, because "and" had to be added before "carries"). Re-rendered: the board was then 446 words (was 401; it is 456 now), text share 15.5% (A) and 15% (B) then (16.0% and 15.4% now), all panels fit. | None: the board copy and this file agree. The spoken script was not affected. |
 
@@ -148,7 +148,7 @@ Source check, Nov 12: the crew line is entry 40 in `docs/facts.md` (cash is entr
 
 ## 2. Pitch script v1 (3:00, one speaker, the 1-minute video included)
 
-**Re-timed Nov 11 at 140 words a minute.** The first draft was 275 spoken words: 117.9 s, so 2:58 with the video and no time to start or stop it, and three segments ran past their windows. This version is shorter and timed as one run, not window by window. The pool-pays-the-distributor line was said twice (0:25 and 1:55); it is now only in the 1:55 segment. Counts are spoken lines only, and a `[placeholder]` counts one word per word inside it. **Nov 12 source check:** the 0:25 segment went from 57 to 60 words, because the dollar and Stellar lines were rewritten to match their sources. **Nov 12 evening (review of #83):** Stellar's speed is now attributed ("Stellar says payments are final in about five seconds", facts entry 36), which makes the 0:25 segment 62 words and the total 259; and the video plays from 0:08, after its silent title card, so it runs 52 s, not 60. **Nov 12 night (Relay):** `[NAME]` became Relay in the 0:25 segment and the close. Both count as one word, so no count and no time changed (re-counted: 53, 62, 75, 48 and 21 words, 259 in all, total 2:47.0, 13.0 s of slack). The tagline "Paga tu ruta" and the web address are not in the spoken script. Re-count with the table below after every edit, and time it aloud in the first run-through (#39): 140 wpm is an average, and a slower speaker will need the cuts listed under the table.
+The draft has 259 spoken words. At 140 words a minute, the full one-minute video and two seconds on each side for playback put the pitch at about 2:55. Count the final wording after filling the placeholders and time it aloud in the first run-through (#39).
 
 ### 0:00 to 0:25
 
@@ -160,7 +160,7 @@ Source check, Nov 12: the crew line is entry 40 in `docs/facts.md` (cash is entr
 
 ### 0:55 to 1:55: the video (#35)
 
-Play it from 0:08, after the title card: the 0:00 segment has already said that line, and the title card shows it as text only (`docs/demo-video.md`). Say nothing over it. Have the MP4 on the laptop in case the Wi-Fi fails, and a copy cut to start at 0:08 so nobody has to scrub. The full video, title card included, stays as it is for Devpost.
+Play the full 60-second working-prototype video from 0:00. Keep the MP4 on the laptop and let the video play without live narration. Use the same file for rehearsals and the showcase. [Velocity's Devpost requirements](https://blockchain-stellar-ic.devpost.com/#requirements)
 
 ### 1:55 to 2:30
 
@@ -176,21 +176,21 @@ Play it from 0:08, after the title card: the 0:00 segment has already said that 
 
 ### Timing at 140 words a minute
 
-The headings above are the issue's windows. Because the first two segments are shorter now, the video starts earlier than 0:55 and everything after it moves up. What counts is the total. The video row is 52.0 s: the 60 s video minus its 8 s title card.
+The headings above are the issue's windows. The table estimates the full run, including playback and the two handoffs.
 
 | Part | Words | Seconds | Starts at | Ends at |
 |---|---|---|---|---|
 | 0:00 segment | 53 | 22.7 | 0:00.0 | 0:22.7 |
 | 0:25 segment, ends on "Watch." | 62 | 26.6 | 0:22.7 | 0:49.3 |
 | Start the video | | 2.0 | 0:49.3 | 0:51.3 |
-| The video (#35) from 0:08, silent | | 52.0 | 0:51.3 | 1:43.3 |
-| Stop the video, step back to the mic | | 2.0 | 1:43.3 | 1:45.3 |
-| 1:55 segment | 75 | 32.1 | 1:45.3 | 2:17.4 |
-| 2:30 segment | 48 | 20.6 | 2:17.4 | 2:38.0 |
-| Close | 21 | 9.0 | 2:38.0 | 2:47.0 |
-| **Total** | **259** | | | **2:47.0** |
+| Full demo video (#35) | | 60.0 | 0:51.3 | 1:51.3 |
+| Stop the video, step back to the mic | | 2.0 | 1:51.3 | 1:53.3 |
+| 1:55 segment | 75 | 32.1 | 1:53.3 | 2:25.4 |
+| 2:30 segment | 48 | 20.6 | 2:25.4 | 2:46.0 |
+| Close | 21 | 9.0 | 2:46.0 | 2:55.0 |
+| **Total** | **259** | | | **2:55.0** |
 
-That leaves **13.0 s** under the 3:00 limit. (With the full 60 s video it would be 2:55.0, 5.0 s under; before the Nov 12 edits it was 2:54.1.) At 140 words a minute no cut is needed. A speaker at 130 words a minute needs about 8.5 s more and lands at 2:55.5, so cut from this list, in this order, until a timed run comes in under 2:55:
+That leaves about **5 s** under the 3:00 limit. At 130 words a minute, the estimate is about 3:04. Use these cuts in order until a timed run comes in under 2:55:
 1. 0:25 segment: "The US dollar has been El Salvador's legal tender since 2001." (11 words, 4.7 s). The 1:55 segment and the board still say Ecuador and Panama "also use the US dollar".
 2. 1:55 segment: "That 1.5% fee is 75 cents to a default buffer, 50 to lenders, 25 to us." (16 words, 6.9 s). The board carries the split.
 3. 1:55 segment: "and builds a record it never had" (7 words, 3.0 s). Keep it if there is time: it is the credit-record point.

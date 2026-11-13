@@ -8,6 +8,17 @@ describe("toUnixSeconds and fromUnixSeconds", () => {
     expect(toUnixSeconds("2026-11-20")).toBe(1_795_154_400);
   });
 
+  it.each([
+    ["2026-12-01 ", "2026-12-01T06:00:00Z"],
+    ["2026-1-5", "2026-01-05T06:00:00Z"],
+    ["2026-12-01T10:00:00", "2026-12-01T16:00:00Z"],
+    [" 2026-12-01 10:00 ", "2026-12-01T16:00:00Z"],
+    ["2026-12-01T10:00:00-05:00", "2026-12-01T15:00:00Z"],
+    ["Tue, 01 Dec 2026 10:00:00 GMT", "2026-12-01T10:00:00Z"],
+  ])("interprets %s as %s regardless of the host time zone", (input, utc) => {
+    expect(toUnixSeconds(input)).toBe(Date.parse(utc) / 1000);
+  });
+
   it("rounds down a Date or timestamp with milliseconds", () => {
     const iso = "2026-11-12T18:00:00.999Z";
     expect(toUnixSeconds(iso)).toBe(now);
@@ -20,7 +31,7 @@ describe("toUnixSeconds and fromUnixSeconds", () => {
     expect(formatDateEs(fromUnixSeconds(toUnixSeconds("2026-11-20")))).toBe("20 nov");
   });
 
-  it.each(["invalid", "2026-02-30", new Date(NaN)])("rejects an invalid date %s", (date) => {
+  it.each(["invalid", "2026-02-30", "2026-02-30T00:00:00Z", "12/01/2026", new Date(NaN)])("rejects an invalid or ambiguous date %s", (date) => {
     expect(() => toUnixSeconds(date)).toThrow("Fecha inválida");
   });
 });
@@ -71,6 +82,11 @@ describe("dueLabel", () => {
   it("does not label missing due dates", () => {
     expect(dueLabel(0, now)).toBe("");
     expect(dueLabel(-1, now)).toBe("");
+  });
+
+  it("returns an empty label for a non-finite timestamp", () => {
+    expect(dueLabel(NaN, now)).toBe("");
+    expect(dueLabel(now, Infinity)).toBe("");
   });
 
   it("uses minutes across local midnight for deadlines less than an hour away", () => {

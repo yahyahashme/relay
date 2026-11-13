@@ -32,3 +32,50 @@ Yahya took both calls on Mon Nov 9. Both advisors prefer LinkedIn.
 ### Follow-ups
 
 Advisor contact isn't tracked here. Yahya reaches out when we have a genuine question worth their time: startups and customers for Advisor 1, technical and financial for Advisor 2.
+
+## Partner outreach
+
+Sent from Rohan's university email. Organisation and role only (the repo is public).
+
+| Date | Organisation | Person and role | Channel | What we asked | Reply | Next step |
+|---|---|---|---|---|---|---|
+| Nov 10 | Banco Promerica | General inbox | Email | Cash-to-USDC deposits for small shops; cost per $100; 15-min call | None yet | Follow-up Fri Nov 13 |
+| Nov 10 | Banco Abank | Customer service | Email | Same | None yet | Follow-up Fri Nov 13 |
+| Nov 10 | Súper Selectos | Customer service | Email | Same | None yet | Follow-up Fri Nov 13 |
+| Nov 10 | Banco Integral | Press contact | Email | Same | None yet | Follow-up Fri Nov 13 |
+| Nov 10 | Banco Davivienda | Treasury manager | Email | Same | Out-of-office auto-reply pointing to a colleague | Jack wrote to that colleague on Nov 11 |
+| Nov 11 | Banco Davivienda | Colleague named in the auto-reply | Email (Jack) | Cash-in for small shops; shop owners' trust in digital dollars; biggest obstacle | None yet | Wait to Mon Nov 16 |
+| | MoneyGram | Business team | Contact form | Cash-to-USDC deposits for small shops; cost per $100 | | Not sent yet |
+| | Banco Cuscatlán | Digital/innovation team | LinkedIn | Same | | Not sent yet |
+| | Conamype | General | Social media message | Best cash-in option for tiendas; which partners to talk to | | Not sent yet |
+| | Distribución Dinámica | Director | LinkedIn | How many tiendas buy on credit; how they deposit cash; would distributors pay 1.5% | | Not sent yet |
+| | Tienda Pago | CEO | LinkedIn | Default rate in first pilots; how shops repay in cash | | Not sent yet |
+
+### Nov 12 round (16 emails)
+
+Rohan wrote 16 emails on Nov 12. The Outlook app was offline, so 13 sat in the Outbox as "Queued": none is confirmed sent yet. Rohan checks Sent Items, then changes "Queued" to "Sent" (or resends). The last 3 were never sent and are now Ruhaan's (#120).
+
+| Date | Organisation | Person and role | Channel | What we asked | Status |
+|---|---|---|---|---|---|
+| Nov 12 | Niu (digital wallet) | Business inbox | Email | Could a tienda deposit cash and pay its distributor in the app; cost per $100 | Queued, not confirmed |
+| Nov 12 | Productos Alimenticios Diana | Customer service | Email | How much of their sales to shops is on credit, and for how long; would they take a fee to be paid at delivery | Queued, not confirmed |
+| Nov 12 | FEDECACES (cooperatives) | Corporate inbox | Email | Default rates on small working-capital loans; how cash-only members pay | Queued, not confirmed |
+| Nov 12 | CrediCampo | Staff contact | Email | Default rates on short micro-loans; use of Tigo Money points for cash payments | Queued, not confirmed |
+| Nov 12 | Banco Hipotecario | Customer service | Email | Options for shops to deposit cash and finance stock; cash-to-digital-dollar deposits | Queued, not confirmed |
+| Nov 12 | BANDESAL | Customer service | Email | Funding lines for 7-day working capital through a licensed institution | Queued, not confirmed |
+| Nov 12 | SSF (financial supervisor) | General inbox | Email | Which rules apply to our model; channel for fintech questions | Queued, not confirmed |
+| Nov 12 | Superintendencia de Competencia | General inbox | Email | Newer data on how tiendas finance stock | Queued, not confirmed |
+| Nov 12 | FUSADES | General inbox | Email | Data on tienda financing and digital payments | Queued, not confirmed |
+| Nov 12 | ASI (industry association) | General inbox | Email | Do members give shops credit through distributors; who to talk to | Queued, not confirmed |
+| Nov 12 | FUNDEMAS | General inbox | Email | Programs or firms working on payments or credit for tiendas | Queued, not confirmed |
+| Nov 12 | UCA | Economics researcher | Email | Studies on how tiendas pay distributors and finance stock | Queued, not confirmed |
+| Nov 12 | UCA | Professor | Email | How common supplier credit is for the smallest businesses | Queued, not confirmed |
+| | UCA | Professor (financial inclusion) | Email | Small merchants' trust in digital payments | Not sent: Ruhaan (#120) |
+| | Zumma Ratings | Analyst | Email | Default rates on short-term micro-credit | Not sent: Ruhaan (#120) |
+| | MicroRate | Analyst | Email | Same | Not sent: Ruhaan (#120) |
+
+### Stellar anchor check (Nov 12)
+- The Stellar Anchor Directory (anchors.stellar.org), filtered to El Salvador and the "Cash" payment rail, lists two anchors: **MoneyGram Ramps** and **Bitnovo**. The directory doesn't say whether each one supports cash-in, cash-out or both in El Salvador, so Bitnovo is a new outreach target to ask. Without the cash filter it also lists Amero Exchange and Dollarize for El Salvador.
+- Raven (raven.stellar.org) is now an MCP server that needs sign-in, so the "Which anchors support cash-in to USDC in El Salvador?" question wasn't asked yet.
+
+**Pitch line (so far):** "We emailed 5 organisations in El Salvador, 4 banks and a supermarket chain; no replies yet beyond one auto-reply, and we follow up Friday." Don't count the Nov 12 round until those emails are confirmed sent.

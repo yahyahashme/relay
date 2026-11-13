@@ -86,8 +86,8 @@ For slide 3 and the trifold's middle panel. They have to come from the live app 
 3. To capture: three dots in the device toolbar, "Capture screenshot" (not "full size"). It saves only the 360 px phone view, without DevTools or the browser bar, as a PNG in Downloads about 1080 px wide.
 
 **Shots**
-1. **Shop pay screen.** Open the Tienda Rosa invoice: `/ruta/motorista-1`, tap Tienda Rosa's row, then open the link the QR points to (`/tienda/<invoice id>`), or go to it directly. Scroll to the top. You should see the amount and three buttons: **Pagar ahora**, **Pagar en 7 días**, **Pagué en efectivo**. Capture before tapping anything. Save as `live-1-pay.png`.
-2. **Shop debt screen.** Open a different shop's unpaid invoice (Tienda Don Luis, `/ruta/motorista-1`). Tap **Pagar en 7 días** and wait for the green check ("Listo. Tiene hasta el ... para pagar ..."). Tap **Mi cuenta**. The page shows **Debe $...**, the due date and the limit. Capture it. Save as `live-2-debt.png`. Then tap **Pagar deuda** to clear it (see "Side effects").
+1. **Shop pay screen.** Open the Tienda Rosa invoice: `/ruta/motorista-1`, tap Tienda Rosa's row, then open the link the QR points to (`/tienda/<invoice id>`), or go to it directly. Scroll to the top. You should see the invoice as a paper receipt with the amount, the list **Pagar en 7 días**, **Pagar otro monto**, **Pagué en efectivo**, and the **Pagar ahora** button at the bottom. Capture before tapping anything. Save as `live-1-pay.png`.
+2. **Shop debt screen.** Open a different shop's unpaid invoice (Tienda Don Luis, `/ruta/motorista-1`). Tap **Pagar en 7 días**, then **Confirmo**, and wait for the green check ("Listo. Tiene hasta el ... para pagar ..."). Tap **Mi cuenta**. The page shows **Debe $...**, the due date and the limit. Capture it. Save as `live-2-debt.png`. Then tap **Pagar deuda** to clear it (see "Side effects").
 3. **Driver cash screen.** Go to `/ruta/motorista-1`, tap a stop so its QR opens. The screen shows the QR and the **Recibí efectivo** button. Capture it **without tapping the button** (tapping starts a cash claim). Save as `live-3-cash.png`.
 
 **Check each file before using it**
@@ -104,7 +104,7 @@ For slide 3 and the trifold's middle panel. They have to come from the live app 
 |---|---|---|
 | Name and tagline | PR #100 | decided: Relay, tagline *Paga tu ruta* |
 | Pitcher | the team | not recorded in the repo; ask the group chat |
-| Pitch script v1 | #37, PR #83 | merged Nov 12 (`docs/pitch.md`; it still has `[NAME]` placeholders) |
+| Pitch script v1 | #37, PR #83 | merged Nov 12 (`docs/pitch.md`; `[NAME]` became Relay in PR #107, the `[N]` placeholders are still open) |
 | Worldwide number and expansion path | #51, #73 | merged (entries 22 to 28 on `main`) |
 | Our fees, limits, safety numbers | facts entries 29 to 35, #84 | merged |
 | "What we heard from N people" | #30; `docs/research.md` (#72) | open; the log has only the two advisor calls |

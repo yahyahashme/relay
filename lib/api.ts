@@ -70,4 +70,6 @@ export const repay = (shopId: string, amount: number) =>
 /** The distributor got a driver's cash at the warehouse (only lowers the driver's cash count). */
 export const handInCash = (driverId: string, amount: number) =>
   write(() => mock.handInCash(driverId, amount), () => live.handInCash(driverId, amount));
-export const createInvoices = (rows: InvoiceRow[]) => write(() => mock.createInvoices(rows));
+/** CSV import (#32): checks every row, then creates them one by one. */
+export const createInvoices = (rows: InvoiceRow[]) =>
+  write(() => mock.createInvoices(rows), () => live.createInvoices(rows));

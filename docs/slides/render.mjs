@@ -3,6 +3,11 @@
 //   architecture.png  "How it works on Stellar"
 //
 // Run from anywhere:  node docs/slides/render.mjs
+// Print size:         SCALE=3 node docs/slides/render.mjs
+//   SCALE (a whole number, 1 to 4, default 1) draws the same slide with more pixels, so it prints
+//   sharp: 3 gives 5760 x 3240 (240 pixels per inch at 24 in wide). The files are named
+//   code-slide@3x.png and architecture@3x.png; the 1x files are left alone. Git ignores the @Nx
+//   files, so render them on the computer that prints, after the final contract ID is in place.
 // Needs Google Chrome or Chromium. It looks in the usual macOS, Windows and Linux places; if yours is
 // somewhere else, set CHROME=/path/to/chrome. No npm packages.
 //
@@ -20,6 +25,12 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "../..");
 const outDir = join(root, "docs/img");
+const SCALE = Number(process.env.SCALE || 1);
+if (!Number.isInteger(SCALE) || SCALE < 1 || SCALE > 4) {
+  console.error(`render.mjs: SCALE must be a whole number from 1 to 4 (got "${process.env.SCALE}").`);
+  process.exit(1);
+}
+const SUFFIX = SCALE === 1 ? "" : `@${SCALE}x`;
 const CHROME_PATHS = [
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
   "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
@@ -45,9 +56,14 @@ if (start < 0) die("pay_with_credit not found in contracts/route_ledger/src/lib.
 // Each block starts at a known line inside pay_with_credit and runs for `len` lines.
 const BLOCKS = [
   { first: "if terms.owed > 0 && now > terms.due_at {", len: 3 }, // not overdue
-  { first: "if terms.owed + amount > terms.limit {", len: 3 }, // within the limit
+  { first: "match terms.owed.checked_add(amount) {", len: 4 }, // within the limit (#66 made the sum overflow-safe)
   { first: "let mut pool = load_pool(&env);", len: 4 }, // the pool has money
 ];
+
+// What fits on the 1920x1080 slide at 48 px (24 pt) code: see code-slide.html. Past these the
+// text runs into the callouts or the contract ID, so stop instead of rendering a broken image.
+const MAX_CHARS = 45;
+const MAX_LINES = 11;
 
 function takeBlock({ first, len }) {
   const i = lib.findIndex((l, n) => n > start && l.trim() === first);
@@ -55,7 +71,10 @@ function takeBlock({ first, len }) {
   const lines = lib.slice(i, i + len);
   if (lines[len - 1].trim() !== "}") die(`the block starting "${first}" changed shape. Update docs/slides/render.mjs.`);
   const indent = Math.min(...lines.map((l) => l.match(/^ */)[0].length));
-  return lines.map((l) => l.slice(indent)).join("\n");
+  const out = lines.map((l) => l.slice(indent));
+  const wide = out.find((l) => l.length > MAX_CHARS);
+  if (wide) die(`"${wide.trim()}" is wider than ${MAX_CHARS} characters, so it will not fit the slide at 24 pt. Pick other lines.`);
+  return out.join("\n");
 }
 
 const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -63,7 +82,7 @@ const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, 
 // One pass, so a replacement is never highlighted twice.
 function highlight(code) {
   return esc(code).replace(
-    /(\/\/.*)|\b(Error::\w+)\b|\b(if|let|mut|return)\b/g,
+    /(\/\/.*)|\b(Error::\w+)\b|\b(if|let|mut|return|match)\b/g,
     (m, comment, err) => (comment ? `<span class="c">${m}</span>` : err ? `<span class="e">${m}</span>` : `<span class="k">${m}</span>`),
   );
 }
@@ -91,7 +110,8 @@ const asRoot = typeof process.getuid === "function" && process.getuid() === 0;
 mkdirSync(outDir, { recursive: true });
 const tmp = mkdtempSync(join(tmpdir(), "slides-56-"));
 
-function shoot(htmlPath, png) {
+function shoot(htmlPath, name) {
+  const png = name.replace(/\.png$/, `${SUFFIX}.png`);
   execFileSync(
     CHROME,
     [
@@ -99,7 +119,7 @@ function shoot(htmlPath, png) {
       "--disable-gpu",
       "--hide-scrollbars",
       ...(asRoot ? ["--no-sandbox"] : []),
-      "--force-device-scale-factor=1",
+      `--force-device-scale-factor=${SCALE}`,
       "--window-size=1920,1080",
       `--user-data-dir=${join(tmp, "profile")}`,
       `--screenshot=${join(outDir, png)}`,
@@ -107,10 +127,12 @@ function shoot(htmlPath, png) {
     ],
     { stdio: "ignore" },
   );
-  console.log(`wrote docs/img/${png}`);
+  console.log(`wrote docs/img/${png} (${1920 * SCALE} x ${1080 * SCALE})`);
 }
 
 let page = readFileSync(join(here, "code-slide.html"), "utf8");
+const totalLines = BLOCKS.reduce((sum, b) => sum + b.len, 0);
+if (totalLines > MAX_LINES) die(`the slide shows ${totalLines} code lines but only ${MAX_LINES} fit above the contract ID.`);
 BLOCKS.forEach((b, n) => {
   page = page.replace(`{{BLOCK_${n + 1}}}`, () => highlight(takeBlock(b)));
 });

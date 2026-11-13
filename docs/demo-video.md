@@ -3,7 +3,7 @@
 The script is the table in issue #35. This file turns it into exact clicks. Everything below was clicked
 through on testnet on Nov 10 (labels copied from the screens). **Re-click the table after the Thursday
 redeploy (#52)**: the contract ID changes and #80 adds history and "Ver más" to the dashboard; then update
-this line. Placeholders in **[brackets]** wait on the team: the product name (#26).
+this line. The product name is decided: **Relay**, tagline *Paga tu ruta* (PR #100).
 
 ## Before you record (10 min)
 
@@ -37,9 +37,9 @@ this line. Placeholders in **[brackets]** wait on the team: the product name (#2
 |---|---|---|---|
 | 0:00 to 0:08 | Title card (slide) | Shown as text, not spoken (spoken it takes about 15 s); narration starts on the next shot. The approved opening line (#73), word for word: "Around the world, small businesses in developing countries can't get about $5.7 trillion in credit they need. In El Salvador alone, more than 50,000 neighbourhood shops buy about $2 billion a year from distributors." On screen under it: "Conamype estimate". | |
 | 0:08 to 0:20 | Driver, then shop | Driver: tap the Tienda Rosa row (the QR opens). Shop: the invoice page (as if scanned) → **Pagar ahora** | Shop: green ✓ "Pago recibido…". Driver's chip turns **Pagada** within 5 s |
-| 0:20 to 0:35 | Shop, then dashboard | Open the Tienda Don Luis invoice → **Pagar en 7 días** | ✓ "Listo. Tiene hasta el … para pagar $60.00, sin intereses." Dashboard row: **Crédito**, "recibió $59.10" (the distributor pays a 1.5% fee) |
+| 0:20 to 0:35 | Shop, then dashboard | Open the Tienda Don Luis invoice → **Pagar en 7 días** → **Confirmo** | ✓ "Listo. Tiene hasta el … para pagar $60.00, sin intereses." Dashboard row: **Crédito**, "recibió $59.10" (the distributor pays a 1.5% fee) |
 | 0:20 to 0:35 (cont.) | Shop | Tap **Mi cuenta** | "Debe $60.00", the due date, the limit |
-| 0:35 to 0:45 | Driver, then shop | Driver: tap the Mini Súper row → **Recibí efectivo**. Shop: that invoice → **Pagué en efectivo** → **Confirmo** | Dashboard: Ana's cash under "Efectivo por motorista" goes up |
+| 0:35 to 0:45 | Driver, then shop | Driver: tap the Mini Súper row → **Recibí efectivo**. Shop: that invoice → **Confirmo** (the "Pagué en efectivo" panel opens by itself once the driver has registered the cash; tap **Pagué en efectivo** if it is closed) | Dashboard: Ana's cash under "Efectivo por motorista" goes up |
 | 0:45 to 0:55 | Shop | On the green receipt, tap **Ver detalles** (opens stellar.expert) | The transaction page; then the contract page (link below) |
 | 0:55 to 1:00 | End card | App URL and contract ID (below) | |
 
@@ -55,7 +55,7 @@ so the screen shows $59.10 on $60.00 (and would show $147.75 on $150). Say what 
 - Contract: `CDHDZX7VVOPY7TNKA744EQP24BPO5MJIZQOGJGYNGA7N7ZIZWQBQMYUR`
   (https://stellar.expert/explorer/testnet/contract/CDHDZX7VVOPY7TNKA744EQP24BPO5MJIZQOGJGYNGA7N7ZIZWQBQMYUR).
   If the contract is redeployed (#52), copy the new ID from `config/testnet.json`.
-- **[Product name, #26]**
+- Product name: **Relay**, with *Paga tu ruta* under it (PR #100)
 
 ## If something goes wrong while recording
 

@@ -39,21 +39,30 @@ describe("reminderLink", () => {
   it("prefills the Spanish reminder for an upcoming payment", () => {
     const url = new URL(reminderLink(input));
     expect(url.searchParams.get("text")).toBe(
-      "Hola Tienda Rosa, le recordamos que su pago de $150.00 vence en 2 días. Puede pagar desde el enlace de su factura. ¡Gracias!",
+      "Hola Tienda Rosa, le recordamos que su pago de $150.00 vence en 2 días. ¡Gracias!",
     );
   });
 
   it("prefills the Spanish reminder for an overdue payment", () => {
     const url = new URL(reminderLink({ ...input, dueAt: now - 259_200 }));
     expect(url.searchParams.get("text")).toBe(
-      "Hola Tienda Rosa, le recordamos que su pago de $150.00 venció hace 3 días. Puede pagar desde el enlace de su factura. ¡Gracias!",
+      "Hola Tienda Rosa, le recordamos que su pago de $150.00 venció hace 3 días. ¡Gracias!",
     );
   });
 
   it.each([0, -1])("prefills the pending-payment reminder for due timestamp %s", (dueAt) => {
     const url = new URL(reminderLink({ ...input, dueAt }));
     expect(url.searchParams.get("text")).toBe(
-      "Hola Tienda Rosa, le recordamos su pago pendiente de $150.00. Puede pagar desde el enlace de su factura. ¡Gracias!",
+      "Hola Tienda Rosa, le recordamos su pago pendiente de $150.00. ¡Gracias!",
+    );
+  });
+
+  it("includes the supplied payment URL in the encoded reminder", () => {
+    const link = "https://relay-sv.vercel.app/tienda/1001?from=whatsapp&lang=es";
+    const url = new URL(reminderLink({ ...input, link }));
+    expect([...url.searchParams.keys()]).toEqual(["text"]);
+    expect(url.searchParams.get("text")).toBe(
+      `Hola Tienda Rosa, le recordamos que su pago de $150.00 vence en 2 días. Puede pagar aquí: ${link} ¡Gracias!`,
     );
   });
 
@@ -66,5 +75,10 @@ describe("reminderLink", () => {
 
   it.each([0n, -1n])("rejects a payment amount of %s units", (amountUnits) => {
     expect(() => reminderLink({ ...input, amountUnits })).toThrow("Monto inválido.");
+  });
+
+  it("adds the payment link when there is one", () => {
+    const url = new URL(reminderLink({ ...input, link: "https://relay-sv.vercel.app/tienda/cuenta/tienda-1" }));
+    expect(url.searchParams.get("text")).toContain("Puede pagar aquí: https://relay-sv.vercel.app/tienda/cuenta/tienda-1 ¡Gracias!");
   });
 });
