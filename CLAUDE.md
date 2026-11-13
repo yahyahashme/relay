@@ -1,4 +1,4 @@
-# tiendas-stellar
+# Relay (repo: yahyahashme/relay)
 
 Read docs/context.md first (sections relevant to your issue). It is the source of truth.
 
