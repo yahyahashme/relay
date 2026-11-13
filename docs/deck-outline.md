@@ -49,7 +49,7 @@ The words for each slide are in `docs/deck-slides.md`, under the same number.
 
 ### 4. How it works on Stellar
 - **Message:** the rules live in a public contract, and names stay off it.
-- **Visual:** `docs/img/architecture.png` (from #56), **after one fix.** Its server box says "Will pay the network fees (fee sponsorship)". Fee sponsorship is not built (#33, PR #81 is a draft), and it stays out of the pitch and the deck until after the finals. Delete that bullet in `docs/slides/architecture.html` and re-render with `node docs/slides/render.mjs`. If #81 merges before the finals and the team decides to say it, change the wording then, not before.
+- **Visual:** `docs/img/architecture.png` (from #56, re-rendered in #119). Its server box says "Pays the network fees (fee sponsorship)", which has been true since #113 (evidence: `docs/pitch.md` section 3), so no change is needed. If you edit that line, re-render with `node docs/slides/render.mjs`.
 
 ### 5. The code
 - **Message:** the credit rules are real contract code, not a mock-up.
@@ -59,7 +59,7 @@ The words for each slide are in `docs/deck-slides.md`, under the same number.
 ### 6. Money in 30 seconds, and go-to-market
 - **Message:** distributors pay, shops never do.
 - **Source:** facts entry 29 (#84) for the fees; entries 25 and 26 (#73) for Ecuador and Panama; context §14 for "one distributor first". All on `main`.
-- **Never say:** "$98.40", "$0.35 per credit sale", a "$2.5 million" revenue figure (facts, "Never use"), or that fee sponsorship works. Fee wording: "$98.50 per $100", with the 1.5% paid by the distributor.
+- **Never say:** "$98.40", "$0.35 per credit sale", or a "$2.5 million" revenue figure (facts, "Never use"). Fee wording: "$98.50 per $100", with the 1.5% paid by the distributor.
 - **Visual:** the $100 example as 3 rows.
 
 ### 7. Risk #1, our plan, what users told us
@@ -112,7 +112,7 @@ For slide 3 and the trifold's middle panel. They have to come from the live app 
 | Real phone screenshots | live app, captured by Jack, steps above | not started; unblocked (redeploy landed, #90) |
 | Code slide with the real contract ID | #56 follow-up, PR #82 | PR #82 (open, not merged) has the re-render; `docs/img/code-slide.png` on `main` is stale until it merges |
 | Print-size slide images | `SCALE=3 node docs/slides/render.mjs` (PR #82) | option written in PR #82 |
-| Architecture picture without the fee-sponsorship line | edit `docs/slides/architecture.html`, re-render | not done |
+| Architecture picture with the fee-sponsorship line | #119 put it back after #113 turned sponsorship on | done, on `main` |
 | Our ask | team decision | open |
 
 ## The organisers' template (opened Nov 12)
@@ -144,7 +144,7 @@ Our slides 5 (the code) and 6 (money and go-to-market) have no template slot, an
 
 1. Open the template and make a copy. Keep its layouts and fonts.
 2. Paste the slide text from `docs/deck-slides.md`, replacing every `[bracket]`.
-3. Insert the images and the three screenshots. Our PNGs are 1920 x 1080 and the template is 16:9, so they fit. Use `docs/img/architecture.png` only after the fee-sponsorship line is removed, and `docs/img/code-slide.png` only after PR #82 is merged.
+3. Insert the images and the three screenshots. Our PNGs are 1920 x 1080 and the template is 16:9, so they fit. Use `docs/img/architecture.png` as it is on `main` (its fee-sponsorship line has been true since #113), and `docs/img/code-slide.png` only after PR #82 is merged.
 4. Check there are no animations or transitions on any slide.
 5. Download as PowerPoint (.pptx) and open it in PowerPoint itself, not only in Google Slides, to check fonts and layout.
 6. Save it where all four of us can open it, and post the link in the group chat.
