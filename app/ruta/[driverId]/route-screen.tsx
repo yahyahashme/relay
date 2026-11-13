@@ -4,7 +4,8 @@ import { useParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
 import { BackLink, Button, Card, Chip, Label, LoadError, Loading, NotFound, ReceiptView, Screen } from "@/components/ui";
-import { claimCash, getDrivers, getInvoices, getShop } from "@/lib/api";
+import { claimCash, getDrivers, getInvoices, getRouteInvites, getShop } from "@/lib/api";
+import { ShopInvite } from "@/components/shop-invite";
 import { formatMoney } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 import { invoiceStatus, leftToPay } from "@/lib/labels";
@@ -23,12 +24,16 @@ export default function RouteScreen() {
     const [drivers, invoices] = await Promise.all([getDrivers(), getInvoices()]);
     const stops = invoices.filter((i) => i.driverId === driverId);
     const shopIds = [...new Set(stops.map((i) => i.shopId))];
-    const shops = (await Promise.all(shopIds.map(getShop))).filter((s): s is Shop => s !== null);
-    return { driver: drivers.find((d) => d.id === driverId) ?? null, stops, shops };
+    const [shops, invites] = await Promise.all([
+      Promise.all(shopIds.map(getShop)).then((list) => list.filter((s): s is Shop => s !== null)),
+      getRouteInvites(driverId, shopIds),
+    ]);
+    return { driver: drivers.find((d) => d.id === driverId) ?? null, stops, shops, invites };
   });
   const [open, setOpen] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [receipt, setReceipt] = useState<{ invoiceId: number; receipt: Receipt } | null>(null);
+  const [inviting, setInviting] = useState<string | null>(null);
   const { t } = useI18n();
 
   if (!data) {
@@ -113,6 +118,20 @@ export default function RouteScreen() {
                     </div>
                     <p className="text-center text-muted">{t("La tienda escanea este código para pagar.")}</p>
                     {receipt?.invoiceId === invoice.id && <ReceiptView receipt={receipt.receipt} />}
+                    {data.invites.codes[invoice.shopId] && (
+                      <div className="flex w-full flex-col gap-3 border-t border-line pt-3">
+                        <button
+                          type="button"
+                          onClick={() => setInviting(inviting === invoice.shopId ? null : invoice.shopId)}
+                          className="min-h-12 rounded-xl border-2 border-brand px-4 text-base font-semibold text-brand active:bg-brand-soft"
+                        >
+                          {inviting === invoice.shopId ? t("Ocultar invitación") : t("Invitar a Relay")}
+                        </button>
+                        {inviting === invoice.shopId && (
+                          <ShopInvite code={data.invites.codes[invoice.shopId]} distributorName={data.invites.distributorName} />
+                        )}
+                      </div>
+                    )}
                     {invoice.status !== "paid" &&
                       (invoice.cashClaim === undefined ? (
                         <Button onClick={() => receivedCash(invoice.id, left)} busy={busy} hint={formatMoney(left)}>

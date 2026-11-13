@@ -34,7 +34,7 @@ function FirstSteps({ drivers, shops, invoices }: { drivers: number; shops: numb
   const { t } = useI18n();
   const steps: { label: string; done: boolean; href?: string }[] = [
     { label: t("Agregar sus motoristas"), done: drivers > 0, href: "/distribuidor/motoristas" },
-    { label: t("Agregar sus tiendas"), done: shops > 0 },
+    { label: t("Agregar sus tiendas"), done: shops > 0, href: "/distribuidor/tiendas" },
     { label: t("Crear su primera factura"), done: invoices > 0 },
   ];
   if (steps.every((s) => s.done)) return null;
@@ -197,6 +197,12 @@ export default function Dashboard() {
       </div>
       {data && !data.scope.isDemo && (
         <nav className="flex flex-wrap gap-2">
+          <Link
+            href="/distribuidor/tiendas"
+            className="flex min-h-12 items-center rounded-xl border-2 border-brand px-4 text-base font-semibold text-brand active:bg-brand-soft"
+          >
+            {t("Tiendas")}
+          </Link>
           <Link
             href="/distribuidor/motoristas"
             className="flex min-h-12 items-center rounded-xl border-2 border-brand px-4 text-base font-semibold text-brand active:bg-brand-soft"

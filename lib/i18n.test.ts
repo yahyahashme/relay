@@ -45,6 +45,7 @@ const VARIABLE_KEYS = [
   "Snacks", "Bebidas", "Pan", "Lácteos", "Abarrotes", "Limpieza", "Otros", // what a distributor sells (#130)
   "Tienda", "Distribuidora", "Motorista", "Administrador", // account types (#129)
   "Compro a distribuidores", "Vendo y entrego a tiendas", "Entrego para una distribuidora",
+  "Activa", "Invitada", "Sin cuenta", // shop status (#132)
 ];
 
 describe("screen text", () => {
@@ -90,6 +91,14 @@ describe("dates", () => {
 
 /** The live server's messages (app/actions.ts), with sample values. */
 const LIVE = [
+  "Solo la distribuidora aprobada puede hacer esto.",
+  "No encontramos esa tienda.",
+  "Escriba un nombre para reconocer la tienda.",
+  "Escriba un teléfono de El Salvador (8 dígitos) o déjelo vacío.",
+  "Este código ya no es válido. Pida otro a su distribuidora.",
+  "Escriba el nombre de su tienda.",
+  "Entre a su cuenta primero.",
+  "No se pudo completar. Intente de nuevo.",
   "No encontramos esa factura.",
   "Esta factura ya está pagada.",
   "Monto inválido.",

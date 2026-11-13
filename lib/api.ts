@@ -8,6 +8,7 @@
 
 import * as live from "@/app/actions";
 import * as distributors from "@/app/distributor-actions";
+import * as shops from "@/app/shop-actions";
 import type { DistributorView } from "@/app/distributor-actions";
 import * as mock from "./mock";
 import type { Driver, Invoice, InvoiceHistory, InvoiceRow, Pool, Receipt, Shop, Totals } from "./types";
@@ -53,6 +54,9 @@ export const getInvoiceHistory = (pages: number): Promise<InvoiceHistory> =>
 /** The distributor dashboard for whoever is looking: their own business once approved (#130), else the demo. */
 export const getDistributorView = (pages: number): Promise<DistributorView> =>
   read(() => mock.getDistributorView(pages), () => distributors.getDistributorView(pages));
+/** Claim codes for the stops on a route, shown only to that driver or their distributor (#132). */
+export const getRouteInvites = (driverId: string, shopIds: string[]) =>
+  read(() => ({ distributorName: "", codes: {} as Record<string, string> }), () => shops.getRouteInvites(driverId, shopIds));
 /** Everything ever paid, by method, for the dashboard's totals. */
 export const getTotals = (): Promise<Totals> => read(mock.getTotals, live.getTotals);
 export const createDemoInvoice = (shopId?: string): Promise<Invoice> =>

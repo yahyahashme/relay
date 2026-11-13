@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { type CurrentUser, getCurrentUser, signOutAction } from "@/app/auth-actions";
 import { getMyDriverId } from "@/app/driver-actions";
+import { getMyShopId } from "@/app/shop-actions";
 import { BackLink, Button, ButtonLink, Card, Label, Loading, Screen } from "@/components/ui";
 import { formatPhone } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
@@ -25,6 +26,7 @@ export default function Account() {
   const [user, setUser] = useState<CurrentUser | null | undefined>(undefined);
   const [leaving, setLeaving] = useState(false);
   const [driverId, setDriverId] = useState<string | null>(null);
+  const [shopId, setShopId] = useState<string | null>(null);
 
   useEffect(() => {
     let live = true;
@@ -33,6 +35,7 @@ export default function Account() {
       if (!found) router.replace("/entrar");
       else setUser(found);
       if (found?.role === "motorista") void getMyDriverId().then((id) => live && setDriverId(id));
+      if (found?.role === "tienda") void getMyShopId().then((id) => live && setShopId(id));
     });
     return () => {
       live = false;
@@ -81,6 +84,7 @@ export default function Account() {
 
       {user.role === "distribuidora" && <ButtonLink href="/distribuidor/espera">{t("Ir a mi panel")}</ButtonLink>}
       {user.role === "motorista" && driverId && <ButtonLink href={`/ruta/${driverId}`}>{t("Ir a mi ruta")}</ButtonLink>}
+      {user.role === "tienda" && shopId && <ButtonLink href={`/tienda/cuenta/${shopId}`}>{t("Ir a mi tienda")}</ButtonLink>}
       {user.role === "admin" && <ButtonLink href="/admin">{t("Distribuidoras por aprobar")}</ButtonLink>}
       <ButtonLink href="/" variant="secondary">
         {t("Ir al inicio")}

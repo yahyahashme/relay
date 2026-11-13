@@ -96,3 +96,17 @@ CREATE TABLE IF NOT EXISTS driver_invites (
   removed_at     TIMESTAMPTZ
 );
 CREATE INDEX IF NOT EXISTS driver_invites_distributor ON driver_invites (distributor_id);
+
+-- #132: distributors add shops. The assigned driver, and one claim code per shop
+-- without an owner (QR at the next delivery, or WhatsApp).
+ALTER TABLE distributor_shops ADD COLUMN IF NOT EXISTS driver_id TEXT REFERENCES drivers(id);
+ALTER TABLE shops ADD COLUMN IF NOT EXISTS phone TEXT;
+CREATE TABLE IF NOT EXISTS shop_invites (
+  code           TEXT PRIMARY KEY,          -- 6 letters/digits, easy to read out loud
+  shop_id        TEXT NOT NULL REFERENCES shops(id),
+  distributor_id TEXT NOT NULL REFERENCES distributors(id),
+  phone          TEXT,
+  claimed_at     TIMESTAMPTZ,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS shop_invites_shop ON shop_invites (shop_id);

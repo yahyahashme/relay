@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { getShopSuppliers, removeSupplierAction, type ShopSuppliers } from "@/app/shop-actions";
 import { BackLink, Button, Card, Chip, Label, LoadError, Loading, NotFound, ReceiptView, Screen } from "@/components/ui";
 import { getInvoices, getShop, repay } from "@/lib/api";
 import { formatMoney } from "@/lib/format";
@@ -10,6 +11,63 @@ import { useI18n } from "@/lib/i18n";
 import { leftToPay } from "@/lib/labels";
 import type { Receipt } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
+
+/** "Distribuidora El Sol lo agregó" (#132): who sells to this shop on Relay; the owner can remove one. */
+function Suppliers({ shopId }: { shopId: string }) {
+  const { t, msg, day } = useI18n();
+  const [data, setData] = useState<ShopSuppliers | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const load = useCallback(async () => setData(await getShopSuppliers(shopId)), [shopId]);
+  useEffect(() => {
+    let live = true;
+    void getShopSuppliers(shopId).then((found) => {
+      if (live) setData(found);
+    });
+    return () => {
+      live = false;
+    };
+  }, [shopId]);
+
+  if (!data || data.suppliers.length === 0) return null;
+
+  async function remove(distributorId: string) {
+    setBusy(distributorId);
+    setError(null);
+    const reply = await removeSupplierAction(shopId, distributorId);
+    if (reply.ok) await load();
+    else setError(reply.message);
+    setBusy(null);
+  }
+
+  return (
+    <section className="flex flex-col gap-2">
+      <Label>{t("Proveedores")}</Label>
+      <ul className="flex flex-col divide-y divide-line rounded-2xl border border-line bg-card">
+        {data.suppliers.map((s) => (
+          <li key={s.distributorId} className="flex items-center justify-between gap-3 px-4 py-3">
+            <span className="flex min-w-0 flex-col">
+              <span className="text-lg font-semibold">{t("{distributor} lo agregó", { distributor: s.name })}</span>
+              <span className="text-sm text-muted">{day(s.addedAt)}</span>
+            </span>
+            {data.isOwner && (
+              <button
+                type="button"
+                onClick={() => remove(s.distributorId)}
+                disabled={busy !== null}
+                className="min-h-12 shrink-0 rounded-xl border-2 border-line px-4 text-base font-semibold text-bad active:bg-paper disabled:text-muted"
+              >
+                {busy === s.distributorId ? t("Quitando...") : t("Quitar")}
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+      {data.isOwner && <p className="text-sm text-muted">{t("Si quita una distribuidora, sus facturas anteriores siguen en su historial.")}</p>}
+      {error && <p className="text-bad">{msg(error)}</p>}
+    </section>
+  );
+}
 
 export default function AccountScreen() {
   const { shopId } = useParams<{ shopId: string }>();
@@ -125,6 +183,8 @@ export default function AccountScreen() {
           </ul>
         </section>
       )}
+
+      <Suppliers shopId={shop.id} />
     </Screen>
   );
 }
