@@ -374,12 +374,13 @@ A shop buys $100 of stock and picks "pay in 7 days".
 | Option | Who covers a shop that doesn't pay | Fee per $100, paid by the distributor | Split |
 |---|---|---|---|
 | 1. Pool covers | The lender pool | $1.00 to $1.50 (less when the shop pays part up front, #135) | $0.50 lenders; the rest 3:1 buffer : us ($0.75 / $0.25 at $1.50) |
-| 2. Distributor covers ("with recourse") | The distributor | about $0.25 | $0.15 lenders (about 7.5% a year, like the 7.48% average for short business loans), $0.10 us |
+| 2. Distributor covers ("with recourse") | The distributor | about $0.25 | $0.15 lenders (about 8% a year, close to the 7.6% average for loans under a year, facts 51), $0.10 us |
 | 3. Distributor's own money | The distributor | $0 | No credit fee; we earn only the usage fee |
 
 - Option 2: if a shop is more than 7 days late, the distributor pays the pool and collects from the shop itself. The distributor keeps a small deposit in the pool that the contract can use for this.
 - Whoever carries the risk sets the shop's limit.
-- Typical use: option 2 for long-time customers (cheap), option 1 for new shops.
+- Typical use (plan): option 2 for long-time customers (cheap), option 1 for new shops.
+- **Built so far (Nov 13, #112): option 1 only.** The contract has one credit fee, 1.5% (`CREDIT_FEE_BPS = 150`), and every "pay in 7 days" sale is paid from the pool. Options 2 and 3 are ideas, not in the contract. PR #139 proposes a fee that slides from 1.00% to 1.50% depending on how much the shop pays up front.
 
 **The usage fee in numbers (guess):** a route with 60 shops buying $150 a week each moves about $39,000 a month. At 0.05% that's about $20 a month for that route; at 0.1%, about $39. That's tiny per route, so we need many routes, and the credit fee share matters.
 
@@ -388,17 +389,17 @@ A shop buys $100 of stock and picks "pay in 7 days".
 - It keeps our promise to shops: full price, no interest.
 - A fee charged to shops could count as interest. El Salvador caps interest at 1.6 times the central bank's average rate for each loan type (FLACSO, Oct 2025). We didn't find the exact microcredit cap; confirm with an advisor or lawyer.
 
-**What lenders earn:** $0.50 per $100 per week is about 25% a year if the pool's money is always lent out (it won't be). Idle money could sit in tokenized US Treasuries at about 3.6% a year (stretch).
+**What lenders earn:** $0.50 per $100 per week is about 26% a year (facts 56) if the pool's money is always lent out (it won't be). Idle money could sit in tokenized US Treasuries at about 3.6% a year (stretch).
 
 **The 1.5% in yearly terms (Nov 12, #93; our maths in facts 56)**
-- A finance judge will annualize it, so we say it first: being paid 7 days early for 1.5% is about 79% a year simple, or about 120% compounded.
-- The shop pays 0%. The distributor chooses the fee on its own invoice, and it buys two things: cash at the door, and no default risk (the buffer).
+- A finance judge may annualize it, so have the number ready for Q&A (facts 56: Q&A only, never a headline): being paid 7 days early for 1.5% is about 79% a year simple, or about 120% compounded.
+- The shop pays 0%. The distributor chooses to pay the fee, and it buys two things: cash at the door, and no default risk (the buffer).
 - For comparison: suppliers that offer "2/10 net 30" give up about 37% a year just to be paid sooner (facts 52). A bank loan under a year averages about 7.6% a year for those who qualify (51); most tiendas don't (§9).
-- So option 1 is the premium choice, for new shops. For shops the distributor knows, lead with option 2: 0.25%, about 13% to 14% a year (56).
-- Legal check: if the 1.5% were ever treated as interest, about 120% a year is above the highest legal maximum, 96.88% (facts 49). It has to stay a discount on the distributor's own invoice, and a lawyer confirms it (§11).
+- A cheaper choice for shops the distributor knows is still an idea: option 2 (0.25%, about 13% to 14% a year, facts 56) isn't built; the contract has one 1.5% fee. PR #139's sliding fee (1.00% to 1.50%) would be the first cheaper path.
+- Legal check: if the 1.5% were ever treated as interest, about 120% a year is above the highest legal maximum, 96.88% (facts 49). It has to stay a fee the distributor pays to be paid early, not interest on the shop's debt, and a lawyer confirms it (§11).
 - Precedent: a Salvadoran fintech already turns small businesses' invoices into cash within 24 hours, on a US$50 million credit line from a US fund (53).
 
-**Costs (early thinking):** network fees are a tiny fraction of a cent per transaction (they exist to stop spam; they aren't revenue for the Stellar Development Foundation, which is a non-profit), and hosting is nearly free. The real costs are signing up distributors and training drivers, partner fees for cash-in and cash-out, the licensed lender's share, and support.
+**Costs (early thinking):** Stellar describes its network fees as under a cent per transaction (facts 36 and 37; they exist to stop spam; they aren't revenue for the Stellar Development Foundation, which is a non-profit), and hosting is nearly free. The real costs are signing up distributors and training drivers, partner fees for cash-in and cash-out, the licensed lender's share, and support.
 
 **What could break it**
 - Defaults above about 0.75% of credit sales use up the buffer under option 1.
@@ -445,7 +446,7 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 **Built, Nov 10 (#25):** the cash two-tap now runs on testnet: the driver records the cash, the shop confirms, and the contract counts it as cash held by that driver (`get_driver_cash`). No digital dollars move, so this records cash; it does not convert it. It is the mechanism behind idea 3 and does not solve cash-in. The distributor's "Marcar efectivo entregado" (#32) lowers that count when the driver hands the cash in at the warehouse; still no digital dollars move.
 
 **Found, Nov 12 (#91, facts 41 to 46):** the counters exist. The missing piece is a partner that turns a cash deposit into digital dollars.
-- **Cost to the shop:** $0 at the counters we found (facts 42, 43), and $0 for a banked shop paying by Transfer365 (14). What a network charges its partner per deposit isn't published.
+- **Cost to the shop:** account holders pay $0 at the counters we found (BAC customers and Nequi users, facts 42, 43); whether a shop's deposit for us would be free is unknown. A banked shop paying by Transfer365 pays $0 (14). What a network charges its partner per deposit isn't published.
 - **How close:** we have network sizes, not distances: 8,900 bank correspondents (41), about 2,500 Tigo Money agents (45), about 1,000 AKÍ Pago points (44) and 748+ Punto Express points (43). They overlap, so never add them up. Many tiendas are themselves service points (55).
 - **Partner:** first call, a bank that is also registered with the CNAD as a digital asset provider (46). Our reading of the law (47), for a lawyer to confirm: the digital-dollar step needs a registered provider.
 
@@ -512,8 +513,8 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 The target is still a mid-size distributor with a few routes (§9). The big group is on the list because we can check its numbers and reach it; its route channel is only a slice of its sales.
 
 **Pilot plan: one route, about 8 weeks (guess)**
-1. **Phase 1: one route, the distributor's own money.** Invoices, the cash two-tap and digital payments on one route of about 60 shops (the §5 route, guess). "Pay in 7 days" runs as option 3, the distributor's own trade credit: no lender and no credit fee, so we earn only the usage fee. That keeps phase 1 out of lending (lawyer to confirm, §11) while every shop builds a record.
-2. **Phase 2: add the pool and the cash-in partner.** A licensed lender funds option 2 for known shops and option 1 for new ones (§5), and a partner registered with the CNAD handles digital dollars (§6).
+1. **Phase 1: one route, the distributor's own money.** Invoices, the cash two-tap and digital payments on one route of about 60 shops (the §5 route, guess). The distributor funds the pool itself (anyone can call `deposit`), so no outside lender is needed. As built, each "pay in 7 days" sale still pays the 1.5% credit fee from the pool: the lenders' $0.50 goes back to the pool the distributor funded, $0.75 to the buffer and $0.25 to us; invoices paid at delivery pay the 0.1% usage fee. Whether a distributor funding its own shops' credit counts as lending is for a lawyer (§11).
+2. **Phase 2: add the pool and the cash-in partner.** A licensed lender adds money to the pool (§5), and a partner registered with the CNAD handles digital dollars (§6).
 3. **Phase 3: a second distributor on the same shops.** A shared record is what one distributor's database can't give (§14).
 
 **What the pilot measures** (from §9): the share of invoices paid digitally, driver cash gaps caught, on-time repayments, shops whose limit grew, and defaults as a share of credit sales.
@@ -548,13 +549,13 @@ The target is still a mid-size distributor with a few routes (§9). The big grou
 | `cash_confirm(shop, id, amount)` | shop | The shop agrees to exactly the amount it was shown (if the driver changed the claim since, it fails). The invoice is marked paid in cash and the driver's cash total goes up. No tokens move. |
 | `cash_handed_in(distributor, driver, amount)` | distributor | The driver handed cash in at the warehouse. (Should) |
 | `deposit(lender, amount)` | lender | Puts money in the pool. |
-| `set_terms(admin, shop, limit, option)` | admin (the distributor, for real) | Sets a shop's limit and its option: 1, 2 or 3. |
+| `set_terms(admin, shop, limit)` | admin (the distributor, for real) | Sets a shop's credit limit. (Options were planned; the contract has none.) |
 | `pay_with_credit(shop, id)` | shop | Checks that nothing is overdue, the limit isn't exceeded and the pool has money. The pool pays the distributor the amount minus the fee, and the shop's debt and due date are recorded. |
 | `repay(shop, amount)` | shop | Moves test dollars from the shop to the pool and splits the fee into buffer, lenders and us. If it's on time, the limit grows (demo rule: +$25 per on-time repayment, up to a cap). |
 | `get_invoice`, `list_invoices`, `get_shop`, `get_pool`, `get_driver_cash` | anyone | Read-only, for the dashboard. |
 | `invoice_count`, `list_invoices_page(before, limit)`, `get_totals` | anyone | Read-only: the full history a page at a time (30 per call, newest first), and running totals by payment method. |
 
-- Option 3 needs no pool: the invoice just stays due for up to 7 days.
+- Every "pay in 7 days" sale is paid from the pool. Options 2 and 3 (§5) aren't built.
 - Each role sends its own transaction, so `require_auth` is met by whoever signs. Avoid transactions that need two signers; that's why cash is two steps.
 - Amounts are integers with 7 decimals ($1.00 = 10,000,000). Use `i128`.
 - Emit an event for every change, for the dashboard and so judges can verify.
@@ -623,7 +624,7 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 | Who | What they do | Lesson for us | How we're different |
 |---|---|---|---|
 | **Rocket** (El Salvador; GlobalPay Solutions with Mastercard and Microsoft) | A shop app: card payments, bills, phone top-ups, a marketplace to order stock; microcredit planned. In 2022: over 2,000 shops signed up, about 400 actually using it. | Shops sign up; keeping them active is the hard part. | We live inside the distributor's route: driver cash records, invoice matching, and credit on a record shared across distributors. |
-| **Tienda Pago** (Mexico and Peru) | Pays big brands' distributors for a shop's stock. The shop approves with an SMS or WhatsApp code when the truck arrives and repays within 7 days at a bank or one of 33,000 payment points. Works on basic phones. Raised $7.5M (2018). | Seven-day stock credit at the truck works. | El Salvador; rules and fee splits in an open contract; a pool many lenders can fund; cash tracking for distributors. |
+| **Tienda Pago** (Mexico and Peru) | Pays big brands' distributors for a shop's stock. The shop approves with an SMS or WhatsApp code when the truck arrives and repays within 7 days at a bank or one of 33,000 payment points. Works on basic phones. Raised $7.5M (2018). | Seven-day stock credit at the truck works. | El Salvador; rules and fee splits in a public contract; a pool many lenders can fund; cash tracking for distributors. |
 | **Transfer365** | Free instant bank transfers. | Moving money between bank accounts is already free. | No credit, no invoice matching, no driver cash records; about half of small businesses have no bank relationship. |
 | **BFA tienda credit line** (state bank, with Conamype guarantees; since late 2025) | Loans to tiendas up to $10,000, approved within 72 hours; over $1.4M lent in 440 loans by Feb 2026. | Government already sees stock credit as the problem. | A loan you apply for (average about $3,200) versus 7-day, no-interest stock credit at the truck, per delivery, that builds a record. See `docs/facts.md` entry 20. |
 | **Loan sharks** | Cash the same day, no paperwork. | Speed and no paperwork matter. | The same speed for stock, with no interest. |
@@ -637,7 +638,7 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 |---|---|
 | Cash-out: distributors turning USDC into bank dollars, and crypto firms' trouble getting bank accounts | A licensed partner with banking; daily batch payouts (§6, idea 7) |
 | Adoption: shops and drivers don't change habits | Start inside one distributor's routes; cash still works; credit is the reason to switch |
-| Defaults and fraud | Small limits that grow, no new credit while overdue, the default buffer, and option 2 for shops the distributor knows |
+| Defaults and fraud | Small limits that grow, no new credit while overdue, and the default buffer |
 | Regulation: lending and digital assets need licences | A licensed lender funds the pool; a partner registered with the CNAD handles digital dollars; distributors pay the fee, not shops, because of the interest cap. Law by law: §11.1 |
 | Privacy on a public ledger | No names on-chain; details off-chain; batching later |
 | Basic phones and weak signal | The shop side opens from a WhatsApp or SMS link; light pages; later, a code-based approval like Tienda Pago's |
@@ -651,7 +652,7 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 |---|---|---|---|
 | Digital dollars | Digital asset law (2023); the CNAD keeps a public registry of providers (facts 47) | Turning cash into digital dollars, holding them for shops and lending them all look like services that must register (47). 60+ providers are registered, including a bank (46) | A registered partner for now; we'd register only if we did those parts ourselves |
 | Cash agents and e-money | Financial inclusion law (2015), supervised by the SSF; the central bank's rules for bank correspondents (48, 41) | The cash-in counters already run under these rules (41, 45) | The bank or e-money company we partner with (§6) |
-| Interest | Usury law: the central bank sets caps twice a year; the highest is 96.88% a year for Jul to Dec 2026 (18, 49) | Shops pay no interest. The distributor's 1.5% must count as a discount on its own invoice, not interest: per year it would be above every cap (56) | No licence; the caps bind whoever lends to the pool |
+| Interest | Usury law: the central bank sets caps twice a year; the highest is 96.88% a year for Jul to Dec 2026 (18, 49) | Shops pay no interest. The distributor's 1.5% must count as a fee it pays to be paid early, not interest: per year it would be above every cap (56) | No licence; the caps bind whoever lends to the pool |
 | Lending | Banks, cooperatives and savings-and-loan companies are supervised by the SSF; other regular lenders register with the central bank (18) | We're not the lender (§7.5) | A licensed microfinance institution, cooperative or bank funds the pool |
 | Personal data | Personal data protection law (2024) (50) | Names and phone numbers stay off the public ledger (§8.4); we likely need consent text and a person responsible for data | Us |
 
@@ -750,17 +751,17 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 - **Our corrections:** don't compare to MoneyGram's 5% (that's a cross-border fee, and Transfer365 is free); compare to loan sharks (about $35 per $100) versus $0 for shops. The $0.75 buffer is our own number. The $30 wallet bonus and fuel discounts our startup advisor mentioned were Chivo perks from 2021: don't use them.
 
 **What judges will probably ask** (practise 20-second answers)
-- *How do you make money (30 seconds)?* Distributors pay us, shops never do: 0.1% of every invoice paid in cash or digitally, plus 0.25% of each "pay in 7 days" sale (inside the 1.5% credit fee, so the distributor gets $98.50 per $100), built into an open contract.
-- *How do you get into El Salvador?* One distributor's route first, on its own money (option 3), so the first phase needs no lender. Then a licensed lender for the pool and a registered partner for digital dollars, then a second distributor on the same shops (§7.7). The leading distributor alone serves 24,000 clients (facts 54), and the distributors' association already works with the government on tiendas (55).
-- *Why not just Transfer365 and a database?* Transfer365 only moves money between bank accounts, and about half of small businesses don't have a bank relationship. It doesn't do credit, invoice matching or driver cash records. One distributor's database isn't a record other distributors and lenders can trust. Our contract enforces the credit rules and fee split in the open, settles in seconds for a fraction of a cent, and lets lenders fund a pool directly.
+- *How do you make money (30 seconds)?* Distributors pay us, shops never do: 0.1% of every invoice paid in cash or digitally, plus 0.25% of each "pay in 7 days" sale (inside the 1.5% credit fee, so the distributor gets $98.50 per $100), built into a public contract.
+- *How do you get into El Salvador?* One distributor's route first, with the distributor funding the pool itself, so the first phase needs no outside lender. Then a licensed lender for the pool and a registered partner for digital dollars, then a second distributor on the same shops (§7.7). The leading distributor alone serves 24,000 clients (facts 54), and the distributors' association already works with the government on tiendas (55).
+- *Why not just Transfer365 and a database?* Transfer365 only moves money between bank accounts, and about half of small businesses don't have a bank relationship. It doesn't do credit, invoice matching or driver cash records. One distributor's database isn't a record other distributors and lenders can trust. Our contract enforces the credit rules and fee split in the open, settles in seconds, and Stellar describes its fees as under a cent, and lets lenders fund a pool directly.
 - *How does a shop get digital dollars?* Risk #1, said first. The counters already exist: banks run 8,900 correspondent points, and lenders like CrediCampo already take loan payments through Tigo Money's agents (facts 41, 44). The shop pays cash there with a reference number, and a licensed partner credits it in digital dollars (§6 ideas 1, 13 and 14). Banked shops pay by Transfer365, which is free (idea 6). Not solved yet: signing that partner (idea 15).
 - *Who are the lenders?* A test account in the demo. For real, a licensed microfinance institution or cooperative. We're not the lender.
-- *What if a shop doesn't pay?* Small limits that grow, no new credit while overdue, a truck that keeps coming back, a default buffer, and option 2 for shops the distributor knows.
-- *Isn't 1.5% a week expensive?* Per year it's about 79%, and the shop pays none of it. The distributor chooses it to be paid at the door with no risk of default, so it's factoring plus insurance. For shops it already trusts, it picks option 2: 0.25%, about 14% a year. Suppliers already give up about 37% a year with standard early-payment discounts (facts 52, 56).
+- *What if a shop doesn't pay?* Small limits that grow, no new credit while overdue, a truck that keeps coming back, and a default buffer.
+- *Isn't 1.5% a week expensive?* Per year it's about 79%, and the shop pays none of it. The distributor chooses it to be paid at the door with no risk of default, so it's factoring plus insurance. A cheaper fee for shops it trusts is planned (PR #139), not built yet. Suppliers already give up about 37% a year with standard early-payment discounts (facts 52, 56).
 - *How are you different from Rocket and Tienda Pago?* §10.
 - *Have real users tried it?* The exact numbers from `docs/research.md`, and one thing we changed because of them.
-- *Is it legal?* Shops pay no interest. The distributor takes a discount on its own invoice to be paid early. A licensed lender funds the pool and does KYC, and a partner registered with the CNAD handles the digital dollars; one Salvadoran bank already is registered (facts 46, 47). We know the interest caps (highest 96.88% a year, entry 49) and the 2024 data law (50), and a lawyer confirms the structure before launch (§11.1).
-- *Why Stellar?* USDC is native, and El Salvador already uses dollars. Payments settle in seconds for a fraction of a cent. Anchors connect to cash. Soroban enforces the credit rules. Fee sponsorship and passkeys hide the crypto.
+- *Is it legal?* Shops pay no interest. The distributor pays a fee to be paid early. A licensed lender funds the pool and does KYC, and a partner registered with the CNAD handles the digital dollars; one Salvadoran bank already is registered (facts 46, 47). We know the interest caps (highest 96.88% a year, entry 49) and the 2024 data law (50), and a lawyer confirms the structure before launch (§11.1).
+- *Why Stellar?* USDC is native, and El Salvador already uses dollars. Payments settle in seconds, and Stellar describes its fees as under a cent. Anchors connect to cash. Soroban enforces the credit rules. Fee sponsorship and passkeys hide the crypto.
 - *What about privacy?* No names on-chain, details off-chain, batching later. The off-chain data follows El Salvador's 2024 data protection law (facts 50).
 
 ---
@@ -795,7 +796,7 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 | Nov 6 | Risk #1 (cash to digital dollars) goes in every doc, with the ideas log. |
 | Nov 6 | Savings and Treasury yield are stretch goals, with a simulated token in the demo. |
 | Nov 6 | This file is our single context doc. Build plan adopted. One contract recommended (Jack can split it if needed). |
-| Nov 9 | Product form: a mobile web app on our own open contract, not a native app or a feature in someone else's wallet. |
+| Nov 9 | Product form: a mobile web app on our own public contract, not a native app or a feature in someone else's wallet. |
 | Nov 9 | New roles: Yahya all code-heavy work and all UI; Jack light backend plus the one-pager, slides, trifold and deck; Ruhaan about 3 h of small non-UI helpers; Rohan outreach and sourced facts only. The plan moved into the GitHub issues. |
 | Nov 9 | Market size: $2B a year from distributors to El Salvador's neighbourhood shops (Conamype estimate, via Diario El Salvador; see the fact-sheet row below). Never use the unsourced $7B. Lead with a worldwide number first. |
 | Nov 9 | Fact sheet (#50): every number now lives in `docs/facts.md`. Corrections: 85,265 is "shops and small retailers" (about 50,133 tiendas proper); the $2B is a Conamype estimate, not the Distribución Dinámica study; 62.2% is informal small businesses; say "most" women-owned, not 85%. |
