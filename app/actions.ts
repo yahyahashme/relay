@@ -7,7 +7,7 @@
 import { formatDay, formatMoney } from "@/lib/format";
 import { mayActAs, NOT_YOURS } from "@/lib/server/authz";
 import { getDirectory, type Directory } from "@/lib/server/directory";
-import { addressOf, config, DRIVER_IDS, explorerTx, nameOf, roleOf, SHOP_IDS, type Role } from "@/lib/stellar/config";
+import { addressOf, config, explorerTx, nameOf, roleOf, SHOP_IDS, type Role } from "@/lib/stellar/config";
 import { readClient } from "@/lib/stellar/client";
 import { ContractError, FALLBACK_MESSAGE } from "@/lib/stellar/errors";
 import { toInvoice, toShop } from "@/lib/stellar/map";
