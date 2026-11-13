@@ -6,18 +6,18 @@ import { type FormEvent, useState } from "react";
 import { signUpAction } from "@/app/auth-actions";
 import { FormError, PasswordField, TextField } from "@/components/form";
 import { BackLink, Button, Card, Screen } from "@/components/ui";
-import { useI18n } from "@/lib/i18n";
+import { useT } from "@/lib/i18n";
 
 type Choice = "tienda" | "distribuidora" | "motorista";
 
-const CHOICES: { role: Choice; title: string; hint: string }[] = [
-  { role: "tienda", title: "Tienda", hint: "Compro a distribuidores" },
-  { role: "distribuidora", title: "Distribuidora", hint: "Vendo y entrego a tiendas" },
-  { role: "motorista", title: "Motorista", hint: "Entrego para una distribuidora" },
+const CHOICES: { role: Choice; title: [string, string]; hint: [string, string] }[] = [
+  { role: "tienda", title: ["Tienda", "Shop"], hint: ["Compro a distribuidores", "I buy from distributors"] },
+  { role: "distribuidora", title: ["Distribuidora", "Distributor"], hint: ["Vendo y entrego a tiendas", "I sell and deliver to shops"] },
+  { role: "motorista", title: ["Motorista", "Driver"], hint: ["Entrego para una distribuidora", "I deliver for a distributor"] },
 ];
 
 export default function SignUp() {
-  const { t, msg } = useI18n();
+  const { t, msg } = useT();
   const router = useRouter();
   const [role, setRole] = useState<Choice | null>(null);
   const [name, setName] = useState("");
@@ -44,13 +44,13 @@ export default function SignUp() {
     <Screen>
       <BackLink />
       <header className="flex flex-col gap-1">
-        <h1 className="text-3xl font-bold">{t("Crear cuenta")}</h1>
-        <p className="text-lg text-muted">{t("Es gratis. Las tiendas nunca pagan comisiones.")}</p>
+        <h1 className="text-3xl font-bold">{t("Crear cuenta", "Create account")}</h1>
+        <p className="text-lg text-muted">{t("Es gratis. Las tiendas nunca pagan comisiones.", "It's free. Shops never pay fees.")}</p>
       </header>
 
       <section className="flex flex-col gap-2" aria-labelledby="who">
         <h2 id="who" className="text-xl font-semibold">
-          {t("¿Qué es usted?")}
+          {t("¿Qué es usted?", "What are you?")}
         </h2>
         <div className="flex flex-col gap-2" role="radiogroup" aria-labelledby="who">
           {CHOICES.map((choice) => (
@@ -68,8 +68,8 @@ export default function SignUp() {
               }`}
             >
               <span className="flex flex-col">
-                <span className="text-lg font-semibold">{t(choice.title)}</span>
-                <span className="text-muted">{t(choice.hint)}</span>
+                <span className="text-lg font-semibold">{t(...choice.title)}</span>
+                <span className="text-muted">{t(...choice.hint)}</span>
               </span>
               <span
                 aria-hidden
@@ -90,23 +90,23 @@ export default function SignUp() {
 
       {role === "motorista" && (
         <Card className="flex flex-col gap-2">
-          <p className="text-lg">{t("Los motoristas se registran con la invitación de su distribuidora.")}</p>
-          <p className="text-muted">{t("Pídale el enlace a su distribuidora y ábralo en este teléfono.")}</p>
+          <p className="text-lg">{t("Los motoristas se registran con la invitación de su distribuidora.", "Drivers sign up with their distributor's invite.")}</p>
+          <p className="text-muted">{t("Pídale el enlace a su distribuidora y ábralo en este teléfono.", "Ask your distributor for the link and open it on this phone.")}</p>
         </Card>
       )}
 
       {(role === "tienda" || role === "distribuidora") && (
         <form onSubmit={submit} className="flex flex-col gap-4">
           <TextField
-            label={role === "tienda" ? t("Su nombre") : t("Nombre de la persona de contacto")}
+            label={role === "tienda" ? t("Su nombre", "Your name") : t("Nombre de la persona de contacto", "Contact person's name")}
             autoComplete="name"
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
           <TextField
-            label={t("Teléfono o correo")}
-            hint={t("Teléfono de El Salvador (8 dígitos) o correo.")}
+            label={t("Teléfono o correo", "Phone or email")}
+            hint={t("Teléfono de El Salvador (8 dígitos) o correo.", "A Salvadoran phone number (8 digits) or an email.")}
             autoComplete="username"
             inputMode="email"
             required
@@ -114,8 +114,8 @@ export default function SignUp() {
             onChange={(e) => setContact(e.target.value)}
           />
           <PasswordField
-            label={t("Contraseña")}
-            hint={t("Al menos 8 caracteres.")}
+            label={t("Contraseña", "Password")}
+            hint={t("Al menos 8 caracteres.", "At least 8 characters.")}
             autoComplete="new-password"
             minLength={8}
             required
@@ -124,16 +124,16 @@ export default function SignUp() {
           />
           {error && <FormError>{msg(error)}</FormError>}
           <Button type="submit" busy={busy}>
-            {t("Crear cuenta")}
+            {t("Crear cuenta", "Create account")}
           </Button>
-          {busy && <p className="text-center text-muted">{t("Estamos creando su cuenta de dólares digitales. Toma unos segundos.")}</p>}
+          {busy && <p className="text-center text-muted">{t("Estamos creando su cuenta de dólares digitales. Toma unos segundos.", "We're creating your digital dollar account. It takes a few seconds.")}</p>}
         </form>
       )}
 
       <p className="text-center text-lg">
-        {t("¿Ya tiene cuenta?")}{" "}
+        {t("¿Ya tiene cuenta?", "Already have an account?")}{" "}
         <Link href="/entrar" className="font-semibold text-brand underline">
-          {t("Entrar")}
+          {t("Entrar", "Sign in")}
         </Link>
       </p>
     </Screen>
