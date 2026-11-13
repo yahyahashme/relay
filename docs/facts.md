@@ -34,6 +34,8 @@ Strongest first. Each line is safe to say out loud; the entry has the source.
 6. Fewer than half of adults have a bank account (12, 13).
 7. A state bank already lends tiendas up to $10,000 in 72 hours; we're different because credit happens at the truck, per delivery (20).
 
+**Pending Ruhaan's source check (58–59):** Shops could pay by reference number in cash at Banco Agrícola branches, like paying a bill, and an eligible distributor could wire the collected dollars to Circle Mint for digital dollars on Stellar.
+
 ## Say this, not that
 
 | Say | Don't say | Why | Entry |
@@ -884,3 +886,23 @@ _Entry 57 comes from `docs/research.md` on `main`, not from a web page. Claude r
   - Advisors are not users or customers. Never count them in "what we heard from N people" (#30) or call them traction.
   - Only the calls are logged on `main`. The one-pager's "emails to 4 banks and a supermarket chain" has no entry here: the outreach log is only in PR #89, which is not merged. Don't add that count until its source is on `main`.
 - **Checked:** Claude, 13 Nov 2026, against `docs/research.md` on main (044f987): the file has two advisor sections, and the line "Yahya took both calls on Mon Nov 9." is in it.
+
+## 58. Banco Agrícola Recaudo takes cash payments by reference at branches
+
+- **Claim:** Banco Agrícola, an SSF-supervised bank, offers Recaudo to SMEs and other businesses that collect recurring payments. Its branches accept cash. The bank identifies payments by payment reference (NPE) or barcode and deposits collections the same day.
+- **Source:** [Banco Agrícola Recaudo](https://www.bancoagricola.com/recaudo) and [SSF private bank list](https://ssf.gob.sv/bancos/), retrieved 13 Nov 2026.
+- **Exact quotes:** “identificando los pagos recibidos con NPE o Código de Barra”; payment table “Red de agencias” → “Efectivo”.
+- **Translation:** “identifying payments received by NPE or barcode”; payment table “Branch network” → “Cash”.
+- **Use in:** Cash-in pitch line and context §6.
+- **Caveat:** The page lists 1,500+ total service points across electronic and in-person channels. The number of cash-accepting branches and any separate correspondent coverage for Recaudo are unconfirmed. The page lists $3 plus IVA without specifying the billing unit or who pays. Pricing per $100 and a distributor's enrolment terms require confirmation.
+- **Checked:** Pending Ruhaan opening the sources and confirming the wording. Codex retrieved them on 13 Nov 2026.
+
+## 59. Circle Mint accepts USD wires from El Salvador and supports native USDC on Stellar
+
+- **Claim:** Circle lists El Salvador among countries eligible for fiat connectivity and countries it accepts wires from. An approved business can send USD from a bank account in its own name to Circle's US bank account. Circle Mint supports native USDC on Stellar.
+- **Sources:** [Circle Mint supported countries](https://help.circle.com/s/article/Who-is-eligible-for-a-Circle-Account?language=en_US), [countries Circle accepts wires from](https://help.circle.com/s/article/Countries-we-accept-wire-transfers-from?language=en_US), [Circle's Stellar product page](https://www.circle.com/es/multi-chain-usdc/stellar), and [Circle's network support FAQ](https://help.circle.com/support/en/usdc-supported-blockchains-minting-redemption-faqs?id=kb_article_view&sysparm_article=KB0010590), retrieved 13 Nov 2026.
+- **Exact quotes (English originals):** “El Salvador” in the supported wire countries list. “Once you’re approved, you can deposit funds via wire transfer.” “Circle Mint only supports native USDC on Stellar.”
+- **Spanish translation:** “El Salvador”. “Una vez que se apruebe tu cuenta, puedes depositar fondos mediante transferencia bancaria”. “Circle Mint solo admite USDC nativo en Stellar”.
+- **Use in:** Cash-in pitch line and context §6.
+- **Caveat:** Country support is subject to business approval and acceptance of the institution's wire. The two-step route also depends on the bank, the entity handling the funds and the terms of its approved use. Total wire and conversion costs and whether the route works for Relay's settlement flow are unconfirmed.
+- **Checked:** Pending Ruhaan opening the sources and confirming the wording. Codex retrieved them on 13 Nov 2026.
