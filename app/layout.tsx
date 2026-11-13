@@ -1,13 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import type { ReactNode } from "react";
-import { APP_NAME } from "@/lib/brand";
+import { APP_NAME, TAGLINE } from "@/lib/brand";
 import "./globals.css";
 
 const sans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: APP_NAME,
+  title: `${APP_NAME} · ${TAGLINE}`,
   description: "Las tiendas pagan a su distribuidor con dólares digitales, en efectivo o en 7 días sin intereses.",
 };
 

@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { APP_NAME } from "./brand";
+import { APP_NAME, TAGLINE } from "./brand";
 
 describe("brand", () => {
-  it("has a product name", () => {
-    expect(APP_NAME.trim().length).toBeGreaterThan(0);
+  it("has a product name and a tagline", () => {
+    expect(APP_NAME).toBe("Relay");
+    expect(TAGLINE).toBe("Paga tu ruta");
   });
 });
