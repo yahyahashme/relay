@@ -1,6 +1,6 @@
 # Trifold print and assembly (#40)
 
-Scaffold written Wed Nov 11. This is the checklist and the spec; the content of the board is in `docs/pitch.md` (#37). Fill in the blanks as we learn them.
+Scaffold written Wed Nov 11; updated Thu Nov 12 late evening for the name (Relay) and the live URL. This is the checklist and the spec; the content of the board is in `docs/pitch.md` (#37) and the print file is `docs/trifold/trifold.html`, both on `main` since PR #83. Fill in the blanks as we learn them.
 
 **Deadline:** Sun Nov 15, 6:00 PM ET, with a photo of the finished board in the group chat. **Owner:** Jack, and anyone free helps. **Time:** about 2 h of assembly, plus the print shop's turnaround.
 **Needs first:** the print-ready layout from #37 (Sat Nov 14). **Then:** the showcase is Mon Nov 16 (setup 4:00 PM, judging 4:30 to 7:00 PM, Innovation Arena, 280 Joseph St, Kitchener).
@@ -10,7 +10,8 @@ Scaffold written Wed Nov 11. This is the checklist and the spec; the content of 
 | Item | Spec | Status |
 |---|---|---|
 | Board | Tri-fold, 36 x 48 in (the size #40 names) | **Do we have one?** If not, email velocity.events@uwaterloo.ca, subject "Blockchain Innovation Challenge Powered by Stellar". Ask early. |
-| Panels | Most 36 x 48 in tri-fold boards fold as 12 in + 24 in + 12 in (a wide centre, two narrow wings). The #37 draft (PR #83) assumes three equal panels of about 16 x 36 in. **Measure our board before the layout is final**, because the two layouts are very different. | `[measured: ___ + ___ + ___ in]` |
+| Panels | Most 36 x 48 in tri-fold boards fold as 12 in + 24 in + 12 in (a wide centre, two narrow wings). PR #83 (merged) builds both: `node docs/trifold/render.mjs` makes a 12 + 24 + 12 in version and a 16 + 16 + 16 in version (about 16 x 36 in per panel). **Measure our board before the layout is final**, because the two layouts are very different. | `[measured: ___ + ___ + ___ in]` |
+| Title | **Relay**, with **Paga tu ruta** under it (decided Nov 12, PR #100; context §1). The board title is still `[NAME]` in `docs/trifold/trifold.html` and `docs/pitch.md` on `main`: replace it with "Relay" before `node docs/trifold/render.mjs --final`, which fails while any yellow placeholder is left (the "what we heard" count and the phone screenshots are placeholders too). | to do: fill `[NAME]` |
 | Type sizes | Title about 96 pt, headings 30 to 40 pt, body 24 to 32 pt (Velocity's tips) | from context §3.8 |
 | Text share | At most 25% of the board is text | check on the real layout |
 | Message | Two key points only. Sketch on paper, and have someone outside the team read it first. | from context §3.8 |
@@ -30,8 +31,8 @@ Scaffold written Wed Nov 11. This is the checklist and the spec; the content of 
 
 | Item | Spec | Status |
 |---|---|---|
-| Points to | The live app's final URL. The README (PR #71, merged) names https://tiendas-stellar.vercel.app, and the demo QR image `public/qr-demo.png` (PR #70, merged) opens `/demo`. Whether that URL is final: confirm with Yahya before printing. | `[final URL: ___]` |
-| Order | Make the QR **last**, after the URL is final. A QR that points at an old URL fails silently. | |
+| Points to | **https://relay-sv.vercel.app/demo** (Yahya, in his review of PR #104: print this one). The README names https://relay-sv.vercel.app, and `public/qr-demo.png` was regenerated for it in PR #102 (merged). Decoded Thu Nov 12 evening with macOS CoreImage, from the file on `main`: it opens `https://relay-sv.vercel.app/demo`. The old https://tiendas-stellar.vercel.app only redirects there (HTTP 307): do not print it. | `[final URL: https://relay-sv.vercel.app/demo]` |
+| Order | Make the QR **last**, after the URL is final. A QR that points at an old URL fails silently. The URL is final now, so use `public/qr-demo.png` as it is on `main`; do not regenerate it unless the domain changes again. | |
 | Size | Our suggestion: at least 4 x 4 in with a clear white border, and a test from arm's length (about 1 m). Not a standard, so the phone test below decides. | |
 | Caption | "Scan to try it. Live on Stellar testnet with test dollars." | |
 
@@ -99,7 +100,7 @@ Retrieved Thu Nov 12, 2026, from the shops' own pages where we could open them, 
 
 **What we found.** Only two shops near Waterloo and Kitchener list Sunday hours with print services, and both are Staples stores. Staples' wide-format page says posters go "up to 24" x 36"", not 36 x 48 in. So **a 36 x 48 in print on Sunday is not confirmed anywhere.** The other shops we checked either list Sunday as closed or give no Sunday hours (see "Sunday hours not confirmed" and "Checked and closed" below). Two things follow, and the team decides:
 
-- Ask Staples whether per-panel prints (each within 24 x 36 in) are an option. The #37 draft assumes three panels of about 16 x 36 in, which would fit. The real board may fold 12 + 24 + 12 in instead (section 1), so measure first.
+- Ask Staples whether per-panel prints (each within 24 x 36 in) are an option. The 16 + 16 + 16 in layout from #37 has panels of about 16 x 36 in, which would fit. The real board may fold 12 + 24 + 12 in instead (section 1), so measure first.
 - FASTSIGNS, Minuteman Press and W Print are closed on both Saturday and Sunday, so they only work if the file goes out on **Fri Nov 13**. #37 is due Sat Nov 14. The two UPS Stores in "Checked and closed" are open on Saturday from 10:00 am to 3:00 pm, and #398 lists posters and banners, so a Saturday print is possible there if the file is ready by then.
 
 ### Listed open on Sunday

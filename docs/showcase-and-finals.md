@@ -1,6 +1,6 @@
 # Showcase and finals plan (#43, #44, #45)
 
-Written Thu Nov 12 evening. These three issues are events, so this file is a plan to follow, not something to finish. Each "Done means" at the bottom needs evidence from the day itself. Fill in every `Who: ____` cell as a team. Nobody is assigned here.
+Written Thu Nov 12 evening; updated late that evening for the product name (Relay, "Paga tu ruta") and the new live URL. These three issues are events, so this file is a plan to follow, not something to finish. Each "Done means" at the bottom needs evidence from the day itself. Fill in every `Who: ____` cell as a team. Nobody is assigned here.
 
 **Marks used below.** "source: issue #43" means the fact is copied from that issue. "our suggestion" means we made it up to be useful and Velocity has not said it. "not known yet" means no issue, doc or page we have says it.
 
@@ -22,9 +22,10 @@ Written Thu Nov 12 evening. These three issues are events, so this file is a pla
 ### State on `main` on Thu Nov 12
 
 - The `/demo` route is on `main` (PR #70, hardened in #88). Each visit makes a new invoice for one of the three demo shops and sends the phone to it, so every judge pays their own invoice (`app/demo/route.ts`).
-- The QR image `public/qr-demo.png` is on `main` and opens `/demo` (README, "Before the showcase"). The live app is https://tiendas-stellar.vercel.app (README). **Scan the printed QR once before Monday to check it opens `/demo`; this file has not decoded it.**
+- The live app is **https://relay-sv.vercel.app** (README). The old https://tiendas-stellar.vercel.app only redirects there (HTTP 307), so do not print it.
+- The QR image `public/qr-demo.png` was regenerated for the new URL (PR #102, merged). Decoded Thu Nov 12 evening with macOS CoreImage, from the file on `main`: it opens `https://relay-sv.vercel.app/demo`. **That checks the file, not the print: scan the printed QR once before Monday to check it opens `/demo`.**
 - The contract was redeployed on Thu Nov 12 (PR #90). The contract ID is `contracts.routeLedger` in `config/testnet.json`.
-- Not on `main` yet: `docs/pitch.md` and the trifold files (PR #83, open). The product name is also still open: the app title on `main` says "Nombre pendiente".
+- `docs/pitch.md` and the trifold files (`docs/trifold/`) are on `main` (PR #83, merged). The product name is decided: **Relay**, tagline **"Paga tu ruta"** (PR #100, `lib/brand.ts`, context §1). `[NAME]` is still in `docs/pitch.md` and in `docs/trifold/trifold.html` on `main`: fill it with "Relay" before the final render.
 
 ### Packing list
 
@@ -35,13 +36,13 @@ The first seven rows are the list in issue #43. The rest is our suggestion.
 | [ ] | Laptop and charger | Battery full. Opens `/distribuidor` full screen and shows the grey banner "Demo en testnet · dinero de prueba · cash-in simulado". Sleep and screen lock off. | |
 | [ ] | Phones, charged, with the shop page open | At least two team phones, as a backup for a judge whose phone will not scan. Note: every visit to `/demo` makes a new invoice (the server allows 20 a minute), so do not open it again and again to "test". | |
 | [ ] | The trifold with the demo QR | Board built (`docs/trifold-assembly.md`), QR tested on 3 phones. | |
-| [ ] | The video, downloaded | The MP4 is on the laptop and on one phone, and plays with Wi-Fi off. The shot list is `docs/demo-video.md`. Whether the video is recorded yet: not known yet (it is Yahya's #35). | |
+| [ ] | The video, downloaded | The MP4 is on the laptop and on one phone, and plays with Wi-Fi off. The shot list is `docs/demo-video.md`. Whether the video is recorded yet: #35 (Yahya's) was still open on Thu Nov 12 evening, so treat it as not recorded until it closes. | |
 | [ ] | A phone hotspot | Hotspot on and tested with the laptop before leaving. Name and password written on paper. | |
 | [ ] | A printed QR code | At least two spare prints, at least 4 x 4 in with a white border (our size suggestion in `docs/trifold-assembly.md`). | |
 | [ ] | Note-taker's notebook and pen, or a shared note | Every judge question is written down (issue #43 "Done means"). | |
 | [ ] | Power strip or extension cord, a phone charger or power bank | Our suggestion. Venue power is not known yet. | |
 | [ ] | Painter's tape, scissors, spare tape | Our suggestion, for the board and the printed QR. | |
-| [ ] | The URL on paper | `https://tiendas-stellar.vercel.app/demo`, for a judge who cannot scan. | |
+| [ ] | The URL on paper | `https://relay-sv.vercel.app/demo`, for a judge who cannot scan. The same address the printed QR opens (decoded from `public/qr-demo.png`, see "State on `main`"). Not the old `tiendas-stellar` address: it only redirects. | |
 
 ### Mon morning, at home (our suggestion, from README "Before the showcase")
 
@@ -104,7 +105,7 @@ Use the laptop that ran `scripts/setup.sh`: it holds the test-dollar issuer. Yah
 
 - The deck draft from #41 (due Sun Nov 15, 11:59 PM), on the laptop and as a backup copy on a USB stick or in a shared folder (our suggestion).
 - A laptop and a **note-taker** (issue #44).
-- The video file, a charger, the pitch script `docs/pitch.md` once PR #83 is merged (our suggestion), and the QR and the app on a phone (our suggestion).
+- The video file, a charger, the pitch script `docs/pitch.md` (on `main` since PR #83; our suggestion), and the QR and the app on a phone (our suggestion).
 
 **What happens:** a 3-minute pitch, then mentor feedback. **Write every comment down** (issue #44).
 
@@ -156,10 +157,11 @@ Run this on the file you are about to upload, not on the draft.
 
 - [ ] **Every number has a `docs/facts.md` entry.** Read each slide and write the entry number next to each number. A number with no entry: take it out, or add the entry in a PR first. Nothing from the "Never use" list at the top of `docs/facts.md`.
 - [ ] **"$35 per $100" says "2019 survey"** wherever it appears (facts entry 10).
-- [ ] **Any contract ID equals `contracts.routeLedger` in `config/testnet.json`.** Compare character by character, on the slide and on any image such as the code slide. Do not copy an ID from an old doc: `docs/demo-video.md` still shows the ID from before the Nov 12 redeploy.
+- [ ] **Any contract ID equals `contracts.routeLedger` in `config/testnet.json`.** Compare character by character, on the slide and on any image such as the code slide. Do not copy an ID from an old doc. As of Thu Nov 12 evening `docs/img/code-slide.png` on `main` still shows the ID from before the redeploy (it starts `CAPQ6ZDD`); the re-render is in PR #82 (open). `docs/demo-video.md`, `docs/one-pager.md` and the README table show the new ID.
 - [ ] **No advisor names** anywhere, including slide notes. Roles only ("our startup advisor", "our technical and finance advisor").
 - [ ] **No claim that fee sponsorship is built.** PR #81 is a draft and Yahya wants it out of the pitch and deck until after the finals.
 - [ ] **No placeholders left:** search the file for `[`, `]`, "TBD", "PENDING" and `[NAME]`.
+- [ ] **The name and the URL are the new ones:** "Relay" with "Paga tu ruta" under it, and https://relay-sv.vercel.app. Search for "Tiendas", "tiendas-stellar" and "Nombre pendiente": none may appear.
 - [ ] **No animations and no transitions** on any slide. Format is PowerPoint (`.pptx`), made from the Velocity template.
 - [ ] **The file opens on a second laptop, in PowerPoint itself** (not only Google Slides): fonts, images and layout look the same.
 - [ ] Screenshots in the deck: the grey demo banner is readable, and there is no secret key (starts with S), no `.env` text and no phone number on screen.
