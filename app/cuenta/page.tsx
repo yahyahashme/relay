@@ -58,15 +58,13 @@ export default function Account() {
       </header>
 
       <Card className="flex flex-col gap-4">
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <Label>{t("Tipo de cuenta")}</Label>
-            <p className="text-lg font-semibold">{t(ROLE_LABEL[user.role])}</p>
-          </div>
-          <div className="min-w-0">
-            <Label>{t("Teléfono o correo")}</Label>
-            <p className="truncate text-lg font-semibold">{user.contact}</p>
-          </div>
+        <div>
+          <Label>{t("Tipo de cuenta")}</Label>
+          <p className="text-lg font-semibold">{t(ROLE_LABEL[user.role])}</p>
+        </div>
+        <div>
+          <Label>{t("Teléfono o correo")}</Label>
+          <p className="text-lg font-semibold break-all">{user.contact}</p>
         </div>
         <div>
           <Label>{t("Cuenta de dólares digitales")}</Label>
