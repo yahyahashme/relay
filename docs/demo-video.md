@@ -3,7 +3,7 @@
 The script is the table in issue #35. This file turns it into exact clicks. Everything below was clicked
 through on testnet on Nov 10 (labels copied from the screens). **Re-click the table after the Thursday
 redeploy (#52)**: the contract ID changes and #80 adds history and "Ver más" to the dashboard; then update
-this line. Placeholders in **[brackets]** wait on the team: the product name (#26).
+this line. The product name is decided: **Relay**, tagline *Paga tu ruta* (PR #100).
 
 ## Before you record (10 min)
 
@@ -55,7 +55,7 @@ so the screen shows $59.10 on $60.00 (and would show $147.75 on $150). Say what 
 - Contract: `CDHDZX7VVOPY7TNKA744EQP24BPO5MJIZQOGJGYNGA7N7ZIZWQBQMYUR`
   (https://stellar.expert/explorer/testnet/contract/CDHDZX7VVOPY7TNKA744EQP24BPO5MJIZQOGJGYNGA7N7ZIZWQBQMYUR).
   If the contract is redeployed (#52), copy the new ID from `config/testnet.json`.
-- **[Product name, #26]**
+- Product name: **Relay**, with *Paga tu ruta* under it (PR #100)
 
 ## If something goes wrong while recording
 
