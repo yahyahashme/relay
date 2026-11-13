@@ -18,7 +18,7 @@ Form: "BlockChain Innovation Challenge: Project Showcase Submission" ([link](htt
 
 ## 2. Team Name
 
-**TBD.** We pick the name Wed Nov 11 (context §1); the app still shows "Nombre pendiente".
+**Relay** (tagline: "Paga tu ruta").
 
 ## 3. Team Members (picker)
 
