@@ -145,7 +145,7 @@ async function main() {
   const file = resolve(given ?? resolve(root, "docs/one-pager.md"));
   if (!existsSync(file)) {
     console.error(`No such file: ${file}`);
-    if (!given) console.error('docs/one-pager.md is on branch 8-one-pager until PR #64 merges. Merge origin/main here once it has, or:\n  git show origin/8-one-pager:docs/one-pager.md > "$TMPDIR/one-pager.md"\n  node scripts/check-one-pager.mjs "$TMPDIR/one-pager.md"');
+    if (!given) console.error("docs/one-pager.md has been on main since PR #64. Run git fetch origin && git merge origin/main here, or pass the path to a copy of the one-pager.");
     process.exit(2);
   }
   const result = checkOnePager(readFileSync(file, "utf8"), loadConfig(root, { refresh: online }));
