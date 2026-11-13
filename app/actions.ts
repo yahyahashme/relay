@@ -252,6 +252,7 @@ const DEMO_TRIES = 3;
 // Each invoice is its own transaction (about 5 s), and the server action has 60 s
 // (app/distribuidor/layout.tsx), so 10 per file stays well inside it.
 const MAX_IMPORT = 10;
+const AMOUNT = /^\d+(\.\d{1,7})?$/;
 
 /**
  * CSV import (#32): checks every row first (shop and driver known, id not on
@@ -264,12 +265,25 @@ export async function createInvoices(rows: InvoiceRow[]): Promise<Receipt> {
   let created = 0;
   let lastHash = "";
   try {
+    // Check everything before sending anything: the rows come from the browser.
+    const ids = new Set<number>();
     for (const [index, row] of rows.entries()) {
       const line = `Fila ${index + 1}`;
       if (!SHOP_IDS.includes(row.shopId as Role)) return fail(`${line}: tienda desconocida.`);
       if (!DRIVER_IDS.includes(row.driverId as Role)) return fail(`${line}: motorista desconocido.`);
       if (!Number.isSafeInteger(row.invoiceId) || row.invoiceId <= 0) return fail(`${line}: número de factura inválido.`);
-      if (await chainInvoice(row.invoiceId)) return fail(`${line}: la factura ${row.invoiceId} ya existe.`);
+      if (ids.has(row.invoiceId)) return fail(`${line}: la factura ${row.invoiceId} está repetida.`);
+      ids.add(row.invoiceId);
+      const amount = String(row.amount).trim();
+      if (!AMOUNT.test(amount) || toUnits(amount) <= 0n) return fail(`${line}: monto inválido.`);
+      try {
+        toUnixSeconds(row.dueDate);
+      } catch {
+        return fail(`${line}: fecha inválida.`);
+      }
+    }
+    for (const [index, row] of rows.entries()) {
+      if (await chainInvoice(row.invoiceId)) return fail(`Fila ${index + 1}: la factura ${row.invoiceId} ya existe.`);
     }
     for (const row of rows) {
       const { hash } = await run("distributor", (client) =>
@@ -278,7 +292,7 @@ export async function createInvoices(rows: InvoiceRow[]): Promise<Receipt> {
           id: BigInt(row.invoiceId),
           shop: addressOf(row.shopId) as string,
           driver: addressOf(row.driverId) as string,
-          amount: toUnits(row.amount),
+          amount: toUnits(String(row.amount).trim()),
           due: BigInt(toUnixSeconds(row.dueDate)),
         }),
       );
