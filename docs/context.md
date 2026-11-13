@@ -53,7 +53,7 @@ Neighbourhood shops (tiendas) in El Salvador pay the trucks that restock them in
 - **Space 1 fit:** fair, cheap credit for stock, and a payment record, for people whose only option today is a loan shark.
 - **Not doing:** cross-border or diaspora money, Bitcoin, more than one country (others go on a "future" slide).
 - **Form (decided Nov 9):** a mobile web app (a website that works like a phone app, opened from the driver's QR code or a WhatsApp link, nothing to install) on our own open Soroban contract. In the pitch, the contract is the engine that partners (banks, cash-in companies, distributors' ordering systems) plug into. Not a native app, and not a feature inside someone else's wallet.
-- **Name:** not chosen, and not "RUTA". Ideas: *Fiado* (shop slang for "on credit"), *CuentaClara* ("clear account"), *Cuadre* ("balancing the till"). Pick one by Wed Nov 11.
+- **Name: Relay**, with the tagline *Paga tu ruta* ("pay your route") shown under it (decided Nov 12). URLs, the repo (`yahyahashme/relay`) and code use "relay" only; the tagline never appears in a URL.
 
 ## 2. Key dates
 
@@ -426,6 +426,9 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 | 10 | **No big deposit at sign-up.** Because of credit, a shop never pre-loads money: it takes stock on credit, sells it, then turns cash into digital dollars once a week, only for what it owes. Shops can't afford to lock up money they need for stock. | Nov 7 | Built into the design |
 | 11 | **Ask the banks that already work with MoneyGram** (Cuscatlán, Davivienda, Promerica) whether they could also take cash in, so the same counters handle both directions. | Nov 7 | Question |
 | 12 | **Partner instead of building cash points.** Work with a bank or cash-in/cash-out company that already has a reputation in El Salvador (Adam Chu, Nov 9). Secure ATMs (about $5k each) came up and were rejected: cash rules and safety. Rohan is emailing banks and cash-in companies. | Nov 9 | In progress |
+| 13 | **Use the counters that already exist.** Banks run 8,900 correspondent points inside small businesses (facts 41). One bank's customers deposit at PuntoXpress at no extra cost (42), and a wallet tops up at 748+ Punto Express points without surcharge (43). A banked shop deposits there and pays from its account; Transfer365 is free (14). | Nov 12 | Most promising for banked shops |
+| 14 | **Idea 1 already works for loans.** CrediCampo borrowers repay through Tigo Money's 2,500+ agents, and Banco Integral's through AKÍ Pago's about 1,000 points (facts 44). We need a partner that does the same and credits digital dollars. | Nov 12 | Precedent found |
+| 15 | **Ask partners that already hold the licences.** A bank that is also registered as a digital asset provider (Banco Atlántida El Salvador, facts 46) has banking and a digital asset registration; a licensed e-money company (Tigo Money, 45) has the cash agents. Contact them first. | Nov 12 | To contact |
 
 **Finding, Nov 7 (Yahya, MoneyGram Ramps locator):** MoneyGram has **cash-out** points in El Salvador (USDC to cash), in San Salvador and other cities. The locator shows the nearest 10 at a time, so we don't have a full count. Examples in central San Salvador: Banco Cuscatlán, Super Selectos, Banco Promerica, Banco Integral, Banco Davivienda, Banco Abank and a DLC road market. What it means for us: cash-out has a real answer today, so a distributor can turn digital dollars into cash at a bank or supermarket. **Cash-in (cash to USDC) is still unsolved,** and that's the half shops need.
 
@@ -433,7 +436,12 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 
 **Built, Nov 10 (#25):** the cash two-tap now runs on testnet: the driver records the cash, the shop confirms, and the contract counts it as cash held by that driver (`get_driver_cash`). No digital dollars move, so this records cash; it does not convert it. It is the mechanism behind idea 3 and does not solve cash-in. The distributor's "Marcar efectivo entregado" (#32) lowers that count when the driver hands the cash in at the warehouse; still no digital dollars move.
 
-**Still to find out:** what cash-in costs per $100 today, how far the nearest payment point is for a typical shop, and which partner could convert in bulk and already has a bank account.
+**Found, Nov 12 (#91, facts 41 to 46):** the counters exist. The missing piece is a partner that turns a cash deposit into digital dollars.
+- **Cost to the shop:** $0 at the counters we found (facts 42, 43), and $0 for a banked shop paying by Transfer365 (14). What a network charges its partner per deposit isn't published.
+- **How close:** we have network sizes, not distances: 8,900 bank correspondents (41), about 2,500 Tigo Money agents (45), about 1,000 AKÍ Pago points (44) and 748+ Punto Express points (43). They overlap, so never add them up. Many tiendas are themselves service points (55).
+- **Partner:** first call, a bank that is also registered with the CNAD as a digital asset provider (46). Our reading of the law (47), for a lawyer to confirm: the digital-dollar step needs a registered provider.
+
+**Still to find out:** what a partner pays per deposit, whether a partner will credit digital dollars rather than a bank account, and how far the nearest counter is for a typical shop (ask it in interviews, §13 question 6).
 
 ---
 
@@ -714,7 +722,7 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 - *How do you make money (30 seconds)?* Distributors pay us, shops never do: 0.1% of every invoice paid in cash or digitally, plus 0.25% of each "pay in 7 days" sale (inside the 1.5% credit fee, so the distributor gets $98.50 per $100), built into an open contract.
 - *How do you get into El Salvador?* One mid-size distributor's routes first, with a bank or cash-in partner for cash and a licensed lender or cooperative funding the pool.
 - *Why not just Transfer365 and a database?* Transfer365 only moves money between bank accounts, and about half of small businesses don't have a bank relationship. It doesn't do credit, invoice matching or driver cash records. One distributor's database isn't a record other distributors and lenders can trust. Our contract enforces the credit rules and fee split in the open, settles in seconds for a fraction of a cent, and lets lenders fund a pool directly.
-- *How does a shop get digital dollars?* Risk #1. Say it first, then ideas 1, 6 and 3 from §6.
+- *How does a shop get digital dollars?* Risk #1, said first. The counters already exist: banks run 8,900 correspondent points, and lenders like CrediCampo already take loan payments through Tigo Money's agents (facts 41, 44). The shop pays cash there with a reference number, and a licensed partner credits it in digital dollars (§6 ideas 1, 13 and 14). Banked shops pay by Transfer365, which is free (idea 6). Not solved yet: signing that partner (idea 15).
 - *Who are the lenders?* A test account in the demo. For real, a licensed microfinance institution or cooperative. We're not the lender.
 - *What if a shop doesn't pay?* Small limits that grow, no new credit while overdue, a truck that keeps coming back, a default buffer, and option 2 for shops the distributor knows.
 - *How are you different from Rocket and Tienda Pago?* §10.
@@ -745,6 +753,7 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 | Nov 5 | Work in GitHub (repo, board, docs) with one AI chat per workstream. Skip Notion. No long generated reports. |
 | Nov 6 | Domestic only, El Salvador first. No cross-border or diaspora money. Other countries only on a "future" slide. |
 | Nov 6 | "RUTA" was a placeholder name; we won't use it. |
+| Nov 12 | Name: **Relay**, tagline *Paga tu ruta* under it (Yahya). Repo renamed to `yahyahashme/relay`; URLs say "relay" only. |
 | Nov 6 | Design: invoices with due dates; pay now, cash recorded with two taps, or pay in 7 days; the contract tracks paid, part-paid and due, and blocks double payment. |
 | Nov 6 | Cash allowed at delivery only, always recorded, doesn't build credit. No discount for paying digitally. |
 | Nov 6 | Credit: full price, no interest, due by the next delivery (7 days at most), limits that grow, nothing new while overdue. |
