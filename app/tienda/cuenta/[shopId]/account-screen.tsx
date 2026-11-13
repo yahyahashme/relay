@@ -189,7 +189,7 @@ export default function AccountScreen() {
               <span className="font-semibold text-bad">−$25</span>
             </TicketRow>
             <p className="text-muted">
-              Sube como máximo una vez cada 7 días, y solo si compró $40 o más con <span className="whitespace-nowrap">«Pagar en 7 días»</span>. El límite máximo es $500.
+              Sube como máximo una vez por período de crédito, y solo si compró $40 o más con <span className="whitespace-nowrap">«Pagar en 7 días»</span>. El límite máximo es $500.
             </p>
             <p className="text-muted">Sin intereses: paga lo mismo que compró.</p>
           </>
