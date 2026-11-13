@@ -117,6 +117,10 @@ const RULES: Rule[] = [
   exact("Escriba la dirección de la empresa.", "Enter the business address."),
   exact("Escriba un número aproximado.", "Enter an approximate number."),
   exact("Solo para administradores de Relay.", "Relay administrators only."),
+  // Who may act, and rate limits (Jack's review of #145)
+  exact("Entre a su cuenta para hacer esto. Solo el dueño de la cuenta puede.", "Sign in to do this. Only the account's owner can."),
+  exact("Demasiados intentos. Espere unos minutos e intente de nuevo.", "Too many tries. Wait a few minutes and try again."),
+  exact("Esa contraseña es muy fácil de adivinar. Use otra.", "That password is too easy to guess. Use another one."),
 ];
 
 /**

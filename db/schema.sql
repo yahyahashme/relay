@@ -83,3 +83,10 @@ ALTER TABLE distributors ADD COLUMN IF NOT EXISTS shops_approx INTEGER;
 ALTER TABLE distributors ADD COLUMN IF NOT EXISTS drivers_approx INTEGER;
 ALTER TABLE distributors ADD COLUMN IF NOT EXISTS decided_at TIMESTAMPTZ;
 CREATE INDEX IF NOT EXISTS distributors_owner ON distributors (owner_user_id);
+
+-- Rate limits (sign-ups per IP, wrong passwords per phone/email and IP), shared by every server instance.
+CREATE TABLE IF NOT EXISTS rate_events (
+  key TEXT NOT NULL,
+  at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS rate_events_key_at ON rate_events (key, at);

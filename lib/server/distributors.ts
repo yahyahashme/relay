@@ -140,18 +140,24 @@ export type ApproveOnChain = (stellarAddress: string) => Promise<void>;
 export async function decide(id: string, status: "aprobado" | "rechazado", approveOnChain: ApproveOnChain): Promise<Distributor | null> {
   const distributor = await distributorById(id);
   if (!distributor || distributor.status === status) return distributor;
+  // The contract has no "un-approve": once approved on chain, rejecting would only change our table.
+  if (distributor.status === "aprobado") return distributor;
   if (status === "aprobado") await approveOnChain(distributor.stellarAddress);
   await requireDb().query(`UPDATE distributors SET status = $2, decided_at = now() WHERE id = $1`, [id, status]);
   invalidateDirectory();
   return distributorById(id);
 }
 
-/** Seconds after sign-up when the demo approves by itself; null = never (RELAY_AUTO_APPROVE_SECONDS=off). */
+/**
+ * Seconds after sign-up when the demo approves a distributor by itself, or null
+ * for never. Fails closed: only a whole number of seconds (0 to 86400) in
+ * RELAY_AUTO_APPROVE_SECONDS turns it on; unset, empty, "off" or anything else is off.
+ */
 export function autoApproveSeconds(): number | null {
-  const raw = process.env.RELAY_AUTO_APPROVE_SECONDS ?? "8";
-  if (raw === "off") return null;
+  const raw = (process.env.RELAY_AUTO_APPROVE_SECONDS ?? "").trim().toLowerCase();
+  if (!/^\d{1,5}$/.test(raw)) return null;
   const seconds = Number(raw);
-  return Number.isFinite(seconds) && seconds >= 0 ? seconds : 8;
+  return seconds <= 86_400 ? seconds : null;
 }
 
 /** For the waiting screen: approve now if the demo setting says it's time. */

@@ -23,6 +23,17 @@ export type AuthResult = { ok: true; user: User; sessionId: string } | { ok: fal
 
 export const SESSION_DAYS = 30;
 export const MIN_PASSWORD = 8;
+const MAX_PASSWORD = 200;
+
+/** Passwords anyone would try first. */
+const EASY = new Set(["12345678", "123456789", "1234567890", "87654321", "11111111", "00000000", "password", "contraseña", "qwertyui", "abcdefgh"]);
+
+/** What's wrong with a new password, or null. */
+export function passwordProblem(password: string): string | null {
+  if (password.trim().length < MIN_PASSWORD || password.length > MAX_PASSWORD) return "La contraseña debe tener al menos 8 caracteres.";
+  if (EASY.has(password.trim().toLowerCase()) || /^(.)\1+$/.test(password)) return "Esa contraseña es muy fácil de adivinar. Use otra.";
+  return null;
+}
 
 /** El Salvador numbers: 8 digits starting with 2, 6 or 7, with or without +503. */
 export function normalizePhone(text: string): string | null {
@@ -88,16 +99,23 @@ export async function signUp(input: SignUpInput, network?: WalletNetwork): Promi
   if (input.role !== "tienda" && input.role !== "distribuidora") {
     return { ok: false, message: "Los motoristas se registran con la invitación de su distribuidora." };
   }
+  // A raw Server Action POST can send anything: only strings go further.
+  if (typeof input.name !== "string" || typeof input.contact !== "string" || typeof input.password !== "string") {
+    return { ok: false, message: "Escriba su nombre." };
+  }
   const name = input.name.trim().replace(/\s+/g, " ");
   if (name.length < 2 || name.length > 80) return { ok: false, message: "Escriba su nombre." };
   const contact = parseContact(input.contact);
   if (!contact) return { ok: false, message: "Escriba un teléfono de El Salvador (8 dígitos) o un correo válido." };
-  if (input.password.length < MIN_PASSWORD) return { ok: false, message: "La contraseña debe tener al menos 8 caracteres." };
+  const weak = passwordProblem(input.password);
+  if (weak) return { ok: false, message: weak };
   if (await findByContact(contact)) {
     return { ok: false, message: "Ya hay una cuenta con ese teléfono o correo. Entre con su contraseña." };
   }
 
-  const [passwordHash, wallet] = await Promise.all([hashPassword(input.password), createWallet(network)]);
+  // Hash first: if anything is wrong with the password, no Stellar account gets funded.
+  const passwordHash = await hashPassword(input.password);
+  const wallet = await createWallet(network);
   const id = newId("u");
   const db = requireDb();
   await db.query(`INSERT INTO wallets (address, secret_enc) VALUES ($1, $2)`, [wallet.address, wallet.secretEnc]);
@@ -131,6 +149,7 @@ let dummy: Promise<string> | undefined;
 const dummyHash = () => (dummy ??= hashPassword("relay-no-such-user"));
 
 export async function signIn(contactText: string, password: string): Promise<AuthResult> {
+  if (typeof contactText !== "string" || typeof password !== "string") return { ok: false, message: WRONG };
   const contact = parseContact(contactText);
   if (!contact) return { ok: false, message: WRONG };
   const row = await findByContact(contact);
