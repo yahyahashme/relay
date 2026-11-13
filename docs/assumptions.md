@@ -83,7 +83,7 @@ Step by step:
 
 ## Risk #1: cash to digital dollars
 
-Turning cash into digital dollars (cash-in) isn't solved in El Salvador yet; MoneyGram there is cash-out only. The counters exist (8,900 bank correspondent points, facts.md entry 41), and lenders already take loan payments at payment points (44). Our plan: shops repay like a bill there, once a week, and a licensed partner registered with the CNAD converts in bulk (context §6, facts 46 and 47).
+Turning cash into digital dollars (cash-in) isn't solved in El Salvador yet; MoneyGram's coverage data lists cash-out there but, as far as we found, not cash-in (facts.md entry 38). The counters exist (8,900 bank correspondent points, facts.md entry 41), and lenders already take loan payments at payment points (44). Our plan: shops repay like a bill there, once a week, and a licensed partner registered with the CNAD converts in bulk (context §6, facts 46 and 47).
 
 ## Legal note
 
