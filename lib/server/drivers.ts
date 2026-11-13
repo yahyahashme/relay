@@ -69,7 +69,7 @@ export async function inviteByToken(token: string): Promise<Invite | null> {
   const rows = await requireDb().query<InviteRow>(
     `SELECT i.*, d.business_name AS distributor_name
        FROM driver_invites i JOIN distributors d ON d.id = i.distributor_id
-      WHERE i.token = $1 AND i.removed_at IS NULL`,
+      WHERE i.token = $1 AND i.removed_at IS NULL AND d.status = 'aprobado'`,
     [token],
   );
   return rows[0] ? toInvite(rows[0]) : null;

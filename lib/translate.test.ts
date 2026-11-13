@@ -10,7 +10,7 @@ const source = (path: string) => readFileSync(join(root, path), "utf8");
 const SPANISH = /\b(factura|facturas|tienda|motorista|monto|pago|pagar|pagada|deuda|efectivo|crédito|límite|listo|fila|falta|tiene|está|intente|inválid[oa]|encontramos|dólares|vencido|recibido)\b/i;
 
 // Accounts and the screens built on them (#129 on): their messages come back from the server too.
-const SERVER_FILES = ["app/auth-actions.ts", "lib/server/accounts.ts", "app/distributor-actions.ts", "lib/server/distributors.ts", "app/registro/distributor-form.tsx", "app/driver-actions.ts", "lib/server/drivers.ts", "app/shop-actions.ts", "lib/server/shops.ts"];
+const SERVER_FILES = ["app/auth-actions.ts", "lib/server/accounts.ts", "app/distributor-actions.ts", "lib/server/distributors.ts", "app/registro/distributor-form.tsx", "app/driver-actions.ts", "lib/server/drivers.ts", "app/shop-actions.ts", "lib/server/shops.ts", "lib/server/authz.ts", "lib/server/rate-limit.ts"];
 
 describe("translateMessage", () => {
   // One example of every message the server, the mock, the contract and the CSV parser send.

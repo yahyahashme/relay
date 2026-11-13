@@ -6,6 +6,7 @@
 import { getDb } from "@/lib/server/db";
 import { getDirectory } from "@/lib/server/directory";
 import { distributorForUser } from "@/lib/server/distributors";
+import { signUpBlocked, TOO_MANY } from "@/lib/server/rate-limit";
 import { acceptInvite, createInvite, driverIdForUser, inviteByToken, listDrivers, removeDriver } from "@/lib/server/drivers";
 import { currentUser, startSession } from "@/lib/server/session";
 import { readClient } from "@/lib/stellar/client";
@@ -78,6 +79,7 @@ export async function getInvite(token: string): Promise<InvitePreview | null> {
 export async function acceptInviteAction(token: string, name: string, password: string): Promise<({ ok: true; driverId: string }) | { ok: false; message: string }> {
   if (!getDb()) return { ok: false, message: "Las cuentas todavía no están activas en este servidor." };
   try {
+    if (await signUpBlocked()) return { ok: false, message: TOO_MANY };
     const result = await acceptInvite(token, name, password);
     if (!result.ok) return result;
     await startSession(result.sessionId);

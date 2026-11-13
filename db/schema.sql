@@ -110,3 +110,10 @@ CREATE TABLE IF NOT EXISTS shop_invites (
   created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS shop_invites_shop ON shop_invites (shop_id);
+
+-- Rate limits (sign-ups per IP, wrong passwords per phone/email and IP), shared by every server instance.
+CREATE TABLE IF NOT EXISTS rate_events (
+  key TEXT NOT NULL,
+  at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS rate_events_key_at ON rate_events (key, at);

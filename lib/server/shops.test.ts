@@ -64,6 +64,13 @@ describe("adding shops", () => {
     expect((await keypairForId(added.shopId)).publicKey()).toBe(party?.address);
   });
 
+  it("gives a route's claim codes only to the distributor that added the shop", async () => {
+    const added = await shops.addShopWithoutAccount(norte, marta, noNetwork);
+    if ("error" in added) throw new Error(added.error);
+    expect(await shops.pendingCodes(norte, [added.shopId])).toEqual({ [added.shopId]: added.code });
+    expect(await shops.pendingCodes(sol, [added.shopId])).toEqual({}); // another distributor asking with the id
+  });
+
   it("checks the name and phone", async () => {
     expect(await shops.addShopWithoutAccount(norte, { ...marta, nickname: " " }, noNetwork)).toEqual({
       error: "Escriba un nombre para reconocer la tienda.",
@@ -85,7 +92,7 @@ describe("adding shops", () => {
     expect(row).toMatchObject({ name: "Tienda Marta", nickname: marta.nickname, status: "activa", ownerName: "Marta Pérez", inviteCode: null });
     expect((await getDirectory()).find(added.shopId, "shop")?.address).toBe(before);
     expect(await shops.nicknames(norte)).toEqual({ [added.shopId]: marta.nickname });
-    expect(await shops.pendingCodes([added.shopId])).toEqual({});
+    expect(await shops.pendingCodes(norte, [added.shopId])).toEqual({});
     expect(await shops.claimShop(added.code, { ...claim, phone: "7000-0133" }, noNetwork)).toEqual({
       ok: false,
       message: "Este código ya no es válido. Pida otro a su distribuidora.",

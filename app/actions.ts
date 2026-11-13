@@ -5,6 +5,7 @@
 // everything under lib/stellar starts with `import "server-only"`.
 
 import { formatDay, formatMoney } from "@/lib/format";
+import { mayActAs, NOT_YOURS } from "@/lib/server/authz";
 import { getDirectory, type Directory } from "@/lib/server/directory";
 import { explorerTx } from "@/lib/stellar/config";
 import { readClient } from "@/lib/stellar/client";
@@ -121,6 +122,7 @@ export async function payNow(invoiceId: number, amount?: number): Promise<Receip
 
     const shop = (await getDirectory()).byAddress(invoice.shop);
     if (shop?.kind !== "shop") return fail("Esta factura no es de su tienda.");
+    if (!(await mayActAs(shop))) return fail(NOT_YOURS);
 
     const { hash } = await run(shop.id, (client) =>
       client.pay({ shop: invoice.shop, id: invoice.id, amount: units }),
@@ -149,6 +151,7 @@ export async function payLater(invoiceId: number): Promise<Receipt> {
     if (left <= 0n) return fail("Esta factura ya está pagada.");
     const shop = (await getDirectory()).byAddress(invoice.shop);
     if (shop?.kind !== "shop") return fail("Esta factura no es de su tienda.");
+    if (!(await mayActAs(shop))) return fail(NOT_YOURS);
 
     const { hash } = await run(shop.id, (client) => client.pay_with_credit({ shop: invoice.shop, id: invoice.id }));
     const after = await shopView(invoice.shop);
@@ -168,6 +171,7 @@ export async function claimCash(invoiceId: number, amount: number): Promise<Rece
     if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
     const driver = (await getDirectory()).byAddress(invoice.driver);
     if (driver?.kind !== "driver") return fail("Este motorista no está en la ruta.");
+    if (!(await mayActAs(driver))) return fail(NOT_YOURS);
 
     const units = toUnits(amount.toFixed(2));
     const { hash } = await run(driver.id, (client) =>
@@ -187,6 +191,7 @@ export async function confirmCash(invoiceId: number, amount: number): Promise<Re
     if (!invoice) return fail("No encontramos esa factura.");
     const shop = (await getDirectory()).byAddress(invoice.shop);
     if (shop?.kind !== "shop") return fail("Esta factura no es de su tienda.");
+    if (!(await mayActAs(shop))) return fail(NOT_YOURS);
     if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
     const units = toUnits(amount.toFixed(2));
 
@@ -204,6 +209,7 @@ export async function repay(shopId: string, amount: number): Promise<Receipt> {
   try {
     const shop = (await getDirectory()).find(shopId, "shop");
     if (!shop) return fail("No encontramos esa tienda.");
+    if (!(await mayActAs(shop))) return fail(NOT_YOURS);
     const address = shop.address;
     if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
     const before = await shopView(address);
@@ -236,6 +242,7 @@ export async function handInCash(driverId: string, amount: number): Promise<Rece
     const distributorId = party.distributorId ?? "distributor";
     const distributor = directory.find(distributorId, "distributor");
     if (!distributor) return fail("No encontramos a ese motorista.");
+    if (!(await mayActAs(distributor))) return fail(NOT_YOURS);
     const driver = party.address;
     if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
     const held = await read(readClient().get_driver_cash({ driver }));

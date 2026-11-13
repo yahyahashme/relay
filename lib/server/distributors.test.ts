@@ -114,6 +114,25 @@ describe("distributor sign-up and approval", () => {
     delete process.env.RELAY_AUTO_APPROVE_SECONDS;
   });
 
+  it("reads RELAY_AUTO_APPROVE_SECONDS strictly and fails closed", () => {
+    const cases: [string | undefined, number | null][] = [
+      [undefined, null], ["", null], ["off", null], ["OFF", null], [" Off ", null], ["abc", null],
+      ["-5", null], ["1.5", null], ["999999", null], ["8", 8], [" 8 ", 8], ["0", 0],
+    ];
+    for (const [value, expected] of cases) {
+      if (value === undefined) delete process.env.RELAY_AUTO_APPROVE_SECONDS;
+      else process.env.RELAY_AUTO_APPROVE_SECONDS = value;
+      expect(d.autoApproveSeconds(), String(value)).toBe(expected);
+    }
+    delete process.env.RELAY_AUTO_APPROVE_SECONDS;
+  });
+
+  it("won't reject a distributor already approved on chain", async () => {
+    const { distributor } = await newDistributor();
+    await d.decide(distributor.id, "aprobado", async () => {});
+    expect((await d.decide(distributor.id, "rechazado", async () => {}))?.status).toBe("aprobado");
+  });
+
   it("lists pending sign-ups for the admin, not the demo seed", async () => {
     const { distributor } = await newDistributor();
     const list = await d.listForAdmin();

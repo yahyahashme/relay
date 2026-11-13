@@ -115,15 +115,21 @@ async function createShopInvite(shopId: string, distributorId: string, phone: st
   }
 }
 
-/** Unclaimed invite codes for these shops, for the driver's route ("Invitar a Relay"). */
-export async function pendingCodes(shopIds: string[]): Promise<Record<string, string>> {
+/**
+ * Unclaimed invite codes for these shops, for the driver's route ("Invitar a
+ * Relay"): only shops on this distributor's list, and only codes this
+ * distributor made, whatever ids the screen sends.
+ */
+export async function pendingCodes(distributorId: string, shopIds: string[]): Promise<Record<string, string>> {
   if (shopIds.length === 0) return {};
   const rows = await requireDb().query<{ shop_id: string; code: string }>(
     `SELECT DISTINCT ON (i.shop_id) i.shop_id, i.code
-       FROM shop_invites i JOIN shops s ON s.id = i.shop_id
-      WHERE i.shop_id = ANY($1) AND i.claimed_at IS NULL AND s.owner_user_id IS NULL
+       FROM shop_invites i
+       JOIN shops s ON s.id = i.shop_id
+       JOIN distributor_shops ds ON ds.shop_id = i.shop_id AND ds.distributor_id = $1
+      WHERE i.shop_id = ANY($2) AND i.distributor_id = $1 AND i.claimed_at IS NULL AND s.owner_user_id IS NULL
       ORDER BY i.shop_id, i.created_at DESC`,
-    [shopIds],
+    [distributorId, shopIds],
   );
   return Object.fromEntries(rows.map((r) => [r.shop_id, r.code]));
 }
