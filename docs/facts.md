@@ -882,5 +882,40 @@ _Entry 57 comes from `docs/research.md` on `main`, not from a web page. Claude r
 - **Caveat:**
   - It is our own log of what the advisors said, not a recording or a transcript. The log is the only source.
   - Advisors are not users or customers. Never count them in "what we heard from N people" (#30) or call them traction.
-  - Only the calls are logged on `main`. The one-pager's "emails to 4 banks and a supermarket chain" has no entry here: the outreach log is only in PR #89, which is not merged. Don't add that count until its source is on `main`.
+  - Only the calls are logged here. The one-pager's "emails to 4 banks and a supermarket chain" is entry 58 (the outreach log merged in #89).
 - **Checked:** Claude, 13 Nov 2026, against `docs/research.md` on main (044f987): the file has two advisor sections, and the line "Yahya took both calls on Mon Nov 9." is in it.
+
+## 58. We emailed 5 organisations in El Salvador on Nov 10
+- **Claim:** On Mon Nov 10 we emailed 5 organisations in El Salvador about cash-in for small shops: 4 banks and a supermarket chain. As of the log, none has answered beyond one out-of-office auto-reply.
+- **Number:** 5 organisations (4 banks and 1 supermarket chain), all emailed on 10 Nov 2026. A second email to a Davivienda colleague on 11 Nov is not counted as a sixth organisation.
+- **Source:** `docs/research.md`, section "Partner outreach", the five rows dated Nov 10: Banco Promerica, Banco Abank, Súper Selectos, Banco Integral, Banco Davivienda (merged in #89; issue #10).
+- **Exact quote:** "We emailed 5 organisations in El Salvador, 4 banks and a supermarket chain; no replies yet beyond one auto-reply, and we follow up Friday." (the log's "Pitch line (so far)")
+- **Translation:** n/a (English source)
+- **Use in:** one-pager answer 6 ("emails to 4 banks and a supermarket chain"); Q&A, as outreach only
+- **Caveat:**
+  - These are emails sent, not conversations and not users. No bank has replied with more than an auto-reply, so never say a bank "is interested", "agreed" or "is a partner". Never count them in "what we heard from N people" (#30).
+  - The Nov 12 round of 16 emails is not counted. The log says 13 sat in the Outbox as "Queued" and none is confirmed sent, and the last 3 were never sent (#120). Add them to this entry only after Sent Items confirms them.
+  - "Sent" rests on the log, written by Rohan from his university email. Nobody else can see Sent Items.
+  - The Nov 10 rows planned follow-ups for Fri Nov 13. The log shows no reply to them yet, so check it before saying anything about replies.
+  - The log's own pitch line says 5 organisations. A line elsewhere that says "6 banks and cash-in companies" counts the Nov 11 email to Davivienda's colleague as a sixth. Use 5.
+- **Checked:** Claude, 13 Nov 2026, against `docs/research.md` on main (61e2cc6): the table has five rows dated Nov 10 (four banks and Súper Selectos), one Nov 11 row (the second Davivienda email), and the pitch line above. No teammate has confirmed Sent Items.
+
+---
+
+## From the repo and the public ledger, added under #61 (13 Nov 2026)
+
+_Entry 59 comes from our own code and from Stellar's public testnet ledger, not from a web page. Claude read the code and fetched the ledger on Nov 13, 2026; no teammate has confirmed it yet._
+
+## 59. Our sponsor account pays the network fees
+- **Claim:** In the demo, our sponsor account pays the Stellar network fee for the app's transactions, so shops, drivers and the distributor never spend XLM on fees.
+- **Number:** none.
+- **Source:** PR #113 (merged 13 Nov 2026), `lib/stellar/sponsor.ts` (`sponsorFeeBump`) and `lib/stellar/send.ts` line 58 (`canSponsor() ? sponsorFeeBump(signed) : signed`) on `main` at 61e2cc6. On Stellar's public testnet ledger (Horizon), the test transaction from #113, `1491673fd05c96601248dd814bd2b0013421fe32b747d8c8cfa25f0ffc4cf83b` (https://stellar.expert/explorer/testnet/tx/1491673fd05c96601248dd814bd2b0013421fe32b747d8c8cfa25f0ffc4cf83b), is successful, its `fee_account` is `GA4Q52RF5TT2QHYGZER3A6QX23KTVWBTEV67EH4OHQENUDIDFA5J7LQS` (equal to `accounts.sponsor` in `config/testnet.json`) and its source account is Tienda Rosa, `GD2HWNZT4DQ4FXKKJ6FUXL4B5XWLSAJTRX2EGPQL5U3Q2VINRL4LRSOA`.
+- **Exact quote:** "When `STELLAR_SECRET_SPONSOR` is set (it is in Vercel), every transaction leaves `lib/stellar/send.ts` inside a fee bump that the sponsor pays and signs." (PR #113)
+- **Translation:** n/a (English source)
+- **Use in:** the architecture picture ("Pays the network fees (fee sponsorship)"); Q&A. It is not in the three-minute script.
+- **Caveat:**
+  - Say "our sponsor account pays the network fees". Never "gasless" or "users never need XLM": the demo accounts hold test XLM. In the real product, shops would use passkey wallets, which are not built (`docs/security.md` section 3).
+  - Testnet only. The sponsor is a funded testnet account.
+  - "It is in Vercel" is PR #113's statement. Claude did not look at Vercel's settings. The ledger shows the sponsor paid the 8 most recent transactions on its account (19:41 to 19:51 UTC on 13 Nov), from 6 different accounts, all successful, so the deployed app was sponsoring then.
+  - The fee on a contract call is more than the plain 100-stroop payment fee, so don't quote a fee per payment. Stellar's "under a cent" is entry 37, attributed to Stellar.
+- **Checked:** Claude, 13 Nov 2026: the transaction and the sponsor account's latest transactions fetched from Horizon testnet; `sponsor.ts`, `send.ts` and `config/testnet.json` read on `main`. Not in the Pitch highlights list until a teammate opens the transaction link and confirms it.
