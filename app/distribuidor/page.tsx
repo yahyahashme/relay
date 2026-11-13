@@ -5,7 +5,8 @@ import { BackLink, Card, Chip, Label, LoadError, Loading, ReceiptView, Screen } 
 import { CsvImport } from "@/components/csv-import";
 import { createDemoInvoice, getDrivers, getInvoiceHistory, getShop, getTotals, handInCash } from "@/lib/api";
 import { DEMO_PHONES, DEMO_SHOP_IDS } from "@/lib/demo-contacts";
-import { formatDay, formatMoney } from "@/lib/format";
+import { formatMoney } from "@/lib/format";
+import { useI18n } from "@/lib/i18n";
 import { toUnits } from "@/lib/money";
 import { reminderLink } from "@/lib/whatsapp";
 import { creditPayout, invoiceStatus, METHOD_LABEL, type StatusTone } from "@/lib/labels";
@@ -89,7 +90,7 @@ function useChangedRows(invoices: Invoice[] | undefined): Set<number> {
 
 const sum = (values: number[]) => Math.round(values.reduce((a, b) => a + b, 0) * 100) / 100;
 
-function Filter({ active, onClick, children }: { active: boolean; onClick: () => void; children: string }) {
+function Filter({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
   return (
     <button
       type="button"
@@ -131,6 +132,7 @@ export default function Dashboard() {
   const changed = useChangedRows(data?.invoices);
   const [handingIn, setHandingIn] = useState<string | null>(null);
   const [cashReceipt, setCashReceipt] = useState<Receipt | null>(null);
+  const { t, day } = useI18n();
 
   async function cashHandedIn(driverId: string, amount: number) {
     setHandingIn(driverId);
@@ -156,7 +158,7 @@ export default function Dashboard() {
     <header className="flex flex-wrap items-end justify-between gap-3">
       <div>
         <h1 className="text-3xl font-bold">Distribuidora El Sol</h1>
-        <p className="text-muted">Se actualiza cada 5 segundos.</p>
+        <p className="text-muted">{t("Se actualiza cada 5 segundos.")}</p>
       </div>
       <button
         type="button"
@@ -164,7 +166,7 @@ export default function Dashboard() {
         disabled={creating || !data}
         className="min-h-12 rounded-xl bg-brand px-5 text-lg font-semibold text-white active:bg-brand-dark disabled:bg-line disabled:text-muted"
       >
-        {creating ? "Creando..." : "Nueva factura de demo"}
+        {creating ? t("Creando...") : t("Nueva factura de demo")}
       </button>
     </header>
   );
@@ -201,8 +203,8 @@ export default function Dashboard() {
       {failed && <LoadError />}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Total label="Cobrado digital">{formatMoney(collected)}</Total>
-        <Total label="Efectivo por motorista">
+        <Total label={t("Cobrado digital")}>{formatMoney(collected)}</Total>
+        <Total label={t("Efectivo por motorista")}>
           <span className="flex flex-col gap-2 text-lg">
             {drivers.map((d) => (
               <span key={d.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
@@ -216,15 +218,15 @@ export default function Dashboard() {
                     disabled={handingIn !== null}
                     className="min-h-12 rounded-xl border border-brand px-3 text-base font-semibold text-brand active:bg-brand-soft disabled:border-line disabled:text-muted"
                   >
-                    {handingIn === d.id ? "Guardando..." : "Marcar efectivo entregado"}
+                    {handingIn === d.id ? t("Guardando...") : t("Marcar efectivo entregado")}
                   </button>
                 )}
               </span>
             ))}
           </span>
         </Total>
-        <Total label="En crédito">{formatMoney(onCredit)}</Total>
-        <Total label="Vencido">
+        <Total label={t("En crédito")}>{formatMoney(onCredit)}</Total>
+        <Total label={t("Vencido")}>
           <span className={overdue > 0 ? "text-bad" : ""}>{formatMoney(overdue)}</span>
         </Total>
       </div>
@@ -233,7 +235,7 @@ export default function Dashboard() {
 
       {owing.length > 0 && (
         <section className="flex flex-col gap-3">
-          <Label>Tiendas con deuda</Label>
+          <Label>{t("Tiendas con deuda")}</Label>
           <ul className="flex flex-col gap-3">
             {owing.map((shop) => {
               const href = shopReminder(shop);
@@ -243,8 +245,10 @@ export default function Dashboard() {
                     <div className="flex flex-col">
                       <span className="text-lg font-semibold">{shop.name}</span>
                       <span className={shop.overdue ? "font-medium text-bad" : "text-muted"}>
-                        Debe {formatMoney(shop.creditOwed)}
-                        {shop.creditDue ? ` · ${shop.overdue ? "venció" : "vence"} el ${formatDay(shop.creditDue)}` : ""}
+                        {t("Debe {amount}", { amount: formatMoney(shop.creditOwed) })}
+                        {shop.creditDue
+                          ? ` · ${t(shop.overdue ? "venció el {date}" : "vence el {date}", { date: day(shop.creditDue) })}`
+                          : ""}
                       </span>
                     </div>
                     {href && (
@@ -254,7 +258,7 @@ export default function Dashboard() {
                         rel="noreferrer"
                         className="flex min-h-12 items-center rounded-xl border border-brand px-4 text-base font-semibold text-brand active:bg-brand-soft"
                       >
-                        Recordar por WhatsApp
+                        {t("Recordar por WhatsApp")}
                       </a>
                     )}
                   </Card>
@@ -262,7 +266,7 @@ export default function Dashboard() {
               );
             })}
           </ul>
-          <p className="text-sm text-muted">Demo: los números son de prueba. Revise el mensaje, pero no lo envíe.</p>
+          <p className="text-sm text-muted">{t("Demo: los números son de prueba. Revise el mensaje, pero no lo envíe.")}</p>
         </section>
       )}
 
@@ -270,17 +274,17 @@ export default function Dashboard() {
 
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <Label>Estado</Label>
+          <Label>{t("Estado")}</Label>
           {STATUS_FILTERS.map((f) => (
             <Filter key={f.label} active={statusFilter === (f.tone ?? "all")} onClick={() => setStatusFilter(f.tone ?? "all")}>
-              {f.label}
+              {t(f.label)}
             </Filter>
           ))}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Label>Motorista</Label>
+          <Label>{t("Motorista")}</Label>
           <Filter active={driverFilter === "all"} onClick={() => setDriverFilter("all")}>
-            Todos
+            {t("Todos")}
           </Filter>
           {drivers.map((d) => (
             <Filter key={d.id} active={driverFilter === d.id} onClick={() => setDriverFilter(d.id)}>
@@ -296,7 +300,7 @@ export default function Dashboard() {
             <tr>
               {["Factura", "Tienda", "Motorista", "Monto", "Pagado", "Estado", "Método", "Vence"].map((h) => (
                 <th key={h} scope="col" className={`px-4 py-3 font-semibold ${h === "Monto" || h === "Pagado" ? "text-right" : ""}`}>
-                  {h}
+                  {t(h)}
                 </th>
               ))}
             </tr>
@@ -316,24 +320,24 @@ export default function Dashboard() {
                   <td className="px-4 py-3 text-right tabular-nums">
                     {formatMoney(invoice.paid)}
                     {invoice.method === "credit" && (
-                      <span className="block text-sm text-muted">recibió {formatMoney(creditPayout(invoice.paid))}</span>
+                      <span className="block text-sm text-muted">{t("recibió {amount}", { amount: formatMoney(creditPayout(invoice.paid)) })}</span>
                     )}
                   </td>
                   <td className="px-4 py-3">
                     <span className="flex flex-wrap gap-1">
-                      <Chip tone={status.tone}>{status.label}</Chip>
-                      {invoice.cashClaim !== undefined && <Chip tone="cash">Efectivo por confirmar</Chip>}
+                      <Chip tone={status.tone}>{t(status.label)}</Chip>
+                      {invoice.cashClaim !== undefined && <Chip tone="cash">{t("Efectivo por confirmar")}</Chip>}
                     </span>
                   </td>
-                  <td className="px-4 py-3">{invoice.method ? METHOD_LABEL[invoice.method] : "—"}</td>
-                  <td className="px-4 py-3 whitespace-nowrap">{formatDay(invoice.dueDate)}</td>
+                  <td className="px-4 py-3">{invoice.method ? t(METHOD_LABEL[invoice.method]) : "—"}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">{day(invoice.dueDate)}</td>
                 </tr>
               );
             })}
             {rows.length === 0 && (
               <tr>
                 <td colSpan={8} className="px-4 py-6 text-center text-muted">
-                  No hay facturas con este filtro.
+                  {t("No hay facturas con este filtro.")}
                 </td>
               </tr>
             )}
@@ -343,7 +347,7 @@ export default function Dashboard() {
 
       <div className="flex flex-col items-center gap-3">
         <p className="text-muted">
-          Mostrando las {invoices.length} facturas más recientes de {total}.
+          {t("Mostrando las {shown} facturas más recientes de {total}.", { shown: invoices.length, total })}
         </p>
         {invoices.length < total && (
           <button
@@ -352,7 +356,7 @@ export default function Dashboard() {
             disabled={loadingMore}
             className="min-h-12 rounded-xl border border-brand px-5 text-lg font-semibold text-brand active:bg-brand-soft disabled:border-line disabled:text-muted"
           >
-            {loadingMore ? "Cargando..." : "Ver más"}
+            {loadingMore ? t("Cargando...") : t("Ver más")}
           </button>
         )}
       </div>

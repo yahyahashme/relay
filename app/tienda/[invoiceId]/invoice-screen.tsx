@@ -6,7 +6,8 @@ import { useEffect, useState } from "react";
 import { Option, OptionList, Stamp, ThumbBar, Ticket, TicketRow, TicketRule } from "@/components/ticket";
 import { BackLink, Button, ButtonLink, Chip, LoadError, Loading, NotFound, ReceiptView, Screen } from "@/components/ui";
 import { confirmCash, getDrivers, getInvoice, getShop, payLater, payNow } from "@/lib/api";
-import { formatDay, formatMoney } from "@/lib/format";
+import { formatMoney } from "@/lib/format";
+import { Bold, useI18n } from "@/lib/i18n";
 import { invoiceStatus, leftToPay, METHOD_LABEL, parseAmount, partPayError } from "@/lib/labels";
 import type { Invoice, Receipt, Shop } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
@@ -58,6 +59,7 @@ export default function InvoiceScreen() {
   const [partError, setPartError] = useState<string | null>(null);
   const [landed, setLanded] = useState(false); // the stamp has played; don't replay it on Back
   const claimJustChanged = useQuietAfterChange(data?.invoice ? data.invoice.cashClaim !== undefined : null);
+  const { t, msg, day } = useI18n();
 
   async function run(action: Action, write: () => Promise<Receipt>) {
     setBusy(action);
@@ -88,7 +90,7 @@ export default function InvoiceScreen() {
     return (
       <Screen>
         <BackLink />
-        <NotFound>No encontramos la factura {invoiceId}.</NotFound>
+        <NotFound>{t("No encontramos la factura {id}.", { id: invoiceId })}</NotFound>
       </Screen>
     );
   }
@@ -117,43 +119,47 @@ export default function InvoiceScreen() {
         <BackLink />
         {shop && !isPaid && (
           <Link href={`/tienda/cuenta/${shop.id}`} className="-mr-1 inline-flex min-h-12 items-center px-1 text-base font-medium text-brand">
-            Mi cuenta
+            {t("Mi cuenta")}
           </Link>
         )}
       </div>
 
       {failed && <LoadError />}
       <p role="status" className="sr-only">
-        {busy !== null ? "Procesando..." : ""}
+        {busy !== null ? t("Procesando...") : ""}
       </p>
 
       <Ticket>
         <header>
-          <h1 className="text-2xl font-bold text-balance">{shop?.name ?? "Tienda"}</h1>
-          <p className="text-muted">Factura {invoice.id} · Distribuidora El Sol</p>
+          <h1 className="text-2xl font-bold text-balance">{shop?.name ?? t("Tienda")}</h1>
+          <p className="text-muted">{t("Factura {id} · Distribuidora El Sol", { id: invoice.id })}</p>
         </header>
         <TicketRule />
         {invoice.status === "part_paid" && (
           <div className="flex flex-col gap-1 text-lg">
-            <TicketRow label="Total">{formatMoney(invoice.amount)}</TicketRow>
-            <TicketRow label="Pagado">−{formatMoney(invoice.paid)}</TicketRow>
+            <TicketRow label={t("Total")}>{formatMoney(invoice.amount)}</TicketRow>
+            <TicketRow label={t("Pagado")}>−{formatMoney(invoice.paid)}</TicketRow>
           </div>
         )}
         <div className="flex flex-col gap-1">
           <p className="flex items-baseline justify-between gap-3 text-muted">
-            <span>{invoice.status === "part_paid" ? "Falta" : "Total"}</span>
+            <span>{t(invoice.status === "part_paid" ? "Falta" : "Total")}</span>
             <span>
-              {isPaid ? `Pagada${invoice.method ? ` · ${METHOD_LABEL[invoice.method]}` : ""}` : `Vence el ${formatDay(invoice.dueDate)}`}
+              {isPaid
+                ? invoice.method
+                  ? t("Pagada · {method}", { method: t(METHOD_LABEL[invoice.method]) })
+                  : t("Pagada")
+                : t("Vence el {date}", { date: day(invoice.dueDate) })}
             </span>
           </p>
           <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-2">
             <p className={`text-5xl font-bold tracking-tight tabular-nums ${isPaid ? "-mr-6" : ""}`}>{formatMoney(isPaid ? invoice.amount : left)}</p>
             {isPaid ? (
               <Stamp tone={status.tone === "credit" ? "credit" : "paid"} fresh={settled && !landed} onLanded={() => setLanded(true)}>
-                {status.label}
+                {t(status.label)}
               </Stamp>
             ) : (
-              <Chip tone={status.tone}>{status.label}</Chip>
+              <Chip tone={status.tone}>{t(status.label)}</Chip>
             )}
           </div>
         </div>
@@ -169,22 +175,22 @@ export default function InvoiceScreen() {
         <>
           <OptionList>
             <Option
-              title="Pagar en 7 días"
-              hint={blocked ?? "Sin intereses"}
+              title={t("Pagar en 7 días")}
+              hint={t(blocked ?? "Sin intereses")}
               open={blocked === null ? panel === "later" : undefined}
               onClick={() => toggle("later")}
               disabled={locked || blocked !== null}
             >
               <p className="text-lg">
-                Hoy no paga nada. Paga <strong>{formatMoney(left)}</strong> en 7 días.
+                <Bold text={t("Hoy no paga nada. Paga <b>{amount}</b> en 7 días.", { amount: formatMoney(left) })} />
               </p>
               <Button onClick={() => run("later", () => payLater(id))} busy={busy === "later"} disabled={locked}>
-                Confirmo
+                {t("Confirmo")}
               </Button>
             </Option>
-            <Option title="Pagar otro monto" open={panel === "part"} onClick={() => toggle("part")} disabled={locked}>
+            <Option title={t("Pagar otro monto")} open={panel === "part"} onClick={() => toggle("part")} disabled={locked}>
               <label className="flex flex-col gap-1 text-lg">
-                ¿Cuánto paga ahora? <span className="text-base text-muted">Falta {formatMoney(left)}</span>
+                {t("¿Cuánto paga ahora?")} <span className="text-base text-muted">{t("Falta {amount}", { amount: formatMoney(left) })}</span>
                 <input
                   inputMode="decimal"
                   autoComplete="off"
@@ -201,7 +207,7 @@ export default function InvoiceScreen() {
               </label>
               {partError && (
                 <p className="font-medium text-bad" role="alert">
-                  {partError}
+                  {msg(partError)}
                 </p>
               )}
               <Button
@@ -212,14 +218,14 @@ export default function InvoiceScreen() {
                 }}
                 busy={busy === "part"}
                 disabled={locked || partText.trim() === ""}
-                hint={partOk ? `${formatMoney(partAmount)} con dólares digitales` : "Con dólares digitales"}
+                hint={partOk ? t("{amount} con dólares digitales", { amount: formatMoney(partAmount) }) : t("Con dólares digitales")}
               >
-                Pagar este monto
+                {t("Pagar este monto")}
               </Button>
             </Option>
             <Option
-              title="Pagué en efectivo"
-              hint={hasClaim ? "Efectivo por confirmar" : undefined}
+              title={t("Pagué en efectivo")}
+              hint={hasClaim ? t("Efectivo por confirmar") : undefined}
               open={panel === "cash"}
               onClick={() => toggle("cash")}
               disabled={locked}
@@ -227,14 +233,19 @@ export default function InvoiceScreen() {
               {invoice.cashClaim !== undefined ? (
                 <>
                   <p className="text-lg">
-                    {driver?.name ?? "El motorista"} registró <strong>{formatMoney(invoice.cashClaim)}</strong> en efectivo.
+                    <Bold
+                      text={t("{driver} registró <b>{amount}</b> en efectivo.", {
+                        driver: driver?.name ?? t("El motorista"),
+                        amount: formatMoney(invoice.cashClaim),
+                      })}
+                    />
                   </p>
                   <Button onClick={() => run("cash", () => confirmCash(id, invoice.cashClaim ?? 0))} busy={busy === "cash"} disabled={locked}>
-                    Confirmo
+                    {t("Confirmo")}
                   </Button>
                 </>
               ) : (
-                <p className="text-lg">El motorista aún no registró el efectivo.</p>
+                <p className="text-lg">{t("El motorista aún no registró el efectivo.")}</p>
               )}
             </Option>
           </OptionList>
@@ -245,9 +256,9 @@ export default function InvoiceScreen() {
                 onClick={() => run("now", () => payNow(id))}
                 busy={busy === "now"}
                 disabled={locked}
-                hint={`${formatMoney(left)} con dólares digitales`}
+                hint={t("{amount} con dólares digitales", { amount: formatMoney(left) })}
               >
-                Pagar ahora
+                {t("Pagar ahora")}
               </Button>
             </ThumbBar>
           )}
@@ -256,7 +267,7 @@ export default function InvoiceScreen() {
 
       {shop && isPaid && (
         <ButtonLink href={`/tienda/cuenta/${shop.id}`} variant="secondary">
-          Mi cuenta
+          {t("Mi cuenta")}
         </ButtonLink>
       )}
     </Screen>

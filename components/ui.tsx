@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { useI18n } from "@/lib/i18n";
 import type { StatusTone } from "@/lib/labels";
 import type { Receipt } from "@/lib/types";
 
@@ -11,13 +14,14 @@ export function Screen({ children, wide = false }: { children: ReactNode; wide?:
   );
 }
 
-export function BackLink({ href = "/", label = "Inicio" }: { href?: string; label?: string }) {
+export function BackLink({ href = "/", label }: { href?: string; label?: string }) {
+  const { t } = useI18n();
   return (
     <Link href={href} className="-ml-1 inline-flex min-h-12 items-center gap-1 self-start px-1 text-base font-medium text-brand">
       <svg aria-hidden viewBox="0 0 20 20" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12.5 4.5 7 10l5.5 5.5" />
       </svg>
-      {label}
+      {label ?? t("Inicio")}
     </Link>
   );
 }
@@ -54,9 +58,10 @@ export function Button({
   busy?: boolean;
   variant?: Variant;
 }) {
+  const { t } = useI18n();
   return (
     <button type="button" onClick={onClick} disabled={disabled || busy} aria-busy={busy} className={`${BUTTON} ${VARIANT[variant]}`}>
-      <span className={busy ? "animate-pulse" : undefined}>{busy ? "Procesando..." : children}</span>
+      <span className={busy ? "animate-pulse" : undefined}>{busy ? t("Procesando...") : children}</span>
       {hint && <span className="text-sm font-normal opacity-85">{hint}</span>}
     </button>
   );
@@ -88,17 +93,19 @@ export function Chip({ tone, children }: { tone: keyof typeof CHIP; children: Re
 }
 
 export function Loading() {
+  const { t } = useI18n();
   return (
     <p className="animate-pulse py-10 text-center text-lg text-muted" role="status">
-      Cargando...
+      {t("Cargando...")}
     </p>
   );
 }
 
 export function LoadError() {
+  const { t } = useI18n();
   return (
     <p className="rounded-xl bg-bad-soft px-4 py-3 text-bad" role="alert">
-      No se pudo cargar. Reintentando...
+      {t("No se pudo cargar. Reintentando...")}
     </p>
   );
 }
@@ -112,6 +119,7 @@ export function NotFound({ children }: { children: ReactNode }) {
 }
 
 export function ReceiptView({ receipt }: { receipt: Receipt }) {
+  const { t, msg } = useI18n();
   return (
     <div
       role="status"
@@ -121,10 +129,10 @@ export function ReceiptView({ receipt }: { receipt: Receipt }) {
         <path d={receipt.ok ? "m4 10.5 4 4 8-9" : "M10 4v7.5M10 15.5v.01"} />
       </svg>
       <div className="flex flex-col gap-1">
-        <p className="font-medium">{receipt.message}</p>
+        <p className="font-medium">{msg(receipt.message)}</p>
         {receipt.explorerUrl && (
           <a href={receipt.explorerUrl} target="_blank" rel="noreferrer" className="text-sm underline">
-            Ver detalles
+            {t("Ver detalles")}
           </a>
         )}
       </div>

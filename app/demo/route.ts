@@ -6,12 +6,30 @@ import { connection, NextResponse } from "next/server";
 import { createDemoInvoice } from "@/app/actions";
 import { USE_MOCKS } from "@/lib/api";
 
-const ERROR_PAGE = `<!doctype html>
-<html lang="es">
+const ERROR_TEXT = {
+  es: {
+    title: "No se pudo crear la factura",
+    heading: "No pudimos crear su factura",
+    body: "Puede ser la conexión. Espere unos segundos e intente de nuevo.",
+    retry: "Intentar de nuevo",
+  },
+  en: {
+    title: "Couldn't create the invoice",
+    heading: "We couldn't create your invoice",
+    body: "It may be the connection. Wait a few seconds and try again.",
+    retry: "Try again",
+  },
+};
+
+/** The error page in the language the visitor picked in the app (the "lang" cookie), Spanish by default. */
+function errorHtml(lang: "es" | "en") {
+  const text = ERROR_TEXT[lang];
+  return `<!doctype html>
+<html lang="${lang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>No se pudo crear la factura</title>
+<title>${text.title}</title>
 <style>
   body { font-family: system-ui, sans-serif; margin: 0; padding: 24px 16px; background: #fff; color: #111; }
   main { max-width: 28rem; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
@@ -21,11 +39,16 @@ const ERROR_PAGE = `<!doctype html>
 </style>
 </head>
 <body><main>
-  <h1>No pudimos crear su factura</h1>
-  <p>Puede ser la conexión. Espere unos segundos e intente de nuevo.</p>
-  <a href="/demo">Intentar de nuevo</a>
+  <h1>${text.heading}</h1>
+  <p>${text.body}</p>
+  <a href="/demo">${text.retry}</a>
 </main></body>
 </html>`;
+}
+
+function langOf(request: Request): "es" | "en" {
+  return /(?:^|;\s*)lang=en(?:;|$)/.test(request.headers.get("cookie") ?? "") ? "en" : "es";
+}
 
 // A burst of five judges can take ~30 s (one distributor account signs every invoice);
 // give the function time to answer with our own page instead of a platform error.
@@ -49,8 +72,8 @@ function redirect(path: string, request: Request) {
   return response;
 }
 
-function errorPage() {
-  return new NextResponse(ERROR_PAGE, {
+function errorPage(request: Request) {
+  return new NextResponse(errorHtml(langOf(request)), {
     status: 503,
     headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" },
   });
@@ -60,12 +83,12 @@ export async function GET(request: Request) {
   await connection(); // never prerender: every visit is a new invoice
   // The mock store lives in each browser tab, so in mock mode use a seeded invoice.
   if (USE_MOCKS) return redirect("/tienda/1001", request);
-  if (!allowed()) return errorPage();
+  if (!allowed()) return errorPage(request);
   try {
     const invoice = await createDemoInvoice();
     return redirect(`/tienda/${invoice.id}`, request);
   } catch {
-    return errorPage();
+    return errorPage(request);
   }
 }
 

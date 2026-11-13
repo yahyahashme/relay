@@ -4,7 +4,8 @@ import { useRef, useState } from "react";
 import { Card, ReceiptView } from "@/components/ui";
 import { createInvoices } from "@/lib/api";
 import { parseInvoiceCsv, type CsvError } from "@/lib/csv";
-import { formatDay, formatMoney } from "@/lib/format";
+import { formatMoney } from "@/lib/format";
+import { useI18n } from "@/lib/i18n";
 import type { InvoiceRow, Receipt } from "@/lib/types";
 
 // The demo's shops and drivers (the ids in the CSV's shop_id and driver_id columns).
@@ -34,6 +35,7 @@ export function CsvImport({
   const [parsed, setParsed] = useState<Parsed | null>(null);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Receipt | null>(null);
+  const { t, msg, day } = useI18n();
 
   async function pick(file: File | undefined) {
     if (!file) return;
@@ -68,7 +70,7 @@ export function CsvImport({
           disabled={busy}
           className="min-h-12 rounded-xl border border-brand px-5 text-lg font-semibold text-brand active:bg-brand-soft disabled:border-line disabled:text-muted"
         >
-          Importar facturas (CSV)
+          {t("Importar facturas (CSV)")}
         </button>
         <input
           ref={input}
@@ -77,7 +79,7 @@ export function CsvImport({
           className="hidden"
           onChange={(event) => void pick(event.target.files?.[0])}
         />
-        <span className="text-sm text-muted">Columnas: invoice_id, shop_id, driver_id, amount, due_date</span>
+        <span className="text-sm text-muted">{t("Columnas: invoice_id, shop_id, driver_id, amount, due_date")}</span>
       </div>
 
       {result && <ReceiptView receipt={result} />}
@@ -85,8 +87,10 @@ export function CsvImport({
       {parsed && (
         <Card className="flex flex-col gap-3">
           <p className="text-lg">
-            <strong>{parsed.fileName}</strong>: {rows.length} {rows.length === 1 ? "factura lista" : "facturas listas"}
-            {bad.length > 0 && `, ${bad.length} ${bad.length === 1 ? "fila con error" : "filas con error"} (no se crean)`}.
+            <strong>{parsed.fileName}</strong>: {rows.length === 1 ? t("1 factura lista") : t("{count} facturas listas", { count: rows.length })}
+            {bad.length > 0 &&
+              `, ${bad.length === 1 ? t("1 fila con error (no se crea)") : t("{count} filas con error (no se crean)", { count: bad.length })}`}
+            .
           </p>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-left">
@@ -94,7 +98,7 @@ export function CsvImport({
                 <tr>
                   {["Factura", "Tienda", "Motorista", "Monto", "Vence"].map((h) => (
                     <th key={h} scope="col" className={`px-3 py-2 font-semibold ${h === "Monto" ? "text-right" : ""}`}>
-                      {h}
+                      {t(h)}
                     </th>
                   ))}
                 </tr>
@@ -106,20 +110,20 @@ export function CsvImport({
                     <td className="px-3 py-2">{shopName(row.shopId)}</td>
                     <td className="px-3 py-2">{driverName(row.driverId)}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{formatMoney(Number(row.amount))}</td>
-                    <td className="px-3 py-2 whitespace-nowrap">{formatDay(`${row.dueDate}T06:00:00Z`)}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">{day(`${row.dueDate}T06:00:00Z`)}</td>
                   </tr>
                 ))}
                 {bad.map(([line, reason]) => (
                   <tr key={`bad-${line}`} className="bg-bad-soft text-bad">
                     <td className="px-3 py-2 font-medium" colSpan={5}>
-                      Línea {line}: {reason}
+                      {t("Línea {line}: {reason}", { line, reason: reason.split(" · ").map(msg).join(" · ") })}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          {tooMany && <p className="text-bad">Máximo {MAX_ROWS} facturas por archivo.</p>}
+          {tooMany && <p className="text-bad">{t("Máximo {max} facturas por archivo.", { max: MAX_ROWS })}</p>}
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
@@ -127,7 +131,7 @@ export function CsvImport({
               disabled={busy || rows.length === 0 || tooMany}
               className="min-h-12 rounded-xl bg-brand px-5 text-lg font-semibold text-white active:bg-brand-dark disabled:bg-line disabled:text-muted"
             >
-              {busy ? "Creando..." : `Crear ${rows.length} ${rows.length === 1 ? "factura" : "facturas"}`}
+              {busy ? t("Creando...") : rows.length === 1 ? t("Crear 1 factura") : t("Crear {count} facturas", { count: rows.length })}
             </button>
             <button
               type="button"
@@ -135,10 +139,10 @@ export function CsvImport({
               disabled={busy}
               className="min-h-12 rounded-xl border border-line px-5 text-lg font-semibold text-ink active:bg-brand-soft"
             >
-              Cancelar
+              {t("Cancelar")}
             </button>
           </div>
-          {busy && <p className="text-muted">Se crean una por una, unos segundos cada una.</p>}
+          {busy && <p className="text-muted">{t("Se crean una por una, unos segundos cada una.")}</p>}
         </Card>
       )}
     </section>
