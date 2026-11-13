@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { setLang, useT } from "@/lib/i18n";
+import { useT } from "@/lib/i18n";
 import type { StatusTone } from "@/lib/labels";
 import type { Receipt } from "@/lib/types";
 
@@ -146,46 +146,6 @@ export function ReceiptView({ receipt }: { receipt: Receipt }) {
             {t("Ver detalles", "See details")}
           </a>
         )}
-      </div>
-    </div>
-  );
-}
-
-/** Español / English, in the demo banner at the top of every screen. */
-export function LangSwitch() {
-  const { lang } = useT();
-  const option = (value: "es" | "en", label: string, name: string) => (
-    <button
-      type="button"
-      onClick={() => setLang(value)}
-      aria-pressed={lang === value}
-      aria-label={name}
-      lang={value}
-      className={`min-h-9 min-w-11 rounded-full px-3 text-sm font-semibold transition-colors duration-150 ${
-        lang === value ? "bg-warn text-white" : "text-warn active:bg-warn/15"
-      }`}
-    >
-      {label}
-    </button>
-  );
-  return (
-    <div role="group" aria-label="Idioma / Language" className="flex shrink-0 rounded-full border border-warn/40 bg-card/60 p-0.5">
-      {option("es", "ES", "Español")}
-      {option("en", "EN", "English")}
-    </div>
-  );
-}
-
-/** The strip above every screen: this is a demo, plus the language switch. */
-export function DemoBanner() {
-  const { t } = useT();
-  return (
-    <div className="bg-warn-soft">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-1.5">
-        <p className="text-sm font-medium text-warn">
-          {t("Demo en testnet · dinero de prueba · cash-in simulado", "Testnet demo · test money · simulated cash-in")}
-        </p>
-        <LangSwitch />
       </div>
     </div>
   );

@@ -8,6 +8,11 @@ export function formatMoney(dollars: number): string {
   return usd.format(dollars);
 }
 
+/** 1234.5 -> "$ 1,234.50": the sign, a thin space, always two decimals. For hints, labels and spoken text. */
+export function formatAmount(dollars: number): string {
+  return formatMoney(dollars).replace("$", "$\u2009");
+}
+
 const MONTHS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const EL_SALVADOR_OFFSET_MS = 6 * 60 * 60 * 1000; // UTC-6 all year, no daylight saving
