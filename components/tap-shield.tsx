@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /** How long a screen stays held after a payment lands. */
 export const QUIET_MS = 900;
@@ -26,6 +26,24 @@ export function useTapShield() {
 }
 
 /** Invisible, and only on screen while a payment runs. Scrolling still works through it. */
-export function TapShield({ onTap }: { onTap: () => void }) {
+export function TapShield({ onTap }: { onTap?: () => void }) {
   return <div aria-hidden className="fixed inset-0 z-10" onPointerDown={onTap} />;
+}
+
+/** How long a pay button stays inert after it comes on screen: longer than a double tap. */
+export const ARRIVE_MS = 600;
+
+/**
+ * True for a beat each time `shown` turns true, the first time included. A pay button that has just come
+ * on screen stays inert for that beat, so the second tap of a double tap on the screen before can't pay.
+ */
+export function useQuietOnArrival(shown: boolean): boolean {
+  const [state, setState] = useState({ shown: false, quiet: false });
+  if (state.shown !== shown) setState({ shown, quiet: shown });
+  useEffect(() => {
+    if (!state.quiet) return;
+    const timer = setTimeout(() => setState((now) => ({ ...now, quiet: false })), ARRIVE_MS);
+    return () => clearTimeout(timer);
+  }, [state]);
+  return state.quiet;
 }

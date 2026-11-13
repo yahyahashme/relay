@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { QUIET_MS, TapShield, useTapShield } from "@/components/tap-shield";
+import { QUIET_MS, TapShield, useQuietOnArrival, useTapShield } from "@/components/tap-shield";
 import { Option, OptionList, Stamp, ThumbBar, Ticket, TicketRow, TicketRule } from "@/components/ticket";
 import { BackLink, Button, ButtonLink, Chip, LoadError, Loading, NotFound, ReceiptView, Screen } from "@/components/ui";
 import { confirmCash, getDrivers, getInvoice, getShop, payLater, payNow } from "@/lib/api";
-import { formatDay, formatMoney } from "@/lib/format";
+import { dueOn, formatMoney } from "@/lib/format";
 import { invoiceStatus, leftToPay, METHOD_LABEL, parseAmount, partPayError } from "@/lib/labels";
 import type { Invoice, Receipt, Shop } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
@@ -43,10 +43,10 @@ function creditBlocked(shop: Shop | null, invoice: Invoice): string | null {
 export default function InvoiceScreen() {
   const { invoiceId } = useParams<{ invoiceId: string }>();
   const id = Number(invoiceId);
-  const { data, failed, reload } = usePolling(`invoice-${invoiceId}`, async () => {
+  const { data, failed, stale, reload } = usePolling(`invoice-${invoiceId}`, async () => {
     const [invoice, drivers] = await Promise.all([getInvoice(id), getDrivers()]);
     const shop = invoice ? await getShop(invoice.shopId) : null;
-    return { invoice, shop, drivers };
+    return { invoice, shop, drivers, now: Date.now() };
   });
   const [busy, setBusy] = useState<Action | null>(null);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
@@ -58,6 +58,8 @@ export default function InvoiceScreen() {
   const [landed, setLanded] = useState(false); // the stamp has played; don't replay it on Back
   const { noteTap, settle } = useTapShield();
   const claimJustChanged = useQuietAfterChange(data?.invoice ? data.invoice.cashClaim !== undefined : null);
+  // The pay buttons wait for today's numbers, then one beat more: a double tap on the screen before can't pay.
+  const arriving = useQuietOnArrival(Boolean(data?.invoice) && !stale);
 
   async function run(action: Action, write: () => Promise<Receipt>) {
     setBusy(action);
@@ -83,7 +85,7 @@ export default function InvoiceScreen() {
     );
   }
 
-  const { invoice, shop, drivers } = data;
+  const { invoice, shop, drivers, now } = data;
   if (!invoice) {
     return (
       <Screen>
@@ -101,6 +103,7 @@ export default function InvoiceScreen() {
 
   const settled = isPaid && (busy !== null || receipt?.ok === true); // paid on this visit: let the stamp land
   const locked = busy !== null || claimJustChanged;
+  const unready = stale || arriving;
   const hasClaim = invoice.cashClaim !== undefined;
   const partAmount = parseAmount(partText);
   const partOk = partAmount !== null && partPayError(partText, left, invoice.cashClaim) === null;
@@ -144,7 +147,7 @@ export default function InvoiceScreen() {
           <p className="flex items-baseline justify-between gap-3 text-muted">
             <span>{invoice.status === "part_paid" ? "Falta" : "Total"}</span>
             <span>
-              {isPaid ? `Pagada${invoice.method ? ` · ${METHOD_LABEL[invoice.method]}` : ""}` : `Vence el ${formatDay(invoice.dueDate)}`}
+              {isPaid ? `Pagada${invoice.method ? ` · ${METHOD_LABEL[invoice.method]}` : ""}` : dueOn(invoice.dueDate, now)}
             </span>
           </p>
           <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-2">
@@ -179,7 +182,7 @@ export default function InvoiceScreen() {
               <p className="text-lg">
                 Hoy no paga nada. Paga <strong>{formatMoney(left)}</strong> en 7 días.
               </p>
-              <Button onClick={() => run("later", () => payLater(id))} busy={busy === "later"} disabled={locked}>
+              <Button onClick={() => run("later", () => payLater(id))} busy={busy === "later"} disabled={locked || unready}>
                 Confirmo
               </Button>
             </Option>
@@ -212,7 +215,7 @@ export default function InvoiceScreen() {
                   void run("part", () => payNow(id, partAmount));
                 }}
                 busy={busy === "part"}
-                disabled={locked || partText.trim() === ""}
+                disabled={locked || unready || partText.trim() === ""}
                 hint={partOk ? `${formatMoney(partAmount)} con dólares digitales` : "Con dólares digitales"}
               >
                 Pagar este monto
@@ -230,7 +233,7 @@ export default function InvoiceScreen() {
                   <p className="text-lg">
                     {driver?.name ?? "El motorista"} registró <strong>{formatMoney(invoice.cashClaim)}</strong> en efectivo.
                   </p>
-                  <Button onClick={() => run("cash", () => confirmCash(id, invoice.cashClaim ?? 0))} busy={busy === "cash"} disabled={locked}>
+                  <Button onClick={() => run("cash", () => confirmCash(id, invoice.cashClaim ?? 0))} busy={busy === "cash"} disabled={locked || unready}>
                     Confirmo
                   </Button>
                 </>
@@ -245,7 +248,8 @@ export default function InvoiceScreen() {
               <Button
                 onClick={() => run("now", () => payNow(id))}
                 busy={busy === "now"}
-                disabled={locked}
+                disabled={locked || stale}
+                arriving={arriving}
                 hint={`${formatMoney(left)} con dólares digitales`}
               >
                 Pagar ahora
