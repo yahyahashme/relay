@@ -26,8 +26,11 @@ function tKeys(): Set<string> {
     const text = readFileSync(file, "utf8");
     for (const call of text.matchAll(/\bt\(\s*([^()]*?(?:\([^()]*\)[^()]*?)*)\)/g)) {
       const head = call[1].split(/,\s*\{/)[0]; // the template, not the values object
-      const choices = head.includes("?") ? head.slice(head.indexOf("?")) : head; // t(cond ? "a" : "b"): the answers only
-      for (const literal of choices.matchAll(/"((?:[^"\\]|\\.)*)"/g)) keys.add(literal[1]);
+      const literals = [...head.matchAll(/"((?:[^"\\]|\\.)*)"/g)];
+      // t(cond ? "a" : "b"): only the answers. A "?" inside a string ("¿Qué vende?") isn't a condition.
+      const outside = head.replace(/"((?:[^"\\]|\\.)*)"/g, (m) => " ".repeat(m.length));
+      const question = outside.indexOf("?");
+      for (const literal of literals) if (question < 0 || (literal.index ?? 0) > question) keys.add(literal[1]);
     }
   }
   return keys;
@@ -39,6 +42,9 @@ const VARIABLE_KEYS = [
   ...Object.values(METHOD_LABEL),
   "Todas", "Factura", "Tienda", "Motorista", "Monto", "Pagado", "Estado", "Método", "Vence",
   "Su tienda aún no tiene crédito", "Tiene un pago vencido", "Supera su límite de crédito", "Sin intereses",
+  "Snacks", "Bebidas", "Pan", "Lácteos", "Abarrotes", "Limpieza", "Otros", // what a distributor sells (#130)
+  "Tienda", "Distribuidora", "Motorista", "Administrador", // account types (#129)
+  "Compro a distribuidores", "Vendo y entrego a tiendas", "Entrego para una distribuidora",
 ];
 
 describe("screen text", () => {
@@ -120,6 +126,21 @@ const LIVE = [
   "Tienda desconocida.",
   "Todavía no está conectado al contrato.",
   "Algo salió mal. Intente de nuevo.",
+  // Accounts and distributors (#129, #130)
+  "Las cuentas todavía no están activas en este servidor.",
+  "No pudimos crear su cuenta en este momento. Intente de nuevo en un minuto.",
+  "Los motoristas se registran con la invitación de su distribuidora.",
+  "Escriba su nombre.",
+  "Escriba un teléfono de El Salvador (8 dígitos) o un correo válido.",
+  "La contraseña debe tener al menos 8 caracteres.",
+  "Ya hay una cuenta con ese teléfono o correo. Entre con su contraseña.",
+  "Teléfono, correo o contraseña incorrectos.",
+  "Escriba el nombre de la empresa.",
+  "El NIT debe tener 14 dígitos.",
+  "Escriba la dirección de la empresa.",
+  "Elija qué vende.",
+  "Escriba un número aproximado.",
+  "Solo para administradores de Relay.",
   FALLBACK_MESSAGE,
   ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15].map((code) => errorMessage(code)),
 ];

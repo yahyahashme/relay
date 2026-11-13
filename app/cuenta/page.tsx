@@ -75,6 +75,8 @@ export default function Account() {
         </div>
       </Card>
 
+      {user.role === "distribuidora" && <ButtonLink href="/distribuidor/espera">{t("Ir a mi panel")}</ButtonLink>}
+      {user.role === "admin" && <ButtonLink href="/admin">{t("Distribuidoras por aprobar")}</ButtonLink>}
       <ButtonLink href="/" variant="secondary">
         {t("Ir al inicio")}
       </ButtonLink>

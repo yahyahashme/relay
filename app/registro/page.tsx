@@ -7,6 +7,7 @@ import { signUpAction } from "@/app/auth-actions";
 import { FormError, PasswordField, TextField } from "@/components/form";
 import { BackLink, Button, Card, Screen } from "@/components/ui";
 import { useI18n } from "@/lib/i18n";
+import { DistributorForm } from "./distributor-form";
 
 type Choice = "tienda" | "distribuidora" | "motorista";
 
@@ -28,7 +29,7 @@ export default function SignUp() {
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (role !== "tienda" && role !== "distribuidora") return;
+    if (role !== "tienda") return;
     setBusy(true);
     setError(null);
     const reply = await signUpAction({ role, name, contact, password });
@@ -41,14 +42,14 @@ export default function SignUp() {
   }
 
   return (
-    <Screen>
+    <Screen wide={role === "distribuidora"}>
       <BackLink />
       <header className="flex flex-col gap-1">
         <h1 className="text-3xl font-bold">{t("Crear cuenta")}</h1>
         <p className="text-lg text-muted">{t("Es gratis. Las tiendas nunca pagan comisiones.")}</p>
       </header>
 
-      <section className="flex flex-col gap-2" aria-labelledby="who">
+      <section className="flex max-w-md flex-col gap-2" aria-labelledby="who">
         <h2 id="who" className="text-xl font-semibold">
           {t("¿Qué es usted?")}
         </h2>
@@ -95,10 +96,12 @@ export default function SignUp() {
         </Card>
       )}
 
-      {(role === "tienda" || role === "distribuidora") && (
+      {role === "distribuidora" && <DistributorForm />}
+
+      {role === "tienda" && (
         <form onSubmit={submit} className="flex flex-col gap-4">
           <TextField
-            label={role === "tienda" ? t("Su nombre") : t("Nombre de la persona de contacto")}
+            label={t("Su nombre")}
             autoComplete="name"
             required
             value={name}

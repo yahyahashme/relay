@@ -7,6 +7,8 @@
 // Writes never throw: they return { ok: false, message } in Spanish.
 
 import * as live from "@/app/actions";
+import * as distributors from "@/app/distributor-actions";
+import type { DistributorView } from "@/app/distributor-actions";
 import * as mock from "./mock";
 import type { Driver, Invoice, InvoiceHistory, InvoiceRow, Pool, Receipt, Shop, Totals } from "./types";
 
@@ -48,6 +50,9 @@ export const getPool = (): Promise<Pool> => read(mock.getPool, live.getPool);
 /** The whole history a page at a time: `pages` pages, newest first. */
 export const getInvoiceHistory = (pages: number): Promise<InvoiceHistory> =>
   read(() => mock.getInvoiceHistory(pages), () => live.getInvoiceHistory(pages));
+/** The distributor dashboard for whoever is looking: their own business once approved (#130), else the demo. */
+export const getDistributorView = (pages: number): Promise<DistributorView> =>
+  read(() => mock.getDistributorView(pages), () => distributors.getDistributorView(pages));
 /** Everything ever paid, by method, for the dashboard's totals. */
 export const getTotals = (): Promise<Totals> => read(mock.getTotals, live.getTotals);
 export const createDemoInvoice = (shopId?: string): Promise<Invoice> =>

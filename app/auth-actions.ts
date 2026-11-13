@@ -3,13 +3,11 @@
 // Sign-up, sign-in and the session cookie (#129). The cookie holds a random
 // session id, signed with SESSION_SECRET, httpOnly: the browser never sees a key.
 
-import { cookies } from "next/headers";
-import { endSession, signIn, signUp, userForSession, type Role } from "@/lib/server/accounts";
-import { signValue, unsignValue } from "@/lib/server/crypto";
+import { endSession, signIn, signUp, type Role } from "@/lib/server/accounts";
 import { getDb } from "@/lib/server/db";
+import { clearSession, currentUser, sessionId, startSession } from "@/lib/server/session";
 import { config } from "@/lib/stellar/config";
 
-const COOKIE = "relay_session";
 const NO_ACCOUNTS = "Las cuentas todavía no están activas en este servidor.";
 const TRY_LATER = "No pudimos crear su cuenta en este momento. Intente de nuevo en un minuto.";
 
@@ -24,36 +22,16 @@ export type CurrentUser = {
 
 export type AuthReply = { ok: true } | { ok: false; message: string };
 
-async function sessionId(): Promise<string | null> {
-  return unsignValue((await cookies()).get(COOKIE)?.value);
-}
-
-async function startSession(id: string) {
-  (await cookies()).set(COOKIE, signValue(id), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 30 * 24 * 60 * 60,
-  });
-}
-
 export async function getCurrentUser(): Promise<CurrentUser | null> {
-  if (!getDb()) return null;
-  try {
-    const user = await userForSession(await sessionId());
-    if (!user) return null;
-    return {
-      name: user.name,
-      role: user.role,
-      contact: user.phone ?? user.email ?? "",
-      stellarAddress: user.stellarAddress,
-      explorerUrl: `${config.explorer}/account/${user.stellarAddress}`,
-    };
-  } catch (error) {
-    console.error("[auth] session", error);
-    return null;
-  }
+  const user = await currentUser();
+  if (!user) return null;
+  return {
+    name: user.name,
+    role: user.role,
+    contact: user.phone ?? user.email ?? "",
+    stellarAddress: user.stellarAddress,
+    explorerUrl: `${config.explorer}/account/${user.stellarAddress}`,
+  };
 }
 
 export async function signUpAction(input: { role: Role; name: string; contact: string; password: string }): Promise<AuthReply> {
@@ -86,6 +64,6 @@ export async function signOutAction(): Promise<void> {
   try {
     await endSession(await sessionId());
   } finally {
-    (await cookies()).delete(COOKIE);
+    await clearSession();
   }
 }
