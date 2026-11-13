@@ -67,4 +67,9 @@ describe("reminderLink", () => {
   it.each([0n, -1n])("rejects a payment amount of %s units", (amountUnits) => {
     expect(() => reminderLink({ ...input, amountUnits })).toThrow("Monto inválido.");
   });
+
+  it("adds the payment link when there is one", () => {
+    const url = new URL(reminderLink({ ...input, link: "https://relay-sv.vercel.app/tienda/cuenta/tienda-1" }));
+    expect(url.searchParams.get("text")).toContain("Puede pagar aquí: https://relay-sv.vercel.app/tienda/cuenta/tienda-1 ¡Gracias!");
+  });
 });

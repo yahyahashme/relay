@@ -3,7 +3,10 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { BackLink, Card, Chip, Label, LoadError, Loading, ReceiptView, Screen } from "@/components/ui";
 import { createDemoInvoice, getDrivers, getInvoiceHistory, getShop, getTotals, handInCash } from "@/lib/api";
+import { DEMO_PHONES } from "@/lib/demo-contacts";
 import { formatDay, formatMoney } from "@/lib/format";
+import { toUnits } from "@/lib/money";
+import { reminderLink } from "@/lib/whatsapp";
 import { creditPayout, invoiceStatus, METHOD_LABEL, type StatusTone } from "@/lib/labels";
 import type { Invoice, Receipt, Shop } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
@@ -26,6 +29,26 @@ async function loadDashboard(pages: number) {
 }
 
 const HIGHLIGHT_MS = 4000;
+
+/** WhatsApp link with the reminder ready, or null if the shop has no demo phone. */
+function shopReminder(shop: Shop): string | null {
+  const phone = DEMO_PHONES[shop.id];
+  if (!phone || shop.creditOwed <= 0) return null;
+  const site = process.env.NEXT_PUBLIC_SITE_URL || (typeof window === "undefined" ? "" : window.location.origin);
+  try {
+    return reminderLink({
+      phone,
+      shopName: shop.name,
+      amountUnits: toUnits(shop.creditOwed.toFixed(2)),
+      dueAt: shop.creditDue ? Math.floor(Date.parse(shop.creditDue) / 1000) : 0,
+      now: Math.floor(Date.now() / 1000),
+      link: site ? `${site}/tienda/cuenta/${shop.id}` : undefined,
+    });
+  } catch {
+    return null;
+  }
+}
+
 
 /** What a row looks like; when it changes between refreshes, the row lights up. */
 const rowKey = (i: Invoice) => `${i.status}|${i.paid}|${i.method ?? ""}|${i.cashClaim ?? ""}`;
@@ -160,6 +183,7 @@ export default function Dashboard() {
   const collected = totals.digital; // all history, from the contract's running totals
   const onCredit = sum(shops.map((s) => s.creditOwed));
   const overdue = sum(shops.filter((s) => s.overdue).map((s) => s.creditOwed));
+  const owing = shops.filter((s) => s.creditOwed > 0);
 
   const rows = invoices.filter( // already newest first
     (i) =>
@@ -203,6 +227,41 @@ export default function Dashboard() {
       </div>
 
       {cashReceipt && <ReceiptView receipt={cashReceipt} />}
+
+      {owing.length > 0 && (
+        <section className="flex flex-col gap-3">
+          <Label>Tiendas con deuda</Label>
+          <ul className="flex flex-col gap-3">
+            {owing.map((shop) => {
+              const href = shopReminder(shop);
+              return (
+                <li key={shop.id}>
+                  <Card className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-col">
+                      <span className="text-lg font-semibold">{shop.name}</span>
+                      <span className={shop.overdue ? "font-medium text-bad" : "text-muted"}>
+                        Debe {formatMoney(shop.creditOwed)}
+                        {shop.creditDue ? ` · ${shop.overdue ? "venció" : "vence"} el ${formatDay(shop.creditDue)}` : ""}
+                      </span>
+                    </div>
+                    {href && (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex min-h-12 items-center rounded-xl border border-brand px-4 text-base font-semibold text-brand active:bg-brand-soft"
+                      >
+                        Recordar por WhatsApp
+                      </a>
+                    )}
+                  </Card>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="text-sm text-muted">Demo: los números son de prueba. Revise el mensaje, pero no lo envíe.</p>
+        </section>
+      )}
 
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">

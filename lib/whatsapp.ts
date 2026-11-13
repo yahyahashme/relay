@@ -7,12 +7,15 @@ export function reminderLink({
   amountUnits,
   dueAt,
   now,
+  link,
 }: {
   phone: string;
   shopName: string;
   amountUnits: bigint;
   dueAt: number;
   now: number;
+  /** Where the shop can pay, e.g. its cuenta page. Without it the message only mentions the invoice link. */
+  link?: string;
 }): string {
   const compact = phone.replace(/[ -]/g, "").replace(/^\+/, "");
   const digits = /^503\d{8}$/.test(compact) ? compact.slice(3) : compact;
@@ -25,7 +28,8 @@ export function reminderLink({
   const reminder = dueAt > 0
     ? `le recordamos que su pago de ${amount} ${dueLabel(dueAt, now)}`
     : `le recordamos su pago pendiente de ${amount}`;
-  const message = `Hola ${shopName}, ${reminder}. Puede pagar desde el enlace de su factura. ¡Gracias!`;
+  const howToPay = link ? `Puede pagar aquí: ${link}` : "Puede pagar desde el enlace de su factura.";
+  const message = `Hola ${shopName}, ${reminder}. ${howToPay} ¡Gracias!`;
 
   return `https://wa.me/503${digits}?text=${encodeURIComponent(message)}`;
 }
