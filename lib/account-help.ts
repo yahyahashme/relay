@@ -165,7 +165,7 @@ export const HELP: Record<HelpTopic, Help> = {
       points: [
         "Escríbanos por WhatsApp de 7 a. m. a 7 p. m., todos los días.",
         "Su motorista también puede ayudarle en la próxima entrega.",
-        "Si un cobro no es correcto, toque «Reportar un error» en el recibo y lo revisamos.",
+        "Si un cobro no es correcto, toque «Reportar un error» en el recibo: se abre WhatsApp con el recibo listo para enviar a su distribuidor.",
       ],
     },
     en: {
@@ -174,7 +174,7 @@ export const HELP: Record<HelpTopic, Help> = {
       points: [
         "Message us on WhatsApp from 7 a.m. to 7 p.m., every day.",
         "Your driver can also help at the next delivery.",
-        "If a charge isn't right, tap “Report a mistake” on the receipt and we check it.",
+        "If a charge isn't right, tap “Report a mistake” on the receipt: WhatsApp opens with the receipt ready to send to your distributor.",
       ],
     },
   },

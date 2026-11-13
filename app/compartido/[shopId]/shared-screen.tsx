@@ -5,7 +5,7 @@ import { CreditScoreCard } from "@/components/credit-score-card";
 import { LoadError, Loading, NotFound, Screen } from "@/components/ui";
 import { getShop, getShopHistory, getSuppliers } from "@/lib/api";
 import { creditScore } from "@/lib/credit";
-import { formatDay, formatMoney } from "@/lib/format";
+import { formatMoney } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { usePolling } from "@/lib/use-polling";
 
@@ -44,7 +44,7 @@ export default function SharedScreen() {
         <p className="text-sm font-semibold uppercase tracking-wider text-muted">{t("Historial compartido", "Shared history")}</p>
         <h1 className="text-3xl font-bold text-balance">{shop.name}</h1>
         <p className="text-muted">
-          {t(`La tienda lo compartió. Válido hasta el ${formatDay(until)}.`, `Shared by the shop. Valid until ${formatDay(until, "en")}.`)}
+          {t("La tienda lo compartió con usted. Puntaje propio de Relay, no de un buró de crédito.", "The shop shared it with you. Relay's own score, not a credit bureau's.")}
         </p>
       </header>
       <CreditScoreCard score={score} />

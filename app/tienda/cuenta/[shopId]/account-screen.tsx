@@ -275,8 +275,8 @@ export default function AccountScreen() {
             </TicketRow>
             <p className="text-muted">
               {t(
-                "Sube como máximo una vez cada 7 días, y solo si compró $40 o más con ",
-                "It goes up at most once every 7 days, and only if you bought $40 or more with ",
+                "Sube como máximo una vez por período de crédito, y solo si compró $40 o más con ",
+                "It goes up at most once per credit period, and only if you bought $40 or more with ",
               )}
               <span className="whitespace-nowrap">{t("«Pagar en 7 días»", "“Pay in 7 days”")}</span>
               {t(". El límite máximo es $500.", ". The highest limit is $500.")}

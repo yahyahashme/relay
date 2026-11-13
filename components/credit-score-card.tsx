@@ -2,7 +2,6 @@
 
 import { Chip } from "@/components/ui";
 import { type CreditScore, SCORE_LABEL } from "@/lib/credit";
-import { formatDay } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 
 /** How long a shared history link stays valid. */
@@ -29,6 +28,9 @@ export function CreditScoreCard({ score, shareFrom }: { score: CreditScore; shar
         </div>
         <Chip tone={label.tone}>{label[lang]}</Chip>
       </div>
+      <p className="text-sm text-muted">
+        {t("Puntaje propio de Relay, no de un buró de crédito.", "Relay's own score, not a credit bureau's.")}
+      </p>
       {score.isNew && (
         <p className="text-muted">{t("Todavía es nuevo en Relay: el puntaje se afina con cada pago.", "Still new on Relay: the score sharpens with each payment.")}</p>
       )}
@@ -60,8 +62,8 @@ export function CreditScoreCard({ score, shareFrom }: { score: CreditScore; shar
           <a
             href={`https://wa.me/?text=${encodeURIComponent(
               t(
-                `Historial de pagos de ${shareFrom.shopName} en Relay (válido hasta el ${formatDay(share.until)}): ${share.url}`,
-                `${shareFrom.shopName}'s payment history on Relay (valid until ${formatDay(share.until, "en")}): ${share.url}`,
+                `Historial de pagos de ${shareFrom.shopName} en Relay: ${share.url}`,
+                `${shareFrom.shopName}'s payment history on Relay: ${share.url}`,
               ),
             )}`}
             target="_blank"
@@ -72,8 +74,8 @@ export function CreditScoreCard({ score, shareFrom }: { score: CreditScore; shar
           </a>
           <p className="text-sm text-muted text-pretty">
             {t(
-              `Solo usted decide quién lo ve. El enlace vence en ${SHARE_DAYS} días. Relay no comparte su historial sin su permiso.`,
-              `Only you decide who sees it. The link expires in ${SHARE_DAYS} days. Relay never shares your history without your permission.`,
+              "Quien tenga el enlace puede ver su puntaje, su límite y cuántos pagos hizo. Envíelo solo a quien usted elija. Relay no comparte su historial sin su permiso.",
+              "Anyone with the link can see your score, your limit and how many payments you made. Send it only to people you choose. Relay never shares your history without your permission.",
             )}
           </p>
         </div>

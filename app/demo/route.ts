@@ -51,7 +51,11 @@ function allowed(now = Date.now()): boolean {
 }
 
 function redirect(path: string, request: Request) {
-  const response = NextResponse.redirect(new URL(path, request.url), 303);
+  const target = new URL(path, request.url);
+  // Keep ?lang=en so a judge's English link opens the invoice in English.
+  const lang = new URL(request.url).searchParams.get("lang");
+  if (lang === "en" || lang === "es") target.searchParams.set("lang", lang);
+  const response = NextResponse.redirect(target, 303);
   response.headers.set("cache-control", "no-store"); // never replay a redirect to an earlier invoice
   return response;
 }
