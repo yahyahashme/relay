@@ -637,3 +637,228 @@ _Entries 36 to 40 come from web pages Claude opened on Nov 12, 2026. Every one i
   - Do not cite our own GitHub README as a source for any of this.
   - Safe wording: "Delivery crews in El Salvador have been robbed and extorted."
 - **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude matched the El Diario de Hoy phrase on the live page on 12 Nov 2026, and the study sentence in text extracted from the downloaded PDF, at PDF p. 9.)
+
+---
+
+## Gap research added under #91 to #94 (retrieved 12 Nov 2026)
+
+Opened by Rohan on 12 Nov to fill gaps in context §5, §6, §9 and §11: what cash-in costs (#91), which laws we touch (#92), the credit fee in yearly terms (#93), and a first customer (#94). Claude found and checked these; a teammate still has to open each link. Legal readings are ours, for a lawyer to confirm.
+
+## 41. Banks run 8,900 correspondent points
+- **Claim:** The banks in ABANSA (the banking association) run a network of 8,900 non-bank correspondents: small businesses that take deposits and payments for a bank. They added 1,200 in 2025.
+- **Number:** 8,900 points; 1,200 added in 2025 (up 18.2% on 2024)
+- **Source:** Diario El Mundo, Uveli Alemán, 22 Feb 2026 (on ABANSA's 2025 figures), https://diario.elmundo.sv/economia/uso-de-banca-movil-y-transferencias-crecio-32-en-2025-segun-abansa
+- **Exact quote:** "ampliaron la red de corresponsales no bancarios, que alcanzó 8,900 puntos en total"
+- **Translation:** "expanded the network of non-bank correspondents, which reached 8,900 points in total"
+- **Use in:** Q&A / Risk #1
+- **Caveat:**
+  - ABANSA member banks only. It counts points, not distances to a shop.
+  - Correspondents work under the central bank's rules NASF-03 (2015), https://ssf.gob.sv/wp-content/uploads/ssf2018/Normas_Prud_Bancos/NASF-03.pdf
+  - The article gives no fees.
+  - Payment networks in entries 42 to 45 may also be bank correspondents, so never add the networks together.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude's fetch of the live page on 12 Nov 2026 returned this phrase.)
+
+## 42. A bank's customers deposit at PuntoXpress at no extra cost
+- **Claim:** BAC lets its customers make deposits, withdrawals, and loan and card payments at PuntoXpress points, at no extra cost, which added more than 300 points to its network.
+- **Number:** 300+ extra points
+- **Source:** BAC Credomatic El Salvador, "Creamos una alianza con PuntoXpress para revolucionar las transacciones bancarias en El Salvador", https://www.baccredomatic.com/es-sv/nuestra-empresa/noticia/creamos-una-alianza-con-puntoxpress-para-revolucionar-las-transacciones (no date on the page; its banner file name suggests 22 Oct 2024). Same news in El Diario de Hoy: https://www.elsalvador.com/?p=1170943
+- **Exact quote:** "realizar diversas transacciones bancarias de forma rápida y sin costo adicional"
+- **Translation:** "make various banking transactions quickly and at no additional cost"
+- **Use in:** Q&A / Risk #1
+- **Caveat:**
+  - BAC describing its own service.
+  - "No additional cost" is the customer's cost. What BAC pays PuntoXpress per transaction isn't public.
+  - A deposit puts dollars in a bank account, not digital dollars on Stellar. A partner still has to convert them.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude's fetch of the live page on 12 Nov 2026 returned this phrase.)
+
+## 43. A digital wallet tops up at 748+ Punto Express points without surcharge
+- **Claim:** Nequi, a digital wallet backed by Bancoagrícola, lets users add cash to their account at more than 748 Punto Express points, immediately and without surcharge.
+- **Number:** 748+ points (2024)
+- **Source:** El Diario de Hoy (elsalvador.com), Kenya Henríquez, 29 Jul 2024, https://www.elsalvador.com/destacados/nequi-llega-unete-cherada-pisto-ritmo/1157976/2024/
+- **Exact quote:** "para abonar fondos a tu cuenta de manera inmediata y sin recargos"
+- **Translation:** "to add funds to your account immediately and without surcharges"
+- **Use in:** Q&A / Risk #1
+- **Caveat:**
+  - A launch article in the "destacados" section. It has no "patrocinado" label, but it reads like promotion.
+  - From 2024. The same article says Nequi is a business unit of Accelera, backed by Bancoagrícola.
+  - It shows a cash-to-digital top-up can be free to the user at a payment network, not that it would be free for us.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude's fetch of the live page on 12 Nov 2026 returned this phrase.)
+
+## 44. Lenders already take loan payments at payment points
+- **Claim:** Two Salvadoran microfinance lenders let borrowers pay loan instalments at payment-network points: CrediCampo through Tigo Money's agents (or *555# on the phone), and Banco Integral through AKÍ Pago's roughly 1,000 points.
+- **Number:** AKÍ Pago, about 1,000 points (Apr 2025); Tigo Money, 2,500+ agents (May 2025)
+- **Source:**
+  - dinero.com.sv, 31 May 2025 (Tigo Money and CrediCampo partnership), https://dinero.com.sv/empresarial/tigo-money-y-credicampo-se-unen-para-estar-mas-cerca-de-sus-clientes/
+  - Diario El Salvador, Kevin Rivera, 7 Apr 2025, https://diarioelsalvador.com/banco-integral-amplia-red-de-puntos-de-pagos-con-aki-pago/640558
+- **Exact quote:**
+  - dinero.com.sv: "pagar sus cuotas de crédito [...] a través de la red de Tigo Money"
+  - Diario El Salvador (AKÍ Pago's network manager): "son alrededor de 1,000 puntos a escala nacional"
+- **Translation:** "pay their loan instalments [...] through the Tigo Money network"; "there are about 1,000 points nationwide"
+- **Use in:** Q&A / Risk #1 (our idea 1, "repay like a bill", already works for loans)
+- **Caveat:**
+  - Neither article gives a fee for the borrower or the lender.
+  - Diario El Salvador is the weaker source (see "Source quality").
+  - These lenders take loan repayments in dollars. Nobody here credits digital dollars.
+- **Checked:** Pending: a teammate must open the links and confirm the quotes. (Claude's fetches of both live pages on 12 Nov 2026 returned these phrases.)
+
+## 45. Tigo Money: a licensed e-money company with agents in 90% of municipalities
+- **Claim:** In 2018 Tigo Money became El Salvador's first licensed e-money company (Sociedad Proveedora de Dinero Electrónico), authorized by the financial supervisor, the SSF. In 2022 it had about 2,500 service points in 90% of municipalities, mostly micro-businesses.
+- **Number:** about 2,500 points; 90% of municipalities (2022)
+- **Source:**
+  - Revista E&N, 2 Jul 2018, https://www.revistaeyn.com/empresasymanagement/tigo-money-recibe-aval-como-proveedor-de-dinero-electronico-en-el-salvador-DTEN1193752
+  - El Diario de Hoy (elsalvador.com), 2022, https://www.elsalvador.com/h-noticias/h-negocios/telefonia-operadoras-de-tigo-/979346/2022/
+- **Exact quote:** E&N: "la primera Sociedad Proveedora de Dinero Electrónico de El Salvador"
+- **Translation:** "El Salvador's first e-money provider company"
+- **Use in:** Q&A / Risk #1 (a partner with cash agents)
+- **Caveat:**
+  - The 2,500 and 90% are the company's own figures from 2022 (May 2025 still says 2,500+, entry 44). El Salvador has since merged its municipalities into fewer, larger ones, so "90% of municipalities" is the old map.
+  - The 2022 article also says 57% of the points are run by women. Claude read that in a search engine's copy of the page, not the live page.
+  - E-money accounts have limits. In 2019 users could make transactions of up to US$300 or hold US$1,200 a month (Revista E&N, https://www.revistaeyn.com/empresasymanagement/tigo-money-el-salvador-apuesta-por-el-sector-no-bancarizado-BYEN1304522). Check today's limits before relying on them.
+- **Checked:** Pending: a teammate must open the links and confirm the quote. (Claude matched the E&N phrase in the search engine's copy of the page on 12 Nov 2026.)
+
+## 46. A Salvadoran bank is a registered digital asset provider
+- **Claim:** Banco Atlántida El Salvador is one of the main digital asset service providers registered with the CNAD (entry 47). The government says more than 60 digital asset providers are registered nationally.
+- **Number:** 60+ registered providers; 29 digital asset issues authorized from Jan 2024 to Feb 2026
+- **Source:** LexLatin, Gunther Felix, 11 Sep 2026, https://lexlatin.com/entrevistas/bitcoin-financiar-pymes-tokenizacion-mercado-capitales-el-salvador-inversion-extranjera
+- **Exact quote:** "Banco Atlántida El Salvador, uno de los principales proveedores de servicios"
+- **Translation:** "Banco Atlántida El Salvador, one of the main service providers" (the sentence goes on: of digital assets registered with the CNAD)
+- **Use in:** Q&A / Risk #1 (a partner that has banking and may handle digital dollars)
+- **Caveat:**
+  - A legal-news article quoting the government and a lawyer. Check Banco Atlántida in the CNAD's public registry before naming it on a slide.
+  - Being registered doesn't mean it would convert cash for us. We haven't contacted it.
+  - An older article says Koibanx, another registered provider, works with Abank and Banco Atlántida (LatamFintech, https://www.latamfintech.co/articles/defi-obtiene-autorizacion-como-proveedor-de-servicios-digitales-en-el-salvador).
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude's second fetch of the live page on 12 Nov 2026 returned the start of the sentence word for word; the rest is paraphrased.)
+
+## 47. The digital asset law: who has to register
+- **Claim:** The Ley de Emisión de Activos Digitales (approved 11 Jan 2023) created the national digital asset commission, the CNAD, and a registry. Every digital asset service provider must register. The CNAD's 2023 rules list the services, including exchanging digital assets for dollars, holding them for others, transferring them for others, and loans or other financing in digital assets.
+- **Number:** none
+- **Source:**
+  - CNAD, "Reglamento de Proveedores de Servicios de Activos Digitales", approved 10 Aug 2023 (session CNAD-035-2023), Arts. 4 and 5, https://transparencia.gob.sv/institutions/cnad/documents/597563/download
+  - Approval date and vote (62 votes): ECIJA summary, https://files.griddo.ecija.com/ley-de-emision-de-activos-digitales-final30.pdf
+- **Exact quote:** Art. 5: "Todo Proveedor de Servicios de Activos Digitales, incluyendo los certificadores, están obligados a registrarse"
+- **Translation:** "Every digital asset service provider, including certifiers, is obliged to register"
+- **Use in:** Q&A / legal slide
+- **Caveat:**
+  - Our reading, for a lawyer to confirm: turning cash into digital dollars, holding them for shops, and a pool that lends digital dollars all look like services on Art. 4's list (4 a, 4 e and 4 f). So either we register, or a registered partner does those parts.
+  - A reform in October 2024 moved Bitcoin service providers under the CNAD and changed the definition of stablecoin (El Diario de Hoy, https://www.elsalvador.com/h-noticias/h-negocios/ley-de-activos-digitales-bitcoin-el-salvador/1177143/2024/). We didn't read the reformed law.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude's fetch of the CNAD document on 12 Nov 2026 returned this sentence.)
+
+## 48. The e-money law
+- **Claim:** The 2015 Ley para Facilitar la Inclusión Financiera created licensed e-money companies, authorized and supervised by the SSF. Banks, cooperative banks and savings-and-loan companies may also provide e-money.
+- **Number:** none
+- **Source:**
+  - The law (SSF's copy): https://www.ssf.gob.sv/descargas/Leyes/Leyes%20Financieras/Ley%20para%20facilitar%20la%20Inclusión%20Financiera.pdf
+  - The central bank's rules NASF-07 for e-money providers: https://ssf.gob.sv/wp-content/uploads/ssf2018/Normas_contables_Dineroelectronico/NASF-07.docx
+- **Exact quote:** NASF-07, on Art. 2 of the law: "faculta a los bancos, bancos cooperativos y sociedades de ahorro y crédito para proveer dinero electrónico"
+- **Translation:** "empowers banks, cooperative banks and savings-and-loan companies to provide e-money"
+- **Use in:** Q&A / legal slide
+- **Caveat:**
+  - Whether a digital dollar balance on Stellar counts as e-money under this law is a question for a lawyer. We treat it as a digital asset (entry 47).
+  - What matters for Risk #1: the companies licensed under this law (Tigo Money, entry 45) and the banks already run cash agent networks.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude matched the phrase in the search engine's copy of NASF-07 on 12 Nov 2026.)
+
+## 49. The legal maximum interest rates, July to December 2026
+- **Claim:** From 1 July to 31 December 2026 the legal maximum effective annual rate is 96.88% for subsistence micro-business loans (up to 12 minimum wages), 58.10% for "simple accumulation" micro-businesses and 38.63% for "expanded accumulation". 96.88% is the highest rate allowed on any credit.
+- **Number:** 96.88%, 58.10%, 38.63% a year
+- **Source:** ContraPunto, Alonso Rosales, 24 Jul 2026, https://www.contrapunto.com.sv/prestamistas-informales-mueven-mas-de-1250-millones-al-ano-entre-las-mype-el-alto-costo-de-la-exclusion-financiera/ , citing the central bank's "Tasas Máximas Legales vigentes del 1 de julio al 31 de diciembre de 2026"
+- **Exact quote:** "la tasa máxima efectiva anual para el segmento de microempresa de subsistencia"
+- **Translation:** "the maximum effective annual rate for the subsistence micro-business segment"
+- **Use in:** Q&A / legal slide (with entry 18, which explains the law)
+- **Caveat:**
+  - A secondary source. Get the central bank's own table before putting these numbers on a slide.
+  - The caps change every January and July (entry 18). Segments are set by loan size in minimum wages.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude's fetch of the live page on 12 Nov 2026 returned this phrase and the three rates.)
+
+## 50. The personal data protection law (2024)
+- **Claim:** El Salvador approved a personal data protection law in November 2024. It regulates how public and private organizations collect, use, process and store personal data.
+- **Number:** none
+- **Source:** Revista E&N (EFE), "El Salvador con nuevas leyes de ciberseguridad y datos personales", 13 Nov 2024, https://www.revistaeyn.com/centroamericaymundo/el-salvador-con-nuevas-leyes-de-ciberseguridad-y-datos-personales-KH22618615
+- **Exact quote:** "su recolección, uso, procesamiento, almacenamiento y otras actividades relacionadas"
+- **Translation:** "its collection, use, processing, storage and other related activities"
+- **Use in:** Q&A (privacy)
+- **Caveat:**
+  - The law was reformed later (El Diario de Hoy, https://www.elsalvador.com/?p=1293875). We didn't read the reform.
+  - It applies to our off-chain data: names, phone numbers, WhatsApp numbers. Context §8.4 already keeps personal data off the public ledger. A lawyer should say what else we need, such as consent text or a data protection officer.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude matched the phrase in the search engine's copy of the page on 12 Nov 2026.)
+
+## 51. What bank loans under one year cost
+- **Claim:** The average rate on loans of under one year fell to 7.60% in July 2026, from 7.80% a year earlier (central bank data).
+- **Number:** 7.60% a year (July 2026)
+- **Source:** Diario El Mundo, Uveli Alemán, 2 Sep 2026, https://diario.elmundo.sv/economia/depositos-se-disparan-12-6-y-rozan-los-25000-millones-a-julio
+- **Exact quote:** "cuyas tasas pasaron de 7.80 % en julio de 2025 a 7.60 % en julio de 2026"
+- **Translation:** "whose rates went from 7.80% in July 2025 to 7.60% in July 2026"
+- **Use in:** Q&A (what money costs for those who can get a bank loan)
+- **Caveat:**
+  - All loans under one year, not loans to tiendas. Most tiendas can't get these (entries 9, 12 and 13).
+  - Use it only as a floor, never as what a shop would pay.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude's fetch of the live page on 12 Nov 2026 returned this phrase.)
+
+## 52. Early-payment discounts cost about 37% a year
+- **Claim:** A common supplier term, "2/10 net 30" (2% off for paying in 10 days instead of 30), works out to about 37% a year. Businesses offer it to be paid sooner.
+- **Number:** 36.73% (the textbook's figure, on a 360-day year); 37.2% on a 365-day year (our maths, entry 56)
+- **Source:** OpenStax, *Principles of Finance* (2nd edition), section 19.2 on trade credit, https://openstax.org/books/principles-finance-2e/pages/19-2-what-is-trade-credit
+- **Exact quote:** "high annualize opportunity cost (36.73 percent) of not taking advantage of cash discounts"
+- **Translation:** n/a (English source)
+- **Use in:** Q&A (why a distributor might pay to be paid early)
+- **Caveat:**
+  - A US textbook example, not El Salvador data.
+  - It's the same trade our distributor makes: give up a percentage to be paid sooner. Our option 1 also covers defaults, which a discount doesn't.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude matched the phrase in the search engine's copy of the page on 12 Nov 2026.)
+
+## 53. A Salvadoran fintech turns invoices into cash, funded by a US credit fund
+- **Claim:** Ábaco, a Salvadoran fintech, raised US$53 million in July 2026, US$50 million of it a credit line from the US fund Accial Capital. It buys small businesses' unpaid invoices (digital factoring) and projects more than US$350 million of credit to more than 10,000 small businesses within 24 months.
+- **Number:** US$53M raised; US$350M+ and 10,000+ businesses projected
+- **Source:** Bloomberg Línea, Fátima Romero, 24 Jul 2026, https://www.bloomberglinea.com/2026/07/24/fintech-salvadorena-levanta-us53-millones-para-expandir-el-factoraje-digital-en-centroamerica/
+- **Exact quote:** "convertir sus cuentas por cobrar en efectivo en menos de 24 horas"
+- **Translation:** "turn their accounts receivable into cash in under 24 hours"
+- **Use in:** Q&A (who funds the pool; precedent for paying to be paid early)
+- **Caveat:**
+  - The projections are the company's. The article gives no prices.
+  - Ábaco serves businesses bigger than tiendas. It could compete for distributors' invoices, or fund a pool like ours.
+  - It shows a foreign credit fund will lend against Salvadoran receivables.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude's fetch of the live page on 12 Nov 2026 returned this phrase.)
+
+## 54. The leading distributor serves 24,000 clients, 14% by route
+- **Claim:** Distribuidora Zablah (DISZASA), which its rating agency calls the leading consumer-goods distributor in El Salvador, serves 24,000 active clients. 14% of its sales go through route sales ("ruteo"). Its sister company DISNA serves 9,500 active clients, with route sales "to a lesser extent".
+- **Number:** 24,000 clients; sales by channel: wholesale 36%, Calleja 24%, Walmart 16%, routes 14%, other 10%. DISNA: 9,500 clients.
+- **Source:**
+  - Moody's Local El Salvador, rating report on the securitization fund "Ricorp Titularizadora Sociedades Distribuidoras 01" (cash flows from UDISA, DISZASA and DISNA), 31 Oct 2025, p. 2, https://bolsadevalores.com.sv/files/66411/1.2.1_MLSV_Informe-PUBLICO-FT_Sociedades_Distribuidoras-31102025_v1_rev-2025-10-09_-_F.pdf
+  - Zumma Ratings, DISZASA report (December 2025), https://bolsadevalores.com.sv/files/74502/DISZASA_DIC2025_ZUMMA.pdf ("leader" wording)
+- **Exact quote:** Moody's Local: "para dar cobertura a 24,000 clientes efectivos en todo el país"
+- **Translation:** "to cover 24,000 active clients across the country"
+- **Use in:** Q&A / go-to-market slide (context §7.7)
+- **Caveat:**
+  - The percentages are channel shares, our reading of the report's list. The reports don't count routes, trucks or credit days.
+  - Most of its sales go to wholesalers and supermarkets, so routes are a slice.
+  - Moody's Local says its liquidity depends on receivables and inventory. The group already sells future cash flows to investors through the fund above.
+  - We have emailed Zumma Ratings (outreach log in `docs/research.md`). Nobody at DISZASA has been contacted.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude's fetch of the PDF on 12 Nov 2026 returned this phrase on p. 2.)
+
+## 55. The distributors' association works with the state on tiendas
+- **Claim:** ADES, the distributors' association, joined Conamype, the state bank BFA and the firm Distribución Dinámica in the 2026 strategy to support tiendas (credit up to $10,000, training and a WhatsApp channel for shop owners). The same article says about 99% of tiendas are informal, and that a shop visited every ten days spends much of the month with empty shelves.
+- **Number:** about 99% informal (as reported)
+- **Source:** El Diario de Hoy (elsalvador.com), Evelyn Alas, 24 Feb 2026, https://www.elsalvador.com/dinero-y-negocios/voces-de-emprendimiento/creditos-capacitaciones/1263749/2026/
+- **Exact quote:** "junto con la Asociación de Distribuidores de El Salvador (ADES)"
+- **Translation:** "together with the Association of Distributors of El Salvador (ADES)"
+- **Use in:** Q&A / go-to-market (how we reach distributors)
+- **Caveat:**
+  - The article names ADES only as a partner. It doesn't say what ADES does or how many members it has.
+  - The 99% and "every ten days" points are paraphrased from the same article. It also says many shops act as service points for fintechs.
+  - The BFA credit line is entry 20.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude's fetch of the live page on 12 Nov 2026 returned this phrase.)
+
+## 56. What the credit fee is per year (our maths)
+- **Claim:** Paying 1.5% to be paid 7 days early equals about 79% a year (simple) or about 120% (compounded). Option 2's 0.25% equals about 13% to 14% a year.
+- **Number:**
+  - 1.5% (option 1): 1.52% per week; 79.4% a year simple; 119.9% compounded
+  - 0.25% (option 2): 0.25% per week; 13.1% simple; 13.9% compounded
+  - 2/10 net 30 (entry 52): 37.2% on a 365-day year
+  - Lenders' $0.50 per $100 per week (context §5): about 26% simple, if always lent out
+- **Source:** our maths. Rate per week = fee ÷ (100 − fee). Simple = weekly rate × 365 ÷ 7. Compounded = (1 + weekly rate) ^ (365 ÷ 7) − 1. Run with Python on 12 Nov 2026.
+- **Exact quote:** n/a
+- **Translation:** n/a
+- **Use in:** Q&A only. Never a headline.
+- **Caveat:**
+  - The shop pays 0% (entry 29). The distributor pays, by choice, and option 1 also buys protection from defaults (the buffer), not just time.
+  - If anyone treated the 1.5% as interest, about 120% a year would be above every legal maximum in entry 49 (the highest is 96.88%). A lawyer must confirm it counts as a discount on the distributor's own invoice, not interest.
+- **Checked:** Claude, 12 Nov 2026 (recomputed twice)

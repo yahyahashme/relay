@@ -1,6 +1,6 @@
 # Finals deck outline (#41)
 
-Scaffold written Wed Nov 11; the slide text was added the same day. Refreshed Thu Nov 12 evening against `main` at 67f265f (#72, #73, #84, #85, #86 and #90 are merged; #81, #82 and #83 are still open). **The text to paste into the template is in `docs/deck-slides.md`.** This file keeps the plan: the time budget, the source and visual for each slide, what each still needs, the screenshot steps and the open questions. Every `[bracket]` is something we don't have yet.
+Scaffold written Wed Nov 11; the slide text was added the same day. Refreshed Thu Nov 12 late evening against `main` at 9c1b0fe (#72, #73, #83, #84, #85, #86, #90, #100 and #102 are merged; #81 and #82 are still open). **The text to paste into the template is in `docs/deck-slides.md`.** This file keeps the plan: the time budget, the source and visual for each slide, what each still needs, the screenshot steps and the open questions. Every `[bracket]` is something we don't have yet.
 
 ## Rules
 
@@ -32,9 +32,9 @@ The words for each slide are in `docs/deck-slides.md`, under the same number.
 
 ### 1. Name and one-line pitch
 - **Message:** one idea the room can repeat.
-- **Source:** #26 (Wed Nov 11) is closed, but the repo doesn't record the name or the pitcher (`lib/brand.ts` on `main` still says "Nombre pendiente"). The tagline is from the #37 draft (PR #83, still open).
-- **Visual:** name large, no logo yet.
-- **Needs:** the team name.
+- **Source:** the name is **Relay** with the tagline *Paga tu ruta* under it (PR #100, merged Nov 12; `lib/brand.ts`, `docs/context.md` §1). The repo doesn't record who pitches.
+- **Visual:** "Relay" large with "Paga tu ruta" under it, no logo yet.
+- **Needs:** nothing for the slide. The pitcher is still to be named (see "Before we can build it").
 
 ### 2. The problem
 - **Message:** small shops can't get stock on credit, so they borrow from loan sharks.
@@ -45,7 +45,7 @@ The words for each slide are in `docs/deck-slides.md`, under the same number.
 ### 3. The product
 - **Message:** one shop screen, three ways to pay.
 - **Visual:** 3 phone screenshots of the live app, captured at 360 px wide with the testnet banner in frame: the shop's pay screen, the shop's "Debe ... vence ..." screen after a credit payment, the driver's "Recibí efectivo" screen. Steps are in "Capturing the three phone screenshots" below. `docs/screenshots/mock-screens-nov10.png` is a mock, so don't use it.
-- **Needs:** a fresh capture. The live app is on a stable URL (README v1, #71; https://tiendas-stellar.vercel.app returned HTTP 200 on Thu Nov 12) and the redeploy has landed (#90), so the shots can be taken now. Take them after the name is set in `lib/brand.ts` and deployed.
+- **Needs:** a fresh capture. The live app is on a stable URL, https://relay-sv.vercel.app (`curl -sI` returned HTTP 200 on Thu Nov 12, about 7:50 PM ET; the old tiendas-stellar.vercel.app answers 307 and redirects there, so the deck shows the new one). The redeploy has landed (#90) and the name is set (#100), so the shots can be taken now. Check the page header reads "Relay" with "Paga tu ruta" under it before capturing. The URL goes in the slide's small print.
 
 ### 4. How it works on Stellar
 - **Message:** the rules live in a public contract, and names stay off it.
@@ -53,7 +53,7 @@ The words for each slide are in `docs/deck-slides.md`, under the same number.
 
 ### 5. The code
 - **Message:** the credit rules are real contract code, not a mock-up.
-- **Visual:** `docs/img/code-slide.png` (from #56). **Not ready on `main`:** it shows the old contract ID (CAPQ6ZDD..., from before the redeploy), and its limit check is the pre-#66 code. PR #82 (draft) repairs the render, re-renders the PNG with the new ID (CDHDZX7V..., equal to `contracts.routeLedger` in `config/testnet.json`) and the current `match` block, and adds `SCALE=3 node docs/slides/render.mjs` for print-size images. Use the image only after #82 merges.
+- **Visual:** `docs/img/code-slide.png` (from #56). **Not ready on `main`:** it shows the old contract ID (CAPQ6ZDD..., from before the redeploy), and its limit check is the pre-#66 code. PR #82 (open, not merged) repairs the render, re-renders the PNG with the new ID (CDHDZX7V..., equal to `contracts.routeLedger` in `config/testnet.json`) and the current `match` block, and adds `SCALE=3 node docs/slides/render.mjs` for print-size images. Use the image only after #82 merges.
 - **Needs:** PR #82 merged, then Yahya's confirmation that the code on the slide is what's deployed (the open "Done means" line of #56). `git log` shows nothing under `contracts/` since #80 (Thu Nov 12, 4:33 PM ET), which came before the redeploy (#90, 6:22 PM ET).
 
 ### 6. Money in 30 seconds, and go-to-market
@@ -78,10 +78,10 @@ The words for each slide are in `docs/deck-slides.md`, under the same number.
 
 For slide 3 and the trifold's middle panel. They have to come from the live app at 360 px wide, with the banner "Demo en testnet · dinero de prueba · cash-in simulado" at the top of each. (It is the first line of every page, not a sticky bar, so capture with the page scrolled to the top.) They are taken by hand: it needs clicks, and shot 2 changes the shared demo.
 
-**When:** now that the redeploy has landed (#90, Thu Nov 12; #52 is closed), because the redeploy gave a new contract and new demo invoices. Best in the same sitting as Yahya's video (#35), so the demo is only changed once, and after the product name is set in `lib/brand.ts` so the app title isn't "Nombre pendiente". Shot 2 makes a real testnet payment with test dollars and changes what the video shows (see "Side effects").
+**When:** now that the redeploy has landed (#90, Thu Nov 12; #52 is closed), because the redeploy gave a new contract and new demo invoices. Best in the same sitting as Yahya's video (#35), so the demo is only changed once, and with the header reading "Relay" and "Paga tu ruta" (the name is set, #100). Shot 2 makes a real testnet payment with test dollars and changes what the video shows (see "Side effects").
 
 **Setup (Chrome on a Mac)**
-1. Open https://tiendas-stellar.vercel.app. Check the testnet banner is at the top and the page isn't an old preview.
+1. Open https://relay-sv.vercel.app. Check the testnet banner is at the top and the page isn't an old preview.
 2. Open Chrome DevTools (Cmd+Opt+I), then the device toolbar (Cmd+Shift+M). In the toolbar choose "Responsive" and type width **360** and height **740**. Click the toolbar's three dots, choose "Add device pixel ratio", and set it to **3**.
 3. To capture: three dots in the device toolbar, "Capture screenshot" (not "full size"). It saves only the 360 px phone view, without DevTools or the browser bar, as a PNG in Downloads about 1080 px wide.
 
@@ -102,15 +102,16 @@ For slide 3 and the trifold's middle panel. They have to come from the live app 
 
 | Input | Where it comes from | Status |
 |---|---|---|
-| Team name, pitcher | #26 (closed Nov 12) | not recorded in the repo; ask the group chat |
-| Pitch script v1 | #37, PR #83 | open PR |
+| Name and tagline | PR #100 | decided: Relay, tagline *Paga tu ruta* |
+| Pitcher | the team | not recorded in the repo; ask the group chat |
+| Pitch script v1 | #37, PR #83 | merged Nov 12 (`docs/pitch.md`; it still has `[NAME]` placeholders) |
 | Worldwide number and expansion path | #51, #73 | merged (entries 22 to 28 on `main`) |
 | Our fees, limits, safety numbers | facts entries 29 to 35, #84 | merged |
 | "What we heard from N people" | #30; `docs/research.md` (#72) | open; the log has only the two advisor calls |
 | Slide text for the 8 slides | `docs/deck-slides.md` | refreshed Nov 12 (brackets still open) |
 | Real phone screenshots | live app, captured by Jack, steps above | not started; unblocked (redeploy landed, #90) |
-| Code slide with the real contract ID | #56 follow-up, PR #82 | PR #82 (draft) has the re-render; `docs/img/code-slide.png` on `main` is stale |
-| Print-size slide images | `SCALE=3 node docs/slides/render.mjs` (PR #82) | option written in the draft PR |
+| Code slide with the real contract ID | #56 follow-up, PR #82 | PR #82 (open, not merged) has the re-render; `docs/img/code-slide.png` on `main` is stale until it merges |
+| Print-size slide images | `SCALE=3 node docs/slides/render.mjs` (PR #82) | option written in PR #82 |
 | Architecture picture without the fee-sponsorship line | edit `docs/slides/architecture.html`, re-render | not done |
 | Our ask | team decision | open |
 

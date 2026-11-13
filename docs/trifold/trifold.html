@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Trifold board (#37)</title>
+<!--
+  The print layout for the trifold, at the board's real size: 48 x 36 in open (#37).
+  Copy comes from docs/pitch.md section 1. Edit the text here, then run:  node docs/trifold/render.mjs
+
+  Two fold layouts, because nobody has measured our board yet:
+    ?layout=a   12 + 24 + 12 in   (the usual 36 x 48 in tri-fold: a wide centre, two narrow wings)
+    ?layout=b   16 + 16 + 16 in   (what the first #37 draft assumed)
+
+  Anything still missing is a yellow box or yellow text (class "todo"): the team name, the numbers from
+  #30, the three phone screenshots (docs/trifold/img/) and the QR (public/qr-demo.png, PR #70).
+  `node docs/trifold/render.mjs --final` refuses to build while any yellow is left.
+
+  Screenshots expected in docs/trifold/img/ (take them at 360 px wide, device pixel ratio 3, with the grey
+  testnet banner in frame):  shop-pay.png  shop-credit.png  driver-cash.png
+
+  Type: body 32 pt (the top of Velocity's 24 to 32 pt), headings 38 to 40 pt, title 96 pt. The three big
+  numbers (104 pt) and the two key points (40 to 50 pt) are display type, on purpose larger than a heading.
+-->
+<script>
+  const query = new URLSearchParams(location.search);
+  const layout = query.get("layout") === "b" ? "b" : "a";
+  document.documentElement.dataset.layout = layout;
+  // ?panel=1, 2 or 3 shows just that panel on a page of its own size, for a shop that prints panel by panel.
+  const panel = ["1", "2", "3"].includes(query.get("panel")) ? query.get("panel") : null;
+  if (panel) {
+    document.documentElement.dataset.panel = panel;
+    const widthIn = { a: [12, 24, 12], b: [16, 16, 16] }[layout][panel - 1];
+    // Added after the page is parsed, so it comes after the 48 x 36 in rule below and wins.
+    document.addEventListener("DOMContentLoaded", () => {
+      const style = document.createElement("style");
+      style.textContent = `@page { size: ${widthIn}in 36in; margin: 0; } html[data-panel] body, html[data-panel] .board { width: ${widthIn}in; }`;
+      document.head.appendChild(style);
+    });
+  }
+  // Replaces a missing image with a yellow box, so a gap can't be mistaken for a finished board.
+  function missing(img, label) {
+    const box = document.createElement("div");
+    box.className = "todo fill " + img.className; // keeps the size the image would have had
+    box.textContent = "[" + label + "]";
+    img.replaceWith(box);
+  }
+  // Tries the 2x file first, then the 1x one, then gives up with a yellow box.
+  function fallback(img, src, label) {
+    if (img.dataset.tried) return missing(img, label);
+    img.dataset.tried = "1";
+    img.src = src;
+  }
+</script>
+<style>
+  @page { size: 48in 36in; margin: 0; }
+  :root {
+    --brand: #0b4ea2; --brand-dark: #083b7a; --brand-soft: #e6eefa;
+    --ink: #14202e; --muted: #4a5565; --wing: #f6f8fb;
+    --todo: #ffe066;
+  }
+  html[data-layout="a"] { --w1: 12in; --w2: 24in; --w3: 12in; --phone: 6in; --key: 50pt; }
+  html[data-layout="b"] { --w1: 16in; --w2: 16in; --w3: 16in; --phone: 3.95in; --key: 40pt; }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    position: relative; width: 48in; height: 36in; overflow: hidden; background: #fff; color: var(--ink);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .board { display: grid; grid-template-columns: var(--w1) var(--w2) var(--w3); width: 48in; height: 36in; }
+  /* Blocks are spread from top to bottom, so no panel looks top-heavy. */
+  .panel { height: 36in; padding: 0.9in 0.75in 0.8in; display: flex; flex-direction: column; justify-content: space-between; gap: 0.3in; }
+  .panel > * { flex: none; }
+  .panel.side { background: var(--wing); }
+  .grp { display: flex; flex-direction: column; gap: 0.25in; }
+
+  h1 { margin: 0; font-size: 96pt; line-height: 1; font-weight: 800; letter-spacing: -0.01em; color: var(--brand-dark); }
+  .tagline { margin: 0.15in 0 0; font-size: 36pt; line-height: 1.15; font-weight: 600; }
+  h2 {
+    margin: 0; padding-bottom: 0.1in; font-size: 40pt; line-height: 1.1; font-weight: 800; letter-spacing: 0.03em;
+    text-transform: uppercase; color: var(--brand); border-bottom: 0.08in solid var(--brand);
+  }
+  h3 { margin: 0 0 0.08in; font-size: 38pt; line-height: 1.1; font-weight: 800; color: var(--brand-dark); }
+  p, li, .desc { text-wrap: pretty; } /* no lone last word on a line */
+  p { margin: 0; font-size: 32pt; line-height: 1.22; }
+  ul { margin: 0 0 0.15in; padding-left: 0.45in; }
+  li { margin-bottom: 0.1in; font-size: 32pt; line-height: 1.22; }
+  strong { font-weight: 800; color: var(--brand-dark); }
+  .stats { display: flex; flex-direction: column; gap: 0.55in; }
+  .big { font-size: 104pt; line-height: 1; font-weight: 800; color: var(--brand-dark); }
+  .big .per { font-size: 48pt; font-weight: 700; }
+  .desc { margin-top: 0.1in; font-size: 32pt; line-height: 1.2; }
+  .small { font-size: 16pt; line-height: 1.25; color: var(--muted); }
+  .small p { font-size: 16pt; line-height: 1.25; margin: 0 0 0.05in; }
+  .caption { margin: 0.12in 0 0; font-size: 28pt; line-height: 1.18; font-weight: 600; text-align: center; }
+  .keys { display: flex; flex-direction: column; gap: 0.3in; }
+  .keypoint {
+    margin: 0; padding: 0.25in 0.35in; background: var(--brand-soft); border-left: 0.16in solid var(--brand);
+    font-size: var(--key); line-height: 1.1; font-weight: 800; color: var(--brand-dark);
+  }
+
+  .phones { display: flex; justify-content: space-around; align-items: flex-start; margin-top: 0.25in; }
+  .phone { margin: 0; width: var(--phone); }
+  .frame { aspect-ratio: 9 / 19; border: 0.09in solid var(--ink); border-radius: 0.42in; overflow: hidden; background: #fff; }
+  .frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+  .lower { display: flex; gap: 0.5in; align-items: flex-start; }
+  html[data-layout="b"] .lower { flex-direction: column; gap: 0.35in; width: 100%; }
+  .qrbox { display: flex; flex-direction: column; gap: 0.2in; width: 5in; flex: none; }
+  html[data-layout="b"] .qrbox { flex-direction: row; align-items: center; gap: 0.4in; width: 100%; }
+  .qrbox .qr { width: 5in; height: 5in; padding: 0.3in; background: #fff; border: 0.03in solid var(--ink); flex: none; }
+  html[data-layout="b"] .qrbox .qr { width: 4.6in; height: 4.6in; }
+  .qrtext p { font-size: 28pt; line-height: 1.18; }
+  .qrtext .scan { font-size: 44pt; font-weight: 800; color: var(--brand-dark); line-height: 1.05; margin-bottom: 0.1in; }
+  .diagram { margin: 0; flex: 1; min-width: 0; width: 100%; }
+  .diagram img { display: block; width: 100%; height: auto; border: 0.02in solid #cfd6e0; }
+
+  .todo { background: var(--todo); color: #000; outline: 0.03in dashed #b38f00; }
+  .todo.fill { display: flex; align-items: center; justify-content: center; text-align: center; padding: 0.2in; font-size: 24pt; font-weight: 400; width: 100%; height: 100%; }
+  .qrbox .qr.todo.fill { width: 5in; height: 5in; background: var(--todo); }
+  html[data-layout="b"] .qrbox .qr.todo.fill { width: 4.6in; height: 4.6in; }
+  .diagram .todo.fill { height: 8in; }
+
+  /* One panel on its own page (?panel=1|2|3). */
+  html[data-panel] .board { display: block; }
+  html[data-panel="1"] #mid, html[data-panel="1"] #right,
+  html[data-panel="2"] #left, html[data-panel="2"] #right,
+  html[data-panel="3"] #left, html[data-panel="3"] #mid { display: none; }
+  html[data-panel] .fold-guides { display: none; }
+
+  /* Fold marks: on screen and in the preview only, never in the PDF. */
+  .fold-guides span { position: absolute; top: 0; bottom: 0; width: 0; border-left: 0.03in dashed #e0245e; z-index: 5; }
+  .fold-guides span::after { content: "fold"; position: absolute; top: 0.1in; left: 0.1in; font-size: 18pt; color: #e0245e; }
+  @media print { .fold-guides { display: none; } }
+</style>
+</head>
+<body>
+<div class="board">
+
+  <!-- LEFT: the problem -->
+  <section class="panel side" id="left">
+    <div class="grp">
+      <h2>The problem</h2>
+      <p>Rosa's truck is at the door and she is short on cash. A loan shark hands her the money today, at about $35 for every $100 (2019 survey).</p>
+      <p>Delivery crews in El Salvador have been robbed and extorted, and in a four-country survey, 8 in 10 small businesses pay suppliers mainly in cash.</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="big">$5.7 trillion</div>
+        <div class="desc">in credit that small businesses in developing countries need and can't get</div>
+      </div>
+      <div class="stat">
+        <div class="big">$2 billion <span class="per">a year</span></div>
+        <div class="desc">what distributors sell to El Salvador's 50,000+ neighbourhood shops (Conamype estimate)</div>
+      </div>
+      <div class="stat">
+        <div class="big">$35 <span class="per">per $100</span></div>
+        <div class="desc">what a loan shark charges (2019 survey). 6 in 10 informal small businesses have borrowed from one.</div>
+      </div>
+    </div>
+
+    <div class="small">
+      <p>Rosa is an example, not a real interview.</p>
+      <p>$5.7 trillion: IFC and SME Finance Forum, "MSME Finance Gap", Mar 2025 (2019 data). Facts entry 22.</p>
+      <p>$2 billion: Conamype estimate, via Diario El Salvador, 27 Feb 2026. Shop count: Distribución Dinámica, via Diario El Mundo, 1 Mar 2026. Entries 1 and 3.</p>
+      <p>$35 per $100: CIOPS (UTEC) survey of 1,285 merchants, 2019, via Revista E&amp;N. 6 in 10: FUSAI and ASOMI, via El Diario de Hoy, Jul 2026. Entries 9 and 10.</p>
+      <p>Crews: robbed, El Diario de Hoy, 23 Jul 2024; extorted, Brown et al., Review of Economic Studies. Cash: El Salvador, Guatemala, Honduras and Mexico, 2022 survey, via Diario El Mundo, 10 Apr 2025. Entries 11 and 40.</p>
+    </div>
+  </section>
+
+  <!-- CENTRE: name, two key points, how it works -->
+  <section class="panel mid" id="mid">
+    <div>
+      <h1><span class="todo">[NAME]</span></h1>
+      <p class="tagline">Pay the truck now, in cash, or in 7 days. No interest.</p>
+    </div>
+
+    <div class="keys">
+      <p class="keypoint">Stock on credit at no interest, not about $35 per $100 (2019 survey).</p>
+      <p class="keypoint">Distributors pay a small fee. Shops never do.</p>
+    </div>
+
+    <div class="grp">
+      <h2>How it works</h2>
+      <div class="phones">
+        <figure class="phone">
+          <div class="frame"><img src="img/shop-pay.png" alt="" onerror="missing(this, 'Shop screen: Pagar ahora, screenshot')"></div>
+          <figcaption class="caption">Pay now: digital dollars</figcaption>
+        </figure>
+        <figure class="phone">
+          <div class="frame"><img src="img/shop-credit.png" alt="" onerror="missing(this, 'Shop screen: Debe, vence, screenshot')"></div>
+          <figcaption class="caption">Pay in 7 days: full price, no interest</figcaption>
+        </figure>
+        <figure class="phone">
+          <div class="frame"><img src="img/driver-cash.png" alt="" onerror="missing(this, 'Driver screen: Recibí efectivo, screenshot')"></div>
+          <figcaption class="caption">Cash: driver and shop confirm with two taps</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <div class="lower">
+      <div class="qrbox">
+        <img class="qr" src="../../public/qr-demo.png" alt="QR code that opens the demo" onerror="missing(this, 'QR: public/qr-demo.png (PR #70)')">
+        <div class="qrtext">
+          <p class="scan">Scan to try it</p>
+          <p>Live on Stellar testnet with test dollars. Cash-in is simulated.</p>
+        </div>
+      </div>
+      <figure class="diagram">
+        <!-- Prefers docs/img/architecture@2x.png (3840 x 2160) for print; falls back to the 1920 x 1080 file. -->
+        <img src="../img/architecture@2x.png" alt="How it works on Stellar" onerror="fallback(this, '../img/architecture.png', 'Diagram: docs/img/architecture.png')">
+      </figure>
+    </div>
+  </section>
+
+  <!-- RIGHT: the business -->
+  <section class="panel side" id="right">
+    <div class="grp">
+      <h2>The business</h2>
+      <div>
+        <h3>One $100 delivery, paid in 7 days</h3>
+        <ul>
+          <li>The lender pool pays the distributor now: <strong>$98.50</strong></li>
+          <li>The shop repays in 7 days: <strong>$100</strong>, no interest</li>
+          <li>The 1.5% fee: $0.75 buffer, $0.50 lenders, $0.25&nbsp;us</li>
+        </ul>
+        <p>The distributor pays because it is paid at the door and carries no risk of the shop not paying.</p>
+      </div>
+    </div>
+    <div>
+      <h3>Our plan</h3>
+      <ul>
+        <li>One distributor's routes first</li>
+        <li>A bank or cash-in partner for the cash</li>
+        <li>A licensed lender funds the pool</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Where we go next</h3>
+      <p>El Salvador, then Ecuador and Panama (they also use the US dollar), then Guatemala and Honduras, then Mexico and Peru.</p>
+    </div>
+    <div>
+      <h3>Risk #1: cash to digital dollars</h3>
+      <p>Not solved yet. Our demo simulates it. Plan: shops repay weekly like a bill at a bank or payment point, and a licensed partner converts in bulk and does KYC and KYB.</p>
+    </div>
+    <div>
+      <h3>What we heard</h3>
+      <p>We talked to <span class="todo">[N]</span> people and <span class="todo">[N]</span> tried the prototype. Because of them we changed <span class="todo">[what we changed]</span>.</p>
+    </div>
+  </section>
+
+</div>
+<div class="fold-guides" aria-hidden="true"><span style="left: var(--w1)"></span><span style="left: calc(var(--w1) + var(--w2))"></span></div>
+
+<script>
+  // Measures the layout so render.mjs can print the numbers. Reads only; changes nothing on the board.
+  window.addEventListener("load", () => {
+    const PX = 96, board = PX * 48 * PX * 36;
+    const out = { layout: document.documentElement.dataset.layout, todos: document.querySelectorAll(".todo").length,
+      minBodyPt: 999, minBodyWhere: "", minSmallPt: 999, panels: [], overflowX: [], images: [] };
+    // Pixels per inch each picture gets at its printed size (150 or more looks sharp on a board).
+    for (const img of document.querySelectorAll("img")) {
+      if (!img.naturalWidth) continue;
+      out.images.push({ name: decodeURI(img.src.split("/").pop()), px: img.naturalWidth,
+        widthIn: +(img.getBoundingClientRect().width / PX).toFixed(1),
+        ppi: Math.round(img.naturalWidth / (img.getBoundingClientRect().width / PX)) });
+    }
+    let area = 0;
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      const node = walker.currentNode, el = node.parentElement;
+      if (!node.textContent.trim() || el.closest("script, style, .fold-guides")) continue;
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      for (const r of range.getClientRects()) area += r.width * r.height;
+      const pt = parseFloat(getComputedStyle(el).fontSize) * 0.75;
+      if (el.closest(".small")) out.minSmallPt = Math.min(out.minSmallPt, pt);
+      else if (pt < out.minBodyPt) { out.minBodyPt = pt; out.minBodyWhere = node.textContent.trim().slice(0, 40); }
+    }
+    out.textSharePct = +(area / board * 100).toFixed(1);
+    for (const p of document.querySelectorAll(".panel")) {
+      const r = p.getBoundingClientRect(), pad = parseFloat(getComputedStyle(p).paddingBottom);
+      const last = p.lastElementChild.getBoundingClientRect().bottom;
+      out.panels.push({ id: p.id, widthIn: +(r.width / PX).toFixed(1), freeIn: +((r.bottom - pad - last) / PX).toFixed(1),
+        gapsIn: +(Math.max(...[...p.children].slice(1).map((c, i) => (c.getBoundingClientRect().top - p.children[i].getBoundingClientRect().bottom) / PX)) ).toFixed(1) });
+      for (const el of p.querySelectorAll("*")) {
+        if (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).display !== "inline") out.overflowX.push(p.id + ": " + el.tagName.toLowerCase() + "." + el.className);
+      }
+    }
+    document.body.insertAdjacentHTML("beforeend", '<pre id="metrics" hidden>' + JSON.stringify(out) + "</pre>");
+  });
+</script>
+</body>
+</html>

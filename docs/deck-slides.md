@@ -1,23 +1,23 @@
 # Finals deck: slide text (#41)
 
-Written Wed Nov 11 from `docs/deck-outline.md`, `docs/pitch.md` (PR #83) and `docs/facts.md`. Refreshed Thu Nov 12 evening against `main` at 67f265f, after #72, #73, #84, #85, #86 and #90 merged. Paste this into Velocity's template; `docs/deck-outline.md` keeps the sources, what each slide still needs, and the open questions.
+Written Wed Nov 11 from `docs/deck-outline.md`, `docs/pitch.md` (PR #83) and `docs/facts.md`. Refreshed Thu Nov 12 late evening against `main` at 9c1b0fe, after #72, #73, #83, #84, #85, #86, #90, #100 and #102 merged. Paste this into Velocity's template; `docs/deck-outline.md` keeps the sources, what each slide still needs, and the open questions.
 
 **Rules each slide follows:** a headline of 8 words or fewer, at most 3 lines of about 10 words (12 at most), readable in 5 seconds. Sources go in the small print under the slide, never in the 3 lines. A `[bracket]` is something the team has not decided or we don't have yet: **do not paste a bracket into the real deck.** Words were counted on Thu Nov 12 (a "$2" or "pay-in-7-days" counts as one word); recount after any edit.
 
 **Words to avoid** (facts "Never use" and "Say this, not that", PR #83 "Never say"): the $7 billion market; "about 70,000 shops"; "85,265 neighbourhood shops" (say "more than 50,000 neighbourhood shops"); "a $5 billion market"; the Chivo $30 bonus or fuel discounts; MoneyGram's 5%; "$98.40 per $100"; "$0.35 per credit sale"; a "$2.5 million" revenue figure; "open source" or "open contract" (say "public contract"); "audited" (we reviewed it ourselves); "blockchain", "wallet" or "crypto" for shops (say "digital dollars", "test dollars"). **Do not say fee sponsorship works**: it is not built (PR #81 is a draft), and it stays out of the pitch and the deck until after the finals. Stellar's speed and fees are Stellar's own claims: always "Stellar says". MoneyGram: always "as far as we found".
 
-**Still open on Thu Nov 12:** PR #83 (the tagline, in case it changes), PR #82 (the code-slide image), the team name, "what users told us", and our ask. Everything else below is on `main`.
+**Still open on Thu Nov 12:** PR #82 (the code-slide image), who pitches (the repo doesn't record it), "what users told us", and our ask. The name is decided: **Relay**, with *Paga tu ruta* under it (PR #100). The live app is https://relay-sv.vercel.app (the old tiendas-stellar.vercel.app redirects there, so show the new one). Everything else below is on `main`.
 
 ## 1. Name and one-line pitch (10 s)
 
-**Headline:** [NAME]
+**Headline:** Relay (tagline under it: *Paga tu ruta*)
 
 1. Pay the truck now, in cash, or in 7 days.
 2. No interest.
 
 **Small print:** none.
-**Visual:** the name, large. No logo yet.
-**Waiting on:** the team name. #26 is closed, but the repo doesn't record the name: `lib/brand.ts` on `main` still says "Nombre pendiente". The tagline is from PR #83 (open): re-check it when that merges.
+**Visual:** "Relay", large, with "Paga tu ruta" under it. No logo yet.
+**Waiting on:** nothing (name and tagline decided Nov 12, PR #100).
 
 ## 2. The problem (30 s)
 
@@ -40,9 +40,9 @@ Written Wed Nov 11 from `docs/deck-outline.md`, `docs/pitch.md` (PR #83) and `do
 2. Pay in 7 days, no interest.
 3. Cash, confirmed by two taps.
 
-**Small print:** Live on Stellar testnet with test dollars. Cash-in is simulated.
+**Small print:** Live at https://relay-sv.vercel.app, on Stellar testnet with test dollars. Cash-in is simulated.
 **Visual:** three phone screenshots of the live app, left to right as the three lines (steps in `docs/deck-outline.md`, "Capturing the three phone screenshots"). `docs/screenshots/mock-screens-nov10.png` is a mock: don't use it.
-**Waiting on:** Jack's capture. The redeploy is done (#90, Thu Nov 12), so the shots can be taken now. Take them after the name is set in `lib/brand.ts` and deployed, or every screen shows "Nombre pendiente".
+**Waiting on:** Jack's capture. The redeploy is done (#90) and the name is set (#100), so the shots can be taken now from https://relay-sv.vercel.app. Check the page header reads "Relay" with "Paga tu ruta" under it before each capture.
 
 ## 4. How it works on Stellar (20 s)
 
@@ -64,7 +64,7 @@ Written Wed Nov 11 from `docs/deck-outline.md`, `docs/pitch.md` (PR #83) and `do
 2. Late payment, over the limit, empty pool: all refused.
 
 **Small print:** Abridged from `pay_with_credit` in `contracts/route_ledger/src/lib.rs`. The contract ID and its stellar.expert link are on the image.
-**Visual:** `docs/img/code-slide.png`. **Not ready on `main`:** it shows the old, stale contract ID (CAPQ6ZDD...), and its limit check (`terms.owed + amount > terms.limit`) is no longer the code in `lib.rs` after #66. The draft PR #82 re-renders it with the new ID (CDHDZX7V...) and the current code. The ID on the image must equal `contracts.routeLedger` in `config/testnet.json`. Re-render at the print size too if the slide is printed.
+**Visual:** `docs/img/code-slide.png`. **Not ready on `main`:** it shows the old, stale contract ID (CAPQ6ZDD...), and its limit check (`terms.owed + amount > terms.limit`) is no longer the code in `lib.rs` after #66. PR #82 (open, not merged) re-renders it with the new ID (CDHDZX7V...) and the current code. The ID on the image must equal `contracts.routeLedger` in `config/testnet.json`. Re-render at the print size too if the slide is printed.
 **Waiting on:** PR #82 merged, then Yahya confirming this is the deployed code (the open line of #56).
 
 ## 6. Money in 30 seconds, and go-to-market (30 s)
