@@ -4,25 +4,23 @@ Draft for issue #37, written Wed Nov 11. The pitcher picked in #26 owns the scri
 
 ## Open items
 
-| # | What is missing | Who | What v1 does meanwhile |
-|---|---|---|---|
-Status as of Wed Nov 11. Update the "Status" column when an input lands, and delete the row when the placeholder is gone from the text.
+Status as of Thu Nov 12, evening. Update the "Status" column when an input lands, and delete the row when the placeholder is gone from the text.
 
 | # | What is missing | Who | Status | What v1 does meanwhile |
 |---|---|---|---|---|
-| 1 | Final wording of the worldwide number (#51), due Sat noon | Rohan | **Open.** PR #73 is still not merged, so entry 22 is not in `docs/facts.md` on `main`. | Uses the opening line approved in #73 ($5.7 trillion). |
-| 2 | Team name (#26) | Everyone | **Open.** `lib/brand.ts` on `main` still says "Nombre pendiente". | `[NAME]` in the script and a yellow box on the board. |
-| 3 | Pitcher (#26) | Everyone | **Open.** | Written for one speaker, in first person. |
-| 4 | "What we heard from N people" (#30). | Rohan | **Open.** `docs/research.md` does not exist yet. | `[N]` and `[what we changed]` in the script and on the board (yellow). If N is under 5, say the real number (context §13). |
+| 1 | Final wording of the worldwide number (#51), due Sat noon | Rohan | **Done.** #51 is closed and PR #73 is merged (Nov 12): entry 22 and the "Opening line" are in `docs/facts.md` on `main`. | The 0:00 segment is the #73 opening line ($5.7 trillion) with "says Conamype" added (entry 1 asks for the attribution) and without "alone" after "In El Salvador". Put "alone" back to match #73 word for word (+1 word, 0.4 s). |
+| 2 | Team name (#26) | Everyone | **Open.** #26 was closed on Nov 12 (with PR #86, the test checklist) but no comment on it gives the name, and `lib/brand.ts` on `main` still says "Nombre pendiente". | `[NAME]` in the script and a yellow box on the board. |
+| 3 | Pitcher (#26) | Everyone | **Open.** #26 is closed and records no pitcher either. | Written for one speaker, in first person. |
+| 4 | "What we heard from N people" (#30). | Rohan | **Open.** `docs/research.md` is on `main` now (PR #72) but logs only the two advisor calls: no interviews or walkthroughs yet, and #30 is open. | `[N]` and `[what we changed]` in the script and on the board (yellow). If N is under 5, say the real number (context §13). |
 | 5 | Three real phone screenshots. `docs/screenshots/mock-screens-nov10.png` is a mock, not for the board | Jack | **Open.** | Three yellow phone frames on the board. Files go in `docs/trifold/img/` as `shop-pay.png`, `shop-credit.png`, `driver-cash.png`: 360 px wide, device pixel ratio 3 (1080 px wide, 180 pixels per inch at 6 in), grey testnet banner in frame. |
-| 6 | Demo QR `public/qr-demo.png` (#55, PR #70) | Yahya | **Merged** (PR #70, Nov 12). The file is `public/qr-demo.png` on `main` (1200 x 1200 px, well over 200 pixels per inch at its printed size). I decoded it on Nov 11: it opens `https://tiendas-stellar.vercel.app/demo`. Scan the printed copy on 3 phones (#40). | The layout reads `public/qr-demo.png` and now renders it. |
+| 6 | Demo QR `public/qr-demo.png` (#55, PR #70) | Yahya | **Merged** (PR #70, Nov 12). The file is `public/qr-demo.png` on `main` (1200 x 1200 px, well over 200 pixels per inch at its printed size). Decoded again on Nov 12 with macOS CoreImage, from the file on `main`: it opens `https://tiendas-stellar.vercel.app/demo`. Scan the printed copy on 3 phones (#40). | The layout reads `public/qr-demo.png` and now renders it. |
 | 7 | Board size: do the panels fold 12 + 24 + 12 in or 16 + 16 + 16 in? | Jack | **Open: measure the board** (see section 1). | Both layouts are built and pass the same checks. Pick one when measured. |
-| 8 | Paper sketch agreed, print-ready file link in the group chat | Team | **Not done by this PR.** The layout builds a 48 x 36 in PDF in both versions (`node docs/trifold/render.mjs`), but it carries yellow placeholders until rows 2, 4, 5 and 6 close. These are two of the three "Done means" lines of #37. | The PDFs are not committed (`out/` is git-ignored); Jack builds the final one and shares it. |
-| 9 | The video (#35). Its first shot is also the worldwide number (context §3.7, PR #77) | Yahya | **Open.** My review of #77 asked for the #73 opening line there too. | The pitch opens with that number at 0:00, so the video should open on the shop screens, or the number is said twice in the first minute. |
+| 8 | Paper sketch agreed, print-ready file link in the group chat | Team | **Not done by this PR.** The layout builds a 48 x 36 in PDF in both versions (`node docs/trifold/render.mjs`), but it carries yellow placeholders until rows 2, 4 and 5 close. These are two of the three "Done means" lines of #37. | The PDFs are not committed (`out/` is git-ignored); Jack builds the final one and shares it. |
+| 9 | The video (#35). Its first 8 seconds are a title card with the worldwide number (`docs/demo-video.md`, PR #77) | Yahya | **Open.** #77 is merged: the title card is now shown as text, not spoken, and narration starts at 0:08 on the shop screens. The video is not recorded yet (#35 is open). | The pitch says the opening line once, at 0:00, and plays the video from 0:08, after the title card, so the video runs 52 s, not 60. The full video stays as it is for Devpost. If the title card changes length, change the 52.0 s in the timing table. |
 | 10 | A sharper diagram: `docs/img/architecture.png` is 1920 x 1080 px, which is 113 pixels per inch on the 12 + 24 + 12 board and 132 on the 16 + 16 + 16 one | Owner of the slide renders (PR #85's scaffold), asked through Jack | **Not asked yet.** Request text is in section 1. | The layout uses the 1x file and prints a warning. It picks up `architecture@2x.png` by itself when it exists. |
-| 11 | Copy the Nov 12 source-check edits from this file into `docs/trifold/trifold.html`: the left-panel crews and cash line (+12 words and a source line) and the right-panel "and sells more" cut (-3 words). Then run `node docs/trifold/render.mjs` and re-measure the word count and text share in section 1 | Jack | **Done Nov 12.** `trifold.html` has the new crews and cash line (+12 words), its source line (+35 words) and the "and sells more" cut (net -2 words, because "and" had to be added before "carries"). Re-rendered: the board is now 446 words (was 401), text share 15.5% (A) and 15% (B), all panels fit. | None: the board copy and this file agree. The spoken script was not affected. |
+| 11 | Copy the Nov 12 source-check edits from this file into `docs/trifold/trifold.html`: the left-panel crews and cash line (+12 words and a source line) and the right-panel "and sells more" cut (-3 words). Then run `node docs/trifold/render.mjs` and re-measure the word count and text share in section 1 | Jack | **Done Nov 12.** `trifold.html` has the new crews and cash line (+12 words), its source line (+35 words) and the "and sells more" cut (net -2 words, because "and" had to be added before "carries"). Re-rendered: the board was then 446 words (was 401; it is 452 now), text share 15.5% (A) and 15% (B) then (15.8% and 15.2% now), all panels fit. | None: the board copy and this file agree. The spoken script was not affected. |
 
-**Fee fix needed.** Issue #37 and Rohan's assumptions draft (PR #74) say the distributor gets **$98.40** on a $100 sale. The contract pays **$98.50**. $98.40 was the older version with a 0.10% usage fee on top of the 1.5% credit fee. That fee was dropped for credit sales on Nov 10 (context §16; `lib.rs:19` and `:580`). This file uses $98.50. Rohan should correct #74 before the finals.
+**Fee fix needed.** Issue #37 and Rohan's assumptions draft (PR #74, closed without merging; #12 is still open) say the distributor gets **$98.40** on a $100 sale. The contract pays **$98.50**. $98.40 was the older version with a 0.10% usage fee on top of the 1.5% credit fee. That fee was dropped for credit sales on Nov 10 (context §16; `lib.rs:19` and `:580`). This file uses $98.50, as `docs/facts.md` entry 29 does (it lists $98.40 under "Never use"). Rohan should make sure the assumptions doc that replaces #74 says $98.50 before the finals.
 
 ## 1. Trifold
 
@@ -41,7 +39,7 @@ Nobody has measured our board. Most 36 x 48 in tri-fold boards are 36 in tall an
 | Phones, each | 6 in wide | 3.95 in wide |
 | Two key points | 50 pt | 40 pt |
 | Diagram | 17 in wide: 113 pixels per inch at 1x | 14.5 in wide: 132 pixels per inch at 1x |
-| Text share of the board | 15.5% | 15% |
+| Text share of the board | 15.8% | 15.2% |
 
 **To measure:** open the board flat. With a tape measure, write down the height, then the distance from the left edge to the first crease, from the first crease to the second, and from the second to the right edge. If it reads about 12, 24, 12, use A. If it reads three equal panels, use B. If it is something else, the widths are two lines of CSS at the top of `trifold.html`; send me the numbers.
 
@@ -60,10 +58,10 @@ A: 12 + 24 + 12 in                                B: 16 + 16 + 16 in
 +----------+--------------------+----------+     +--------------+--------------+--------------+
 ```
 
-### What the layout checks (re-measured Nov 12, both layouts pass)
+### What the layout checks (re-measured Nov 12 evening, both layouts pass)
 
-- Nothing runs past the bottom or the sides of a panel, so nothing crosses a fold. Blocks are spread from top to bottom; the biggest gap between blocks is 9.2 in on the left wing in A, so it still looks airy, not crowded.
-- Text covers 15.5% (A) and 15% (B) of the board, against the 25% limit. The board carries **446 words** (401 before the Nov 12 source-check edits), 116 of them 16 pt source lines. (The first draft guessed "about 300 words" and 9%; this is the measured figure.)
+- Nothing runs past the bottom or the sides of a panel, so nothing crosses a fold. Blocks are spread from top to bottom; the biggest gap between blocks is 9.0 in on the left wing in A (9.5 in on the left panel in B), so it still looks airy, not crowded.
+- Text covers 15.8% (A) and 15.2% (B) of the board, against the 25% limit. The board carries **452 words** (401 before the Nov 12 source-check edits; 446 before the facts entry 40 cite and the "(2019 survey)" added to the Rosa line and the first key point), 118 of them 16 pt source lines. (The first draft guessed "about 300 words" and 9%; this is the measured figure.)
 - Type: body 32 pt (the top of Velocity's 24 to 32 pt), captions 28 pt, headings 38 to 40 pt, title 96 pt, source lines 16 pt. The three big numbers (104 pt) and the two key points (50 pt or 40 pt) are display type, on purpose larger than a heading.
 - The QR is 5 in square with a white border (the assembly spec in PR #85, `docs/trifold-assembly.md`, asks for at least 4 in). The PDF is one page, 3456 x 2592 pt, with the fonts embedded and the text kept as text.
 
@@ -75,7 +73,7 @@ The layout picks up `architecture@2x.png` by itself when it exists, and `render.
 
 ### Two key points (proposal, the team agrees on the paper sketch)
 
-> **Stock on credit at no interest, not about $35 per $100.**
+> **Stock on credit at no interest, not about $35 per $100 (2019 survey).**
 > **Distributors pay a small fee. Shops never do.**
 
 ### Centre: title
@@ -86,7 +84,7 @@ The layout picks up `architecture@2x.png` by itself when it exists, and `render.
 ### Left panel: the problem
 
 > **The problem**
-> Rosa's truck is at the door and she is short on cash. A loan shark hands her the money today, at about $35 for every $100.
+> Rosa's truck is at the door and she is short on cash. A loan shark hands her the money today, at about $35 for every $100 (2019 survey).
 > Delivery crews in El Salvador have been robbed and extorted, and in a four-country survey, 8 in 10 small businesses pay suppliers mainly in cash.
 >
 > **$5.7 trillion**
@@ -103,9 +101,9 @@ Small print (14 pt):
 - $5.7 trillion: IFC and SME Finance Forum, "MSME Finance Gap", Mar 2025 (2019 data). Facts entry 22.
 - $2 billion: Conamype estimate, via Diario El Salvador, 27 Feb 2026. Shop count: Distribución Dinámica, via Diario El Mundo, 1 Mar 2026. Entries 1 and 3.
 - $35 per $100: CIOPS (UTEC) survey of 1,285 merchants, 2019, via Revista E&N. 6 in 10: FUSAI and ASOMI, via El Diario de Hoy, Jul 2026. Entries 9 and 10.
-- Crews: robbed, El Diario de Hoy, 23 Jul 2024; extorted, Brown et al., Review of Economic Studies. Cash: El Salvador, Guatemala, Honduras and Mexico, 2022 survey, via Diario El Mundo, 10 Apr 2025. Entry 11.
+- Crews: robbed, El Diario de Hoy, 23 Jul 2024; extorted, Brown et al., Review of Economic Studies. Cash: El Salvador, Guatemala, Honduras and Mexico, 2022 survey, via Diario El Mundo, 10 Apr 2025. Entries 11 and 40.
 
-Source check, Nov 12: the crew line has no `docs/facts.md` entry yet except entry 11 (cash). One robbery case (2023, reported 2024) and extortion data from 2012 to 2019 are all we have, so the line says "have been", not "are". Add entries before print. We cut "nobody can easily see which driver collected what cash": it was our assumption, not a sourced fact. If we keep the idea, say it as our view ("we think...").
+Source check, Nov 12: the crew line is entry 40 in `docs/facts.md` (cash is entry 11). One robbery case (2023, reported 2024) and extortion data from 2012 to 2019 are all we have, so the line says "have been", not "are", as entry 40's safe wording does. We cut "nobody can easily see which driver collected what cash": it was our assumption, not a sourced fact. If we keep the idea, say it as our view ("we think...").
 
 ### Middle panel: how it works
 
@@ -119,7 +117,7 @@ Source check, Nov 12: the crew line has no `docs/facts.md` entry yet except entr
 - **Three phone screenshots, left to right:** the shop's "Pagar ahora / Pagar en 7 días / Pagué en efectivo" screen; the shop's "Debe … vence …" screen after a credit payment; the driver's "Recibí efectivo" screen. The app is in Spanish, so the captions above are in English.
 - **QR:** `public/qr-demo.png` from #55 (on `main` since PR #70 merged, Nov 12).
 - **Diagram:** `docs/img/architecture.png` (#62), titled "How it works on Stellar". It says "Amounts are public. Names are not."
-- Leave the contract ID off the board. It changes at the Thursday redeploy (#52); the QR and README always carry the current one.
+- Leave the contract ID off the board. It changed at the Thursday redeploy (#52, #90) and may change again; `config/testnet.json` (`contracts.routeLedger`) and the README carry the current one. No contract ID appears in this file or in `docs/trifold/`.
 
 ### Right panel: the business
 
@@ -148,7 +146,7 @@ Source check, Nov 12: the crew line has no `docs/facts.md` entry yet except entr
 
 ## 2. Pitch script v1 (3:00, one speaker, the 1-minute video included)
 
-**Re-timed Nov 11 at 140 words a minute.** The first draft was 275 spoken words: 117.9 s, so 2:58 with the video and no time to start or stop it, and three segments ran past their windows. This version is shorter and timed as one run, not window by window. The pool-pays-the-distributor line was said twice (0:25 and 1:55); it is now only in the 1:55 segment. Counts are spoken lines only, and a `[placeholder]` counts one word per word inside it. **Nov 12 source check:** the 0:25 segment is now 60 words (was 57) and the total 257 (was 254), because the dollar and Stellar lines were rewritten to match their sources. Re-count with the table below after every edit, and time it aloud in the first run-through (#39): 140 wpm is an average, and a slower speaker will need the cuts listed under the table.
+**Re-timed Nov 11 at 140 words a minute.** The first draft was 275 spoken words: 117.9 s, so 2:58 with the video and no time to start or stop it, and three segments ran past their windows. This version is shorter and timed as one run, not window by window. The pool-pays-the-distributor line was said twice (0:25 and 1:55); it is now only in the 1:55 segment. Counts are spoken lines only, and a `[placeholder]` counts one word per word inside it. **Nov 12 source check:** the 0:25 segment went from 57 to 60 words, because the dollar and Stellar lines were rewritten to match their sources. **Nov 12 evening (review of #83):** Stellar's speed is now attributed ("Stellar says payments are final in about five seconds", facts entry 36), which makes the 0:25 segment 62 words and the total 259; and the video plays from 0:08, after its silent title card, so it runs 52 s, not 60. Re-count with the table below after every edit, and time it aloud in the first run-through (#39): 140 wpm is an average, and a slower speaker will need the cuts listed under the table.
 
 ### 0:00 to 0:25
 
@@ -156,11 +154,11 @@ Source check, Nov 12: the crew line has no `docs/facts.md` entry yet except entr
 
 ### 0:25 to 0:55
 
-> So we built [NAME]. A shop pays in digital dollars, pays cash that driver and shop confirm with two taps, or pays in seven days at full price, no interest. The rules and fees sit in a public Stellar contract, and Stellar finalizes payments in about five seconds. The US dollar has been El Salvador's legal tender since 2001. Watch.
+> So we built [NAME]. A shop pays in digital dollars, pays cash that driver and shop confirm with two taps, or pays in seven days at full price, no interest. The rules and fees sit in a public Stellar contract, and Stellar says payments are final in about five seconds. The US dollar has been El Salvador's legal tender since 2001. Watch.
 
 ### 0:55 to 1:55: the video (#35)
 
-Play it. Say nothing over it. Have the MP4 on the laptop in case the Wi-Fi fails.
+Play it from 0:08, after the title card: the 0:00 segment has already said that line, and the title card shows it as text only (`docs/demo-video.md`). Say nothing over it. Have the MP4 on the laptop in case the Wi-Fi fails, and a copy cut to start at 0:08 so nobody has to scrub. The full video, title card included, stays as it is for Devpost.
 
 ### 1:55 to 2:30
 
@@ -176,26 +174,26 @@ Play it. Say nothing over it. Have the MP4 on the laptop in case the Wi-Fi fails
 
 ### Timing at 140 words a minute
 
-The headings above are the issue's windows. Because the first two segments are shorter now, the video starts earlier than 0:55 and everything after it moves up. What counts is the total.
+The headings above are the issue's windows. Because the first two segments are shorter now, the video starts earlier than 0:55 and everything after it moves up. What counts is the total. The video row is 52.0 s: the 60 s video minus its 8 s title card.
 
 | Part | Words | Seconds | Starts at | Ends at |
 |---|---|---|---|---|
 | 0:00 segment | 53 | 22.7 | 0:00.0 | 0:22.7 |
-| 0:25 segment, ends on "Watch." | 60 | 25.7 | 0:22.7 | 0:48.4 |
-| Start the video | | 2.0 | 0:48.4 | 0:50.4 |
-| The video (#35), silent | | 60.0 | 0:50.4 | 1:50.4 |
-| Stop the video, step back to the mic | | 2.0 | 1:50.4 | 1:52.4 |
-| 1:55 segment | 75 | 32.1 | 1:52.4 | 2:24.5 |
-| 2:30 segment | 48 | 20.6 | 2:24.5 | 2:45.1 |
-| Close | 21 | 9.0 | 2:45.1 | 2:54.1 |
-| **Total** | **257** | | | **2:54.1** |
+| 0:25 segment, ends on "Watch." | 62 | 26.6 | 0:22.7 | 0:49.3 |
+| Start the video | | 2.0 | 0:49.3 | 0:51.3 |
+| The video (#35) from 0:08, silent | | 52.0 | 0:51.3 | 1:43.3 |
+| Stop the video, step back to the mic | | 2.0 | 1:43.3 | 1:45.3 |
+| 1:55 segment | 75 | 32.1 | 1:45.3 | 2:17.4 |
+| 2:30 segment | 48 | 20.6 | 2:17.4 | 2:38.0 |
+| Close | 21 | 9.0 | 2:38.0 | 2:47.0 |
+| **Total** | **259** | | | **2:47.0** |
 
-That leaves **5.9 s** under the 3:00 limit (it was 7.2 s before the Nov 12 source-check edit to the 0:25 segment, which went from 57 to 60 words). A speaker at 130 words a minute needs about 8.5 s more, so cut from this list, in this order, until a timed run comes in under 2:55:
+That leaves **13.0 s** under the 3:00 limit. (With the full 60 s video it would be 2:55.0, 5.0 s under; before the Nov 12 edits it was 2:54.1.) At 140 words a minute no cut is needed. A speaker at 130 words a minute needs about 8.5 s more and lands at 2:55.5, so cut from this list, in this order, until a timed run comes in under 2:55:
 1. 0:25 segment: "The US dollar has been El Salvador's legal tender since 2001." (11 words, 4.7 s). The 1:55 segment and the board still say Ecuador and Panama "also use the US dollar".
 2. 1:55 segment: "That 1.5% fee is 75 cents to a default buffer, 50 to lenders, 25 to us." (16 words, 6.9 s). The board carries the split.
 3. 1:55 segment: "and builds a record it never had" (7 words, 3.0 s). Keep it if there is time: it is the credit-record point.
 
-Do not cut "says Conamype", "(2019 survey)", or "KYC and KYB". The fact sheet and Misha require them.
+Do not cut "says Conamype", "(2019 survey)", or "KYC and KYB". The fact sheet and our technical and finance advisor require them.
 
 **Delivery notes**
 - "Rosa" is made up. Say "picture", so nobody takes her for a real interview, and drop her if #30 gives us a real story we may tell.
@@ -206,7 +204,7 @@ Do not cut "says Conamype", "(2019 survey)", or "KYC and KYB". The fact sheet an
 
 | What the pitch or trifold says | Checked against | Result |
 |---|---|---|
-| The distributor gets $98.50 per $100 paid in 7 days | `lib.rs:19`, `:580` (payout = amount minus `CREDIT_FEE_BPS` = 150); `lib/labels.ts` | Matches. Issue #37 and PR #74 say $98.40, which is out of date. |
+| The distributor gets $98.50 per $100 paid in 7 days | `lib.rs:19` ("$98.50 for every $100"), `:22` (`CREDIT_FEE_BPS` = 150), `:580` (payout = amount minus that fee); `lib/labels.ts` | Matches (facts entry 29). Issue #37 and PR #74 say $98.40, which is out of date. |
 | The 1.5% splits $0.75 buffer, $0.50 lenders, $0.25 us | `lib.rs:22-29`, with a compile-time check that the three add up | Matches |
 | The shop pays no fee and no interest | `lib.rs:385-388` (the usage fee comes out of the distributor's side, so the shop pays the invoice amount); `:605` (the shop owes only `amount`) | Matches |
 | 0.1% on invoices paid now or in cash | `USAGE_FEE_BPS = 10` (`lib.rs:20`); context §5 | Matches. Credit sales pay no usage fee. |
@@ -214,11 +212,11 @@ Do not cut "says Conamype", "(2019 survey)", or "KYC and KYB". The fact sheet an
 | Live on Stellar testnet with test dollars, cash-in simulated | Context §6; the diagram says "Stellar testnet" and "Test USDC" | Matches |
 | Names stay off the public ledger | Context §8.4; the diagram | Matches. Amounts are public. |
 | "Public contract", not "open source" | #48 removed the MIT licence; the code is all rights reserved | The repo is public and the contract is checkable on Stellar. Do not say "open source". |
-| Ecuador and Panama use the US dollar | Context §7.6 (order); entries 25 and 26 are in PR #73 | Order matches `main`. Sources arrive with #73. |
-| "The US dollar has been El Salvador's legal tender since 2001" (0:25 segment) | IMF Country Report 25/58 (Mar 2025), p. 88: "As the U.S. dollar is the official legal tender since January 1st, 2001" | Sourced. No facts.md entry yet. It says nothing about digital dollars: never say or imply they are legal tender or widely held. |
-| "Stellar finalizes payments in about five seconds"; "fees under a cent" (five seconds in the 0:25 segment; both in answer 6) | developers.stellar.org: "Ledgers close in ~5 seconds, and their transactions are final when they do."; stellar.org/solutions/cross-border-payments: "network fees under a cent." | Sourced. No facts.md entry yet. Stellar's own pages give conflicting USD fee figures, so the script gives no dollar fee and attributes the claim ("Stellar says ... fees under a cent"). |
-| Delivery crews in El Salvador have been robbed and extorted; 8 in 10 small businesses in four countries pay suppliers mainly in cash (left panel) | Robbery: El Diario de Hoy, 23 Jul 2024 (one 2023 case). Extortion: Brown et al., Review of Economic Studies (data 2012 to 2019). Cash: facts.md entry 11 | Cash matches entry 11 (regional). Robbery and extortion have no facts.md entry yet. |
-| MoneyGram lists cash-out in El Salvador, we found no cash-in (answer 3) | moneygram.com/stellar: "Cash-out is available in 170+ countries and territories and cash-in in 25+ countries" | We only say what we found for El Salvador. "Cash-out only" is false in general. |
+| Ecuador and Panama use the US dollar | Context §7.6 (order); `docs/facts.md` entries 25 (IMF: "an officially dollarized economy since January 2000") and 26 (Cato Journal: "In 1904, the U. S. dollar became legal tender in Panama.") | Matches. The entries are on `main` since #73. |
+| "The US dollar has been El Salvador's legal tender since 2001" (0:25 segment) | `docs/facts.md` entry 39: IMF Country Report 25/58, PDF p. 88, "As the U.S. dollar is the official legal tender since January 1st, 2001" (BCR as backup) | Sourced. Entry 39 says "Use in: deck / Q&A", so saying it in the 3-minute pitch is our choice (it is cut 1). It says nothing about digital dollars: never say or imply they are legal tender or widely held. |
+| "Stellar says payments are final in about five seconds" (0:25 segment); "fees under a cent" (answer 6) | `docs/facts.md` entries 36 (developers.stellar.org: "Ledgers close in ~5 seconds, and their transactions are final when they do.") and 37 (stellar.org/solutions/cross-border-payments: "network fees under a cent") | Matches. Both are Stellar describing itself, and a teammate still has to open the links (entries 36 and 37 say so). Stellar's own pages give conflicting USD fee figures, so the script gives no dollar fee and attributes the claim. |
+| Delivery crews in El Salvador have been robbed and extorted; 8 in 10 small businesses in four countries pay suppliers mainly in cash (left panel) | Crews: entry 40 (El Diario de Hoy, 23 Jul 2024, one 2023 case; Brown et al., Review of Economic Studies, data 2012 to 2019). Cash: entry 11 | Matches entry 40's safe wording and entry 11 (regional, four countries). A teammate still has to open entry 40's links. |
+| MoneyGram lists cash-out in El Salvador, we found no cash-in (answer 3) | Entry 38: moneygram.com/stellar, "Cash-out is available in 170+ countries and territories and cash-in in 25+ countries"; its coverage data lists El Salvador as cash-out only | Matches entry 38's safe wording ("as far as we found"). "Cash-out only" is false in general. No person has looked at the map yet (entry 38). |
 | Fee sponsorship and passkeys | Not on `main`. The diagram says "Will pay the network fees". | **Not claimed** in either text. |
 
 ## 4. Never say
@@ -233,7 +231,7 @@ Do not cut "says Conamype", "(2019 survey)", or "KYC and KYB". The fact sheet an
 
 ## 5. Answer bank for the judge questions (#39)
 
-The eight questions from #39, each with an answer that fits **20 seconds (46 words at 140 words a minute)**; the money answer gets 30 seconds (70 words). Written Nov 11, using only facts from `docs/facts.md`, the contract, `docs/credit-model.md` and `docs/context.md`. Where something is our own reasoning or a guess, the answer says so. A `[bracket]` is filled from `docs/research.md` (#7, #30); if a count is zero, say zero.
+The eight questions from #39, each with an answer that fits **20 seconds (46 words at 140 words a minute)**; the money answer gets 30 seconds (70 words). Written Nov 11, using only facts from `docs/facts.md`, the contract, `docs/credit-model.md` and `docs/context.md`. **Audited Nov 12 evening against #39:** all eight answers fit (35 to 46 words, 15.0 to 19.7 s; the money answer is 59 words, 25.3 s, inside its 30 s), and every follow-up is 41 words or fewer, so none was shortened. Where something is our own reasoning or a guess, the answer says so. A `[bracket]` is filled from `docs/research.md` (#7, #30); if a count is zero, say zero.
 
 **How to grade a run-through answer** (for the asker, #39): 1) *Accurate:* every number matches its "Facts" line. 2) *Clear:* someone who has never heard of a tienda follows it. 3) *On time:* 20 seconds or less. 4) *Honest:* it says "plan" where nothing is signed, and "our guess" where it is one. Write what was weak under "Sunday fixes" at the end of this section, and rewrite the answer here.
 
@@ -242,17 +240,17 @@ The eight questions from #39, each with an answer that fits **20 seconds (46 wor
 > Distributors pay us; shops never do. On a pay-in-seven-days sale the distributor pays a 1.5% fee to be paid at the door: 25 cents of each $100 is ours, the rest goes to lenders and a loss buffer. On invoices paid now or in cash we take 0.1%. Both fees are written into a public contract anyone can check.
 
 59 words, 25.3 s.
-- **Facts:** the contract: `CREDIT_FEE_BPS` 150, split `BUFFER_BPS` 75, `LENDER_BPS` 50, `OUR_BPS` 25; `USAGE_FEE_BPS` 10. Credit sales pay no usage fee (context §16, Nov 10). For cash the 0.1% is recorded and billed later, not collected yet (`docs/security.md` limit 6).
+- **Facts:** `docs/facts.md` entries 29 and 30, and the contract: `CREDIT_FEE_BPS` 150, split `BUFFER_BPS` 75, `LENDER_BPS` 50, `OUR_BPS` 25; `USAGE_FEE_BPS` 10. Credit sales pay no usage fee (context §16, Nov 10). For cash the 0.1% is recorded and billed later, not collected yet (`docs/security.md` limit 6).
 - **Must include:** the distributor pays, the shop never does; both fee rates; the contract is public.
 - **Never:** MoneyGram's 5%, or "we charge shops".
-- **If they push, "how big could it get?" (20 s):** > As a ceiling, not a forecast: if 10% of the $2 billion went through pay in 7 days, our 0.25% is about $500,000 a year, plus 0.1% on the rest, about $1.8 million. That is our guess; Rohan is checking it. (41 words; context §5. Rohan's `docs/assumptions.md` (#12) replaces this when it lands.)
+- **If they push, "how big could it get?" (20 s):** > As a scenario, not a forecast: if 10% of the $2 billion went through pay in 7 days, our 0.25% is about $500,000 a year, plus 0.1% on the rest, about $1.8 million. That is our guess; Rohan is checking it. (41 words; facts entry 30, context §5. Rohan's `docs/assumptions.md` (#12) replaces this when it lands.)
 
 ### 2. How do you get into El Salvador?
 
 > We start with one mid-size distributor's routes: the driver's QR opens the app, nothing to install. For cash, a bank or cash-in partner. A licensed lender or cooperative funds the pool. That's a plan: nobody has agreed yet. We've emailed [N] partners.
 
 42 words, 18.0 s.
-- **Facts:** context §14; Adam Chu (§14): partner with banks and cash-in companies that already have a reputation in El Salvador. The count of emails and replies comes from `docs/research.md`.
+- **Facts:** context §14; our startup advisor (§14, `docs/research.md` "Advisor 1"): partner with banks and cash-in companies that already have a reputation in El Salvador. The count of emails and replies comes from `docs/research.md`.
 - **Must include:** one distributor first; a partner for cash; a licensed lender; that none of it is agreed.
 - **Never:** that any bank, cash-in company or lender has agreed to anything.
 - **If they push, "why would a distributor switch?":** > It is paid at the door instead of a week later, and carries less cash and less risk. (18 words; context §5. "Sells more" was cut Nov 12: it is our assumption, not a fact.)
@@ -272,7 +270,7 @@ The eight questions from #39, each with an answer that fits **20 seconds (46 wor
 > Limits start small and top out at $500. No new credit while anything is overdue. A buffer, 75 cents of each $100 fee, absorbs losses first. Four periods late, it repays the lenders what it can and the shop's credit is cut off.
 
 43 words, 18.4 s.
-- **Facts:** the contract: `LIMIT_CAP` $500; the `Overdue` check in `pay_with_credit`; `BUFFER_BPS` 75; `cover_default` after `DEFAULT_AFTER_PERIODS` = 4 credit periods. **`cover_default` is called by the admin; it does not run by itself.** The start limit is the lower of $200 and one average delivery (`docs/credit-model.md`). `docs/security.md` limit 11: credit risk is real.
+- **Facts:** `docs/facts.md` entries 31 and 32, and the contract: `LIMIT_CAP` $500; the `Overdue` check in `pay_with_credit`; `BUFFER_BPS` 75; `cover_default` after `DEFAULT_AFTER_PERIODS` = 4 credit periods. **`cover_default` is called by the admin; it does not run by itself.** The start limit is the lower of $200 and one average delivery (`docs/credit-model.md`). `docs/security.md` limit 11: credit risk is real.
 - **Must include:** small limits, nothing new while overdue, the buffer, the four-period rule.
 - **Never:** "no risk", or that the contract writes off a debt automatically.
 - **If they push, "what if losses beat the buffer?":** > Past about 0.75% of credit sales lost, the buffer is used up and the lenders take the loss. That's why limits start small and a licensed lender, not us, funds the pool. (32 words; context §5, "what could break it".)
@@ -310,7 +308,7 @@ The eight questions from #39, each with an answer that fits **20 seconds (46 wor
 > We spoke to [N] people and [N] tried the prototype. Walkthroughs with non-Salvadoran shop owners only show whether it's easy to use, not that the problem is real. Because of them we changed [one thing].
 
 35 words, 15.0 s.
-- **Facts:** `docs/research.md` (#7, #30), which does not exist yet. Context §13: tests with local corner-store owners count for "is it easy to use", not as proof of the El Salvador problem; if fewer than 5 conversations, say the real number.
+- **Facts:** `docs/research.md` (#7, #30; on `main` since PR #72, but it logs only the advisor calls so far, no interviews or walkthroughs). Context §13: tests with local corner-store owners count for "is it easy to use", not as proof of the El Salvador problem; if fewer than 5 conversations, say the real number.
 - **Must include:** the real counts, the usability-only label, one thing we changed.
 - **Never:** round up, count a walkthrough as an interview, or call the Rosa story a real interview.
 
