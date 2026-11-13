@@ -7,7 +7,7 @@ import { BackLink, Button, Card, Chip, Label, LoadError, Loading, NotFound, Rece
 import { claimCash, getDrivers, getInvoices, getRouteInvites, getShop } from "@/lib/api";
 import { ShopInvite } from "@/components/shop-invite";
 import { formatMoney } from "@/lib/format";
-import { useI18n } from "@/lib/i18n";
+import { useT } from "@/lib/i18n";
 import { invoiceStatus, leftToPay } from "@/lib/labels";
 import type { Receipt, Shop } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
@@ -34,7 +34,7 @@ export default function RouteScreen() {
   const [busy, setBusy] = useState(false);
   const [receipt, setReceipt] = useState<{ invoiceId: number; receipt: Receipt } | null>(null);
   const [inviting, setInviting] = useState<string | null>(null);
-  const { t } = useI18n();
+  const { lang, t } = useT();
 
   if (!data) {
     return (
@@ -50,7 +50,7 @@ export default function RouteScreen() {
     return (
       <Screen>
         <BackLink />
-        <NotFound>{t("No encontramos a ese motorista.")}</NotFound>
+        <NotFound>{t("No encontramos a ese motorista.", "We couldn't find that driver.")}</NotFound>
       </Screen>
     );
   }
@@ -71,22 +71,25 @@ export default function RouteScreen() {
     <Screen>
       <BackLink />
       <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold">{t("Ruta de {name}", { name: driver.name })}</h1>
+        <h1 className="text-2xl font-bold">{t(`Ruta de ${driver.name}`, `${driver.name}'s route`)}</h1>
         <p className="text-muted">
-          {t(stops.length === 1 ? "1 parada hoy · {pending} por cobrar" : "{stops} paradas hoy · {pending} por cobrar", { stops: stops.length, pending })}
+          {t(
+            `${stops.length} ${stops.length === 1 ? "parada" : "paradas"} hoy · ${pending} por cobrar`,
+            `${stops.length} ${stops.length === 1 ? "stop" : "stops"} today · ${pending} to collect`,
+          )}
         </p>
       </header>
 
       {failed && <LoadError />}
 
       <Card className="flex items-center justify-between gap-3">
-        <Label>{t("Efectivo en mano")}</Label>
+        <Label>{t("Efectivo en mano", "Cash on hand")}</Label>
         <p className="text-2xl font-semibold tabular-nums">{formatMoney(driver.cashHeld)}</p>
       </Card>
 
       <ul className="flex flex-col gap-3">
         {stops.map((invoice) => {
-          const status = invoiceStatus(invoice);
+          const status = invoiceStatus(invoice, lang);
           const isOpen = open === invoice.id;
           const left = leftToPay(invoice);
           return (
@@ -101,22 +104,24 @@ export default function RouteScreen() {
                   <span className="flex items-start justify-between gap-3">
                     <span className="flex flex-col">
                       <span className="text-lg font-semibold">{shopName(invoice.shopId)}</span>
-                      <span className="text-sm text-muted">{t("Factura {id}", { id: invoice.id })}</span>
+                      <span className="text-sm text-muted">
+                        {t("Factura", "Invoice")} {invoice.id}
+                      </span>
                     </span>
                     <span className="text-lg font-semibold tabular-nums">{formatMoney(invoice.amount)}</span>
                   </span>
                   <span className="flex flex-wrap gap-2">
-                    <Chip tone={status.tone}>{t(status.label)}</Chip>
-                    {invoice.cashClaim !== undefined && <Chip tone="cash">{t("Efectivo por confirmar")}</Chip>}
+                    <Chip tone={status.tone}>{status.label}</Chip>
+                    {invoice.cashClaim !== undefined && <Chip tone="cash">{t("Efectivo por confirmar", "Cash to confirm")}</Chip>}
                   </span>
                 </button>
 
                 {isOpen && (
                   <div className="flex flex-col items-center gap-3 px-4 pb-4">
                     <div className="rounded-xl bg-white p-2">
-                      <QRCodeSVG value={invoiceUrl(invoice.id)} size={280} level="M" title={t("Factura {id}", { id: invoice.id })} />
+                      <QRCodeSVG value={invoiceUrl(invoice.id)} size={280} level="M" title={`${t("Factura", "Invoice")} ${invoice.id}`} />
                     </div>
-                    <p className="text-center text-muted">{t("La tienda escanea este código para pagar.")}</p>
+                    <p className="text-center text-muted">{t("La tienda escanea este código para pagar.", "The shop scans this code to pay.")}</p>
                     {receipt?.invoiceId === invoice.id && <ReceiptView receipt={receipt.receipt} />}
                     {data.invites.codes[invoice.shopId] && (
                       <div className="flex w-full flex-col gap-3 border-t border-line pt-3">
@@ -125,7 +130,7 @@ export default function RouteScreen() {
                           onClick={() => setInviting(inviting === invoice.shopId ? null : invoice.shopId)}
                           className="min-h-12 rounded-xl border-2 border-brand px-4 text-base font-semibold text-brand active:bg-brand-soft"
                         >
-                          {inviting === invoice.shopId ? t("Ocultar invitación") : t("Invitar a Relay")}
+                          {inviting === invoice.shopId ? t("Ocultar invitación", "Hide invitation") : t("Invitar a Relay", "Invite to Relay")}
                         </button>
                         {inviting === invoice.shopId && (
                           <ShopInvite code={data.invites.codes[invoice.shopId]} distributorName={data.invites.distributorName} />
@@ -135,11 +140,14 @@ export default function RouteScreen() {
                     {invoice.status !== "paid" &&
                       (invoice.cashClaim === undefined ? (
                         <Button onClick={() => receivedCash(invoice.id, left)} busy={busy} hint={formatMoney(left)}>
-                          {t("Recibí efectivo")}
+                          {t("Recibí efectivo", "I received cash")}
                         </Button>
                       ) : (
                         <p className="text-center text-lg">
-                          {t("Esperando que la tienda confirme {amount}.", { amount: formatMoney(invoice.cashClaim) })}
+                          {t(
+                            `Esperando que la tienda confirme ${formatMoney(invoice.cashClaim)}.`,
+                            `Waiting for the shop to confirm ${formatMoney(invoice.cashClaim)}.`,
+                          )}
                         </p>
                       ))}
                   </div>
