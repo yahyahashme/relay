@@ -104,7 +104,7 @@ For slide 3 and the trifold's middle panel. They have to come from the live app 
 |---|---|---|
 | Name and tagline | PR #100 | decided: Relay, tagline *Paga tu ruta* |
 | Pitcher | the team | not recorded in the repo; ask the group chat |
-| Pitch script v1 | #37, PR #83 | merged Nov 12 (`docs/pitch.md`; it still has `[NAME]` placeholders) |
+| Pitch script v1 | #37, PR #83 | merged Nov 12 (`docs/pitch.md`; `[NAME]` became Relay in PR #107, the `[N]` placeholders are still open) |
 | Worldwide number and expansion path | #51, #73 | merged (entries 22 to 28 on `main`) |
 | Our fees, limits, safety numbers | facts entries 29 to 35, #84 | merged |
 | "What we heard from N people" | #30; `docs/research.md` (#72) | open; the log has only the two advisor calls |
