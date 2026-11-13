@@ -1,2 +1,4 @@
-// The product name is still open (we pick it Wednesday). Change it here only.
-export const APP_NAME = "Nombre pendiente";
+// The product name and its tagline. Change them here only.
+// The tagline is shown under the name; URLs and code use "relay" only.
+export const APP_NAME = "Relay";
+export const TAGLINE = "Paga tu ruta";

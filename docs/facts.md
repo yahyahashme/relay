@@ -4,11 +4,35 @@ Every number we say in the one-pager, pitch, trifold and deck comes from this fi
 
 - **Checked** says who opened the link and confirmed the quote, and when. Claude checked entries 1–3, 7 and 9–21 on Nov 9 and copied entries 4–8 from the live pages on Nov 10; a teammate can add their initials too.
 
-**Never use:** the $7 billion market, "about 70,000 shops", $5 billion as our market, the Chivo $30 bonus or fuel discounts, MoneyGram's 5%.
+**Never use:** the $7 billion market, "about 70,000 shops", $5 billion as our market, the Chivo $30 bonus or fuel discounts, MoneyGram's 5%, "$98.40 per $100" or "$0.35 per credit sale", a "$2.5 million" revenue figure (entries 29 and 30).
 
 ## Opening line
 
-_Added in #51._
+> "Around the world, small businesses in developing countries can't get about $5.7 trillion in credit they need. In El Salvador alone, more than 50,000 neighbourhood shops buy about $2 billion a year from distributors."
+
+About 33 words, about 10 seconds. Sources: entry 22 (IFC/World Bank) and entries 1 and 3. "Can't get credit they need" is a finance **gap**, not money we can earn, so never call it our market.
+
+Backup if a judge prefers a shop number: "There are about 50 million small neighbourhood shops in the world's emerging markets (entry 23)…"
+
+Dropped from the #51 template: "mostly in cash". The cash figure (entry 11) covers four countries, not El Salvador alone.
+
+## Where we go next
+
+1. **Ecuador and Panama.** Both use the US dollar (entries 25, 26), so the same USDC product works with no currency exchange.
+2. **Guatemala and Honduras.** Neighbours with the same kind of shops and routes, where small businesses also pay suppliers mainly in cash (entries 11, 27). They have their own currencies, so we'd add currency swaps.
+3. **Mexico and Peru.** Much bigger markets where Tienda Pago already showed shops use one-week credit for stock (entry 28).
+
+## Pitch highlights
+
+Strongest first. Each line is safe to say out loud; the entry has the source.
+
+1. Small businesses in developing countries can't get about $5.7 trillion in credit they need (22).
+2. Distributors sell El Salvador's neighbourhood shops about $2 billion a year (Conamype estimate) (1).
+3. 6 in 10 informal small businesses have borrowed from loan sharks, at about $35 per $100 (2019 survey) (9, 10).
+4. Loan sharks lend El Salvador's small businesses about $1.25 billion a year (19).
+5. Conamype says shops are out of stock 24 days out of 30 for lack of credit (21).
+6. Fewer than half of adults have a bank account (12, 13).
+7. A state bank already lends tiendas up to $10,000 in 72 hours; we're different because credit happens at the truck, per delivery (20).
 
 ## Say this, not that
 
@@ -319,3 +343,522 @@ _Added in #51._
 - **Use in:** pitch / one-pager (always with "according to Conamype")
 - **Caveat:** Paul Steiner, Conamype's president, said it in a TV interview (Entrevista AM) and cited no study. Strong line, soft evidence, so attribute it every time. In the same interview he said the BFA line (entry 20) lends even to informal shops.
 - **Checked:** Claude, 9 Nov 2026 (link opened, quote matches the page)
+
+---
+
+## Worldwide and expansion (#51)
+
+## 22. The worldwide credit gap for small businesses
+- **Claim:** Small businesses in developing countries can't get about $5.7 trillion in credit they need.
+- **Number:** US$5.7 trillion across 119 emerging and developing economies (2019 data, IFC and World Bank report, March 2025); plus US$2.1 trillion for informal businesses
+- **Source:** World Bank, SME Finance topic page, last updated 7 Oct 2025, https://www.worldbank.org/en/topic/smefinance?amp=1 ; report: IFC and SME Finance Forum, "MSME Finance Gap" (March 2025), https://www.smefinanceforum.org/news/11541348
+- **Exact quote:** "a finance gap of about US$5.7 trillion"
+- **Translation:** n/a (English source)
+- **Use in:** one-pager / pitch / video / deck (opening line)
+- **Caveat:** A model estimate of unmet demand for credit by formal micro, small and medium businesses, not revenue we can earn. The data year is 2019, though the report is from 2025 and IFC still uses the figure (IFC factsheet, March 2026: $8 trillion including informal businesses, https://www.smefinanceforum.org/news/11526833). Worldwide, not El Salvador.
+- **Checked:** Claude, 10 Nov 2026 (quote matched against the page text; open the link to confirm)
+
+## 23. Small shops worldwide
+- **Claim:** There are about 50 million small neighbourhood shops ("nanostores") in emerging markets.
+- **Number:** about 50 million (estimate)
+- **Source:** MIT Center for Transportation & Logistics, SCALE nanostores summary, https://ctl.mit.edu/sites/ctl.mit.edu/files/MIT-SCALE-SCM-Nanostores_Summary.pdf (citing the book *Reaching 50 Million Nanostores*)
+- **Exact quote:** "there are 50 million nanostores globally"
+- **Translation:** n/a (English source)
+- **Use in:** pitch / deck (backup opening line)
+- **Caveat:** A rough academic estimate with no single year; say "about". The same summary says logistics costs are 10% to 20% of these shops' product sales in Latin America.
+- **Checked:** Claude, 10 Nov 2026 (quote matched against the page text; open the link to confirm)
+
+## 24. Small shops still pay suppliers by cash, cheque or transfer (regional)
+- **Claim:** Across Latin America, most payments between small shops and their suppliers still don't use digital payments.
+- **Number:** 90% of B2B payments, about US$293.4 billion; 12 million traditional retailers; US$362 billion in sales to consumers (11 Latin American and Caribbean markets plus the US)
+- **Source:** Mastercard, "Pequeñas empresas y transformación digital: abriendo una oportunidad de US$448 mil millones en la industria de bienes de consumo envasados", 8 Apr 2025, https://www.mastercard.com/news/latin-america/es/sala-de-prensa/comunicados-de-prensa/pr-es/2025/abril/pequenas-empresas-y-transformacion-digital-abriendo-una-oportunidad-de-us-448-mil-millones-en-la-industria-de-cpg
+- **Exact quote:** "el 90% de los pagos B2B —equivalentes a US$293,4 mil millones—"
+- **Translation:** "90% of B2B payments, equivalent to US$293.4 billion"
+- **Use in:** deck / Q&A
+- **Caveat:** Commissioned by Mastercard, a payments company. The 90% means cash, cheques **or bank transfers**, so it is not "90% cash". Covers El Salvador, Guatemala, Honduras, Mexico, Peru, Colombia, Brazil, Chile, Argentina, Jamaica, the Dominican Republic and the US.
+- **Checked:** Claude, 10 Nov 2026 (quote taken from a text extract of the page; confirm wording)
+
+## 25. Ecuador uses the US dollar
+- **Claim:** Ecuador has used the US dollar as its currency since 2000.
+- **Number:** since January 2000
+- **Source:** IMF Working Paper WP/22/234, "Central Bank Balance Sheet Expansion in a Dollarized Economy: The Case of Ecuador", December 2022, https://imf.org/-/media/Files/Publications/WP/2022/English/wpiea2022234-print-pdf.ashx
+- **Exact quote:** "an officially dollarized economy since January 2000"
+- **Translation:** n/a (English source)
+- **Use in:** deck ("where we go next")
+- **Caveat:** IMF working papers are research, not official IMF policy, but this fact is not disputed.
+- **Checked:** Claude, 10 Nov 2026 (quote matched against the page text; open the link to confirm)
+
+## 26. Panama uses the US dollar
+- **Claim:** Panama has used the US dollar as legal tender since 1904.
+- **Number:** since 1904 (the balboa is pegged 1:1 and exists only as coins)
+- **Source:** Cato Journal, "Lessons from the Monetary Experience of Panama: A Dollar Economy with Financial Integration" (Winter 1999), https://cato.org/cato-journal/winter-1999/lessons-monetary-experience-panama-dollar-economy-financial-integration
+- **Exact quote:** "In 1904, the U. S. dollar became legal tender in Panama."
+- **Translation:** n/a (English source)
+- **Use in:** deck ("where we go next")
+- **Caveat:** An academic journal from 1999; the arrangement hasn't changed since. A Panamanian government source would be stronger if a judge pushes.
+- **Checked:** Claude, 10 Nov 2026 (quote matched against the page text; open the link to confirm)
+
+## 27. Guatemala and Honduras
+- **Claim:** Guatemala and Honduras have the same kind of neighbourhood shops, and their small businesses also pay suppliers mainly in cash.
+- **Number:** El Salvador, Guatemala and Honduras together have about 300,000 tiendas de barrio (PCMI for Mastercard); 80% cash for supplier payments (four countries, entry 11)
+- **Source:** Diario El Mundo, 10 Apr 2025 (same article as entry 11), https://diario.elmundo.sv/economia/el-efectivo-es-principal-metodo-de-pago-para-80-de-las-pequenas-empresas-de-el-salvador
+- **Exact quote:** — (same article as entry 11; the 300,000 figure is in its fourth paragraph)
+- **Translation:** —
+- **Use in:** deck ("where we go next")
+- **Caveat:** Regional estimate from a Mastercard-commissioned study. Both countries have their own currencies (quetzal, lempira), so we'd need currency swaps, unlike El Salvador.
+- **Checked:** Claude, 10 Nov 2026 (figure confirmed on the page)
+
+## 28. Mexico and Peru: Tienda Pago
+- **Claim:** In Mexico and Peru, Tienda Pago already lends small shops short credit for stock, paying the distributor directly.
+- **Number:** average loan under US$500; about three loans a month per shop; credit for up to 14 days
+- **Source:** Triodos Investment Management, "Investment: Tienda Pago" (2021), https://www.triodos-im.com/articles/2021/investment---tiendapago
+- **Exact quote:** "The average loan provided by Tienda Pago is less than USD 500"
+- **Translation:** n/a (English source)
+- **Use in:** deck / Q&A (precedent and expansion)
+- **Caveat:** Written by one of Tienda Pago's investors, from 2021. Tienda Pago raised a US$12 million Series B in October 2022 (Accion, https://www.accion.org/short-term-credits-lender-tienda-pago-raises-12m-to-keep-helping-small-convenience-stores-grow-their-business-in-todays-challenging-economic-environment). It charges the shop a fee; we don't. For Mexico's shop count, a market-research firm says more than one million traditional stores (Premise, Jul 2024, https://premise.com/?p=68793), which is weaker.
+- **Checked:** Claude, 10 Nov 2026 (quote matched against the page text; open the link to confirm)
+## Our own numbers: the contract, the demo and the safety review (#61)
+
+_Entries 29 to 35 come from this repo, not from a web page. Claude read the code at commit dfdc33c (`main` after #66) on Nov 11, 2026 and checked each number against it; no teammate has confirmed them yet. Quotes are copied from the code or from `docs/security.md`. They describe the contract as built on testnet, with test dollars. If the contract changes (open PR #80 changes `cash_confirm`), re-check before saying any of them._
+
+**Pitch highlights from these entries** (strongest first; each is safe to say out loud, the entry has the source). Move them into the main Pitch highlights list at the top once #73 has merged. Entries 30 and 33 have no line on purpose: a revenue scenario and demo data are not things to say as results.
+
+1. Money leaves our contract in exactly one function, and every function that changes state needs the right person's signature (34).
+2. Distributors pay us, shops never do: 0.1% of a cash or digital invoice, or one 1.5% fee when the lender pool pays them at delivery, so they get $98.50 per $100 (29).
+3. A shop's credit limit starts at $200 and grows $25 for each on-time repayment, but only after a loan of $40 or more and once a week, so nobody can farm it with tiny loans (31).
+4. Our own safety review found and fixed two bugs, and we publish the 11 limits that are still open (35).
+5. If a shop never pays, the loss buffer, filled by 0.75% of every credit sale, repays the lenders first (32).
+
+## 29. What we charge: the fee constants
+- **Claim:** The distributor pays us 0.10% of an invoice paid by cash or digitally, or one 1.50% fee when the lender pool pays the invoice up front ("pay in 7 days"). The shop never pays a fee.
+- **Number:**
+  - Usage fee 0.10% (10 basis points) on cash and digital invoices. Per $100: the distributor receives $99.90 and we get $0.10.
+  - Credit fee 1.50% (150 basis points), only on credit sales. Per $100: the distributor receives $98.50 at delivery. The $1.50 splits into $0.75 for the loss buffer, $0.50 for the lenders and $0.25 for us.
+  - No usage fee on top of the credit fee.
+- **Source:** `contracts/route_ledger/src/lib.rs` lines 17 to 29 (`USAGE_FEE_BPS`, `CREDIT_FEE_BPS`, `BUFFER_BPS`, `LENDER_BPS`, `OUR_BPS`) and the `pay` and `pay_with_credit` functions, commit dfdc33c. The app uses the same numbers (`lib/labels.ts:25`, `lib/mock.ts:18`). Also `docs/security.md` section 1 and `docs/context.md` section 5.
+- **Exact quote:** "Credit sales don't pay it: our cut there is inside the 1.50% credit fee, so the distributor sees one number ($98.50 for every $100)." (code comment, line breaks removed)
+- **Translation:** n/a (English source)
+- **Use in:** one-pager / pitch / trifold / deck ("how do you make money")
+- **Caveat:**
+  - Demo parameters on testnet, set when the contract is deployed. Fees round down.
+  - The shop pays the invoice's face value and no interest, but the distributor's 1.50% is a fee to be paid early. A lawyer should confirm it isn't treated as interest under the usury law (entry 18).
+  - The cash usage fee is recorded (`get_usage_owed`) but nothing collects it yet (`docs/security.md` known limit 6). Digital payments collect it on the spot.
+  - Don't say "$98.40 per $100" or "$0.35 per credit sale". Those add the 0.10% on top of the 1.50%, which the contract doesn't do. The draft assumptions doc (open PR #74) still shows them.
+- **Checked:** Claude, 11 Nov 2026 (`lib.rs` read at dfdc33c; the split adds up: 98.50 + 0.25 + 0.75 + 0.50 = 100.00)
+
+## 30. Revenue scenarios with the fees as built (our maths)
+- **Claim:** If every dollar of the $2 billion moved through us by cash or digital payment, we would earn $2 million a year. If 10% of it used "pay in 7 days" instead, we would earn $2.3 million, not $2.5 million.
+- **Number:**
+  - All cash or digital: 0.1% × $2,000,000,000 = **$2,000,000**.
+  - 10% on credit: credit volume $200,000,000 × 0.25% (our share of the 1.50%) = **$500,000**, plus usage fee on the other $1,800,000,000 × 0.1% = **$1,800,000**. Total **$2,300,000**.
+- **Source:** Our arithmetic from entry 1 ($2 billion) and entry 29 (the fees). Not a quote from anyone.
+- **Exact quote:** n/a (computed; the inputs are in entries 1 and 29)
+- **Translation:** n/a
+- **Use in:** Q&A / deck backup. Always say "scenario, not a forecast".
+- **Caveat:**
+  - It assumes every dollar of the $2 billion goes through us. That sizes the market; it is not a revenue forecast or a prediction of our share.
+  - Adding "$2M + $500K = $2.5M" (issue #61's list, open PR #74) charges the 0.1% usage fee on the credit volume as well. The contract doesn't (`docs/context.md` section 5, Nov 10 change), so that sum is $200,000 too high.
+  - Our cash usage fee is billed later, not collected on the spot (entry 29).
+- **Checked:** Claude, 11 Nov 2026 (arithmetic redone; the 0.1% and 0.25% match `lib.rs`)
+
+## 31. How a shop's credit limit grows and drops
+- **Claim:** A shop's credit limit grows $25 each time it repays on time, up to $500. It drops $25 when it pays late, and a shop can't grow its limit by borrowing tiny amounts.
+- **Number:**
+  - Start: $200 in the demo (the admin sets it with `set_terms`).
+  - +$25 (`LIMIT_STEP`) per on-time repayment, cap $500 (`LIMIT_CAP`).
+  - It only grows if the shop borrowed at least $40 (`MIN_BORROW_TO_GROW`) in that cycle, and at most once per credit period (7 days; 2 minutes in the demo).
+  - A late repayment drops it $25, never below $0. No new credit while a payment is overdue.
+  - The limit changes only when the shop's whole balance is repaid.
+- **Source:** `contracts/route_ledger/src/lib.rs` lines 31 to 39 and the `repay` function (line 574), commit dfdc33c; `scripts/deploy.sh` lines 113 and 115 (the $200); `docs/credit-model.md` sections 3 to 5.
+- **Exact quote:** "Together these stop a shop from taking $1 of credit and repaying it over and over to reach $500." (code comment, line breaks removed)
+- **Translation:** n/a (English source)
+- **Use in:** pitch / deck / Q&A ("how do you stop fraud?")
+- **Caveat:**
+  - Demo parameters; they are guesses to test in interviews (#7), not real repayment data.
+  - The contract has no default start limit; the $200 is set shop by shop at deploy. A limit the admin sets above $500 is left alone. `docs/credit-model.md` section 3 says the start should be the lower of $200 and one average delivery. That is a proposal, not built.
+  - The limit is our own credit record. It is not a bureau score (entry 15).
+- **Checked:** Claude, 11 Nov 2026 (`repay` and the constants read at dfdc33c)
+
+## 32. When a shop never pays
+- **Claim:** A shop four credit periods (28 days) past its due date can be written off. The loss buffer repays the lenders what it can, the shop's limit goes to $0, and the debt stays on its record.
+- **Number:**
+  - 4 credit periods (`DEFAULT_AFTER_PERIODS`) = 28 days late for real; 8 minutes with the 2-minute demo period.
+  - The buffer grows by 0.75% of every credit sale. The demo seeds it with $50.
+  - Later payments on a written-off debt go back into the buffer.
+- **Source:** `contracts/route_ledger/src/lib.rs` lines 41 to 43 and `cover_default` (line 637), commit dfdc33c; `scripts/deploy.sh` line 127; `docs/credit-model.md` sections 5 and 9.
+- **Exact quote:** "A shop this many credit periods past its due date can be written off: 4 x 7 days = 28 days late for real, 8 minutes with the 2-minute demo period." (code comment)
+- **Translation:** n/a (English source)
+- **Use in:** Q&A / deck ("what if a shop doesn't pay?")
+- **Caveat:**
+  - The admin calls `cover_default` by hand. It is not automatic.
+  - The buffer pays first. Anything past the buffer is a loss to the lenders (`docs/security.md` known limit 11), so never say "no risk" about the lenders. "No risk" is about the distributor, who is paid at delivery.
+  - The stress test in `docs/credit-model.md` section 9 adds up: 0.75% × $150,000 = $1,125 a week, so losses of $1,500, $7,500, $4,000 and $15,000 are about 1.3, 6.7, 3.6 and 13.3 weeks of buffer. Its inputs (1,000 shops, $150 outstanding each) are guesses.
+- **Checked:** Claude, 11 Nov 2026 (`cover_default` and the constants read at dfdc33c; stress-test arithmetic redone)
+
+## 33. What's loaded in the demo (test dollars)
+- **Claim:** The testnet demo holds test dollars we issued: $5,000 in the lender pool, a $50 loss buffer, three shops with a $200 limit, and 8 seed invoices.
+- **Number:** $5,000 pool; $50 buffer; 3 shops × $200 limit; 8 invoices of $150.00, $85.50, $220.00, $60.00, $130.00, $95.25, $40.00 and $175.00 (total $955.75). Invoice 1003 ($220.00) is over the $200 limit on purpose, to show the refusal.
+- **Source:** `scripts/deploy.sh` lines 113 to 152, commit dfdc33c. The contract ID is in `config/testnet.json` and the README ("Contract IDs"); it changes on every deploy.
+- **Exact quote:** "The lender puts $5,000 in the pool" (the script's own step message)
+- **Translation:** n/a (English source)
+- **Use in:** demo video / Q&A only. Never as traction.
+- **Caveat:**
+  - Test dollars on testnet, seeded by us. These are not users, volume or revenue. Say "demo data" whenever they are shown.
+  - The Stellar Development Foundation can reset testnet, which would delete the contract and these balances (`docs/security.md` section 5).
+- **Checked:** Claude, 11 Nov 2026 (`deploy.sh` read at dfdc33c; the invoice total added up by hand)
+
+## 34. Who can move the money
+- **Claim:** Money leaves the contract in exactly one function, `pay_with_credit`. Every function that changes state needs the right person's signature.
+- **Number:**
+  - 1 function sends tokens out of the contract (`lib.rs` lines 533 and 534). The three other transfers (`deposit`, `repay`, `fund_buffer`) move tokens into it.
+  - 12 signature checks (`require_auth`), each covered by tests. Deleting any one of them in turn fails at least 2 tests (a one-off check described in PR #66).
+  - 62 contract tests (44 before the review, 18 added in #66). `cargo test`: 62 passed (as stated in PR #66).
+  - 11 known limits published in `docs/security.md` section 6.
+- **Source:** `docs/security.md` sections 1 and 6; PR #66, merged 11 Nov 2026; `contracts/route_ledger/src/lib.rs` and `test.rs`, commit dfdc33c.
+- **Exact quote:** "Tokens leave the contract in exactly one function: `pay_with_credit`, to the distributor (the payout) and the treasury (our 0.25%)." (`docs/security.md`)
+- **Translation:** n/a (English source)
+- **Use in:** pitch / deck / Q&A ("who can move the money?")
+- **Caveat:**
+  - A testnet demo with no outside audit. Say "we reviewed it ourselves", never "audited".
+  - The admin is trusted: it can approve distributors and set limits (known limit 1). Lenders can't withdraw yet (limit 3).
+  - Recount the tests after PR #80 merges. The "deleting each `require_auth`" check was run once and isn't scripted in the repo, so re-run it before saying it out loud.
+  - I counted 62 `#[test]` functions and 12 `require_auth` calls and confirmed where tokens leave the contract; I did not re-run `cargo test` (no Rust on this machine).
+- **Checked:** Claude, 11 Nov 2026 (the three counts above matched the code at dfdc33c; test results are quoted from PR #66, not re-run)
+
+## 35. Bugs our own review found
+- **Claim:** Our safety review found two real bugs and we fixed them. A third problem, the shop's cash confirmation not naming an amount, is found and its fix is in review.
+- **Number:** 2 bugs fixed (#66); 1 found, fix proposed in open PR #80; 11 known limits published.
+  - Any address could sign `cash_handed_in` and zero a driver's cash total. Now only an approved distributor can.
+  - A huge invoice made the credit-limit check overflow and crash instead of being refused. It never moved money. It now returns `OverLimit`.
+  - `cash_confirm(shop, id)` confirms whatever claim is stored when it runs, so a driver could swap the amount after the shop looked (a $10 claim became $90 in a test).
+- **Source:** PR #66 body ("What changed" and "Found but not fixed here"); `docs/security.md` section 6, limits 4 and 5.
+- **Exact quote:** "any address could sign and zero a driver's cash total" (PR #66)
+- **Translation:** n/a (English source)
+- **Use in:** Q&A (a judge asks "did you review it?"). It shows we test our own work and are honest about what's open.
+- **Caveat:**
+  - Don't claim the third problem is fixed until PR #80 is merged and deployed.
+  - Known limits are not fixed bugs: the admin is trusted, distributor approval can't be revoked, lenders can't withdraw. Say them before a judge finds them.
+  - The $10-to-$90 swap came from a throwaway test described in the PR; it isn't in the repo's tests.
+- **Checked:** Claude, 11 Nov 2026 (PR #66 body and `docs/security.md` read; the first two fixes are in `lib.rs` at dfdc33c)
+
+---
+
+## Outside findings added under #61 (retrieved 12 Nov 2026)
+
+_Entries 36 to 40 come from web pages Claude opened on Nov 12, 2026. Every one is **pending**: a teammate must open the link and confirm the quote before we say it out loud. None has a line in the Pitch highlights list yet._
+
+## 36. Stellar settles in about five seconds
+- **Claim:** Stellar ledgers close in about 5 seconds, and the transactions in them are final when they do.
+- **Number:** ~5 seconds per ledger
+- **Source:** Stellar Development Foundation, developer homepage, https://developers.stellar.org/ (retrieved 12 Nov 2026)
+- **Exact quote:** "Ledgers close in ~5 seconds, and their transactions are final when they do."
+- **Translation:** n/a (English source)
+- **Use in:** Q&A / deck (backup)
+- **Caveat:**
+  - It is Stellar describing its own network, on its marketing homepage. The ledgers page in the docs (https://developers.stellar.org/docs/learn/fundamentals/stellar-data-structures/ledgers) gives no interval, so the whole claim rests on this one line.
+  - "~5" is an approximate time, not a guarantee. When the network is busy, fees rise under surge pricing (entry 37) and a transaction may wait for a later ledger.
+  - It is the network's time. Our own screens also wait for our app and the contract call, so don't promise "5 seconds" for a delivery or a payment.
+  - Safe wording: "Stellar payments finalize in about five seconds, and Stellar describes its fees as under a cent." (entries 36 and 37)
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude fetched the page on 12 Nov 2026 and the sentence matched.)
+
+## 37. Stellar network fees are under a cent
+- **Claim:** Stellar says its network fees are under a cent. The fee for a plain transaction is 100 stroops, which the docs write as .00001 XLM.
+- **Number:** "under a cent" (Stellar's own wording); 100 stroops = .00001 XLM, the minimum inclusion fee. No dollar figure.
+- **Source:**
+  - Stellar Development Foundation, "Cross-border payments", https://stellar.org/solutions/cross-border-payments (retrieved 12 Nov 2026)
+  - Stellar docs, "Fees, resource limits and metering", https://developers.stellar.org/docs/learn/fundamentals/fees-resource-limits-metering (retrieved 12 Nov 2026)
+- **Exact quote:**
+  - stellar.org: "Pay in one currency, deliver in another, with network fees under a cent."
+  - Docs: "each would pay the minimum inclusion fee of 100 stroops (.00001 XLM)."
+- **Translation:** n/a (English source)
+- **Use in:** Q&A / deck (backup)
+- **Caveat:**
+  - Stellar's own dollar figures conflict: the developer homepage says "<$0.001" under "Avg. transaction cost", and stellar.org/learn/stablecoins says "$0.000005 per operation". So cite only "under a cent" and attribute it to Stellar.
+  - In the docs sentence, 100 stroops is what every transaction pays when the ledger isn't full ("the network is not in surge pricing mode"). The same page calls 100 stroops per operation the network minimum, so a plain one-operation payment costs about that much. Under surge pricing the fee is higher.
+  - Our own contract calls cost more. A simulated testnet contract call in open PR #81 (read-only `get_pool`) showed an inner fee of 6,677 stroops: 100 inclusion plus 6,577 resource. Don't say our calls cost "100 stroops".
+  - Don't turn stroops into dollars without an XLM price on a stated date. We have none.
+  - The text we fetched from the two pages showed no update dates (the earlier reading noted 3 Nov for stellar.org and 22 Oct for the docs; unconfirmed).
+  - Safe wording: "Stellar payments finalize in about five seconds, and Stellar describes its fees as under a cent." (entries 36 and 37)
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude fetched both pages on 12 Nov 2026 and both sentences matched; PR #81's 6,677 stroops read from its description.)
+
+## 38. MoneyGram's Stellar service: where cash-out and cash-in work
+- **Claim:** MoneyGram Ramps (the service the moneygram.com/stellar page describes; the page covers Solana and Stellar together) offers cash-out in 170+ countries and territories and cash-in in 25+ countries.
+- **Number:** 170+ countries and territories (cash-out); 25+ countries (cash-in); 480,000+ MoneyGram locations (same sentence of the page)
+- **Source:** MoneyGram, "Stellar", https://www.moneygram.com/stellar (retrieved 12 Nov 2026). It is the page's FAQ answer to "Where is it available?"
+- **Exact quote:** "Cash-out is available in 170+ countries and territories and cash-in in 25+ countries"
+- **Translation:** n/a (English source)
+- **Use in:** Q&A / deck
+- **Caveat:**
+  - The same answer says "Coverage varies by country; the coverage map on this page shows what each country supports."
+  - So "MoneyGram covers cash-out only" is false in general. Cash-in exists in about 25 countries.
+  - The page redirects (301) to xramps.moneygram.com, titled "MoneyGram Ramps ... on Solana & Stellar". The 170+ and 25+ figures are for Ramps as a whole, not for Stellar alone.
+  - El Salvador: the page's own data lists it as cash-out only. A second check on 12 Nov 2026 (by Claude, independent of the first) fetched the page's coverage data, `/api/v1/public/coverage`, which returns `{"iso3":"SLV","cashIn":false,"cashOut":true}`; of 168 countries, 27 are "both" and 141 are cash-out only. No human has confirmed it by eye. 30-second check: open moneygram.com/stellar, scroll to "Global coverage", find El Salvador: it has no "both" icon (a missing icon alone cannot tell cash-out-only from cash-in-only, so also look at the Network tab for the coverage call).
+  - The deprecated developer docs and the Stellar anchor directory gave no El Salvador data (the directory page is JS-rendered). A news article from April 2026 says the MoneyGram app lets users cash out at MoneyGram locations in El Salvador; it does not mention cash-in.
+  - Limits of $5 to $950 per cash-in and $5 to $2,500 per cash-out come from MoneyGram's deprecated developer docs page (https://developer.moneygram.com/moneygram-developer/docs/moneygram-ramps, updated 2026-08-20). Claude did not open that page, so treat the limits as unconfirmed and don't say them.
+  - This is MoneyGram describing its own product.
+  - Safe wording: "MoneyGram Ramps offers cash-out in 170+ countries and cash-in in about 25. For El Salvador, its coverage data lists cash-out but, as far as we found, not cash-in." Keep the "as far as we found" until a person has looked at the map.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (The page returned 403 to the first fetch tool; Claude read the quote from the page's own FAQ text fetched with curl on 12 Nov 2026, where it matched. A browser may show the answer collapsed.)
+
+## 39. The US dollar is El Salvador's legal tender
+- **Claim:** The US dollar has been El Salvador's legal tender since 1 January 2001.
+- **Number:** 1 Jan 2001 (the law was approved 30 Nov 2000)
+- **Source:**
+  - IMF, Country Report No. 25/58, March 2025, https://www.imf.org/-/media/files/publications/cr/2025/english/1slvea2025001-print-pdf.pdf (PDF pages 88 and 62)
+  - Backup: Banco Central de Reserva (BCR), "El dinero en El Salvador", published 16 Dec 2020, https://www.bcr.gob.sv/2020/12/16/el-dinero-en-el-salvador/
+- **Exact quote:**
+  - IMF, PDF p. 88: "As the U.S. dollar is the official legal tender since January 1st, 2001"
+  - IMF, PDF p. 62: "El Salvador is officially dollarized."
+  - BCR: "La Ley fue aprobada en sesión plenaria del 30 de noviembre de 2000 entrando en vigencia a partir del 1 de enero de 2001."
+- **Translation:** BCR: "The law was approved in plenary session on 30 November 2000 and came into force on 1 January 2001." The IMF quotes are in English.
+- **Use in:** deck / Q&A (why dollars, why no new currency)
+- **Caveat:**
+  - The IMF's sentence on p. 88 sits in a note about program exchange rates, and its grammar is the IMF's own ("is ... since"). Copy it as it is.
+  - Say only that the dollar is legal tender. Don't imply digital dollars are legal tender, or that people already hold them: only 43% to 47% of adults have an account (entries 12 and 13).
+  - A recent reform of the Bitcoin Law made private-sector acceptance of Bitcoin voluntary (IMF 25/58 para 26, PDF p. 19; the amendment was published in the Official Gazette on 30 January). Keep Bitcoin out of the sentence.
+  - Safe wording: "The US dollar has been El Salvador's legal tender since 1 January 2001."
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude matched the BCR sentence on the live page on 12 Nov 2026, and both IMF quotes in text extracted from the downloaded PDF, at PDF pages 88 and 62.)
+
+## 40. Delivery crews in El Salvador carry cash and have been targeted
+- **Claim:** Delivery crews in El Salvador have been robbed and extorted. One reported case is a robbery of a delivery-truck employee's cash. A study of a major distributor shows drivers stopping to deal with gangs before they deliver.
+- **Number:** none for the robbery (one case, incident 10 Feb 2023). The study covers over 50,000 extortion payments, 2012 to 2019 (its title: "Evidence from 50,000 Extortion Payments").
+- **Source:**
+  - El Diario de Hoy (elsalvador.com), Cristian Díaz, 23 Jul 2024, https://www.elsalvador.com/h-noticias/h-nacional/santa-ana-este-centro-detenidos-regimen-de-excepcion-audiencias-robos-asaltos-isss-/1157091/2024/
+  - Brown, Montero, Schmidt-Padilla and Sviatschi, "Market Structure and Extortion: Evidence from 50,000 Extortion Payments", Review of Economic Studies (final version accepted Aug 2023), https://www.restud.com/wp-content/uploads/2024/05/CompetitionForExtortion.pdf (PDF p. 9)
+- **Exact quote:**
+  - El Diario de Hoy: "robar dinero en efectivo al empleado de un camión repartidor de productos"
+  - Study: "Before making a delivery in gang-controlled territory, truck drivers will stop and meet with a gang representative."
+- **Translation:** El Diario de Hoy: "to steal cash from an employee of a truck delivering products". The study is in English.
+- **Use in:** Q&A / pitch background (never as a headline number)
+- **Caveat:**
+  - One case. The article is about court hearings for people detained under the state of exception, in El Zacatal, Santa Ana. It reports an accusation at a hearing (the suspect is "acusado de ..."), not a conviction, and we did not check how the case ended. So "have been robbed" rests on one reported accusation; "have reportedly been robbed" is the cautious form.
+  - The study's data is 2012 to 2019, so it is historical (see entry 7 for the post-2022 change). Its payments are extortion fees, not cash-collection robberies.
+  - It does NOT show that shops pay trucks in cash in El Salvador. Entry 11 covers four countries, not El Salvador alone.
+  - "No record of who collected what" has no source. It is our assumption. The same study says its distributor keeps per-delivery sales data ("sales data for all goods delivered ... from 2012 through 2019") and a security team confirms each extortion amount, so don't state it as a fact.
+  - Do not cite our own GitHub README as a source for any of this.
+  - Safe wording: "Delivery crews in El Salvador have been robbed and extorted."
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude matched the El Diario de Hoy phrase on the live page on 12 Nov 2026, and the study sentence in text extracted from the downloaded PDF, at PDF p. 9.)
+
+---
+
+## Gap research added under #91 to #94 (retrieved 12 Nov 2026)
+
+Opened by Rohan on 12 Nov to fill gaps in context §5, §6, §9 and §11: what cash-in costs (#91), which laws we touch (#92), the credit fee in yearly terms (#93), and a first customer (#94). Claude found and checked these; a teammate still has to open each link. Legal readings are ours, for a lawyer to confirm.
+
+## 41. Banks run 8,900 correspondent points
+- **Claim:** The banks in ABANSA (the banking association) run a network of 8,900 non-bank correspondents: small businesses that take deposits and payments for a bank. They added 1,200 in 2025.
+- **Number:** 8,900 points; 1,200 added in 2025 (up 18.2% on 2024)
+- **Source:** Diario El Mundo, Uveli Alemán, 22 Feb 2026 (on ABANSA's 2025 figures), https://diario.elmundo.sv/economia/uso-de-banca-movil-y-transferencias-crecio-32-en-2025-segun-abansa
+- **Exact quote:** "ampliaron la red de corresponsales no bancarios, que alcanzó 8,900 puntos en total"
+- **Translation:** "expanded the network of non-bank correspondents, which reached 8,900 points in total"
+- **Use in:** Q&A / Risk #1
+- **Caveat:**
+  - ABANSA member banks only. It counts points, not distances to a shop.
+  - Correspondents work under the central bank's rules NASF-03 (2015), https://ssf.gob.sv/wp-content/uploads/ssf2018/Normas_Prud_Bancos/NASF-03.pdf
+  - The article gives no fees.
+  - Payment networks in entries 42 to 45 may also be bank correspondents, so never add the networks together.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude's fetch of the live page on 12 Nov 2026 returned this phrase.)
+
+## 42. A bank's customers deposit at PuntoXpress at no extra cost
+- **Claim:** BAC lets its customers make deposits, withdrawals, and loan and card payments at PuntoXpress points, at no extra cost, which added more than 300 points to its network.
+- **Number:** 300+ extra points
+- **Source:** BAC Credomatic El Salvador, "Creamos una alianza con PuntoXpress para revolucionar las transacciones bancarias en El Salvador", https://www.baccredomatic.com/es-sv/nuestra-empresa/noticia/creamos-una-alianza-con-puntoxpress-para-revolucionar-las-transacciones (no date on the page; its banner file name suggests 22 Oct 2024). Same news in El Diario de Hoy: https://www.elsalvador.com/?p=1170943
+- **Exact quote:** "realizar diversas transacciones bancarias de forma rápida y sin costo adicional"
+- **Translation:** "make various banking transactions quickly and at no additional cost"
+- **Use in:** Q&A / Risk #1
+- **Caveat:**
+  - BAC describing its own service.
+  - "No additional cost" is the customer's cost. What BAC pays PuntoXpress per transaction isn't public.
+  - A deposit puts dollars in a bank account, not digital dollars on Stellar. A partner still has to convert them.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude's fetch of the live page on 12 Nov 2026 returned this phrase.)
+
+## 43. A digital wallet tops up at 748+ Punto Express points without surcharge
+- **Claim:** Nequi, a digital wallet backed by Bancoagrícola, lets users add cash to their account at more than 748 Punto Express points, immediately and without surcharge.
+- **Number:** 748+ points (2024)
+- **Source:** El Diario de Hoy (elsalvador.com), Kenya Henríquez, 29 Jul 2024, https://www.elsalvador.com/destacados/nequi-llega-unete-cherada-pisto-ritmo/1157976/2024/
+- **Exact quote:** "para abonar fondos a tu cuenta de manera inmediata y sin recargos"
+- **Translation:** "to add funds to your account immediately and without surcharges"
+- **Use in:** Q&A / Risk #1
+- **Caveat:**
+  - A launch article in the "destacados" section. It has no "patrocinado" label, but it reads like promotion.
+  - From 2024. The same article says Nequi is a business unit of Accelera, backed by Bancoagrícola.
+  - It shows a cash-to-digital top-up can be free to the user at a payment network, not that it would be free for us.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude's fetch of the live page on 12 Nov 2026 returned this phrase.)
+
+## 44. Lenders already take loan payments at payment points
+- **Claim:** Two Salvadoran microfinance lenders let borrowers pay loan instalments at payment-network points: CrediCampo through Tigo Money's agents (or *555# on the phone), and Banco Integral through AKÍ Pago's roughly 1,000 points.
+- **Number:** AKÍ Pago, about 1,000 points (Apr 2025); Tigo Money, 2,500+ agents (May 2025)
+- **Source:**
+  - dinero.com.sv, 31 May 2025 (Tigo Money and CrediCampo partnership), https://dinero.com.sv/empresarial/tigo-money-y-credicampo-se-unen-para-estar-mas-cerca-de-sus-clientes/
+  - Diario El Salvador, Kevin Rivera, 7 Apr 2025, https://diarioelsalvador.com/banco-integral-amplia-red-de-puntos-de-pagos-con-aki-pago/640558
+- **Exact quote:**
+  - dinero.com.sv: "pagar sus cuotas de crédito [...] a través de la red de Tigo Money"
+  - Diario El Salvador (AKÍ Pago's network manager): "son alrededor de 1,000 puntos a escala nacional"
+- **Translation:** "pay their loan instalments [...] through the Tigo Money network"; "there are about 1,000 points nationwide"
+- **Use in:** Q&A / Risk #1 (our idea 1, "repay like a bill", already works for loans)
+- **Caveat:**
+  - Neither article gives a fee for the borrower or the lender.
+  - Diario El Salvador is the weaker source (see "Source quality").
+  - These lenders take loan repayments in dollars. Nobody here credits digital dollars.
+- **Checked:** Pending: a teammate must open the links and confirm the quotes. (Claude's fetches of both live pages on 12 Nov 2026 returned these phrases.)
+
+## 45. Tigo Money: a licensed e-money company with agents in 90% of municipalities
+- **Claim:** In 2018 Tigo Money became El Salvador's first licensed e-money company (Sociedad Proveedora de Dinero Electrónico), authorized by the financial supervisor, the SSF. In 2022 it had about 2,500 service points in 90% of municipalities, mostly micro-businesses.
+- **Number:** about 2,500 points; 90% of municipalities (2022)
+- **Source:**
+  - Revista E&N, 2 Jul 2018, https://www.revistaeyn.com/empresasymanagement/tigo-money-recibe-aval-como-proveedor-de-dinero-electronico-en-el-salvador-DTEN1193752
+  - El Diario de Hoy (elsalvador.com), 2022, https://www.elsalvador.com/h-noticias/h-negocios/telefonia-operadoras-de-tigo-/979346/2022/
+- **Exact quote:** E&N: "la primera Sociedad Proveedora de Dinero Electrónico de El Salvador"
+- **Translation:** "El Salvador's first e-money provider company"
+- **Use in:** Q&A / Risk #1 (a partner with cash agents)
+- **Caveat:**
+  - The 2,500 and 90% are the company's own figures from 2022 (May 2025 still says 2,500+, entry 44). El Salvador has since merged its municipalities into fewer, larger ones, so "90% of municipalities" is the old map.
+  - The 2022 article also says 57% of the points are run by women. Claude read that in a search engine's copy of the page, not the live page.
+  - E-money accounts have limits. In 2019 users could make transactions of up to US$300 or hold US$1,200 a month (Revista E&N, https://www.revistaeyn.com/empresasymanagement/tigo-money-el-salvador-apuesta-por-el-sector-no-bancarizado-BYEN1304522). Check today's limits before relying on them.
+- **Checked:** Pending: a teammate must open the links and confirm the quote. (Claude matched the E&N phrase in the search engine's copy of the page on 12 Nov 2026.)
+
+## 46. A Salvadoran bank is a registered digital asset provider
+- **Claim:** Banco Atlántida El Salvador is one of the main digital asset service providers registered with the CNAD (entry 47). The government says more than 60 digital asset providers are registered nationally.
+- **Number:** 60+ registered providers; 29 digital asset issues authorized from Jan 2024 to Feb 2026
+- **Source:** LexLatin, Gunther Felix, 11 Sep 2026, https://lexlatin.com/entrevistas/bitcoin-financiar-pymes-tokenizacion-mercado-capitales-el-salvador-inversion-extranjera
+- **Exact quote:** "Banco Atlántida El Salvador, uno de los principales proveedores de servicios"
+- **Translation:** "Banco Atlántida El Salvador, one of the main service providers" (the sentence goes on: of digital assets registered with the CNAD)
+- **Use in:** Q&A / Risk #1 (a partner that has banking and may handle digital dollars)
+- **Caveat:**
+  - A legal-news article quoting the government and a lawyer. Check Banco Atlántida in the CNAD's public registry before naming it on a slide.
+  - Being registered doesn't mean it would convert cash for us. We haven't contacted it.
+  - An older article says Koibanx, another registered provider, works with Abank and Banco Atlántida (LatamFintech, https://www.latamfintech.co/articles/defi-obtiene-autorizacion-como-proveedor-de-servicios-digitales-en-el-salvador).
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude's second fetch of the live page on 12 Nov 2026 returned the start of the sentence word for word; the rest is paraphrased.)
+
+## 47. The digital asset law: who has to register
+- **Claim:** The Ley de Emisión de Activos Digitales (approved 11 Jan 2023) created the national digital asset commission, the CNAD, and a registry. Every digital asset service provider must register. The CNAD's 2023 rules list the services, including exchanging digital assets for dollars, holding them for others, transferring them for others, and loans or other financing in digital assets.
+- **Number:** none
+- **Source:**
+  - CNAD, "Reglamento de Proveedores de Servicios de Activos Digitales", approved 10 Aug 2023 (session CNAD-035-2023), Arts. 4 and 5, https://transparencia.gob.sv/institutions/cnad/documents/597563/download
+  - Approval date and vote (62 votes): ECIJA summary, https://files.griddo.ecija.com/ley-de-emision-de-activos-digitales-final30.pdf
+- **Exact quote:** Art. 5: "Todo Proveedor de Servicios de Activos Digitales, incluyendo los certificadores, están obligados a registrarse"
+- **Translation:** "Every digital asset service provider, including certifiers, is obliged to register"
+- **Use in:** Q&A / legal slide
+- **Caveat:**
+  - Our reading, for a lawyer to confirm: turning cash into digital dollars, holding them for shops, and a pool that lends digital dollars all look like services on Art. 4's list (4 a, 4 e and 4 f). So either we register, or a registered partner does those parts.
+  - A reform in October 2024 moved Bitcoin service providers under the CNAD and changed the definition of stablecoin (El Diario de Hoy, https://www.elsalvador.com/h-noticias/h-negocios/ley-de-activos-digitales-bitcoin-el-salvador/1177143/2024/). We didn't read the reformed law.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude's fetch of the CNAD document on 12 Nov 2026 returned this sentence.)
+
+## 48. The e-money law
+- **Claim:** The 2015 Ley para Facilitar la Inclusión Financiera created licensed e-money companies, authorized and supervised by the SSF. Banks, cooperative banks and savings-and-loan companies may also provide e-money.
+- **Number:** none
+- **Source:**
+  - The law (SSF's copy): https://www.ssf.gob.sv/descargas/Leyes/Leyes%20Financieras/Ley%20para%20facilitar%20la%20Inclusión%20Financiera.pdf
+  - The central bank's rules NASF-07 for e-money providers: https://ssf.gob.sv/wp-content/uploads/ssf2018/Normas_contables_Dineroelectronico/NASF-07.docx
+- **Exact quote:** NASF-07, on Art. 2 of the law: "faculta a los bancos, bancos cooperativos y sociedades de ahorro y crédito para proveer dinero electrónico"
+- **Translation:** "empowers banks, cooperative banks and savings-and-loan companies to provide e-money"
+- **Use in:** Q&A / legal slide
+- **Caveat:**
+  - Whether a digital dollar balance on Stellar counts as e-money under this law is a question for a lawyer. We treat it as a digital asset (entry 47).
+  - What matters for Risk #1: the companies licensed under this law (Tigo Money, entry 45) and the banks already run cash agent networks.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude matched the phrase in the search engine's copy of NASF-07 on 12 Nov 2026.)
+
+## 49. The legal maximum interest rates, July to December 2026
+- **Claim:** From 1 July to 31 December 2026 the legal maximum effective annual rate is 96.88% for subsistence micro-business loans (up to 12 minimum wages), 58.10% for "simple accumulation" micro-businesses and 38.63% for "expanded accumulation". 96.88% is the highest rate allowed on any credit.
+- **Number:** 96.88%, 58.10%, 38.63% a year
+- **Source:** ContraPunto, Alonso Rosales, 24 Jul 2026, https://www.contrapunto.com.sv/prestamistas-informales-mueven-mas-de-1250-millones-al-ano-entre-las-mype-el-alto-costo-de-la-exclusion-financiera/ , citing the central bank's "Tasas Máximas Legales vigentes del 1 de julio al 31 de diciembre de 2026"
+- **Exact quote:** "la tasa máxima efectiva anual para el segmento de microempresa de subsistencia"
+- **Translation:** "the maximum effective annual rate for the subsistence micro-business segment"
+- **Use in:** Q&A / legal slide (with entry 18, which explains the law)
+- **Caveat:**
+  - A secondary source. Get the central bank's own table before putting these numbers on a slide.
+  - The caps change every January and July (entry 18). Segments are set by loan size in minimum wages.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude's fetch of the live page on 12 Nov 2026 returned this phrase and the three rates.)
+
+## 50. The personal data protection law (2024)
+- **Claim:** El Salvador approved a personal data protection law in November 2024. It regulates how public and private organizations collect, use, process and store personal data.
+- **Number:** none
+- **Source:** Revista E&N (EFE), "El Salvador con nuevas leyes de ciberseguridad y datos personales", 13 Nov 2024, https://www.revistaeyn.com/centroamericaymundo/el-salvador-con-nuevas-leyes-de-ciberseguridad-y-datos-personales-KH22618615
+- **Exact quote:** "su recolección, uso, procesamiento, almacenamiento y otras actividades relacionadas"
+- **Translation:** "its collection, use, processing, storage and other related activities"
+- **Use in:** Q&A (privacy)
+- **Caveat:**
+  - The law was reformed later (El Diario de Hoy, https://www.elsalvador.com/?p=1293875). We didn't read the reform.
+  - It applies to our off-chain data: names, phone numbers, WhatsApp numbers. Context §8.4 already keeps personal data off the public ledger. A lawyer should say what else we need, such as consent text or a data protection officer.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude matched the phrase in the search engine's copy of the page on 12 Nov 2026.)
+
+## 51. What bank loans under one year cost
+- **Claim:** The average rate on loans of under one year fell to 7.60% in July 2026, from 7.80% a year earlier (central bank data).
+- **Number:** 7.60% a year (July 2026)
+- **Source:** Diario El Mundo, Uveli Alemán, 2 Sep 2026, https://diario.elmundo.sv/economia/depositos-se-disparan-12-6-y-rozan-los-25000-millones-a-julio
+- **Exact quote:** "cuyas tasas pasaron de 7.80 % en julio de 2025 a 7.60 % en julio de 2026"
+- **Translation:** "whose rates went from 7.80% in July 2025 to 7.60% in July 2026"
+- **Use in:** Q&A (what money costs for those who can get a bank loan)
+- **Caveat:**
+  - All loans under one year, not loans to tiendas. Most tiendas can't get these (entries 9, 12 and 13).
+  - Use it only as a floor, never as what a shop would pay.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude's fetch of the live page on 12 Nov 2026 returned this phrase.)
+
+## 52. Early-payment discounts cost about 37% a year
+- **Claim:** A common supplier term, "2/10 net 30" (2% off for paying in 10 days instead of 30), works out to about 37% a year. Businesses offer it to be paid sooner.
+- **Number:** 36.73% (the textbook's figure, on a 360-day year); 37.2% on a 365-day year (our maths, entry 56)
+- **Source:** OpenStax, *Principles of Finance* (2nd edition), section 19.2 on trade credit, https://openstax.org/books/principles-finance-2e/pages/19-2-what-is-trade-credit
+- **Exact quote:** "high annualize opportunity cost (36.73 percent) of not taking advantage of cash discounts"
+- **Translation:** n/a (English source)
+- **Use in:** Q&A (why a distributor might pay to be paid early)
+- **Caveat:**
+  - A US textbook example, not El Salvador data.
+  - It's the same trade our distributor makes: give up a percentage to be paid sooner. Our option 1 also covers defaults, which a discount doesn't.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude matched the phrase in the search engine's copy of the page on 12 Nov 2026.)
+
+## 53. A Salvadoran fintech turns invoices into cash, funded by a US credit fund
+- **Claim:** Ábaco, a Salvadoran fintech, raised US$53 million in July 2026, US$50 million of it a credit line from the US fund Accial Capital. It buys small businesses' unpaid invoices (digital factoring) and projects more than US$350 million of credit to more than 10,000 small businesses within 24 months.
+- **Number:** US$53M raised; US$350M+ and 10,000+ businesses projected
+- **Source:** Bloomberg Línea, Fátima Romero, 24 Jul 2026, https://www.bloomberglinea.com/2026/07/24/fintech-salvadorena-levanta-us53-millones-para-expandir-el-factoraje-digital-en-centroamerica/
+- **Exact quote:** "convertir sus cuentas por cobrar en efectivo en menos de 24 horas"
+- **Translation:** "turn their accounts receivable into cash in under 24 hours"
+- **Use in:** Q&A (who funds the pool; precedent for paying to be paid early)
+- **Caveat:**
+  - The projections are the company's. The article gives no prices.
+  - Ábaco serves businesses bigger than tiendas. It could compete for distributors' invoices, or fund a pool like ours.
+  - It shows a foreign credit fund will lend against Salvadoran receivables.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude's fetch of the live page on 12 Nov 2026 returned this phrase.)
+
+## 54. The leading distributor serves 24,000 clients, 14% by route
+- **Claim:** Distribuidora Zablah (DISZASA), which its rating agency calls the leading consumer-goods distributor in El Salvador, serves 24,000 active clients. 14% of its sales go through route sales ("ruteo"). Its sister company DISNA serves 9,500 active clients, with route sales "to a lesser extent".
+- **Number:** 24,000 clients; sales by channel: wholesale 36%, Calleja 24%, Walmart 16%, routes 14%, other 10%. DISNA: 9,500 clients.
+- **Source:**
+  - Moody's Local El Salvador, rating report on the securitization fund "Ricorp Titularizadora Sociedades Distribuidoras 01" (cash flows from UDISA, DISZASA and DISNA), 31 Oct 2025, p. 2, https://bolsadevalores.com.sv/files/66411/1.2.1_MLSV_Informe-PUBLICO-FT_Sociedades_Distribuidoras-31102025_v1_rev-2025-10-09_-_F.pdf
+  - Zumma Ratings, DISZASA report (December 2025), https://bolsadevalores.com.sv/files/74502/DISZASA_DIC2025_ZUMMA.pdf ("leader" wording)
+- **Exact quote:** Moody's Local: "para dar cobertura a 24,000 clientes efectivos en todo el país"
+- **Translation:** "to cover 24,000 active clients across the country"
+- **Use in:** Q&A / go-to-market slide (context §7.7)
+- **Caveat:**
+  - The percentages are channel shares, our reading of the report's list. The reports don't count routes, trucks or credit days.
+  - Most of its sales go to wholesalers and supermarkets, so routes are a slice.
+  - Moody's Local says its liquidity depends on receivables and inventory. The group already sells future cash flows to investors through the fund above.
+  - We have emailed Zumma Ratings (outreach log in `docs/research.md`). Nobody at DISZASA has been contacted.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude's fetch of the PDF on 12 Nov 2026 returned this phrase on p. 2.)
+
+## 55. The distributors' association works with the state on tiendas
+- **Claim:** ADES, the distributors' association, joined Conamype, the state bank BFA and the firm Distribución Dinámica in the 2026 strategy to support tiendas (credit up to $10,000, training and a WhatsApp channel for shop owners). The same article says about 99% of tiendas are informal, and that a shop visited every ten days spends much of the month with empty shelves.
+- **Number:** about 99% informal (as reported)
+- **Source:** El Diario de Hoy (elsalvador.com), Evelyn Alas, 24 Feb 2026, https://www.elsalvador.com/dinero-y-negocios/voces-de-emprendimiento/creditos-capacitaciones/1263749/2026/
+- **Exact quote:** "junto con la Asociación de Distribuidores de El Salvador (ADES)"
+- **Translation:** "together with the Association of Distributors of El Salvador (ADES)"
+- **Use in:** Q&A / go-to-market (how we reach distributors)
+- **Caveat:**
+  - The article names ADES only as a partner. It doesn't say what ADES does or how many members it has.
+  - The 99% and "every ten days" points are paraphrased from the same article. It also says many shops act as service points for fintechs.
+  - The BFA credit line is entry 20.
+- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude's fetch of the live page on 12 Nov 2026 returned this phrase.)
+
+## 56. What the credit fee is per year (our maths)
+- **Claim:** Paying 1.5% to be paid 7 days early equals about 79% a year (simple) or about 120% (compounded). Option 2's 0.25% equals about 13% to 14% a year.
+- **Number:**
+  - 1.5% (option 1): 1.52% per week; 79.4% a year simple; 119.9% compounded
+  - 0.25% (option 2): 0.25% per week; 13.1% simple; 13.9% compounded
+  - 2/10 net 30 (entry 52): 37.2% on a 365-day year
+  - Lenders' $0.50 per $100 per week (context §5): about 26% simple, if always lent out
+- **Source:** our maths. Rate per week = fee ÷ (100 − fee). Simple = weekly rate × 365 ÷ 7. Compounded = (1 + weekly rate) ^ (365 ÷ 7) − 1. Run with Python on 12 Nov 2026.
+- **Exact quote:** n/a
+- **Translation:** n/a
+- **Use in:** Q&A only. Never a headline.
+- **Caveat:**
+  - The shop pays 0% (entry 29). The distributor pays, by choice, and option 1 also buys protection from defaults (the buffer), not just time.
+  - If anyone treated the 1.5% as interest, about 120% a year would be above every legal maximum in entry 49 (the highest is 96.88%). A lawyer must confirm it counts as a discount on the distributor's own invoice, not interest.
+- **Checked:** Claude, 12 Nov 2026 (recomputed twice)
