@@ -856,6 +856,7 @@ Opened by Rohan on 12 Nov to fill gaps in context §5, §6, §9 and §11: what c
   - 0.25% (option 2): 0.25% per week; 13.1% simple; 13.9% compounded
   - 2/10 net 30 (entry 52): 37.2% on a 365-day year
   - Lenders' $0.50 per $100 per week (context §5): about 26% simple, if always lent out
+  - Option 2 (0.25%) is a plan idea, not in the contract (one fee, `CREDIT_FEE_BPS = 150`); its numbers are here only for Q&A
 - **Source:** our maths. Rate per week = fee ÷ (100 − fee). Simple = weekly rate × 365 ÷ 7. Compounded = (1 + weekly rate) ^ (365 ÷ 7) − 1. Run with Python on 12 Nov 2026.
 - **Exact quote:** n/a
 - **Translation:** n/a
