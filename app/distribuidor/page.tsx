@@ -4,7 +4,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { BackLink, Card, Chip, Label, LoadError, Loading, ReceiptView, Screen } from "@/components/ui";
 import { CsvImport } from "@/components/csv-import";
 import { createDemoInvoice, getDrivers, getInvoiceHistory, getShop, getTotals, handInCash } from "@/lib/api";
-import { DEMO_PHONES } from "@/lib/demo-contacts";
+import { DEMO_PHONES, DEMO_SHOP_IDS } from "@/lib/demo-contacts";
 import { formatDay, formatMoney } from "@/lib/format";
 import { toUnits } from "@/lib/money";
 import { reminderLink } from "@/lib/whatsapp";
@@ -24,7 +24,9 @@ const STATUS_FILTERS: { label: string; tone?: StatusTone }[] = [
 async function loadDashboard(pages: number) {
   const [history, drivers, totals] = await Promise.all([getInvoiceHistory(pages), getDrivers(), getTotals()]);
   const { invoices, total } = history;
-  const shopIds = [...new Set(invoices.map((i) => i.shopId))];
+  // Every demo shop, not only those with an invoice on the loaded page: a shop's
+  // debt must count in "En crédito" even when its invoices are older.
+  const shopIds = [...new Set([...DEMO_SHOP_IDS, ...invoices.map((i) => i.shopId)])];
   const shops = (await Promise.all(shopIds.map(getShop))).filter((s): s is Shop => s !== null);
   return { invoices, total, totals, drivers, shops };
 }
