@@ -74,6 +74,15 @@ Rohan wrote 16 emails on Nov 12. The Outlook app was offline, so 13 sat in the O
 | | Zumma Ratings | Analyst | Email | Default rates on short-term micro-credit | Not sent: Ruhaan (#120) |
 | | MicroRate | Analyst | Email | Same | Not sent: Ruhaan (#120) |
 
+### Cash-in questions (Nov 13)
+
+Sent from Ruhaan's university Outlook account. Both messages asked if a business can receive cash payments from small shops at the provider's points and receive USDC on Stellar or funds in a business account, and what that costs per $100.
+
+| Date | Organisation | Role | Channel | What we asked | Status |
+|---|---|---|---|---|---|
+| Nov 13 | Banco Agrícola | SME banking team | Email | Cash collection, settlement options and cost per $100 | Sent |
+| Nov 13 | Bitnovo | General enquiries | Email | Cash collection, settlement options and cost per $100 | Sent |
+
 ### Stellar anchor check (Nov 12)
 - The Stellar Anchor Directory (anchors.stellar.org), filtered to El Salvador and the "Cash" payment rail, lists two anchors: **MoneyGram Ramps** and **Bitnovo**. The directory doesn't say whether each one supports cash-in, cash-out or both in El Salvador, so Bitnovo is a new outreach target to ask. Without the cash filter it also lists Amero Exchange and Dollarize for El Salvador.
 - Raven (raven.stellar.org) is now an MCP server that needs sign-in, so the "Which anchors support cash-in to USDC in El Salvador?" question wasn't asked yet.

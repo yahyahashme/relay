@@ -415,15 +415,26 @@ A shop buys $100 of stock and picks "pay in 7 days".
 
 This section goes in every doc we make: the README, the one-pager, the pitch, `docs/risks.md`. Add new ideas to the log with the date.
 
-**The risk:** shops earn cash from customers. To pay or repay in digital dollars, they need a cheap, nearby way to turn cash into USDC (cash-in). Distributors also need to move USDC into their bank (cash-out). Neither is solved. If cash-in costs a shop more than paying the truck in cash, nobody switches. Crypto companies in El Salvador also struggle to get bank accounts (Cointelegraph, Feb 2025), so we'd need a licensed partner that already has banking.
+**The risk:** shops earn cash from customers. To pay or repay in digital dollars, they need a cheap, nearby way to turn cash into USDC (cash-in). Distributors also need to move USDC into their bank (cash-out). MoneyGram offers cash pickup. The proposed cash-in path below still needs provider onboarding and a pilot to measure cost and access. If cash-in costs a shop more than paying the truck in cash, nobody switches.
 
 **What the demo does:** test dollars, with cash-in simulated and labelled on screen. We say it in the pitch before anyone asks. One finals judge works with Stellar's payment partners, so expect the question.
+
+### Our cash-in answer (Nov 14)
+
+> Shops could pay by reference number in cash at Banco Agrícola branches, like paying a bill, and an eligible distributor could wire the collected dollars to Circle Mint for digital dollars on Stellar.
+
+1. Enrol a distributor in Recaudo at Banco Agrícola, an SSF-supervised bank. The shop pays cash at a bank branch against a payment reference (NPE) or barcode. The bank deposits collections into the business account the same day and reports the payment reference (facts 58).
+2. Once approved by Circle Mint, the distributor batches collections in USD and wires them from its own business account to Circle's US bank account. Circle accepts wires from El Salvador and supports native USDC on Stellar (facts 59).
+
+**Still to confirm:** the distributor's eligibility and settlement arrangement, how Relay would reconcile the references against invoices, which branches are practical for shops, and the all-in cost per $100 after collection and international wire fees. Recaudo's published coverage includes digital and in-person channels, so the pitch makes no cash-counter count. The team has yet to onboard a distributor or test the two services together. Ruhaan's source check is pending.
+
+**Alternatives checked Nov 13.** [Bitnovo](https://www.bitnovo.com/en/instructions/coupons) documents cash vouchers in southern Europe. We could not confirm cash-in to Stellar USDC in El Salvador from its coverage pages. [MoneyGram's coverage data](https://xramps.moneygram.com/api/v1/public/coverage) shows `SLV` with `cashIn: false` and `cashOut: true`, pending a visual check on its map. [Banco Atlántida](https://bancoatlantida.com.sv/banca-de-personas/pago-de-colectores/) lists bill payment for named collectors, while its CNAD registration (facts 46) leaves Stellar conversion and onboarding for this workflow unconfirmed. The [CNAD registry](https://cnad.gob.sv/es/registro-publico/proveedores-de-servicio-de-activos-digitales/) lists approved providers and activities. Tigo Money's agent network is a cash fallback (facts 45). We found no public Stellar settlement route through Tigo Money.
 
 **Ideas log**
 
 | # | Idea | Added | Status |
 |---|---|---|---|
-| 1 | **Repay like a bill.** The shop pays cash at a bank agent or bill-payment point with a reference number. A licensed partner converts in bulk, and it counts as a digital repayment. Tienda Pago uses 33,000 such points. | Nov 6 | Most promising |
+| 1 | **Repay like a bill.** The shop pays cash at a bank agent or bill-payment point with a reference number. A licensed partner converts in bulk, and it counts as a digital repayment. Tienda Pago uses 33,000 such points. | Nov 6 | Banco Agrícola Recaudo → business USD account → Circle Mint (proposed pilot) |
 | 2 | **One trip a week, not one per delivery.** Credit lets the shop sell first, then settle everything with one weekly deposit. | Nov 6 | Built into the design |
 | 3 | **Fallback:** the shop repays the driver in cash at the next delivery (recorded with two taps), and the distributor settles with the pool in one bulk transfer. It keeps cash on routes, so it's the last resort. | Nov 6 | Fallback |
 | 4 | **Customers pay the shop by QR**, so the shop's money starts out digital. | Nov 6 | Later |
