@@ -4,7 +4,9 @@ import { useSyncExternalStore, type ReactNode } from "react";
 import { OptionLink, OptionList } from "@/components/ticket";
 import { formatMoney, plural } from "@/lib/format";
 import { useT } from "@/lib/i18n";
-import type { Shop, Supplier } from "@/lib/types";
+import { CreditScoreCard } from "@/components/credit-score-card";
+import { creditScore } from "@/lib/credit";
+import type { Shop, ShopHistory, Supplier } from "@/lib/types";
 
 // Mi cuenta's list of sections under the paper slip (#127). Money, credit, suppliers and details
 // show real data; add/withdraw/receipts and everything under Seguridad open explainers.
@@ -72,7 +74,19 @@ function useWhatsAppOn(shopId: string): [boolean, (on: boolean) => void] {
   ];
 }
 
-export function AccountSections({ shop, balance, suppliers }: { shop: Shop; balance: number | null; suppliers: Supplier[] }) {
+export function AccountSections({
+  shop,
+  balance,
+  suppliers,
+  history,
+  now,
+}: {
+  shop: Shop;
+  balance: number | null;
+  suppliers: Supplier[];
+  history: ShopHistory | null;
+  now: number;
+}) {
   const { t } = useT();
   const base = `/tienda/cuenta/${shop.id}`;
   const info = (topic: string) => `${base}/info/${topic}`;
@@ -101,6 +115,16 @@ export function AccountSections({ shop, balance, suppliers }: { shop: Shop; bala
           }
         />
       </Section>
+
+      {history && (
+        <section className="flex flex-col gap-2">
+          <h2 className="px-1 text-lg font-semibold">{t("Su puntaje Relay", "Your Relay score")}</h2>
+          <CreditScoreCard
+            score={creditScore(shop, history.rows, suppliers.length, now)}
+            shareFrom={{ shopId: shop.id, shopName: shop.name, now }}
+          />
+        </section>
+      )}
 
       <Section title={t("Proveedores", "Suppliers")}>
         {suppliers.length === 0 ? (
