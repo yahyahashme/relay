@@ -2,6 +2,7 @@
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { BackLink, Card, Chip, Label, LoadError, Loading, ReceiptView, Screen } from "@/components/ui";
+import { CsvImport } from "@/components/csv-import";
 import { createDemoInvoice, getDrivers, getInvoiceHistory, getShop, getTotals, handInCash } from "@/lib/api";
 import { DEMO_PHONES } from "@/lib/demo-contacts";
 import { formatDay, formatMoney } from "@/lib/format";
@@ -262,6 +263,8 @@ export default function Dashboard() {
           <p className="text-sm text-muted">Demo: los números son de prueba. Revise el mensaje, pero no lo envíe.</p>
         </section>
       )}
+
+      <CsvImport shopName={shopName} driverName={driverName} onCreated={reload} />
 
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
