@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ButtonLink, Card, Label, LoadError, Loading, Screen } from "@/components/ui";
 import { getDrivers, getInvoices, getShop } from "@/lib/api";
-import { APP_NAME } from "@/lib/brand";
+import { APP_NAME, TAGLINE } from "@/lib/brand";
 import { formatMoney } from "@/lib/format";
 import { leftToPay } from "@/lib/labels";
 import type { Shop } from "@/lib/types";
@@ -23,6 +23,7 @@ export default function Home() {
     <Screen>
       <header className="flex flex-col gap-1 pt-2">
         <h1 className="text-3xl font-bold tracking-tight text-balance">{APP_NAME}</h1>
+        <p className="-mt-1 text-xl font-medium text-brand">{TAGLINE}</p>
         <p className="text-lg text-muted text-balance">
           La tienda le paga al distribuidor con dólares digitales, en efectivo o en 7 días sin intereses.
         </p>

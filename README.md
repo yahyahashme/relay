@@ -1,4 +1,6 @@
-# tiendas-stellar
+# Relay
+
+*Paga tu ruta*
 
 Neighbourhood shops (tiendas) in El Salvador pay their suppliers in cash when the truck arrives, and often borrow from loan sharks to buy stock. This app lets a shop pay its supplier in digital dollars, or take the stock now and pay in 7 days with no interest, while a Stellar smart contract keeps the record and enforces the credit rules.
 
