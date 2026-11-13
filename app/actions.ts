@@ -14,6 +14,8 @@ import { read, run } from "@/lib/stellar/send";
 import { toDollars, toUnits } from "@/lib/stellar/units";
 import type { Invoice as ChainInvoice } from "@/packages/route_ledger/src/index";
 import { toUnixSeconds } from "@/lib/dates";
+import { getDb } from "@/lib/server/db";
+import { choices, dueAt, myApprovedDistributor } from "@/lib/server/invoices";
 import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type InvoiceRow, type Pool, type Receipt, type Shop, type Totals } from "@/lib/types";
 
 // ---------- reads ----------
@@ -268,6 +270,8 @@ const AMOUNT = /^\d+(\.\d{1,7})?$/;
  * CSV import (#32): checks every row first (shop and driver known, id not on
  * the contract yet), then creates them one at a time, signed by the
  * distributor. If one fails midway, says how many were created.
+ * A signed-in, approved distributor (#133) imports for their own shops and
+ * drivers; everyone else imports for the demo distributor.
  */
 export async function createInvoices(rows: InvoiceRow[]): Promise<Receipt> {
   if (rows.length === 0) return fail("No hay facturas para crear.");
@@ -275,15 +279,19 @@ export async function createInvoices(rows: InvoiceRow[]): Promise<Receipt> {
   let created = 0;
   let lastHash = "";
   try {
-    const directory = await getDirectory();
-    const distributor = directory.find("distributor", "distributor");
+    const own = getDb() ? await myApprovedDistributor() : null;
+    const mine = own ? await choices(own) : null;
+    const directory = mine?.directory ?? (await getDirectory());
+    const distributor = own ? { id: own.id, address: own.stellarAddress } : directory.find("distributor", "distributor");
     if (!distributor) return fail(FALLBACK_MESSAGE);
+    const ownShops = mine && new Set(mine.shops.map((s) => s.id));
+    const ownDrivers = mine && new Set(mine.drivers.map((d) => d.id));
     // Check everything before sending anything: the rows come from the browser.
     const ids = new Set<number>();
     for (const [index, row] of rows.entries()) {
       const line = `Fila ${index + 1}`;
-      if (!directory.find(row.shopId, "shop")) return fail(`${line}: tienda desconocida.`);
-      if (!directory.find(row.driverId, "driver")) return fail(`${line}: motorista desconocido.`);
+      if (!directory.find(row.shopId, "shop") || (ownShops && !ownShops.has(row.shopId))) return fail(`${line}: tienda desconocida.`);
+      if (!directory.find(row.driverId, "driver") || (ownDrivers && !ownDrivers.has(row.driverId))) return fail(`${line}: motorista desconocido.`);
       if (!Number.isSafeInteger(row.invoiceId) || row.invoiceId <= 0) return fail(`${line}: número de factura inválido.`);
       if (ids.has(row.invoiceId)) return fail(`${line}: la factura ${row.invoiceId} está repetida.`);
       ids.add(row.invoiceId);
@@ -291,6 +299,7 @@ export async function createInvoices(rows: InvoiceRow[]): Promise<Receipt> {
       if (!AMOUNT.test(amount) || toUnits(amount) <= 0n) return fail(`${line}: monto inválido.`);
       try {
         toUnixSeconds(row.dueDate);
+        if (own && dueAt(row.dueDate) === null) throw new Error("fecha");
       } catch {
         return fail(`${line}: fecha inválida.`);
       }
@@ -306,7 +315,7 @@ export async function createInvoices(rows: InvoiceRow[]): Promise<Receipt> {
           shop: directory.find(row.shopId, "shop")!.address,
           driver: directory.find(row.driverId, "driver")!.address,
           amount: toUnits(String(row.amount).trim()),
-          due: BigInt(toUnixSeconds(row.dueDate)),
+          due: BigInt(own ? dueAt(row.dueDate)! : toUnixSeconds(row.dueDate)),
         }),
       );
       created += 1;

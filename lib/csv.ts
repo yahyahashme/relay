@@ -4,9 +4,32 @@ const HEADER = "invoice_id,shop_id,driver_id,amount,due_date";
 
 export type CsvError = { line: number; field?: string; message: string };
 
+/** A shop or driver the file may name: by id, or (#133) by its name, ignoring case and accents. */
+export type Known = string | { id: string; name: string };
+
+const fold = (text: string) =>
+  text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+
+/** Id or name -> id. A name two of them share stays ambiguous (null). */
+function lookup(list: Known[]): (text: string) => string | null | undefined {
+  const ids = new Set<string>();
+  const names = new Map<string, string | null>();
+  for (const item of list) {
+    const { id, name } = typeof item === "string" ? { id: item, name: "" } : item;
+    ids.add(id);
+    if (name) names.set(fold(name), names.has(fold(name)) && names.get(fold(name)) !== id ? null : id);
+  }
+  return (text) => (ids.has(text) ? text : names.get(fold(text)));
+}
+
 export function parseInvoiceCsv(
   text: string,
-  known: { shops: string[]; drivers: string[] },
+  known: { shops: Known[]; drivers: Known[] },
 ): { rows: InvoiceRow[]; errors: CsvError[] } {
   const [header, ...dataLines] = text.replace(/^\uFEFF/, "").split(/\r?\n/);
   const rows: InvoiceRow[] = [];
@@ -16,8 +39,8 @@ export function parseInvoiceCsv(
     return { rows, errors: [{ line: 1, message: `Encabezado inválido. Use: ${HEADER}` }] };
   }
 
-  const shops = new Set(known.shops);
-  const drivers = new Set(known.drivers);
+  const findShop = lookup(known.shops);
+  const findDriver = lookup(known.drivers);
   const seenIds = new Set<string>();
 
   for (const [index, rawLine] of dataLines.entries()) {
@@ -30,7 +53,9 @@ export function parseInvoiceCsv(
       continue;
     }
 
-    const [id, shopId, driverId, amount, dueDate] = values;
+    const [id, shopText, driverText, amount, dueDate] = values;
+    const shopId = findShop(shopText);
+    const driverId = findDriver(driverText);
     const previousErrorCount = errors.length;
 
     if (!id) {
@@ -43,16 +68,20 @@ export function parseInvoiceCsv(
       seenIds.add(id);
     }
 
-    if (!shopId) {
+    if (!shopText) {
       errors.push({ line, field: "shop_id", message: "Falta la tienda" });
-    } else if (!shops.has(shopId)) {
-      errors.push({ line, field: "shop_id", message: `Tienda desconocida: ${shopId}` });
+    } else if (shopId === null) {
+      errors.push({ line, field: "shop_id", message: `Hay dos tiendas con ese nombre: ${shopText}` });
+    } else if (!shopId) {
+      errors.push({ line, field: "shop_id", message: `Tienda desconocida: ${shopText}` });
     }
 
-    if (!driverId) {
+    if (!driverText) {
       errors.push({ line, field: "driver_id", message: "Falta el motorista" });
-    } else if (!drivers.has(driverId)) {
-      errors.push({ line, field: "driver_id", message: `Motorista desconocido: ${driverId}` });
+    } else if (driverId === null) {
+      errors.push({ line, field: "driver_id", message: `Hay dos motoristas con ese nombre: ${driverText}` });
+    } else if (!driverId) {
+      errors.push({ line, field: "driver_id", message: `Motorista desconocido: ${driverText}` });
     }
 
     if (!amount) {
@@ -73,8 +102,8 @@ export function parseInvoiceCsv(
       const [dollars, cents = ""] = amount.split(".");
       rows.push({
         invoiceId: Number(id),
-        shopId,
-        driverId,
+        shopId: shopId!,
+        driverId: driverId!,
         amount: `${dollars.replace(/^0+(?=\d)/, "")}.${cents.padEnd(2, "0")}`,
         dueDate,
       });

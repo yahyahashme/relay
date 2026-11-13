@@ -110,3 +110,11 @@ CREATE TABLE IF NOT EXISTS shop_invites (
   created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS shop_invites_shop ON shop_invites (shop_id);
+
+-- Invoice notes / products (#133). The contract keeps the money; the note lives here.
+CREATE TABLE IF NOT EXISTS invoice_notes (
+  invoice_id BIGINT PRIMARY KEY,
+  distributor_id TEXT NOT NULL REFERENCES distributors(id),
+  note TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

@@ -3,7 +3,7 @@
 import { type InputHTMLAttributes, type ReactNode, useId, useState } from "react";
 import { useI18n } from "@/lib/i18n";
 
-const INPUT =
+export const INPUT =
   "min-h-14 w-full rounded-xl border-2 border-line bg-card px-3 text-lg placeholder:text-muted focus:border-brand focus:outline-none aria-invalid:border-bad";
 
 /** A labelled input, big enough for a thumb, with an optional hint under it. */

@@ -3,14 +3,16 @@
 import { useRef, useState } from "react";
 import { Card, ReceiptView } from "@/components/ui";
 import { createInvoices } from "@/lib/api";
-import { parseInvoiceCsv, type CsvError } from "@/lib/csv";
+import { type CsvError, type Known, parseInvoiceCsv } from "@/lib/csv";
 import { formatMoney } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 import type { InvoiceRow, Receipt } from "@/lib/types";
 
 // The demo's shops and drivers (the ids in the CSV's shop_id and driver_id columns).
-const KNOWN = { shops: ["tienda-1", "tienda-2", "tienda-3"], drivers: ["motorista-1", "motorista-2"] };
-const MAX_ROWS = 10; // same limit as createInvoices in app/actions.ts
+const DEMO = { shops: ["tienda-1", "tienda-2", "tienda-3"], drivers: ["motorista-1", "motorista-2"] };
+// Same limit as createInvoices in app/actions.ts: each invoice is its own
+// transaction (about 5 s) and the server has 60 s for the whole file.
+const MAX_ROWS = 10;
 
 type Parsed = { fileName: string; rows: InvoiceRow[]; errors: CsvError[] };
 
@@ -26,10 +28,13 @@ export function CsvImport({
   shopName,
   driverName,
   onCreated,
+  known,
 }: {
   shopName: (id: string) => string;
   driverName: (id: string) => string;
   onCreated: () => Promise<void>;
+  /** A real distributor's shops and drivers (#133): the file can use their names. The demo's ids otherwise. */
+  known?: { shops: Known[]; drivers: Known[] };
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [parsed, setParsed] = useState<Parsed | null>(null);
@@ -41,7 +46,7 @@ export function CsvImport({
     if (!file) return;
     setResult(null);
     const text = await file.text();
-    setParsed({ fileName: file.name, ...parseInvoiceCsv(text, KNOWN) });
+    setParsed({ fileName: file.name, ...parseInvoiceCsv(text, known ?? DEMO) });
     if (input.current) input.current.value = ""; // picking the same file again still triggers
   }
 
@@ -79,7 +84,11 @@ export function CsvImport({
           className="hidden"
           onChange={(event) => void pick(event.target.files?.[0])}
         />
-        <span className="text-sm text-muted">{t("Columnas: invoice_id, shop_id, driver_id, amount, due_date")}</span>
+        <span className="text-sm text-muted">
+          {t("Columnas: invoice_id, shop_id, driver_id, amount, due_date")}
+          {known && ` · ${t("En tienda y motorista puede poner el nombre.")}`}
+          {` · ${t("Hasta {max} facturas por archivo.", { max: MAX_ROWS })}`}
+        </span>
       </div>
 
       {result && <ReceiptView receipt={result} />}
@@ -123,7 +132,11 @@ export function CsvImport({
               </tbody>
             </table>
           </div>
-          {tooMany && <p className="text-bad">{t("Máximo {max} facturas por archivo.", { max: MAX_ROWS })}</p>}
+          {tooMany && (
+            <p className="text-bad">
+              {t("Máximo {max} facturas por archivo.", { max: MAX_ROWS })} {t("Cada factura se registra por separado y toma unos segundos. Divida el archivo en partes.")}
+            </p>
+          )}
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
