@@ -161,7 +161,7 @@ describe("checkOnePager", () => {
   });
 
   it("lists the URLs for a manual check", () => {
-    const r = checkOnePager(onePager({ q6: words(120, "Try https://tiendas-stellar.vercel.app.") }), CONFIG);
-    expect(r.urls).toEqual(["https://tiendas-stellar.vercel.app"]);
+    const r = checkOnePager(onePager({ q6: words(120, "Try https://relay-sv.vercel.app.") }), CONFIG);
+    expect(r.urls).toEqual(["https://relay-sv.vercel.app"]);
   });
 });
