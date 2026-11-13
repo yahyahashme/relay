@@ -1,0 +1,11 @@
+invoice_id,shop_id,driver_id,amount,due_date
+2001,tienda-1,motorista-1,150.00,2026-11-20
+2002,tienda-2,motorista-1,85.50,2026-11-20
+2003,tienda-3,motorista-2,120.00,2026-11-20
+2004,tienda-1,motorista-1,60.00,2026-11-21
+2005,tienda-2,motorista-2,130.00,2026-11-21
+2006,tienda-3,motorista-2,95.25,2026-11-21
+2007,tienda-1,motorista-1,40.00,2026-11-22
+2008,tienda-2,motorista-1,175.00,2026-11-22
+2009,tienda-1,motorista-2,-20.00,2026-11-22
+2010,tienda-9,motorista-1,50.00,2026-11-22
