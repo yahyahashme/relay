@@ -11,7 +11,7 @@ Then run `node scripts/run-times.mjs` for the summary. It needs only Node.
 
 ## How to run a run-through
 
-1. The pitcher presents with the video, standing, with a phone timer running. One person is the timekeeper and writes down the time at each segment break (the six segments below).
+1. The pitcher presents standing, with a phone timer running. Play the full 60-second demo from the start. One person is the timekeeper and writes down the time at each segment break (the six segments below).
 2. The others then ask judge questions one at a time (the list below). Each answer should take 20 seconds or less. The asker grades it and the timekeeper logs it.
 3. Add the rows straight after the run, while it is fresh. Don't average in your head.
 4. For every weak answer, set `weak` to `yes`. Fix the wording in `docs/pitch.md`, then set `fixed_in_pitch_md` to `yes`.
@@ -26,7 +26,7 @@ Then run `node scripts/run-times.mjs` for the summary. It needs only Node.
 | `timer` | who held the timer |
 | `total` | the whole run, `m:ss` (for example `2:52`) or seconds (`172`) |
 | `problem`, `built`, `video`, `pays`, `risk`, `close` | the time each segment took, `m:ss` or seconds. Leave them empty if you only timed the total. |
-| `video_played` | `yes` if the real video played, `no` if you skipped it or talked over a placeholder |
+| `video_played` | `yes` if the complete demo video played from the start, otherwise `no` |
 | `notes` | anything that went wrong. Wrap text with commas in double quotes. |
 
 **Segment budgets** (from context §3.8 and the #37 draft, PR #83; they add up to 3:00):

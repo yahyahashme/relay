@@ -77,7 +77,7 @@ Use the laptop that ran `scripts/setup.sh`: it holds the test-dollar issuer. Yah
 3. Questions. The note-taker writes each one down, word for word, with the judge's role.
 4. Thank them. Check the dashboard before the next judge.
 
-**Open decision for the team:** the 3-minute pitch plays the video from 0:55 to 1:55 (context §3.8), while issue #43 makes the live demo the main thing and the video the fallback. Pick one: (a) play the video inside the pitch, then offer the live demo, or (b) skip the video and run the live demo inside the pitch. Decided: `[ ]`.
+**Showcase format:** play the full one-minute working-prototype video during the three-minute pitch. Offer the live QR demo after the pitch and keep the local video ready if the live demo fails. [Velocity's Devpost requirements](https://blockchain-stellar-ic.devpost.com/#requirements)
 
 ### If something fails
 
