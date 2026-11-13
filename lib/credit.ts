@@ -5,7 +5,11 @@
 // Weights, as in the issue:
 // - 50% payment record: each payment on time or late, weighted by amount and recency. Repaid
 //   credit counts fully; pay-at-delivery (digital or confirmed cash) counts half, as trade history.
-//   Late marks older than 6 months count half. A grace day counts as on time.
+//   Late marks older than 6 months count half. Any day late counts as late (the history says so too).
+//
+// Bad outcomes cap the score, whatever the record: a written-off debt caps it at 30 ("En riesgo"),
+// debt 8+ days past due at 40, any debt past due at 60, and a shop that never used credit at 79,
+// since paying on delivery shows less than repaying credit.
 // - 20% use of the limit: under 30% scores full, all of it scores 0.
 // - 20% length: credit cycles (12 for full) and months of history (6 for full).
 // - 10% suppliers on Relay that sell to the shop (3 for full).
@@ -22,8 +26,8 @@ export type CreditScore = { score: number; label: ScoreLabel; reasons: Reason[];
 
 const clamp = (x: number) => Math.min(1, Math.max(0, x));
 
-/** 1 for on time (up to 1 day late), 0.5 for 2-7 days, 0 for 8+. */
-const onTimeScore = (daysLate: number) => (daysLate <= 1 ? 1 : daysLate <= 7 ? 0.5 : 0);
+/** 1 for on time, 0.5 for 1-7 days late, 0 for 8+. */
+const onTimeScore = (daysLate: number) => (daysLate <= 0 ? 1 : daysLate <= 7 ? 0.5 : 0);
 
 export function creditScore(shop: Shop, rows: HistoryRow[], suppliers: number, now: number): CreditScore {
   // 1. Payment record.
@@ -64,7 +68,16 @@ export function creditScore(shop: Shop, rows: HistoryRow[], suppliers: number, n
   // 4. Suppliers on Relay.
   const breadth = clamp(suppliers / 3);
 
-  const score = Math.round(100 * (0.5 * record + 0.2 * usage + 0.2 * length + 0.1 * breadth));
+  // 5. Bad outcomes cap the score.
+  const openPast = Math.max(0, ...rows.filter((r) => r.kind === "open").map((r) => r.daysLate));
+  const creditPast = shop.overdue
+    ? Math.max(1, shop.creditDue ? Math.ceil((now - Date.parse(shop.creditDue)) / DAY_MS) : 1)
+    : 0;
+  const daysPast = Math.max(openPast, creditPast);
+  const writtenOff = (shop.writtenOff ?? 0) > 0;
+  const cap = writtenOff ? 30 : daysPast >= 8 ? 40 : daysPast > 0 ? 60 : !isNew && cycles === 0 ? 79 : 100;
+
+  const score = Math.min(cap, Math.round(100 * (0.5 * record + 0.2 * usage + 0.2 * length + 0.1 * breadth)));
   const label: ScoreLabel = score >= 80 ? "excelente" : score >= 65 ? "bueno" : score >= 45 ? "regular" : "riesgo";
 
   // Reasons, strongest first: how far each part is from "fine", times its weight.
@@ -99,9 +112,23 @@ export function creditScore(shop: Shop, rows: HistoryRow[], suppliers: number, n
       ? { es: `Le venden ${suppliers} proveedores en Relay`, en: `${suppliers} suppliers sell to it on Relay`, good: true, weight: 0.05 }
       : { es: "Compra a un solo proveedor en Relay", en: "Buys from one supplier on Relay", good: false, weight: 0.03 },
   );
+  // A cap is the main reason, so it goes first.
+  if (writtenOff) {
+    reasons.push({ es: "Tiene una deuda de crédito que no pagó", en: "Has credit debt it did not repay", good: false, weight: 2 });
+  } else if (daysPast > 0) {
+    reasons.push({
+      es: daysPast === 1 ? "Tiene un pago vencido hace 1 día" : `Tiene un pago vencido hace ${daysPast} días`,
+      en: daysPast === 1 ? "Has a payment 1 day past due" : `Has a payment ${daysPast} days past due`,
+      good: false,
+      weight: 1.5,
+    });
+  } else if (cap === 79) {
+    reasons.push({ es: "Todavía no ha usado crédito", en: "Has not used credit yet", good: false, weight: 0.6 });
+  }
   reasons.sort((a, b) => b.weight - a.weight);
 
   const tips: { es: string; en: string }[] = [];
+  if (writtenOff || daysPast > 0) tips.push({ es: "Pague lo vencido: es lo primero que se mira.", en: "Pay what is past due: it is the first thing anyone checks." });
   if (record < 0.95) tips.push({ es: "Pague cada deuda a tiempo: es lo que más cuenta.", en: "Pay every debt on time: it counts the most." });
   if (use > 0.5) tips.push({ es: "Deje libre parte de su límite.", en: "Keep part of your limit unused." });
   if (cycles < 12) tips.push({ es: "Cada semana que paga a tiempo alarga su historial.", en: "Every week you pay on time makes your history longer." });
