@@ -53,7 +53,7 @@ Neighbourhood shops (tiendas) in El Salvador pay the trucks that restock them in
 - **Space 1 fit:** fair, cheap credit for stock, and a payment record, for people whose only option today is a loan shark.
 - **Not doing:** cross-border or diaspora money, Bitcoin, more than one country (others go on a "future" slide).
 - **Form (decided Nov 9):** a mobile web app (a website that works like a phone app, opened from the driver's QR code or a WhatsApp link, nothing to install) on our own open Soroban contract. In the pitch, the contract is the engine that partners (banks, cash-in companies, distributors' ordering systems) plug into. Not a native app, and not a feature inside someone else's wallet.
-- **Name:** not chosen, and not "RUTA". Ideas: *Fiado* (shop slang for "on credit"), *CuentaClara* ("clear account"), *Cuadre* ("balancing the till"). Pick one by Wed Nov 11.
+- **Name: Relay**, with the tagline *Paga tu ruta* ("pay your route") shown under it (decided Nov 12). URLs, the repo (`yahyahashme/relay`) and code use "relay" only; the tagline never appears in a URL.
 
 ## 2. Key dates
 
@@ -741,6 +741,7 @@ README.md                 what it is, how to run it, contract IDs, demo accounts
 | Nov 5 | Work in GitHub (repo, board, docs) with one AI chat per workstream. Skip Notion. No long generated reports. |
 | Nov 6 | Domestic only, El Salvador first. No cross-border or diaspora money. Other countries only on a "future" slide. |
 | Nov 6 | "RUTA" was a placeholder name; we won't use it. |
+| Nov 12 | Name: **Relay**, tagline *Paga tu ruta* under it (Yahya). Repo renamed to `yahyahashme/relay`; URLs say "relay" only. |
 | Nov 6 | Design: invoices with due dates; pay now, cash recorded with two taps, or pay in 7 days; the contract tracks paid, part-paid and due, and blocks double payment. |
 | Nov 6 | Cash allowed at delivery only, always recorded, doesn't build credit. No discount for paying digitally. |
 | Nov 6 | Credit: full price, no interest, due by the next delivery (7 days at most), limits that grow, nothing new while overdue. |
