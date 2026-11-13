@@ -33,8 +33,6 @@ Strongest first. Each line is safe to say out loud; the entry has the source.
 5. Conamype says shops are out of stock 24 days out of 30 for lack of credit (21).
 6. Fewer than half of adults have a bank account (12, 13).
 7. A state bank already lends tiendas up to $10,000 in 72 hours; we're different because credit happens at the truck, per delivery (20).
-8. Stellar says its ledgers close in about five seconds and describes network fees as under a cent (36, 37).
-9. MoneyGram's Ramps coverage data lists cash-out for El Salvador. We found no cash-in in that listing (38).
 
 ## Say this, not that
 
@@ -549,6 +547,11 @@ _Entries 29 to 35 come from this repo, not from a web page. Claude read the code
 
 _Entries 36 to 40 come from web pages first checked on Nov 12, 2026. See the Checked field for the latest status of each entry._
 
+### Proposed pitch highlights pending teammate verification
+
+- Stellar says its ledgers close in about five seconds and describes network fees as under a cent (36, 37).
+- MoneyGram's Ramps coverage data lists cash-out for El Salvador. We found no cash-in in that listing (38).
+
 ## 36. Stellar settles in about five seconds
 - **Claim:** Stellar ledgers close in about 5 seconds, and the transactions in them are final when they do.
 - **Number:** ~5 seconds per ledger
@@ -561,7 +564,7 @@ _Entries 36 to 40 come from web pages first checked on Nov 12, 2026. See the Che
   - "~5" is an approximate time, not a guarantee. When the network is busy, fees rise under surge pricing (entry 37) and a transaction may wait for a later ledger.
   - It is the network's time. Our own screens also wait for our app and the contract call, so don't promise "5 seconds" for a delivery or a payment.
   - Safe wording: "Stellar payments finalize in about five seconds, and Stellar describes its fees as under a cent." (entries 36 and 37)
-- **Checked:** Codex reopened Stellar's developer homepage and matched the quote on Nov 12, 2026 (ET).
+- **Checked:** Pending teammate verification. Codex reopened Stellar's developer homepage and matched the quote on Nov 12, 2026 (ET).
 
 ## 37. Stellar network fees are under a cent
 - **Claim:** Stellar says its network fees are under a cent. The fee for a plain transaction is 100 stroops, which the docs write as .00001 XLM.
@@ -581,7 +584,7 @@ _Entries 36 to 40 come from web pages first checked on Nov 12, 2026. See the Che
   - Don't turn stroops into dollars without an XLM price on a stated date. We have none.
   - The text we fetched from the two pages showed no update dates (the earlier reading noted 3 Nov for stellar.org and 22 Oct for the docs; unconfirmed).
   - Safe wording: "Stellar payments finalize in about five seconds, and Stellar describes its fees as under a cent." (entries 36 and 37)
-- **Checked:** Codex reopened both Stellar pages and matched both quotes on Nov 12, 2026 (ET). The example of 6,677 stroops comes from the description of PR #81.
+- **Checked:** Pending teammate verification. Codex reopened both Stellar pages and matched both quotes on Nov 12, 2026 (ET). The example of 6,677 stroops comes from the description of PR #81.
 
 ## 38. MoneyGram's Stellar service: where cash-out and cash-in work
 - **Claim:** MoneyGram Ramps (the service the moneygram.com/stellar page describes; the page covers Solana and Stellar together) offers cash-out in 170+ countries and territories and cash-in in 25+ countries.
@@ -599,7 +602,7 @@ _Entries 36 to 40 come from web pages first checked on Nov 12, 2026. See the Che
   - Limits of $5 to $950 per cash-in and $5 to $2,500 per cash-out come from MoneyGram's deprecated developer docs page (https://developer.moneygram.com/moneygram-developer/docs/moneygram-ramps, updated 2026-08-20). Claude did not open that page, so treat the limits as unconfirmed and don't say them.
   - This is MoneyGram describing its own product.
   - Safe wording: "MoneyGram Ramps offers cash-out in 170+ countries and cash-in in about 25. For El Salvador, its coverage data lists cash-out but, as far as we found, not cash-in." Keep the "as far as we found" until a person has looked at the map.
-- **Checked:** Codex matched the FAQ quote and independently fetched the `SLV` record on Nov 12, 2026 (ET). MoneyGram's published record had `cashIn: false` and `cashOut: true`. A visual check of the coverage map remains pending.
+- **Checked:** Pending teammate verification. Codex matched the FAQ quote and independently fetched the `SLV` record on Nov 12, 2026 (ET). MoneyGram's published record had `cashIn: false` and `cashOut: true`. A visual check of the coverage map remains pending.
 
 ## 39. The US dollar is El Salvador's legal tender
 - **Claim:** The US dollar has been El Salvador's legal tender since 1 January 2001.
