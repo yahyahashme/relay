@@ -47,20 +47,23 @@ export function Button({
   children,
   hint,
   onClick,
+  type = "button",
   disabled = false,
   busy = false,
   variant = "primary",
 }: {
   children: ReactNode;
   hint?: ReactNode;
-  onClick: () => void;
+  /** Leave out for a form's submit button (type="submit"). */
+  onClick?: () => void;
+  type?: "button" | "submit";
   disabled?: boolean;
   busy?: boolean;
   variant?: Variant;
 }) {
   const { t } = useI18n();
   return (
-    <button type="button" onClick={onClick} disabled={disabled || busy} aria-busy={busy} className={`${BUTTON} ${VARIANT[variant]}`}>
+    <button type={type} onClick={onClick} disabled={disabled || busy} aria-busy={busy} className={`${BUTTON} ${VARIANT[variant]}`}>
       <span className={busy ? "animate-pulse" : undefined}>{busy ? t("Procesando...") : children}</span>
       {hint && <span className="text-sm font-normal opacity-85">{hint}</span>}
     </button>

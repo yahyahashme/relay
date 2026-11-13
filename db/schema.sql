@@ -1,0 +1,78 @@
+-- Relay accounts (#129). Safe to run again: every statement is IF NOT EXISTS.
+-- Apply with `npm run db:setup` (it also adds the demo accounts as seed rows).
+--
+-- A "party" is anyone with a Stellar address the contract knows: a shop, a
+-- driver or a distributor. Users sign in; a shop can exist before its owner
+-- has a user (a distributor adds it, #132), so shops and users are separate.
+
+CREATE TABLE IF NOT EXISTS users (
+  id            TEXT PRIMARY KEY,
+  role          TEXT NOT NULL CHECK (role IN ('tienda', 'distribuidora', 'motorista', 'admin')),
+  name          TEXT NOT NULL,
+  phone         TEXT UNIQUE,
+  email         TEXT UNIQUE,
+  password_hash TEXT NOT NULL,
+  stellar_address TEXT NOT NULL UNIQUE,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CHECK (phone IS NOT NULL OR email IS NOT NULL)
+);
+
+-- Secret keys for accounts Relay holds (testnet-only custody for the demo; the
+-- real product uses passkey smart wallets, #127). Encrypted with WALLET_KEY
+-- (AES-256-GCM). The demo seed accounts have no row: their keys stay in Vercel
+-- env vars (STELLAR_SECRET_*), as before.
+CREATE TABLE IF NOT EXISTS wallets (
+  address    TEXT PRIMARY KEY,
+  secret_enc TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS distributors (
+  id            TEXT PRIMARY KEY,
+  owner_user_id TEXT REFERENCES users(id),
+  business_name TEXT NOT NULL,
+  nit           TEXT,
+  address       TEXT,
+  status        TEXT NOT NULL DEFAULT 'pendiente' CHECK (status IN ('pendiente', 'aprobado', 'rechazado')),
+  stellar_address TEXT NOT NULL UNIQUE,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS shops (
+  id            TEXT PRIMARY KEY,
+  name          TEXT NOT NULL,
+  address       TEXT,
+  owner_user_id TEXT REFERENCES users(id),
+  owner_name    TEXT,           -- for shops without an owner user yet (the demo shops)
+  created_by    TEXT REFERENCES distributors(id),
+  stellar_address TEXT NOT NULL UNIQUE,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS drivers (
+  id             TEXT PRIMARY KEY,
+  user_id        TEXT REFERENCES users(id),
+  distributor_id TEXT NOT NULL REFERENCES distributors(id),
+  name           TEXT NOT NULL,
+  phone          TEXT,
+  stellar_address TEXT NOT NULL UNIQUE,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS distributor_shops (
+  distributor_id TEXT NOT NULL REFERENCES distributors(id),
+  shop_id        TEXT NOT NULL REFERENCES shops(id),
+  nickname       TEXT,          -- what the distributor calls it; only they see it (#132)
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (distributor_id, shop_id)
+);
+
+CREATE TABLE IF NOT EXISTS sessions (
+  id         TEXT PRIMARY KEY,  -- random; the cookie carries it, signed with SESSION_SECRET
+  user_id    TEXT NOT NULL REFERENCES users(id),
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS sessions_user ON sessions (user_id);
+CREATE INDEX IF NOT EXISTS drivers_distributor ON drivers (distributor_id);

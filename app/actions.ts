@@ -5,7 +5,8 @@
 // everything under lib/stellar starts with `import "server-only"`.
 
 import { formatDay, formatMoney } from "@/lib/format";
-import { addressOf, DRIVER_IDS, explorerTx, nameOf, roleOf, SHOP_IDS, type Role } from "@/lib/stellar/config";
+import { getDirectory, type Directory } from "@/lib/server/directory";
+import { explorerTx } from "@/lib/stellar/config";
 import { readClient } from "@/lib/stellar/client";
 import { ContractError, FALLBACK_MESSAGE } from "@/lib/stellar/errors";
 import { toInvoice, toShop } from "@/lib/stellar/map";
@@ -18,14 +19,14 @@ import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type Invo
 // ---------- reads ----------
 
 /** Pending cash claims only exist on unpaid invoices, so only those are asked. */
-async function withCashClaim(invoice: ChainInvoice): Promise<Invoice> {
-  if (invoice.status.tag === "Paid") return toInvoice(invoice);
-  return toInvoice(invoice, await read(readClient().get_cash_claim({ id: invoice.id })));
+async function withCashClaim(invoice: ChainInvoice, directory: Directory): Promise<Invoice> {
+  if (invoice.status.tag === "Paid") return toInvoice(invoice, directory);
+  return toInvoice(invoice, directory, await read(readClient().get_cash_claim({ id: invoice.id })));
 }
 
 export async function getInvoices(): Promise<Invoice[]> {
-  const list = await read(readClient().list_invoices());
-  return (await Promise.all(list.map(withCashClaim))).sort((a, b) => a.id - b.id);
+  const [list, directory] = await Promise.all([read(readClient().list_invoices()), getDirectory()]);
+  return (await Promise.all(list.map((i) => withCashClaim(i, directory)))).sort((a, b) => a.id - b.id);
 }
 
 /** The newest `pages` pages of the whole history, newest first. */
@@ -36,7 +37,8 @@ export async function getInvoiceHistory(pages: number): Promise<InvoiceHistory> 
   const lists = await Promise.all(
     befores.map((before) => read(readClient().list_invoices_page({ before, limit: HISTORY_PAGE }))),
   );
-  return { invoices: await Promise.all(lists.flat().map(withCashClaim)), total };
+  const directory = await getDirectory();
+  return { invoices: await Promise.all(lists.flat().map((i) => withCashClaim(i, directory))), total };
 }
 
 export async function getTotals(): Promise<Totals> {
@@ -57,21 +59,22 @@ async function chainInvoice(id: number) {
 
 export async function getInvoice(id: number): Promise<Invoice | null> {
   const invoice = await chainInvoice(id);
-  return invoice ? withCashClaim(invoice) : null;
+  return invoice ? withCashClaim(invoice, await getDirectory()) : null;
 }
 
 export async function getShop(shopId: string): Promise<Shop | null> {
-  const address = addressOf(shopId);
-  if (!address || !SHOP_IDS.includes(shopId as Role)) return null;
-  return toShop(shopId, await read(readClient().get_shop({ shop: address })));
+  const party = (await getDirectory()).find(shopId, "shop");
+  if (!party) return null;
+  return toShop(party, await read(readClient().get_shop({ shop: party.address })));
 }
 
 export async function getDrivers(): Promise<Driver[]> {
+  const drivers = (await getDirectory()).ofKind("driver");
   return Promise.all(
-    DRIVER_IDS.map(async (id) => ({
-      id,
-      name: nameOf(id),
-      cashHeld: toDollars(await read(readClient().get_driver_cash({ driver: addressOf(id) as string }))),
+    drivers.map(async (driver) => ({
+      id: driver.id,
+      name: driver.name,
+      cashHeld: toDollars(await read(readClient().get_driver_cash({ driver: driver.address }))),
     })),
   );
 }
@@ -115,10 +118,10 @@ export async function payNow(invoiceId: number, amount?: number): Promise<Receip
       }
     }
 
-    const shop = roleOf(invoice.shop);
-    if (!SHOP_IDS.includes(shop as Role)) return fail("Esta factura no es de su tienda.");
+    const shop = (await getDirectory()).byAddress(invoice.shop);
+    if (shop?.kind !== "shop") return fail("Esta factura no es de su tienda.");
 
-    const { hash } = await run(shop as Role, (client) =>
+    const { hash } = await run(shop.id, (client) =>
       client.pay({ shop: invoice.shop, id: invoice.id, amount: units }),
     );
     const paid = formatMoney(toDollars(units));
@@ -143,10 +146,10 @@ export async function payLater(invoiceId: number): Promise<Receipt> {
     if (!invoice) return fail("No encontramos esa factura.");
     const left = invoice.amount - invoice.paid;
     if (left <= 0n) return fail("Esta factura ya está pagada.");
-    const shop = roleOf(invoice.shop);
-    if (!SHOP_IDS.includes(shop as Role)) return fail("Esta factura no es de su tienda.");
+    const shop = (await getDirectory()).byAddress(invoice.shop);
+    if (shop?.kind !== "shop") return fail("Esta factura no es de su tienda.");
 
-    const { hash } = await run(shop as Role, (client) => client.pay_with_credit({ shop: invoice.shop, id: invoice.id }));
+    const { hash } = await run(shop.id, (client) => client.pay_with_credit({ shop: invoice.shop, id: invoice.id }));
     const after = await shopView(invoice.shop);
     const due = new Date(Number(after.due_at) * 1000).toISOString();
     return receipt(hash, `Listo. Tiene hasta el ${formatDay(due)} para pagar ${formatMoney(toDollars(left))}, sin intereses.`);
@@ -162,11 +165,11 @@ export async function claimCash(invoiceId: number, amount: number): Promise<Rece
     if (!invoice) return fail("No encontramos esa factura.");
     if (invoice.amount - invoice.paid <= 0n) return fail("Esta factura ya está pagada.");
     if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
-    const driver = roleOf(invoice.driver);
-    if (!DRIVER_IDS.includes(driver as Role)) return fail("Este motorista no está en la ruta.");
+    const driver = (await getDirectory()).byAddress(invoice.driver);
+    if (driver?.kind !== "driver") return fail("Este motorista no está en la ruta.");
 
     const units = toUnits(amount.toFixed(2));
-    const { hash } = await run(driver as Role, (client) =>
+    const { hash } = await run(driver.id, (client) =>
       client.cash_claim({ driver: invoice.driver, id: invoice.id, amount: units }),
     );
     return receipt(hash, "Listo. Ahora la tienda debe tocar «Confirmo».");
@@ -181,12 +184,12 @@ export async function confirmCash(invoiceId: number, amount: number): Promise<Re
   try {
     const invoice = await chainInvoice(invoiceId);
     if (!invoice) return fail("No encontramos esa factura.");
-    const shop = roleOf(invoice.shop);
-    if (!SHOP_IDS.includes(shop as Role)) return fail("Esta factura no es de su tienda.");
+    const shop = (await getDirectory()).byAddress(invoice.shop);
+    if (shop?.kind !== "shop") return fail("Esta factura no es de su tienda.");
     if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
     const units = toUnits(amount.toFixed(2));
 
-    const { hash } = await run(shop as Role, (client) =>
+    const { hash } = await run(shop.id, (client) =>
       client.cash_confirm({ shop: invoice.shop, id: invoice.id, amount: units }),
     );
     return receipt(hash, `Listo. Confirmó ${formatMoney(toDollars(units))} en efectivo.`);
@@ -198,8 +201,9 @@ export async function confirmCash(invoiceId: number, amount: number): Promise<Re
 /** The shop pays back credit. Paying the whole debt on time can raise the limit. */
 export async function repay(shopId: string, amount: number): Promise<Receipt> {
   try {
-    const address = addressOf(shopId);
-    if (!address || !SHOP_IDS.includes(shopId as Role)) return fail("No encontramos esa tienda.");
+    const shop = (await getDirectory()).find(shopId, "shop");
+    if (!shop) return fail("No encontramos esa tienda.");
+    const address = shop.address;
     if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
     const before = await shopView(address);
     if (before.owed <= 0n) return fail("No tiene deudas pendientes.");
@@ -207,7 +211,7 @@ export async function repay(shopId: string, amount: number): Promise<Receipt> {
     const asked = toUnits(amount.toFixed(2));
     const units = asked >= before.owed || toDollars(before.owed) === amount ? before.owed : asked;
 
-    const { hash } = await run(shopId as Role, (client) => client.repay({ shop: address, amount: units }));
+    const { hash } = await run(shop.id, (client) => client.repay({ shop: address, amount: units }));
     const after = await shopView(address);
     if (after.owed > 0n) {
       return receipt(hash, `Pago recibido: ${formatMoney(toDollars(units))}. Falta ${formatMoney(toDollars(after.owed))}.`);
@@ -225,17 +229,22 @@ export async function repay(shopId: string, amount: number): Promise<Receipt> {
 /** The distributor got a driver's cash at the warehouse. No money moves on chain. */
 export async function handInCash(driverId: string, amount: number): Promise<Receipt> {
   try {
-    const driver = addressOf(driverId);
-    if (!driver || !DRIVER_IDS.includes(driverId as Role)) return fail("No encontramos a ese motorista.");
+    const directory = await getDirectory();
+    const party = directory.find(driverId, "driver");
+    if (!party) return fail("No encontramos a ese motorista.");
+    const distributorId = party.distributorId ?? "distributor";
+    const distributor = directory.find(distributorId, "distributor");
+    if (!distributor) return fail("No encontramos a ese motorista.");
+    const driver = party.address;
     if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
     const held = await read(readClient().get_driver_cash({ driver }));
     // "Hand in everything" must send the exact units held.
     const asked = toUnits(amount.toFixed(2));
     const units = toDollars(held) === amount ? held : asked;
-    const { hash } = await run("distributor", (client) =>
-      client.cash_handed_in({ distributor: addressOf("distributor") as string, driver, amount: units }),
+    const { hash } = await run(distributor.id, (client) =>
+      client.cash_handed_in({ distributor: distributor.address, driver, amount: units }),
     );
-    return receipt(hash, `Listo. ${nameOf(driverId)} entregó ${formatMoney(toDollars(units))} en efectivo.`);
+    return receipt(hash, `Listo. ${party.name} entregó ${formatMoney(toDollars(units))} en efectivo.`);
   } catch (error) {
     return failure(error);
   }
@@ -265,12 +274,15 @@ export async function createInvoices(rows: InvoiceRow[]): Promise<Receipt> {
   let created = 0;
   let lastHash = "";
   try {
+    const directory = await getDirectory();
+    const distributor = directory.find("distributor", "distributor");
+    if (!distributor) return fail(FALLBACK_MESSAGE);
     // Check everything before sending anything: the rows come from the browser.
     const ids = new Set<number>();
     for (const [index, row] of rows.entries()) {
       const line = `Fila ${index + 1}`;
-      if (!SHOP_IDS.includes(row.shopId as Role)) return fail(`${line}: tienda desconocida.`);
-      if (!DRIVER_IDS.includes(row.driverId as Role)) return fail(`${line}: motorista desconocido.`);
+      if (!directory.find(row.shopId, "shop")) return fail(`${line}: tienda desconocida.`);
+      if (!directory.find(row.driverId, "driver")) return fail(`${line}: motorista desconocido.`);
       if (!Number.isSafeInteger(row.invoiceId) || row.invoiceId <= 0) return fail(`${line}: número de factura inválido.`);
       if (ids.has(row.invoiceId)) return fail(`${line}: la factura ${row.invoiceId} está repetida.`);
       ids.add(row.invoiceId);
@@ -286,12 +298,12 @@ export async function createInvoices(rows: InvoiceRow[]): Promise<Receipt> {
       if (await chainInvoice(row.invoiceId)) return fail(`Fila ${index + 1}: la factura ${row.invoiceId} ya existe.`);
     }
     for (const row of rows) {
-      const { hash } = await run("distributor", (client) =>
+      const { hash } = await run(distributor.id, (client) =>
         client.create_invoice({
-          distributor: addressOf("distributor") as string,
+          distributor: distributor.address,
           id: BigInt(row.invoiceId),
-          shop: addressOf(row.shopId) as string,
-          driver: addressOf(row.driverId) as string,
+          shop: directory.find(row.shopId, "shop")!.address,
+          driver: directory.find(row.driverId, "driver")!.address,
           amount: toUnits(String(row.amount).trim()),
           due: BigInt(toUnixSeconds(row.dueDate)),
         }),
@@ -310,12 +322,14 @@ export async function createInvoices(rows: InvoiceRow[]): Promise<Receipt> {
 
 /** A new invoice from the approved distributor. Throws a Spanish message if it can't. */
 export async function createDemoInvoice(shopId?: string): Promise<Invoice> {
-  if (shopId !== undefined && !SHOP_IDS.includes(shopId as Role)) throw new Error("Tienda desconocida.");
+  const directory = await getDirectory();
+  const distributor = directory.find("distributor", "distributor");
+  if (!distributor || (shopId !== undefined && !directory.find(shopId, "shop"))) throw new Error("Tienda desconocida.");
   let skip = 0n; // ids found taken by someone else (code 1, AlreadyExists)
   for (let attempt = 0; attempt < DEMO_TRIES; attempt++) {
     let id = 0n;
     try {
-      await run("distributor", async (client) => {
+      await run(distributor.id, async (client) => {
         // Picked inside the distributor's queue so two taps never pick the same id.
         const list = await read(readClient().list_invoices());
         id = list.reduce((max, i) => (i.id > max ? i.id : max), 1000n) + 1n + skip;
@@ -325,10 +339,10 @@ export async function createDemoInvoice(shopId?: string): Promise<Invoice> {
         const jitter = BigInt(Math.floor(Math.random() * 600));
         const due = BigInt(Math.floor(Date.now() / 1000)) + WEEK_SECS + jitter;
         return client.create_invoice({
-          distributor: addressOf("distributor") as string,
+          distributor: distributor.address,
           id,
-          shop: addressOf(shop) as string,
-          driver: addressOf(DEMO_DRIVER[shop]) as string,
+          shop: directory.find(shop, "shop")!.address,
+          driver: directory.find(DEMO_DRIVER[shop], "driver")!.address,
           amount: toUnits(DEMO_AMOUNTS[Number(id % 3n)]),
           due,
         });
