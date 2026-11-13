@@ -1,0 +1,120 @@
+"use client";
+
+import { type CSSProperties, type ReactNode, useState } from "react";
+import { useT } from "@/lib/i18n";
+import { Money, moneyWidth } from "./money";
+
+/**
+ * Paper holds facts: amounts, dates, names, history, status. Warm off-white on the counter, near-square
+ * corners, hairline rules, no shadow. Nothing on paper is tappable except a "Ver detalles" text link.
+ */
+export function Paper({ children, className = "", as: Tag = "section" }: { children: ReactNode; className?: string; as?: "section" | "div" | "article" | "li" }) {
+  return <Tag className={`rounded-paper bg-paper ${className}`}>{children}</Tag>;
+}
+
+/**
+ * El recibo: the printed slip, torn at top and bottom. `printIn` reveals it top to bottom, once, when an
+ * invoice first loads. Build it from the parts below.
+ */
+export function Receipt({ children, printIn = false, className = "" }: { children: ReactNode; printIn?: boolean; className?: string }) {
+  return (
+    <section className={`torn bleed-narrow @container flex flex-col gap-3 bg-paper px-[clamp(0.75rem,6cqi,1.5rem)] py-4 ${printIn ? "print-in" : ""} ${className}`}>
+      {children}
+    </section>
+  );
+}
+
+/** Who the slip is from, then its number and date in mono, centred like a printed header. */
+export function ReceiptHeader({ from, number, date, children }: { from: ReactNode; number?: ReactNode; date?: ReactNode; children?: ReactNode }) {
+  return (
+    <header className="flex flex-col items-center gap-1 text-center">
+      <p className="text-lead font-bold uppercase tracking-[0.06em] text-balance">{from}</p>
+      {(number || date) && (
+        <p className="font-mono text-label font-medium uppercase tracking-[0.04em] text-muted">
+          {number}
+          {number && date && " · "}
+          {date}
+        </p>
+      )}
+      {children}
+    </header>
+  );
+}
+
+export function ReceiptRule({ double = false }: { double?: boolean }) {
+  return <hr className={double ? "rule-double" : "rule-dotted"} />;
+}
+
+/** The lines of a slip. Each one is a ReceiptLine. */
+export function ReceiptLines({ children }: { children: ReactNode }) {
+  return <dl className="flex flex-col gap-1.5">{children}</dl>;
+}
+
+/** One printed line: label, dotted leader, figure. `strong` for the line that matters most. */
+export function ReceiptLine({ label, children, strong = false }: { label: ReactNode; children: ReactNode; strong?: boolean }) {
+  return (
+    <div className={`flex items-end font-mono text-base ${strong ? "font-semibold text-ink" : "font-medium text-muted"}`}>
+      <dt className="flex min-w-0 flex-1 items-end">
+        <span className="min-w-0">{label}</span>
+        <span aria-hidden className="leader" />
+      </dt>
+      <dd className="shrink-0 text-right text-ink">{children}</dd>
+    </div>
+  );
+}
+
+/**
+ * Lines that fold away on a short screen, so the total and the pay buttons stay in view without scrolling:
+ * "Ver productos (3)". On a tall screen the lines simply show and there is nothing to tap.
+ * (This and "Ver detalles" are the only things on paper that respond to a tap.)
+ */
+export function ReceiptFold({ count, children }: { count: number; children: ReactNode }) {
+  const { t } = useT();
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="-my-1.5 flex flex-col [@media(min-height:46rem)]:my-0">
+      <button
+        type="button"
+        onClick={() => setOpen((now) => !now)}
+        aria-expanded={open}
+        className="min-h-11 self-start font-semibold text-brand underline decoration-[1.5px] underline-offset-4 [@media(min-height:46rem)]:hidden"
+      >
+        {open ? t("Ocultar productos", "Hide items") : t(`Ver productos (${count})`, `See items (${count})`)}
+      </button>
+      <div className={open ? "pb-1.5" : "hidden [@media(min-height:46rem)]:block"}>{children}</div>
+    </div>
+  );
+}
+
+/**
+ * The total under its double rule. On the shop's invoice this is the largest thing in the product, and it
+ * shrinks to fit rather than clip when the amount is long or the screen is 280 px wide.
+ */
+export function ReceiptTotal({ label, value, note, children }: { label: ReactNode; value: number; note?: ReactNode; children?: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <ReceiptRule double />
+      <p className="flex items-baseline justify-between gap-3 pt-1.5">
+        <span className="text-label font-bold uppercase tracking-[0.12em]">{label}</span>
+        {note && <span className="text-right font-mono text-label font-medium text-muted">{note}</span>}
+      </p>
+      <p
+        className="fit-figure font-mono font-semibold leading-none tracking-[-0.03em]"
+        style={{ "--fit-max": "var(--text-total)", "--fit-chars": moneyWidth(value) } as CSSProperties}
+      >
+        <Money value={value} />
+      </p>
+      {children}
+    </div>
+  );
+}
+
+/** The foot of a slip: a line of words on the left, the stamp slot on the right. */
+export function ReceiptFoot({ children, stamp }: { children?: ReactNode; stamp?: ReactNode }) {
+  return (
+    <div className="flex min-h-11 items-center justify-between gap-3">
+      <div className="min-w-0 text-base text-muted">{children}</div>
+      {stamp && <div className="-mt-2 shrink-0 pr-1">{stamp}</div>}
+    </div>
+  );
+}

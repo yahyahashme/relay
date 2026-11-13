@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 /** The invoice drawn as the paper factura a shop already knows: white slip, torn bottom edge. */
 export function Ticket({ children }: { children: ReactNode }) {
   return (
-    <div className="ticket-shadow">
+    <div>
       <section className="ticket flex flex-col gap-3.5 rounded-t-2xl bg-card px-4 pb-7 pt-4">{children}</section>
     </div>
   );
@@ -38,7 +38,7 @@ export function Stamp({
   return (
     <span
       onAnimationEnd={onLanded}
-      className={`stamp ml-auto shrink-0 rounded-md border-[3px] px-2 py-0.5 text-lg font-extrabold uppercase tracking-wide ${
+      className={`stamp-old ml-auto shrink-0 rounded-md border-[3px] px-2 py-0.5 text-lg font-extrabold uppercase tracking-wide ${
         tone === "paid" ? "border-ok text-ok" : "border-credit text-credit"
       } ${fresh ? "stamp-fresh" : ""}`}
     >
@@ -136,7 +136,7 @@ export function OptionLink({ href, title, hint, children }: { href: string; titl
 /** Keeps the one main action under the thumb while the rest of the screen scrolls. */
 export function ThumbBar({ children }: { children: ReactNode }) {
   return (
-    <div className="pointer-events-none sticky bottom-0 -mx-4 -mb-10 mt-auto bg-linear-to-t from-paper from-70% to-transparent px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-4 *:pointer-events-auto">
+    <div className="pointer-events-none sticky bottom-0 -mx-4 -mb-10 mt-auto bg-linear-to-t from-counter from-70% to-transparent px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-4 *:pointer-events-auto">
       {children}
     </div>
   );
