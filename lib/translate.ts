@@ -149,6 +149,14 @@ const RULES: Rule[] = [
   pattern(String.raw`La nota puede tener hasta ${NUM} letras\.`, "The note can have up to $1 characters."),
   pattern(String.raw`Hay dos tiendas con ese nombre: (.*)`, "Two shops have that name: $1"),
   pattern(String.raw`Hay dos motoristas con ese nombre: (.*)`, "Two drivers have that name: $1"),
+
+  // Shop sign-up (#134)
+  exact("La dirección es muy larga.", "The address is too long."),
+  exact("Elija qué tipo de tienda es.", "Choose what kind of shop it is."),
+  exact("Puede agregar hasta 3 contactos.", "You can add up to 3 contacts."),
+  exact("Escriba el nombre de cada contacto.", "Enter each contact's name."),
+  exact("Escriba un teléfono de El Salvador (8 dígitos) para cada contacto.", "Enter a Salvadoran phone number (8 digits) for each contact."),
+  exact("Un contacto de confianza no puede ser su propio teléfono.", "A trusted contact can't be your own phone."),
 ];
 
 /**

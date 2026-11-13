@@ -118,3 +118,14 @@ CREATE TABLE IF NOT EXISTS invoice_notes (
   note TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Shop sign-up (#134): what kind of shop, and up to 3 trusted contacts per person.
+ALTER TABLE shops ADD COLUMN IF NOT EXISTS kind TEXT;
+CREATE TABLE IF NOT EXISTS trusted_contacts (
+  id         TEXT PRIMARY KEY,
+  user_id    TEXT NOT NULL REFERENCES users(id),
+  name       TEXT NOT NULL,
+  phone      TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS trusted_contacts_user ON trusted_contacts (user_id);

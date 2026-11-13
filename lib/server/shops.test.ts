@@ -121,3 +121,56 @@ describe("adding shops", () => {
     expect(await shops.linkShop(sol, added.shopId, null)).toBe(false);
   });
 });
+
+describe("shop sign-up (#134)", () => {
+  let norte = "";
+  beforeEach(async () => {
+    norte = (await setup()).norte.id;
+  });
+  const owner = { name: "Rosa Pérez", phone: "7000-0134", password: "segura123" };
+  const details = { shopName: "Tienda Rosa", address: "Calle 3", kind: "Mini súper" };
+
+  it("checks the owner before anything is created", async () => {
+    expect(await shops.checkOwner(owner)).toBeNull();
+    expect(await shops.checkOwner({ ...owner, name: "R" })).toBe("Escriba su nombre.");
+    expect(await shops.checkOwner({ ...owner, phone: "rosa@example.com" })).toBe("Escriba un teléfono de El Salvador (8 dígitos).");
+    expect(await shops.checkOwner({ ...owner, password: "corta" })).toBe("La contraseña debe tener al menos 8 caracteres.");
+  });
+
+  it("signs a shop up alone: its own user and wallet, in the directory", async () => {
+    const result = await shops.signUpShop({ ...owner, ...details }, noNetwork);
+    if (!result.ok) throw new Error(result.message);
+    const party = (await getDirectory()).find(result.shopId!, "shop");
+    expect(party).toMatchObject({ name: "Tienda Rosa", owner: "Rosa Pérez", address: result.user.stellarAddress });
+    expect(await shops.shopIdForUser(result.user)).toBe(result.shopId);
+    expect(await shops.checkOwner(owner)).toBe("Ya hay una cuenta con ese teléfono o correo. Entre con su contraseña.");
+    expect(await shops.signUpShop({ ...owner, phone: "7000-0135", ...details, kind: "Banco" }, noNetwork)).toEqual({
+      ok: false,
+      message: "Elija qué tipo de tienda es.",
+    });
+  });
+
+  it("claims an invite with the shop's details", async () => {
+    const added = await shops.addShopWithoutAccount(norte, marta, noNetwork);
+    if ("error" in added) throw new Error(added.error);
+    const claimed = await shops.claimShop(added.code, { ownerName: owner.name, phone: owner.phone, password: owner.password, ...details }, noNetwork);
+    expect(claimed).toMatchObject({ ok: true, shopId: added.shopId });
+    const [row] = await shops.listShops(norte);
+    expect(row).toMatchObject({ name: "Tienda Rosa", address: "Calle 3", status: "activa" });
+  });
+
+  it("keeps up to 3 trusted contacts, never the owner's own phone", async () => {
+    const result = await shops.signUpShop({ ...owner, ...details }, noNetwork);
+    if (!result.ok) throw new Error(result.message);
+    const user = result.user;
+    expect(await shops.saveTrustedContacts(user, [{ name: "Ana", phone: "7111-2222" }, { name: "", phone: "" }])).toBeNull();
+    expect(await shops.trustedContacts(user)).toEqual([{ name: "Ana", phone: "+50371112222" }]);
+    expect(await shops.saveTrustedContacts(user, [{ name: "Yo", phone: owner.phone }])).toBe("Un contacto de confianza no puede ser su propio teléfono.");
+    expect(await shops.saveTrustedContacts(user, [{ name: "Ana", phone: "123" }])).toBe(
+      "Escriba un teléfono de El Salvador (8 dígitos) para cada contacto.",
+    );
+    const four = Array.from({ length: 4 }, (_, i) => ({ name: `C${i}x`, phone: `7111-222${i}` }));
+    expect(await shops.saveTrustedContacts(user, four)).toBe("Puede agregar hasta 3 contactos.");
+    expect(await shops.trustedContacts(user)).toHaveLength(1); // a refused list changes nothing
+  });
+});
