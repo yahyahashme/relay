@@ -33,17 +33,17 @@ The Pitch Prep Workshop may have its own agenda from 6 PM. If it does, do sectio
 | 1 | Home page `/` | Buttons: Distribuidora El Sol, each Motorista (Carlos, Ana), each Tienda with its open invoices. | |
 | 2 | Driver: open Carlos's route `/ruta/motorista-1` | "Ruta de Carlos", "N paradas hoy · M por cobrar", "Efectivo en mano $X". | |
 | 3 | Driver: tap a stop | A QR code and "La tienda escanea este código para pagar." | |
-| 4 | Shop: open that invoice (scan the QR from a second phone, or use the link on the home page) | Shop name, amount, chip "Pendiente", "Vence el …", and three buttons: Pagar ahora, Pagar en 7 días, Pagué en efectivo. | |
-| 5 | Shop: tap **Pagar ahora** | A spinner, then "Pago recibido: $X en dólares digitales." and the chip becomes "Pagada". | |
+| 4 | Shop: open that invoice (scan the QR from a second phone, or use the link on the home page) | Shop name, amount, chip "Pendiente", "Vence el …", the list Pagar en 7 días, Pagar otro monto, Pagué en efectivo, and the Pagar ahora button at the bottom. | |
+| 5 | Shop: tap **Pagar ahora** | A spinner, then "Pago recibido: $X en dólares digitales." and a green "PAGADA" stamp replaces the chip. | |
 | 6 | Shop: tap "Ver detalles" on the receipt | Opens the transaction on stellar.expert (testnet). The page is not blank and not an error. | |
 | 7 | Driver: wait up to 5 seconds, no refresh | The same stop shows "Pagada". | |
-| 8 | Shop: new invoice, tap **Pagar en 7 días** | "Listo. Tiene hasta el <date> para pagar $X, sin intereses." | |
+| 8 | Shop: new invoice, tap **Pagar en 7 días**, then **Confirmo** | First "Hoy no paga nada. Paga $X en 7 días." Then "Listo. Tiene hasta el <date> para pagar $X, sin intereses." | |
 | 9 | Shop: tap **Mi cuenta** | "Debe $X", "Vence el <date>", "Límite de crédito", "Disponible". The limit starts at $200. | |
 | 10 | Shop: open an invoice that would take the debt over the $200 limit. Use seed invoice **1003** (Mini Súper La Esquina, $220.00: over the limit on purpose). If someone already paid it, use Mini Súper's demo invoices ($85.50 each): buy two on credit ($171.00), and the third is over the limit. | "Pagar en 7 días" is greyed out, with the hint "Supera su límite de crédito". | |
 | 11 | Shop: **Pagar deuda** on Mi cuenta | "Deuda pagada a tiempo. Su límite subió a $…" (the limit grows only after a $40+ cycle, once per credit period, so "Deuda pagada a tiempo. Gracias." is also correct). Then "No tiene deudas pendientes." | |
 | 12 | Cash, shop first: new invoice, **Pagué en efectivo** before the driver did anything | "El motorista aún no registró el efectivo." | |
 | 13 | Cash, driver: tap the stop, then **Recibí efectivo** | The button shows the amount. Then "Esperando que la tienda confirme $X." and the chip "Efectivo por confirmar". | |
-| 14 | Cash, shop: **Pagué en efectivo**, then **Confirmo** | "Carlos registró $X en efectivo." then "Listo. Confirmó $X en efectivo." The driver's "Efectivo en mano" goes up by $X. | |
+| 14 | Cash, shop: **Confirmo** (the "Pagué en efectivo" panel opens by itself within 5 seconds of step 13; tap **Pagué en efectivo** if it is closed) | "Carlos registró $X en efectivo." then "Listo. Confirmó $X en efectivo." The driver's "Efectivo en mano" goes up by $X. | |
 | 15 | Dashboard `/distribuidor` after steps 5 to 14 | The tiles "Cobrado digital", "Efectivo por motorista", "En crédito", "Vencido" moved within 5 seconds ("Se actualiza cada 5 segundos."). | |
 | 16 | Dashboard: tap **Nueva factura de demo** | A new invoice appears on the list and on a shop's home page. | |
 | 17 | Pay twice: open one unpaid invoice on two phones, tap Pagar ahora on both (or double-tap fast) | Money moves **once**. The second attempt shows a plain Spanish message, not a raw error code. "Blocks paying twice" is a claim in our pitch. | |
@@ -53,7 +53,7 @@ The Pitch Prep Workshop may have its own agenda from 6 PM. If it does, do sectio
 | 21 | Words check: read every main screen | No "blockchain", "wallet", "crypto" or "token". "USDC on Stellar" is allowed only behind "Ver detalles". Everything is in Spanish. | |
 
 **Only if your build has them (not on `main` on Nov 11):**
-- "Pagar otro monto" on the shop's invoice (#75): pay part of an invoice, then see "Pagado $X · Falta $Y" and the chip "Parcial".
+- "Pagar otro monto" on the shop's invoice (#75): pay part of an invoice, then see the lines "Pagado −$X" and "Falta $Y" and the chip "Parcial".
 - "Marcar efectivo entregado" on the dashboard next to a driver (#76): the driver's cash goes back to $0.
 - `/demo` and the big-screen dashboard (#70).
 

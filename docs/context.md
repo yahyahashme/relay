@@ -249,7 +249,7 @@ export type Driver = { id: string; name: string; cashHeld: number };
 
 **R1. App skeleton** (due Sun Nov 8)
 - Pages: `/` (pick a demo role: Distribuidor, Motorista, Tienda), `/distribuidor`, `/ruta/[driverId]`, `/tienda/[invoiceId]`, `/tienda/cuenta/[shopId]`.
-- `/tienda/[invoiceId]`: shop name, amount, three big buttons: "Pagar ahora", "Pagar en 7 días" (greyed out with the reason when not allowed, e.g. "Tiene un pago vencido"), "Pagué en efectivo". After a tap, a receipt screen.
+- `/tienda/[invoiceId]`: the invoice drawn as a paper receipt (shop name, amount, due date), one main button "Pagar ahora" at the bottom of the screen, and a list of the other ways to pay: "Pagar en 7 días" (greyed out with the reason when not allowed, e.g. "Tiene un pago vencido"; it opens one line of terms and a "Confirmo" button), "Pagar otro monto", "Pagué en efectivo" (opens by itself once the driver has registered cash). A paid invoice gets a "PAGADA" stamp. (Nov 13: was three big buttons.)
 - `/tienda/cuenta/[shopId]`: what the shop owes, the due date, a "Pagar deuda" button, the credit limit and how to grow it.
 - `lib/api.ts` mock functions: `getInvoices`, `getInvoice`, `payNow`, `payLater`, `claimCash`, `confirmCash`, `repay`, `getShop`, `getDrivers`. Each waits one second, like a real network call.
 - Mock data: 1 distributor, 2 drivers, 3 shops, 8 invoices.
