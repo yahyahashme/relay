@@ -1,11 +1,11 @@
 "use client";
 
-import { type ReactNode, useState } from "react";
-import { BackLink, Card, Chip, Label, LoadError, Loading, Screen } from "@/components/ui";
-import { createDemoInvoice, getDrivers, getInvoices, getShop } from "@/lib/api";
+import { type ReactNode, useEffect, useRef, useState } from "react";
+import { BackLink, Card, Chip, Label, LoadError, Loading, ReceiptView, Screen } from "@/components/ui";
+import { createDemoInvoice, getDrivers, getInvoiceHistory, getShop, getTotals, handInCash } from "@/lib/api";
 import { formatDay, formatMoney } from "@/lib/format";
 import { creditPayout, invoiceStatus, METHOD_LABEL, type StatusTone } from "@/lib/labels";
-import type { Shop } from "@/lib/types";
+import type { Invoice, Receipt, Shop } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
 
 const STATUS_FILTERS: { label: string; tone?: StatusTone }[] = [
@@ -16,11 +16,49 @@ const STATUS_FILTERS: { label: string; tone?: StatusTone }[] = [
   { label: "Crédito", tone: "credit" },
 ];
 
-async function loadDashboard() {
-  const [invoices, drivers] = await Promise.all([getInvoices(), getDrivers()]);
+/** `pages` pages of history (newest first): every refresh re-reads all of them, so nothing goes stale. */
+async function loadDashboard(pages: number) {
+  const [history, drivers, totals] = await Promise.all([getInvoiceHistory(pages), getDrivers(), getTotals()]);
+  const { invoices, total } = history;
   const shopIds = [...new Set(invoices.map((i) => i.shopId))];
   const shops = (await Promise.all(shopIds.map(getShop))).filter((s): s is Shop => s !== null);
-  return { invoices, drivers, shops };
+  return { invoices, total, totals, drivers, shops };
+}
+
+const HIGHLIGHT_MS = 4000;
+
+/** What a row looks like; when it changes between refreshes, the row lights up. */
+const rowKey = (i: Invoice) => `${i.status}|${i.paid}|${i.method ?? ""}|${i.cashClaim ?? ""}`;
+
+/**
+ * Ids of invoices that are new or changed since the last refresh, for a few seconds.
+ * "New" means newer than anything loaded before: older rows that "Ver más" adds don't light up.
+ */
+function useChangedRows(invoices: Invoice[] | undefined): Set<number> {
+  const seen = useRef<Map<number, string> | null>(null);
+  const [changed, setChanged] = useState<Map<number, number>>(new Map());
+  useEffect(() => {
+    if (!invoices) return;
+    const before = seen.current;
+    seen.current = new Map(invoices.map((i) => [i.id, rowKey(i)]));
+    if (!before) return; // first load: nothing "changed"
+    const now = Date.now();
+    const newestBefore = Math.max(0, ...before.keys());
+    const fresh = invoices
+      .filter((i) => (before.has(i.id) ? before.get(i.id) !== rowKey(i) : i.id > newestBefore))
+      .map((i) => i.id);
+    if (fresh.length === 0) return;
+    setChanged((old) => new Map([...old, ...fresh.map((id) => [id, now] as const)]));
+  }, [invoices]);
+  useEffect(() => {
+    if (changed.size === 0) return;
+    const timer = setTimeout(
+      () => setChanged((old) => new Map([...old].filter(([, at]) => Date.now() - at < HIGHLIGHT_MS))),
+      HIGHLIGHT_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [changed]);
+  return new Set(changed.keys());
 }
 
 const sum = (values: number[]) => Math.round(values.reduce((a, b) => a + b, 0) * 100) / 100;
@@ -44,17 +82,38 @@ function Total({ label, children }: { label: string; children: ReactNode }) {
   return (
     <Card className="flex flex-col gap-1">
       <Label>{label}</Label>
-      <div className="text-2xl font-semibold tabular-nums">{children}</div>
+      <div className="text-2xl font-semibold tabular-nums lg:text-4xl">{children}</div>
     </Card>
   );
 }
 
 export default function Dashboard() {
-  const { data, failed, reload } = usePolling("dashboard", loadDashboard);
+  const [pages, setPages] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const { data, failed, reload } = usePolling("dashboard", () => loadDashboard(pages));
+  const firstPages = useRef(pages);
+  useEffect(() => {
+    if (pages === firstPages.current) return; // the first load is usePolling's
+    firstPages.current = pages;
+    setLoadingMore(true);
+    void reload().finally(() => setLoadingMore(false));
+  }, [pages, reload]);
   const [statusFilter, setStatusFilter] = useState<StatusTone | "all">("all");
   const [driverFilter, setDriverFilter] = useState("all");
   const [creating, setCreating] = useState(false);
   const [newest, setNewest] = useState<number | null>(null);
+  const changed = useChangedRows(data?.invoices);
+  const [handingIn, setHandingIn] = useState<string | null>(null);
+  const [cashReceipt, setCashReceipt] = useState<Receipt | null>(null);
+
+  async function cashHandedIn(driverId: string, amount: number) {
+    setHandingIn(driverId);
+    setCashReceipt(null);
+    const result = await handInCash(driverId, amount);
+    if (result.ok) await reload();
+    setCashReceipt(result);
+    setHandingIn(null);
+  }
 
   async function newDemoInvoice() {
     setCreating(true);
@@ -94,15 +153,15 @@ export default function Dashboard() {
     );
   }
 
-  const { invoices, drivers, shops } = data;
+  const { invoices, total, totals, drivers, shops } = data;
   const shopName = (id: string) => shops.find((s) => s.id === id)?.name ?? id;
   const driverName = (id: string) => drivers.find((d) => d.id === id)?.name ?? id;
 
-  const collected = sum(invoices.filter((i) => i.method === "digital").map((i) => i.paid));
+  const collected = totals.digital; // all history, from the contract's running totals
   const onCredit = sum(shops.map((s) => s.creditOwed));
   const overdue = sum(shops.filter((s) => s.overdue).map((s) => s.creditOwed));
 
-  const rows = invoices.filter(
+  const rows = invoices.filter( // already newest first
     (i) =>
       (statusFilter === "all" || invoiceStatus(i).tone === statusFilter) &&
       (driverFilter === "all" || i.driverId === driverFilter),
@@ -117,13 +176,22 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Total label="Cobrado digital">{formatMoney(collected)}</Total>
         <Total label="Efectivo por motorista">
-          <span className="text-lg">
-            {drivers.map((d, index) => (
-              <span key={d.id}>
-                {index > 0 && " · "}
+          <span className="flex flex-col gap-2 text-lg">
+            {drivers.map((d) => (
+              <span key={d.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                 <span className="whitespace-nowrap">
                   {d.name} {formatMoney(d.cashHeld)}
                 </span>
+                {d.cashHeld > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => cashHandedIn(d.id, d.cashHeld)}
+                    disabled={handingIn !== null}
+                    className="min-h-12 rounded-xl border border-brand px-3 text-base font-semibold text-brand active:bg-brand-soft disabled:border-line disabled:text-muted"
+                  >
+                    {handingIn === d.id ? "Guardando..." : "Marcar efectivo entregado"}
+                  </button>
+                )}
               </span>
             ))}
           </span>
@@ -133,6 +201,8 @@ export default function Dashboard() {
           <span className={overdue > 0 ? "text-bad" : ""}>{formatMoney(overdue)}</span>
         </Total>
       </div>
+
+      {cashReceipt && <ReceiptView receipt={cashReceipt} />}
 
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
@@ -171,7 +241,10 @@ export default function Dashboard() {
             {rows.map((invoice) => {
               const status = invoiceStatus(invoice);
               return (
-                <tr key={invoice.id} className={invoice.id === newest ? "bg-brand-soft" : ""}>
+                <tr
+                  key={invoice.id}
+                  className={`transition-colors duration-700 lg:text-lg ${invoice.id === newest || changed.has(invoice.id) ? "bg-brand-soft" : ""}`}
+                >
                   <td className="px-4 py-3 font-medium tabular-nums">{invoice.id}</td>
                   <td className="px-4 py-3">{shopName(invoice.shopId)}</td>
                   <td className="px-4 py-3">{driverName(invoice.driverId)}</td>
@@ -202,6 +275,22 @@ export default function Dashboard() {
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="flex flex-col items-center gap-3">
+        <p className="text-muted">
+          Mostrando las {invoices.length} facturas más recientes de {total}.
+        </p>
+        {invoices.length < total && (
+          <button
+            type="button"
+            onClick={() => setPages((p) => p + 1)}
+            disabled={loadingMore}
+            className="min-h-12 rounded-xl border border-brand px-5 text-lg font-semibold text-brand active:bg-brand-soft disabled:border-line disabled:text-muted"
+          >
+            {loadingMore ? "Cargando..." : "Ver más"}
+          </button>
+        )}
       </div>
     </Screen>
   );

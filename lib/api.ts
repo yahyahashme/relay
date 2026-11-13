@@ -8,7 +8,7 @@
 
 import * as live from "@/app/actions";
 import * as mock from "./mock";
-import type { Driver, Invoice, InvoiceRow, Pool, Receipt, Shop } from "./types";
+import type { Driver, Invoice, InvoiceHistory, InvoiceRow, Pool, Receipt, Shop, Totals } from "./types";
 
 export const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS !== "false";
 
@@ -45,6 +45,11 @@ export const getShop = (shopId: string): Promise<Shop | null> =>
   read(() => mock.getShop(shopId), () => live.getShop(shopId));
 export const getDrivers = (): Promise<Driver[]> => read(mock.getDrivers, live.getDrivers);
 export const getPool = (): Promise<Pool> => read(mock.getPool, live.getPool);
+/** The whole history a page at a time: `pages` pages, newest first. */
+export const getInvoiceHistory = (pages: number): Promise<InvoiceHistory> =>
+  read(() => mock.getInvoiceHistory(pages), () => live.getInvoiceHistory(pages));
+/** Everything ever paid, by method, for the dashboard's totals. */
+export const getTotals = (): Promise<Totals> => read(mock.getTotals, live.getTotals);
 export const createDemoInvoice = (shopId?: string): Promise<Invoice> =>
   read(() => mock.createDemoInvoice(shopId), () => live.createDemoInvoice(shopId));
 
@@ -57,8 +62,12 @@ export const payLater = (invoiceId: number) =>
   write(() => mock.payLater(invoiceId), () => live.payLater(invoiceId));
 export const claimCash = (invoiceId: number, amount: number) =>
   write(() => mock.claimCash(invoiceId, amount), () => live.claimCash(invoiceId, amount));
-export const confirmCash = (invoiceId: number) =>
-  write(() => mock.confirmCash(invoiceId), () => live.confirmCash(invoiceId));
+/** `amount` is the claim the shop saw: if the driver changed it since, nothing happens. */
+export const confirmCash = (invoiceId: number, amount: number) =>
+  write(() => mock.confirmCash(invoiceId, amount), () => live.confirmCash(invoiceId, amount));
 export const repay = (shopId: string, amount: number) =>
   write(() => mock.repay(shopId, amount), () => live.repay(shopId, amount));
+/** The distributor got a driver's cash at the warehouse (only lowers the driver's cash count). */
+export const handInCash = (driverId: string, amount: number) =>
+  write(() => mock.handInCash(driverId, amount), () => live.handInCash(driverId, amount));
 export const createInvoices = (rows: InvoiceRow[]) => write(() => mock.createInvoices(rows));
