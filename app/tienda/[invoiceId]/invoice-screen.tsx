@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { QUIET_MS, TapShield, useTapShield } from "@/components/tap-shield";
 import { Option, OptionList, Stamp, ThumbBar, Ticket, TicketRow, TicketRule } from "@/components/ticket";
 import { BackLink, Button, ButtonLink, Chip, LoadError, Loading, NotFound, ReceiptView, Screen } from "@/components/ui";
 import { confirmCash, getDrivers, getInvoice, getShop, payLater, payNow } from "@/lib/api";
@@ -13,8 +14,6 @@ import { usePolling } from "@/lib/use-polling";
 
 type Action = "now" | "part" | "later" | "cash";
 type Panel = "later" | "part" | "cash";
-
-const QUIET_MS = 900;
 
 /**
  * True for a beat after `value` changes (not on its first value). The pay
@@ -57,6 +56,7 @@ export default function InvoiceScreen() {
   const [partText, setPartText] = useState("");
   const [partError, setPartError] = useState<string | null>(null);
   const [landed, setLanded] = useState(false); // the stamp has played; don't replay it on Back
+  const { noteTap, settle } = useTapShield();
   const claimJustChanged = useQuietAfterChange(data?.invoice ? data.invoice.cashClaim !== undefined : null);
 
   async function run(action: Action, write: () => Promise<Receipt>) {
@@ -69,8 +69,8 @@ export default function InvoiceScreen() {
       setPartText("");
     }
     setReceipt(result);
-    // The bar comes back where the panel's button was: hold everything for a beat so a repeat tap can't pay the rest.
-    if (result.ok && action !== "now") await new Promise((resolve) => setTimeout(resolve, QUIET_MS));
+    // The bar comes back where the panel's button was: hold everything until the taps stop, so a repeat tap can't pay the rest.
+    if (result.ok && action !== "now") await settle();
     setBusy(null);
   }
 
@@ -126,6 +126,7 @@ export default function InvoiceScreen() {
       <p role="status" className="sr-only">
         {busy !== null ? "Procesando..." : ""}
       </p>
+      {busy !== null && <TapShield onTap={noteTap} />}
 
       <Ticket>
         <header>
