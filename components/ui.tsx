@@ -14,7 +14,10 @@ export function Screen({ children, wide = false }: { children: ReactNode; wide?:
 export function BackLink({ href = "/", label = "Inicio" }: { href?: string; label?: string }) {
   return (
     <Link href={href} className="-ml-1 inline-flex min-h-12 items-center gap-1 self-start px-1 text-base font-medium text-brand">
-      <span aria-hidden>‹</span> {label}
+      <svg aria-hidden viewBox="0 0 20 20" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12.5 4.5 7 10l5.5 5.5" />
+      </svg>
+      {label}
     </Link>
   );
 }
@@ -30,7 +33,7 @@ export function Label({ children }: { children: ReactNode }) {
 type Variant = "primary" | "secondary";
 
 const BUTTON =
-  "flex min-h-14 w-full flex-col items-center justify-center rounded-xl px-5 py-2 text-center text-lg font-semibold transition-colors disabled:cursor-not-allowed";
+  "flex min-h-14 w-full flex-col items-center justify-center rounded-xl px-5 py-2 text-center text-lg font-semibold transition-[background-color,scale] duration-150 ease-(--ease-out) active:scale-[0.97] disabled:cursor-not-allowed disabled:active:scale-100";
 const VARIANT: Record<Variant, string> = {
   primary: "bg-brand text-white active:bg-brand-dark disabled:bg-line disabled:text-muted",
   secondary: "border-2 border-brand bg-card text-brand active:bg-brand-soft disabled:border-line disabled:text-muted",
@@ -114,7 +117,9 @@ export function ReceiptView({ receipt }: { receipt: Receipt }) {
       role="status"
       className={`flex items-start gap-3 rounded-xl px-4 py-3 text-base ${receipt.ok ? "bg-ok-soft text-ok" : "bg-bad-soft text-bad"}`}
     >
-      <span aria-hidden className="text-xl leading-6">{receipt.ok ? "✓" : "!"}</span>
+      <svg aria-hidden viewBox="0 0 20 20" className="mt-0.5 size-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round">
+        <path d={receipt.ok ? "m4 10.5 4 4 8-9" : "M10 4v7.5M10 15.5v.01"} />
+      </svg>
       <div className="flex flex-col gap-1">
         <p className="font-medium">{receipt.message}</p>
         {receipt.explorerUrl && (

@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { BackLink, Button, ButtonLink, Card, Chip, LoadError, Loading, NotFound, ReceiptView, Screen } from "@/components/ui";
+import { Option, OptionList, Stamp, ThumbBar, Ticket, TicketRow, TicketRule } from "@/components/ticket";
+import { BackLink, Button, ButtonLink, Chip, LoadError, Loading, NotFound, ReceiptView, Screen } from "@/components/ui";
 import { confirmCash, getDrivers, getInvoice, getShop, payLater, payNow } from "@/lib/api";
 import { formatDay, formatMoney } from "@/lib/format";
 import { invoiceStatus, leftToPay, METHOD_LABEL, parseAmount, partPayError } from "@/lib/labels";
@@ -41,10 +43,10 @@ export default function InvoiceScreen() {
     setReceipt(null);
     const result = await write();
     if (result.ok) {
+      await reload(); // show the receipt and the new status together
       setShowCash(false);
       setShowPart(false);
       setPartText("");
-      await reload(); // show the receipt and the new status together
     }
     setReceipt(result);
     setBusy(null);
@@ -75,49 +77,72 @@ export default function InvoiceScreen() {
   const blocked = creditBlocked(shop, invoice);
   const driver = drivers.find((d) => d.id === invoice.driverId);
 
+  const settled = isPaid && receipt?.ok === true; // paid on this visit: let the stamp land
+  const partOpen = showPart && partText.trim() !== "";
+
+  function payMain() {
+    if (!partOpen) return void run("now", () => payNow(id));
+    const error = partPayError(partText, left, invoice!.cashClaim);
+    if (error) return setPartError(error);
+    void run("part", () => payNow(id, parseAmount(partText)!));
+  }
+
   return (
     <Screen>
-      <BackLink />
-      <header>
-        <h1 className="text-2xl font-bold">{shop?.name ?? "Tienda"}</h1>
-        <p className="text-muted">Factura {invoice.id} · Distribuidora El Sol</p>
-      </header>
+      <div className="flex items-center justify-between">
+        <BackLink />
+        {shop && !isPaid && (
+          <Link href={`/tienda/cuenta/${shop.id}`} className="-mr-1 inline-flex min-h-12 items-center px-1 text-base font-medium text-brand">
+            Mi cuenta
+          </Link>
+        )}
+      </div>
 
       {failed && <LoadError />}
 
-      <Card className="flex flex-col gap-3">
-        <div className="flex items-start justify-between gap-3">
-          <p className="text-4xl font-bold tabular-nums">{formatMoney(invoice.amount)}</p>
-          <Chip tone={status.tone}>{status.label}</Chip>
-        </div>
+      <Ticket>
+        <header>
+          <h1 className="text-2xl font-bold text-balance">{shop?.name ?? "Tienda"}</h1>
+          <p className="text-muted">Factura {invoice.id} · Distribuidora El Sol</p>
+        </header>
+        <TicketRule />
         {invoice.status === "part_paid" && (
-          <p className="text-lg">
-            Pagado {formatMoney(invoice.paid)} · <strong>Falta {formatMoney(left)}</strong>
-          </p>
+          <div className="flex flex-col gap-1 text-lg">
+            <TicketRow label="Total">{formatMoney(invoice.amount)}</TicketRow>
+            <TicketRow label="Pagado">−{formatMoney(invoice.paid)}</TicketRow>
+          </div>
         )}
+        <div className="flex items-end justify-between gap-3">
+          <p className="flex flex-col">
+            <span className="text-muted">{invoice.status === "part_paid" ? "Falta" : "Total"}</span>
+            <span className="text-5xl font-bold tracking-tight tabular-nums">{formatMoney(isPaid ? invoice.amount : left)}</span>
+          </p>
+          {isPaid ? (
+            <Stamp tone={status.tone === "credit" ? "credit" : "paid"} fresh={settled}>
+              {status.label}
+            </Stamp>
+          ) : (
+            <Chip tone={status.tone}>{status.label}</Chip>
+          )}
+        </div>
         <p className="text-muted">
           {isPaid ? `Pagada${invoice.method ? ` · ${METHOD_LABEL[invoice.method]}` : ""}` : `Vence el ${formatDay(invoice.dueDate)}`}
         </p>
-      </Card>
+      </Ticket>
 
       {receipt && <ReceiptView receipt={receipt} />}
 
       {!isPaid && (
-        <div className="flex flex-col gap-3">
-          <Button onClick={() => run("now", () => payNow(id))} busy={busy === "now"} disabled={busy !== null} hint="Con dólares digitales">
-            Pagar ahora
-          </Button>
-          <button
-            type="button"
-            onClick={() => setShowPart((open) => !open)}
-            disabled={busy !== null}
-            className="-mt-1 min-h-12 self-center px-2 text-base font-medium text-brand underline"
-          >
-            Pagar otro monto
-          </button>
-
-          {showPart && (
-            <Card className="flex flex-col gap-3">
+        <>
+          <OptionList>
+            <Option
+              title="Pagar en 7 días"
+              hint={blocked ?? "Sin intereses"}
+              onClick={() => run("later", () => payLater(id))}
+              busy={busy === "later"}
+              disabled={busy !== null || blocked !== null}
+            />
+            <Option title="Pagar otro monto" open={showPart} onClick={() => setShowPart((open) => !open)} disabled={busy !== null}>
               <label className="flex flex-col gap-1 text-lg">
                 ¿Cuánto paga ahora? <span className="text-base text-muted">Falta {formatMoney(left)}</span>
                 <input
@@ -129,58 +154,50 @@ export default function InvoiceScreen() {
                     setPartText(e.target.value);
                     setPartError(null);
                   }}
-                  className="min-h-12 rounded-xl border border-line bg-card px-3 text-xl tabular-nums"
+                  className="min-h-14 rounded-xl border-2 border-line bg-card px-3 text-2xl font-semibold tabular-nums placeholder:font-normal placeholder:text-muted focus:border-brand focus:outline-none"
                 />
               </label>
-              {partError && <p className="font-medium text-bad">{partError}</p>}
-              <Button
-                onClick={() => {
-                  const error = partPayError(partText, left, invoice.cashClaim);
-                  if (error) return setPartError(error);
-                  void run("part", () => payNow(id, parseAmount(partText)!));
-                }}
-                busy={busy === "part"}
-                disabled={busy !== null || partText.trim() === ""}
-                hint="Con dólares digitales"
-              >
-                Pagar este monto
-              </Button>
-            </Card>
-          )}
-
-          <Button
-            variant="secondary"
-            onClick={() => run("later", () => payLater(id))}
-            busy={busy === "later"}
-            disabled={busy !== null || blocked !== null}
-            hint={blocked ?? "Sin intereses"}
-          >
-            Pagar en 7 días
-          </Button>
-          <Button variant="secondary" onClick={() => setShowCash((open) => !open)} disabled={busy !== null}>
-            Pagué en efectivo
-          </Button>
-
-          {showCash && (
-            <Card className="flex flex-col gap-3">
+              {partError && (
+                <p className="font-medium text-bad" role="alert">
+                  {partError}
+                </p>
+              )}
+            </Option>
+            <Option title="Pagué en efectivo" open={showCash} onClick={() => setShowCash((open) => !open)} disabled={busy !== null}>
               {invoice.cashClaim !== undefined ? (
                 <>
                   <p className="text-lg">
                     {driver?.name ?? "El motorista"} registró <strong>{formatMoney(invoice.cashClaim)}</strong> en efectivo.
                   </p>
-                  <Button onClick={() => run("cash", () => confirmCash(id, invoice.cashClaim ?? 0))} busy={busy === "cash"} disabled={busy !== null}>
+                  <Button
+                    variant="secondary"
+                    onClick={() => run("cash", () => confirmCash(id, invoice.cashClaim ?? 0))}
+                    busy={busy === "cash"}
+                    disabled={busy !== null}
+                  >
                     Confirmo
                   </Button>
                 </>
               ) : (
                 <p className="text-lg">El motorista aún no registró el efectivo.</p>
               )}
-            </Card>
-          )}
-        </div>
+            </Option>
+          </OptionList>
+
+          <ThumbBar>
+            <Button
+              onClick={payMain}
+              busy={busy === "now" || busy === "part"}
+              disabled={busy !== null}
+              hint={partOpen ? "Con dólares digitales" : `${formatMoney(left)} con dólares digitales`}
+            >
+              {partOpen ? "Pagar este monto" : "Pagar ahora"}
+            </Button>
+          </ThumbBar>
+        </>
       )}
 
-      {shop && (
+      {shop && isPaid && (
         <ButtonLink href={`/tienda/cuenta/${shop.id}`} variant="secondary">
           Mi cuenta
         </ButtonLink>
