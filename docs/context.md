@@ -390,6 +390,14 @@ A shop buys $100 of stock and picks "pay in 7 days".
 
 **What lenders earn:** $0.50 per $100 per week is about 25% a year if the pool's money is always lent out (it won't be). Idle money could sit in tokenized US Treasuries at about 3.6% a year (stretch).
 
+**The 1.5% in yearly terms (Nov 12, #93; our maths in facts 56)**
+- A finance judge will annualize it, so we say it first: being paid 7 days early for 1.5% is about 79% a year simple, or about 120% compounded.
+- The shop pays 0%. The distributor chooses the fee on its own invoice, and it buys two things: cash at the door, and no default risk (the buffer).
+- For comparison: suppliers that offer "2/10 net 30" give up about 37% a year just to be paid sooner (facts 52). A bank loan under a year averages about 7.6% a year for those who qualify (51); most tiendas don't (§9).
+- So option 1 is the premium choice, for new shops. For shops the distributor knows, lead with option 2: 0.25%, about 13% to 14% a year (56).
+- Legal check: if the 1.5% were ever treated as interest, about 120% a year is above the highest legal maximum, 96.88% (facts 49). It has to stay a discount on the distributor's own invoice, and a lawyer confirms it (§11).
+- Precedent: a Salvadoran fintech already turns small businesses' invoices into cash within 24 hours, on a US$50 million credit line from a US fund (53).
+
 **Costs (early thinking):** network fees are a tiny fraction of a cent per transaction (they exist to stop spam; they aren't revenue for the Stellar Development Foundation, which is a non-profit), and hosting is nearly free. The real costs are signing up distributors and training drivers, partner fees for cash-in and cash-out, the licensed lender's share, and support.
 
 **What could break it**
@@ -725,6 +733,7 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 - *How does a shop get digital dollars?* Risk #1, said first. The counters already exist: banks run 8,900 correspondent points, and lenders like CrediCampo already take loan payments through Tigo Money's agents (facts 41, 44). The shop pays cash there with a reference number, and a licensed partner credits it in digital dollars (§6 ideas 1, 13 and 14). Banked shops pay by Transfer365, which is free (idea 6). Not solved yet: signing that partner (idea 15).
 - *Who are the lenders?* A test account in the demo. For real, a licensed microfinance institution or cooperative. We're not the lender.
 - *What if a shop doesn't pay?* Small limits that grow, no new credit while overdue, a truck that keeps coming back, a default buffer, and option 2 for shops the distributor knows.
+- *Isn't 1.5% a week expensive?* Per year it's about 79%, and the shop pays none of it. The distributor chooses it to be paid at the door with no risk of default, so it's factoring plus insurance. For shops it already trusts, it picks option 2: 0.25%, about 14% a year. Suppliers already give up about 37% a year with standard early-payment discounts (facts 52, 56).
 - *How are you different from Rocket and Tienda Pago?* §10.
 - *Have real users tried it?* The exact numbers from `docs/research.md`, and one thing we changed because of them.
 - *Is it legal?* Shops pay no interest. The distributor takes a discount on its own invoice to be paid early. A licensed lender funds the pool and does KYC, and a partner registered with the CNAD handles the digital dollars; one Salvadoran bank already is registered (facts 46, 47). We know the interest caps (highest 96.88% a year, entry 49) and the 2024 data law (50), and a lawyer confirms the structure before launch (§11.1).
