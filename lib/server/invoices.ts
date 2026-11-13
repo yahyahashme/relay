@@ -4,6 +4,7 @@ import { requireDb } from "./db";
 import { getDirectory } from "./directory";
 import { distributorForUser } from "./distributors";
 import { currentUser } from "./session";
+import type { User } from "./accounts";
 
 // New invoices from a real distributor (#133): the checks before anything goes
 // to the contract, and the optional note / products, which live in Postgres.
@@ -59,20 +60,32 @@ export const fold = (text: string) =>
     .replace(/\s+/g, " ")
     .toLowerCase();
 
-export async function saveNote(invoiceId: number, distributorId: string, note: string): Promise<void> {
+export async function saveNote(
+  invoice: { invoiceId: number; distributorId: string; shopId: string; driverId: string },
+  note: string,
+): Promise<void> {
   const text = note.trim();
   if (!text) return;
   await requireDb().query(
-    `INSERT INTO invoice_notes (invoice_id, distributor_id, note) VALUES ($1, $2, $3) ON CONFLICT (invoice_id) DO NOTHING`,
-    [invoiceId, distributorId, text.slice(0, MAX_NOTE)],
+    `INSERT INTO invoice_notes (invoice_id, distributor_id, shop_id, driver_id, note) VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (invoice_id) DO NOTHING`,
+    [invoice.invoiceId, invoice.distributorId, invoice.shopId, invoice.driverId, text.slice(0, MAX_NOTE)],
   );
 }
 
-export async function notesFor(ids: number[]): Promise<Record<number, string>> {
-  if (ids.length === 0) return {};
+/**
+ * The notes on these invoices that this person may read: the distributor who
+ * wrote it, the shop's owner, or the driver. What a shop bought isn't public.
+ */
+export async function notesFor(ids: number[], user: User | null): Promise<Record<number, string>> {
+  if (ids.length === 0 || !user) return {};
   const rows = await requireDb().query<{ invoice_id: string | number; note: string }>(
-    `SELECT invoice_id, note FROM invoice_notes WHERE invoice_id = ANY($1)`,
-    [ids],
+    `SELECT n.invoice_id, n.note FROM invoice_notes n
+      WHERE n.invoice_id = ANY($1) AND (
+        EXISTS (SELECT 1 FROM distributors d WHERE d.id = n.distributor_id AND d.owner_user_id = $2)
+        OR EXISTS (SELECT 1 FROM shops s WHERE s.id = n.shop_id AND s.owner_user_id = $2)
+        OR EXISTS (SELECT 1 FROM drivers r WHERE r.id = n.driver_id AND r.user_id = $2))`,
+    [ids, user.id],
   );
   return Object.fromEntries(rows.map((r) => [Number(r.invoice_id), r.note]));
 }

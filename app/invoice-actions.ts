@@ -4,6 +4,7 @@
 // their shops, signed on the server with their own key (#129).
 
 import { getDb } from "@/lib/server/db";
+import { currentUser } from "@/lib/server/session";
 import { getDirectory } from "@/lib/server/directory";
 import { checkInvoice, choices, cleanAmount, dueAt, type InvoiceInput, myApprovedDistributor, notesFor, saveNote, todayInSv } from "@/lib/server/invoices";
 import { readClient } from "@/lib/stellar/client";
@@ -72,7 +73,7 @@ export async function createInvoiceAction(input: InvoiceInput): Promise<Receipt 
       }),
     );
     try {
-      await saveNote(input.invoiceId, distributor.id, input.note ?? "");
+      await saveNote({ invoiceId: input.invoiceId, distributorId: distributor.id, shopId: input.shopId, driverId: input.driverId }, input.note ?? "");
     } catch (error) {
       console.error("[invoices] note", error instanceof Error ? error.message : error); // the invoice itself is made
     }
@@ -90,7 +91,7 @@ export async function createInvoiceAction(input: InvoiceInput): Promise<Receipt 
 /** Notes / products for these invoices (only invoices made with the form have one). */
 export async function getInvoiceNotes(ids: number[]): Promise<Record<number, string>> {
   if (!getDb() || ids.length === 0) return {};
-  return notesFor(ids.filter((id) => Number.isSafeInteger(id)).slice(0, 100));
+  return notesFor(ids.filter((id) => Number.isSafeInteger(id)).slice(0, 100), await currentUser());
 }
 
 /** Who sent an invoice, and its note: for the top of the shop's invoice (#133). */
@@ -100,7 +101,7 @@ export async function getInvoiceSource(id: number): Promise<{ distributorName: s
     const result = await read(readClient().get_invoice({ id: BigInt(id) }));
     if (!result.isOk()) return null;
     const party = (await getDirectory()).byAddress(result.unwrap().distributor);
-    const notes = getDb() ? await notesFor([id]) : {};
+    const notes = getDb() ? await notesFor([id], await currentUser()) : {};
     return { distributorName: party?.name ?? "", note: notes[id] ?? null };
   } catch {
     return null;

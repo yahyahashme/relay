@@ -1,7 +1,7 @@
 // After a new route_ledger deploy (scripts/deploy.sh), the contract only knows
 // the demo accounts. This gives it back what the accounts database says:
-// approved distributors get approve_distributor, and shops with an owner get the
-// $200 starting limit (set_terms) unless they already have one.
+// approved distributors get approve_distributor, and shops with an owner that
+// never used credit get the $200 starting limit (set_terms).
 // It reads the contract in config/testnet.json, and the admin key from
 // STELLAR_SECRET_ADMIN (.env.local), like the app. It never prints a key.
 //
@@ -33,7 +33,9 @@ async function main() {
   );
   for (const s of shops) {
     const view = await read(readClient().get_shop({ shop: s.stellar_address }));
-    if (view.limit > 0n) continue;
+    // Only shops that never used credit: a limit can fall to $0 after late payments
+    // or a default, and this must not undo that.
+    if (view.limit > 0n || view.owed > 0n || view.on_time > 0 || view.late > 0) continue;
     console.log(`set_terms $200       ${s.name}`);
     if (apply) await run("admin", (client) => client.set_terms({ shop: s.stellar_address, limit: STARTING_LIMIT }));
   }

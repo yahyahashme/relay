@@ -157,6 +157,13 @@ const RULES: Rule[] = [
   exact("Escriba el nombre de cada contacto.", "Enter each contact's name."),
   exact("Escriba un teléfono de El Salvador (8 dígitos) para cada contacto.", "Enter a Salvadoran phone number (8 digits) for each contact."),
   exact("Un contacto de confianza no puede ser su propio teléfono.", "A trusted contact can't be your own phone."),
+  // Who may act, and rate limits (Jack's review of #145)
+  exact("Entre a su cuenta para hacer esto. Solo el dueño de la cuenta puede.", "Sign in to do this. Only the account's owner can."),
+  exact("Demasiados intentos. Espere unos minutos e intente de nuevo.", "Too many tries. Wait a few minutes and try again."),
+  exact("Esa contraseña es muy fácil de adivinar. Use otra.", "That password is too easy to guess. Use another one."),
+
+  // A CSV row with one of the form's messages (#149): the specific "Fila N: ..." rules above win.
+  pattern(String.raw`Fila ${NUM}: (.+)`, (_, row, rest) => `Row ${row}: ${translateMessage(rest)}`),
 ];
 
 /**
