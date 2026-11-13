@@ -33,6 +33,20 @@ Yahya took both calls on Mon Nov 9. Both advisors prefer LinkedIn.
 
 Advisor contact isn't tracked here. Yahya reaches out when we have a genuine question worth their time: startups and customers for Advisor 1, technical and financial for Advisor 2.
 
+## Shop and distributor interview outreach (#7)
+
+On Nov 12–13 (ET), Ruhaan sent seven interview requests through public WhatsApp business numbers. Four went to grocery retailers and three to distributors. The requests asked for a short chat with someone responsible for purchasing, routes, sales, or credit. The Nov 13 check found two acknowledgments and four automated replies. No reply so far answered the interview questions.
+
+| Sent (ET) | Organisation | Reply as of Nov 13 |
+|---|---|---|
+| Nov 12 | Básicos Express | Customer service said it would forward the request to the responsible team. |
+| Nov 12 | Super Tienda Cleo | Automated reply outside business hours. |
+| Nov 12 | Sivar Market | Acknowledged the message. |
+| Nov 12 | Kip | Automated reply outside business hours. |
+| Nov 12 | Distribuidora Santa Ana | Automated reply with a catalog link. |
+| Nov 13 | DISNA | Awaiting reply. |
+| Nov 13 | Grupo Sabor Amigo | Automated reply outside business hours. |
+
 ## Partner outreach
 
 Sent from Rohan's university email. Organisation and role only (the repo is public).
