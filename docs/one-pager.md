@@ -6,7 +6,7 @@ Form: "BlockChain Innovation Challenge: Project Showcase Submission" ([link](htt
 
 **Before submitting**
 - Delete every `(Rohan to confirm)` marker and every `[bracketed placeholder]`, then re-count.
-- Every number comes from the fact sheet `docs/facts.md` (merged in #59; #73 added entries 22 to 28 and #84 entries 29 to 40). Rohan checks each against his final file. `docs/assumptions.md` (#12) is not in the repo: PR #74 was closed without merging and issue #12 is still open. Our own numbers (fees, limits) are in `facts.md` entries 29 to 31 instead.
+- No `(Rohan to confirm)` markers are left in answers 4 to 6. Every number comes from the fact sheet `docs/facts.md` (merged in #59; #73 added entries 22 to 28 and #84 entries 29 to 40). Rohan checks each against his final file. `docs/assumptions.md` (#12) is not in the repo: PR #74 was closed without merging and issue #12 is still open. Our own numbers (fees, limits) are in `facts.md` entries 29 to 31 instead.
 - Never use: the $7B figure, "70,000 shops", the Chivo $30 bonus, or MoneyGram's 5% as a comparison. We compare to loan sharks.
 
 ---
