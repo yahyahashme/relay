@@ -78,4 +78,4 @@ Rohan wrote 16 emails on Nov 12. The Outlook app was offline, so 13 sat in the O
 - The Stellar Anchor Directory (anchors.stellar.org), filtered to El Salvador and the "Cash" payment rail, lists two anchors: **MoneyGram Ramps** and **Bitnovo**. The directory doesn't say whether each one supports cash-in, cash-out or both in El Salvador, so Bitnovo is a new outreach target to ask. Without the cash filter it also lists Amero Exchange and Dollarize for El Salvador.
 - Raven (raven.stellar.org) is now an MCP server that needs sign-in, so the "Which anchors support cash-in to USDC in El Salvador?" question wasn't asked yet.
 
-**Pitch line (so far):** "We emailed 5 organisations in El Salvador, 4 banks and a supermarket chain, and one passed us to the right person." Don't count the Nov 12 round until those emails are confirmed sent.
+**Pitch line (so far):** "We emailed 5 organisations in El Salvador, 4 banks and a supermarket chain; no replies yet beyond one auto-reply, and we follow up Friday." Don't count the Nov 12 round until those emails are confirmed sent.
