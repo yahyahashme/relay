@@ -159,7 +159,7 @@ Run this on the file you are about to upload, not on the draft.
 - [ ] **"$35 per $100" says "2019 survey"** wherever it appears (facts entry 10).
 - [ ] **Any contract ID equals `contracts.routeLedger` in `config/testnet.json`.** Compare character by character, on the slide and on any image such as the code slide. Do not copy an ID from an old doc. As of Thu Nov 12 evening `docs/img/code-slide.png` on `main` still shows the ID from before the redeploy (it starts `CAPQ6ZDD`); the re-render is in PR #82 (open). `docs/demo-video.md`, `docs/one-pager.md` and the README table show the new ID.
 - [ ] **No advisor names** anywhere, including slide notes. Roles only ("our startup advisor", "our technical and finance advisor").
-- [ ] **No claim that fee sponsorship is built.** PR #81 is a draft and Yahya wants it out of the pitch and deck until after the finals.
+- [ ] **Fee sponsorship is worded as built, and no more.** Say "our sponsor account pays the network fees" (#113). Not "gasless", not "users never need XLM" (the demo accounts hold test XLM), and no passkeys: they are not built.
 - [ ] **No placeholders left:** search the file for `[`, `]`, "TBD", "PENDING" and `[NAME]`.
 - [ ] **The name and the URL are the new ones:** "Relay" with "Paga tu ruta" under it, and https://relay-sv.vercel.app. Search for "Tiendas", "tiendas-stellar" and "Nombre pendiente": none may appear.
 - [ ] **No animations and no transitions** on any slide. Format is PowerPoint (`.pptx`), made from the Velocity template.

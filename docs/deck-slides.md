@@ -4,7 +4,7 @@ Written Wed Nov 11 from `docs/deck-outline.md`, `docs/pitch.md` (PR #83) and `do
 
 **Rules each slide follows:** a headline of 8 words or fewer, at most 3 lines of about 10 words (12 at most), readable in 5 seconds. Sources go in the small print under the slide, never in the 3 lines. A `[bracket]` is something the team has not decided or we don't have yet: **do not paste a bracket into the real deck.** Words were counted on Thu Nov 12 (a "$2" or "pay-in-7-days" counts as one word); recount after any edit.
 
-**Words to avoid** (facts "Never use" and "Say this, not that", PR #83 "Never say"): the $7 billion market; "about 70,000 shops"; "85,265 neighbourhood shops" (say "more than 50,000 neighbourhood shops"); "a $5 billion market"; the Chivo $30 bonus or fuel discounts; MoneyGram's 5%; "$98.40 per $100"; "$0.35 per credit sale"; a "$2.5 million" revenue figure; "open source" or "open contract" (say "public contract"); "audited" (we reviewed it ourselves); "blockchain", "wallet" or "crypto" for shops (say "digital dollars", "test dollars"). **Do not say fee sponsorship works**: it is not built (PR #81 is a draft), and it stays out of the pitch and the deck until after the finals. Stellar's speed and fees are Stellar's own claims: always "Stellar says". MoneyGram: always "as far as we found".
+**Words to avoid** (facts "Never use" and "Say this, not that", PR #83 "Never say"): the $7 billion market; "about 70,000 shops"; "85,265 neighbourhood shops" (say "more than 50,000 neighbourhood shops"); "a $5 billion market"; the Chivo $30 bonus or fuel discounts; MoneyGram's 5%; "$98.40 per $100"; "$0.35 per credit sale"; a "$2.5 million" revenue figure; "open source" or "open contract" (say "public contract"); "audited" (we reviewed it ourselves); "blockchain", "wallet" or "crypto" for shops (say "digital dollars", "test dollars"). **Fee sponsorship is built** (#113): if you say it, say "our sponsor account pays the network fees" (the diagram says it), not "gasless" or "users never need XLM". Stellar's speed and fees are Stellar's own claims: always "Stellar says". MoneyGram: always "as far as we found".
 
 **Still open on Thu Nov 12:** PR #82 (the code-slide image), who pitches (the repo doesn't record it), "what users told us", and our ask. The name is decided: **Relay**, with *Paga tu ruta* under it (PR #100). The live app is https://relay-sv.vercel.app (the old tiendas-stellar.vercel.app redirects there, so show the new one). Everything else below is on `main`.
 
@@ -53,8 +53,8 @@ Written Wed Nov 11 from `docs/deck-outline.md`, `docs/pitch.md` (PR #83) and `do
 3. Testnet, test dollars.
 
 **Small print:** none (the diagram carries it).
-**Visual:** `docs/img/architecture.png`, **with one fix first.** Its server box says "Will pay the network fees (fee sponsorship)". Fee sponsorship is not built and stays out of the deck until after the finals, so delete that bullet in `docs/slides/architecture.html`, re-render with `node docs/slides/render.mjs`, and look at the result. Don't use the picture as it is on `main`.
-**Waiting on:** the architecture picture without the fee-sponsorship line. That edit is not in this PR.
+**Visual:** `docs/img/architecture.png` as it is on `main` (re-rendered in #119). Its server box says "Pays the network fees (fee sponsorship)", which has been true since #113 (evidence: `docs/pitch.md` section 3). The three lines above don't mention it; the diagram carries it.
+**Waiting on:** nothing.
 
 ## 5. The code (15 s)
 
