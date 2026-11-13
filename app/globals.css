@@ -41,14 +41,16 @@ body {
   caret-color: var(--color-brand);
 }
 
-::selection {
-  background: var(--color-brand-soft);
-  color: var(--color-brand-dark);
-}
+@layer base {
+  ::selection {
+    background: var(--color-brand-soft);
+    color: var(--color-brand-dark);
+  }
 
-:focus-visible {
-  outline: 3px solid var(--color-brand);
-  outline-offset: 2px;
+  :focus-visible {
+    outline: 3px solid var(--color-brand);
+    outline-offset: 2px;
+  }
 }
 
 /* ---------- the invoice as a paper slip ---------- */

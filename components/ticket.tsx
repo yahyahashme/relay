@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 export function Ticket({ children }: { children: ReactNode }) {
   return (
     <div className="ticket-shadow">
-      <section className="ticket relative flex flex-col gap-4 rounded-t-2xl bg-card px-5 pb-8 pt-5">{children}</section>
+      <section className="ticket flex flex-col gap-3.5 rounded-t-2xl bg-card px-5 pb-7 pt-4">{children}</section>
     </div>
   );
 }
@@ -26,7 +26,7 @@ export function TicketRow({ label, children, strong = false }: { label: string; 
 export function Stamp({ children, tone, fresh = false }: { children: ReactNode; tone: "paid" | "credit"; fresh?: boolean }) {
   return (
     <span
-      className={`stamp mb-2 shrink-0 rounded-md border-[3px] px-2.5 py-0.5 text-lg font-extrabold uppercase tracking-wide ${
+      className={`stamp shrink-0 rounded-md border-[3px] px-2.5 py-0.5 text-lg font-extrabold uppercase tracking-wide ${
         tone === "paid" ? "border-ok text-ok" : "border-credit text-credit"
       } ${fresh ? "stamp-fresh" : ""}`}
     >
@@ -82,13 +82,13 @@ export function Option({
         onClick={onClick}
         disabled={disabled || busy}
         aria-expanded={open}
-        className="flex min-h-16 w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-brand transition-colors duration-150 active:bg-brand-soft disabled:cursor-not-allowed disabled:text-muted"
+        className="flex min-h-14 w-full scroll-mb-28 items-center justify-between gap-3 px-4 py-2 text-left text-brand -outline-offset-3 transition-colors duration-150 active:bg-brand-soft disabled:cursor-not-allowed disabled:text-muted"
       >
         <span className="flex flex-col">
           <span className="text-lg font-semibold">{busy ? "Procesando..." : title}</span>
           {hint && <span className="text-sm text-muted">{hint}</span>}
         </span>
-        <Chevron open={open === true} />
+        {open !== undefined && <Chevron open={open} />}
       </button>
       {open && children && <div className="option-panel flex flex-col gap-3 px-4 pb-4">{children}</div>}
     </div>
@@ -98,7 +98,7 @@ export function Option({
 /** Keeps the one main action under the thumb while the rest of the screen scrolls. */
 export function ThumbBar({ children }: { children: ReactNode }) {
   return (
-    <div className="sticky bottom-0 -mx-4 mt-auto bg-linear-to-t from-paper from-70% to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-6">
+    <div className="sticky bottom-0 -mx-4 mt-auto bg-linear-to-t from-paper from-70% to-transparent px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-4">
       {children}
     </div>
   );

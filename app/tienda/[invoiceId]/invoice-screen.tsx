@@ -78,15 +78,6 @@ export default function InvoiceScreen() {
   const driver = drivers.find((d) => d.id === invoice.driverId);
 
   const settled = isPaid && receipt?.ok === true; // paid on this visit: let the stamp land
-  const partOpen = showPart && partText.trim() !== "";
-
-  function payMain() {
-    if (!partOpen) return void run("now", () => payNow(id));
-    const error = partPayError(partText, left, invoice!.cashClaim);
-    if (error) return setPartError(error);
-    void run("part", () => payNow(id, parseAmount(partText)!));
-  }
-
   return (
     <Screen>
       <div className="flex items-center justify-between">
@@ -112,22 +103,24 @@ export default function InvoiceScreen() {
             <TicketRow label="Pagado">−{formatMoney(invoice.paid)}</TicketRow>
           </div>
         )}
-        <div className="flex items-end justify-between gap-3">
-          <p className="flex flex-col">
-            <span className="text-muted">{invoice.status === "part_paid" ? "Falta" : "Total"}</span>
-            <span className="text-5xl font-bold tracking-tight tabular-nums">{formatMoney(isPaid ? invoice.amount : left)}</span>
+        <div className="flex flex-col gap-1">
+          <p className="flex items-baseline justify-between gap-3 text-muted">
+            <span>{invoice.status === "part_paid" ? "Falta" : "Total"}</span>
+            <span>
+              {isPaid ? `Pagada${invoice.method ? ` · ${METHOD_LABEL[invoice.method]}` : ""}` : `Vence el ${formatDay(invoice.dueDate)}`}
+            </span>
           </p>
-          {isPaid ? (
-            <Stamp tone={status.tone === "credit" ? "credit" : "paid"} fresh={settled}>
-              {status.label}
-            </Stamp>
-          ) : (
-            <Chip tone={status.tone}>{status.label}</Chip>
-          )}
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+            <p className="text-5xl font-bold tracking-tight tabular-nums">{formatMoney(isPaid ? invoice.amount : left)}</p>
+            {isPaid ? (
+              <Stamp tone={status.tone === "credit" ? "credit" : "paid"} fresh={settled}>
+                {status.label}
+              </Stamp>
+            ) : (
+              <Chip tone={status.tone}>{status.label}</Chip>
+            )}
+          </div>
         </div>
-        <p className="text-muted">
-          {isPaid ? `Pagada${invoice.method ? ` · ${METHOD_LABEL[invoice.method]}` : ""}` : `Vence el ${formatDay(invoice.dueDate)}`}
-        </p>
       </Ticket>
 
       {receipt && <ReceiptView receipt={receipt} />}
@@ -149,12 +142,13 @@ export default function InvoiceScreen() {
                   inputMode="decimal"
                   autoComplete="off"
                   placeholder="0.00"
+                  autoFocus
                   value={partText}
                   onChange={(e) => {
                     setPartText(e.target.value);
                     setPartError(null);
                   }}
-                  className="min-h-14 rounded-xl border-2 border-line bg-card px-3 text-2xl font-semibold tabular-nums placeholder:font-normal placeholder:text-muted focus:border-brand focus:outline-none"
+                  className="min-h-14 rounded-xl border-2 border-line bg-card px-3 scroll-mb-28 text-2xl font-semibold tabular-nums placeholder:font-normal placeholder:text-muted focus:border-brand focus:outline-none"
                 />
               </label>
               {partError && (
@@ -162,6 +156,18 @@ export default function InvoiceScreen() {
                   {partError}
                 </p>
               )}
+              <Button
+                onClick={() => {
+                  const error = partPayError(partText, left, invoice.cashClaim);
+                  if (error) return setPartError(error);
+                  void run("part", () => payNow(id, parseAmount(partText)!));
+                }}
+                busy={busy === "part"}
+                disabled={busy !== null || partText.trim() === ""}
+                hint="Con dólares digitales"
+              >
+                Pagar este monto
+              </Button>
             </Option>
             <Option title="Pagué en efectivo" open={showCash} onClick={() => setShowCash((open) => !open)} disabled={busy !== null}>
               {invoice.cashClaim !== undefined ? (
@@ -184,16 +190,18 @@ export default function InvoiceScreen() {
             </Option>
           </OptionList>
 
-          <ThumbBar>
-            <Button
-              onClick={payMain}
-              busy={busy === "now" || busy === "part"}
-              disabled={busy !== null}
-              hint={partOpen ? "Con dólares digitales" : `${formatMoney(left)} con dólares digitales`}
-            >
-              {partOpen ? "Pagar este monto" : "Pagar ahora"}
-            </Button>
-          </ThumbBar>
+          {!showPart && (
+            <ThumbBar>
+              <Button
+                onClick={() => run("now", () => payNow(id))}
+                busy={busy === "now"}
+                disabled={busy !== null}
+                hint={`${formatMoney(left)} con dólares digitales`}
+              >
+                Pagar ahora
+              </Button>
+            </ThumbBar>
+          )}
         </>
       )}
 
