@@ -185,7 +185,7 @@ export default function InvoiceScreen() {
             <Option title="Pagar otro monto" open={panel === "part"} onClick={() => toggle("part")} disabled={locked}>
               <label className="flex flex-col gap-1 text-lg">
                 ¿Cuánto paga ahora? <span className="text-base text-muted">Falta {formatMoney(left)}</span>
-                <span className="text-base text-muted">Si paga la mitad o más ahora, su crédito crece más rápido.</span>
+                <span className="text-base text-muted">Si paga la mitad o más ahora, la comisión baja y su límite puede subir aunque la compra sea menor de $40.</span>
                 <input
                   inputMode="decimal"
                   autoComplete="off"
