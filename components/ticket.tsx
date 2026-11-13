@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 export function Ticket({ children }: { children: ReactNode }) {
   return (
     <div className="ticket-shadow">
-      <section className="ticket flex flex-col gap-3.5 rounded-t-2xl bg-card px-[17px] pb-7 pt-4">{children}</section>
+      <section className="ticket flex flex-col gap-3.5 rounded-t-2xl bg-card px-4 pb-7 pt-4">{children}</section>
     </div>
   );
 }
@@ -22,10 +22,21 @@ export function TicketRow({ label, children, strong = false }: { label: string; 
   );
 }
 
-/** The rubber stamp on a settled invoice. `fresh` plays the stamp landing once, right after paying. */
-export function Stamp({ children, tone, fresh = false }: { children: ReactNode; tone: "paid" | "credit"; fresh?: boolean }) {
+/** The rubber stamp on a settled invoice. `fresh` plays the landing; `onLanded` lets the screen play it only once. */
+export function Stamp({
+  children,
+  tone,
+  fresh = false,
+  onLanded,
+}: {
+  children: ReactNode;
+  tone: "paid" | "credit";
+  fresh?: boolean;
+  onLanded?: () => void;
+}) {
   return (
     <span
+      onAnimationEnd={onLanded}
       className={`stamp ml-auto shrink-0 rounded-md border-[3px] px-2 py-0.5 text-lg font-extrabold uppercase tracking-wide ${
         tone === "paid" ? "border-ok text-ok" : "border-credit text-credit"
       } ${fresh ? "stamp-fresh" : ""}`}
@@ -67,7 +78,6 @@ export function Option({
   hint,
   onClick,
   disabled = false,
-  busy = false,
   open,
   children,
 }: {
@@ -75,7 +85,6 @@ export function Option({
   hint?: ReactNode;
   onClick: () => void;
   disabled?: boolean;
-  busy?: boolean;
   /** Set for options that unfold a panel; leave out for a row that can't be opened. */
   open?: boolean;
   children?: ReactNode;
@@ -85,18 +94,18 @@ export function Option({
       <button
         type="button"
         onClick={onClick}
-        disabled={disabled || busy}
+        disabled={disabled}
         aria-expanded={open}
-        className="flex min-h-14 w-full scroll-mb-28 items-center justify-between gap-3 px-4 py-2 text-left text-brand -outline-offset-3 transition-colors duration-150 active:bg-brand-soft disabled:cursor-not-allowed disabled:text-muted"
+        className="flex min-h-14 w-full scroll-mb-28 items-center justify-between gap-3 px-4 py-2 text-left text-brand -outline-offset-3 transition-colors duration-150 ease-snap enabled:active:bg-brand-soft disabled:cursor-not-allowed disabled:text-muted"
       >
         <span className="flex flex-col">
-          <span className="text-lg font-semibold">{busy ? "Procesando..." : title}</span>
+          <span className="text-lg font-semibold">{title}</span>
           {hint && <span className="text-sm text-muted">{hint}</span>}
         </span>
         {open !== undefined && <Chevron open={open} />}
       </button>
       {open && children && (
-        <div ref={reveal} className="option-panel flex scroll-mb-28 flex-col gap-3 px-4 pb-4">
+        <div ref={reveal} className="unfold flex scroll-mb-28 flex-col gap-3 px-4 pb-4">
           {children}
         </div>
       )}

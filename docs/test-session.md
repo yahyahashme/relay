@@ -34,7 +34,7 @@ The Pitch Prep Workshop may have its own agenda from 6 PM. If it does, do sectio
 | 2 | Driver: open Carlos's route `/ruta/motorista-1` | "Ruta de Carlos", "N paradas hoy · M por cobrar", "Efectivo en mano $X". | |
 | 3 | Driver: tap a stop | A QR code and "La tienda escanea este código para pagar." | |
 | 4 | Shop: open that invoice (scan the QR from a second phone, or use the link on the home page) | Shop name, amount, chip "Pendiente", "Vence el …", the list Pagar en 7 días, Pagar otro monto, Pagué en efectivo, and the Pagar ahora button at the bottom. | |
-| 5 | Shop: tap **Pagar ahora** | A spinner, then "Pago recibido: $X en dólares digitales." and the chip becomes "Pagada". | |
+| 5 | Shop: tap **Pagar ahora** | A spinner, then "Pago recibido: $X en dólares digitales." and a green "PAGADA" stamp replaces the chip. | |
 | 6 | Shop: tap "Ver detalles" on the receipt | Opens the transaction on stellar.expert (testnet). The page is not blank and not an error. | |
 | 7 | Driver: wait up to 5 seconds, no refresh | The same stop shows "Pagada". | |
 | 8 | Shop: new invoice, tap **Pagar en 7 días**, then **Confirmo** | First "Hoy no paga nada. Paga $X en 7 días." Then "Listo. Tiene hasta el <date> para pagar $X, sin intereses." | |

@@ -56,7 +56,7 @@ export function Button({
 }) {
   return (
     <button type="button" onClick={onClick} disabled={disabled || busy} aria-busy={busy} className={`${BUTTON} ${VARIANT[variant]}`}>
-      <span>{busy ? "Procesando..." : children}</span>
+      <span className={busy ? "animate-pulse" : undefined}>{busy ? "Procesando..." : children}</span>
       {hint && <span className="text-sm font-normal opacity-85">{hint}</span>}
     </button>
   );

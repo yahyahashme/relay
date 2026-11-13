@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Option, OptionList, Stamp, ThumbBar, Ticket, TicketRow, TicketRule } from "@/components/ticket";
 import { BackLink, Button, ButtonLink, Chip, LoadError, Loading, NotFound, ReceiptView, Screen } from "@/components/ui";
 import { confirmCash, getDrivers, getInvoice, getShop, payLater, payNow } from "@/lib/api";
@@ -13,6 +13,24 @@ import { usePolling } from "@/lib/use-polling";
 
 type Action = "now" | "part" | "later" | "cash";
 type Panel = "later" | "part" | "cash";
+
+const QUIET_MS = 900;
+
+/**
+ * True for a beat after `value` changes (not on its first value). The pay
+ * buttons swap places when a cash amount arrives or a part payment lands, so
+ * they stay inert for that beat: a tap aimed at the old button can't hit the new one.
+ */
+function useQuietAfterChange(value: boolean | null): boolean {
+  const [seen, setSeen] = useState<{ value: boolean; quiet: boolean } | null>(null);
+  if (value !== null && seen?.value !== value) setSeen({ value, quiet: seen !== null });
+  useEffect(() => {
+    if (!seen?.quiet) return;
+    const timer = setTimeout(() => setSeen((now) => now && { ...now, quiet: false }), QUIET_MS);
+    return () => clearTimeout(timer);
+  }, [seen]);
+  return seen?.quiet ?? false;
+}
 
 /** Why "Pagar en 7 días" is greyed out, or null if the shop can use it. */
 function creditBlocked(shop: Shop | null, invoice: Invoice): string | null {
@@ -38,6 +56,8 @@ export default function InvoiceScreen() {
   const [choice, setChoice] = useState<Panel | null | undefined>(undefined);
   const [partText, setPartText] = useState("");
   const [partError, setPartError] = useState<string | null>(null);
+  const [landed, setLanded] = useState(false); // the stamp has played; don't replay it on Back
+  const claimJustChanged = useQuietAfterChange(data?.invoice ? data.invoice.cashClaim !== undefined : null);
 
   async function run(action: Action, write: () => Promise<Receipt>) {
     setBusy(action);
@@ -49,6 +69,8 @@ export default function InvoiceScreen() {
       setPartText("");
     }
     setReceipt(result);
+    // The bar comes back where the panel's button was: hold everything for a beat so a repeat tap can't pay the rest.
+    if (result.ok && action !== "now") await new Promise((resolve) => setTimeout(resolve, QUIET_MS));
     setBusy(null);
   }
 
@@ -77,7 +99,8 @@ export default function InvoiceScreen() {
   const blocked = creditBlocked(shop, invoice);
   const driver = drivers.find((d) => d.id === invoice.driverId);
 
-  const settled = isPaid && receipt?.ok === true; // paid on this visit: let the stamp land
+  const settled = isPaid && (busy !== null || receipt?.ok === true); // paid on this visit: let the stamp land
+  const locked = busy !== null || claimJustChanged;
   const hasClaim = invoice.cashClaim !== undefined;
   const partAmount = parseAmount(partText);
   const partOk = partAmount !== null && partPayError(partText, left, invoice.cashClaim) === null;
@@ -126,7 +149,7 @@ export default function InvoiceScreen() {
           <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-2">
             <p className={`text-5xl font-bold tracking-tight tabular-nums ${isPaid ? "-mr-6" : ""}`}>{formatMoney(isPaid ? invoice.amount : left)}</p>
             {isPaid ? (
-              <Stamp tone={status.tone === "credit" ? "credit" : "paid"} fresh={settled}>
+              <Stamp tone={status.tone === "credit" ? "credit" : "paid"} fresh={settled && !landed} onLanded={() => setLanded(true)}>
                 {status.label}
               </Stamp>
             ) : (
@@ -136,7 +159,11 @@ export default function InvoiceScreen() {
         </div>
       </Ticket>
 
-      {receipt && <ReceiptView receipt={receipt} />}
+      {receipt && (
+        <div className="unfold">
+          <ReceiptView receipt={receipt} />
+        </div>
+      )}
 
       {!isPaid && (
         <>
@@ -146,16 +173,16 @@ export default function InvoiceScreen() {
               hint={blocked ?? "Sin intereses"}
               open={blocked === null ? panel === "later" : undefined}
               onClick={() => toggle("later")}
-              disabled={busy !== null || blocked !== null}
+              disabled={locked || blocked !== null}
             >
               <p className="text-lg">
                 Hoy no paga nada. Paga <strong>{formatMoney(left)}</strong> en 7 días.
               </p>
-              <Button onClick={() => run("later", () => payLater(id))} busy={busy === "later"} disabled={busy !== null}>
+              <Button onClick={() => run("later", () => payLater(id))} busy={busy === "later"} disabled={locked}>
                 Confirmo
               </Button>
             </Option>
-            <Option title="Pagar otro monto" open={panel === "part"} onClick={() => toggle("part")} disabled={busy !== null}>
+            <Option title="Pagar otro monto" open={panel === "part"} onClick={() => toggle("part")} disabled={locked}>
               <label className="flex flex-col gap-1 text-lg">
                 ¿Cuánto paga ahora? <span className="text-base text-muted">Falta {formatMoney(left)}</span>
                 <input
@@ -184,7 +211,7 @@ export default function InvoiceScreen() {
                   void run("part", () => payNow(id, partAmount));
                 }}
                 busy={busy === "part"}
-                disabled={busy !== null || partText.trim() === ""}
+                disabled={locked || partText.trim() === ""}
                 hint={partOk ? `${formatMoney(partAmount)} con dólares digitales` : "Con dólares digitales"}
               >
                 Pagar este monto
@@ -195,14 +222,14 @@ export default function InvoiceScreen() {
               hint={hasClaim ? "Efectivo por confirmar" : undefined}
               open={panel === "cash"}
               onClick={() => toggle("cash")}
-              disabled={busy !== null}
+              disabled={locked}
             >
               {invoice.cashClaim !== undefined ? (
                 <>
                   <p className="text-lg">
                     {driver?.name ?? "El motorista"} registró <strong>{formatMoney(invoice.cashClaim)}</strong> en efectivo.
                   </p>
-                  <Button onClick={() => run("cash", () => confirmCash(id, invoice.cashClaim ?? 0))} busy={busy === "cash"} disabled={busy !== null}>
+                  <Button onClick={() => run("cash", () => confirmCash(id, invoice.cashClaim ?? 0))} busy={busy === "cash"} disabled={locked}>
                     Confirmo
                   </Button>
                 </>
@@ -217,7 +244,7 @@ export default function InvoiceScreen() {
               <Button
                 onClick={() => run("now", () => payNow(id))}
                 busy={busy === "now"}
-                disabled={busy !== null}
+                disabled={locked}
                 hint={`${formatMoney(left)} con dólares digitales`}
               >
                 Pagar ahora
