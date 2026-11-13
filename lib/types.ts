@@ -13,5 +13,35 @@ export const HISTORY_PAGE = 30; // the contract's MAX_PAGE
 export type Profile = { owner: string; shopName: string; address: string; phone: string; dui: string };
 /** A distributor the shop buys from, and how many of its invoices the shop has. */
 export type Supplier = { id: string; name: string; invoices: number; unpaid: number };
+/** One payment the shop made, as the contract or the mock recorded it (#136). */
+export type Payment = {
+  /** null for a repayment of credit (not tied to one invoice). */
+  invoiceId: number | null;
+  method: "digital" | "cash" | "credit" | "repay";
+  amount: number;
+  /** ISO time it happened; absent when it's older than what can be looked up. */
+  at?: string;
+  driverId?: string;
+  txHash?: string;
+};
+/** A row of the shop's history: a payment, or what's still open on an invoice. */
+export type HistoryRow = {
+  key: string;
+  kind: "payment" | "open";
+  invoiceId: number | null;
+  distributor: string;
+  driverId?: string;
+  method?: Payment["method"];
+  /** Paid in this row, or left to pay on an open row. */
+  amount: number;
+  /** This payment covered only part of its invoice. */
+  partial: boolean;
+  at?: string;
+  dueDate?: string;
+  /** Payment: days after the due date it was paid. Open: days past due now. */
+  daysLate: number;
+  explorerUrl?: string;
+};
+export type ShopHistory = { rows: HistoryRow[]; owedNow: number; nextDue?: string; paidThisMonth: number };
 export type Receipt = { ok: boolean; message: string; txHash?: string; explorerUrl?: string };
 export type InvoiceRow = { invoiceId: number; shopId: string; driverId: string; amount: string; dueDate: string };

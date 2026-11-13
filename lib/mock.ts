@@ -6,7 +6,8 @@
 // contract) so sums never drift. Everything returned is in dollars.
 
 import { formatDay, formatMoney, plural } from "./format";
-import { HISTORY_PAGE, type Driver, type Profile, type Supplier, type Invoice, type InvoiceHistory, type InvoiceRow, type PayMethod, type Pool, type Receipt, type Shop, type Totals } from "./types";
+import { buildHistory } from "./history";
+import { HISTORY_PAGE, type Driver, type Payment, type Profile, type ShopHistory, type Supplier, type Invoice, type InvoiceHistory, type InvoiceRow, type PayMethod, type Pool, type Receipt, type Shop, type Totals } from "./types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CREDIT_DAYS = 7;
@@ -49,7 +50,9 @@ type Store = {
   shops: ShopRecord[];
   drivers: DriverRecord[];
   pool: { available: number; buffer: number }; // units
+  payments: PaymentRecord[]; // every payment, oldest first, for the shop's history (#136)
 };
+type PaymentRecord = { shopId: string; invoiceId: number | null; method: Payment["method"]; amount: number; at: number; driverId?: string };
 
 const SEED_INVOICES: [number, string, string, number][] = [
   [1001, "tienda-1", "motorista-1", 150_00],
@@ -92,6 +95,7 @@ function seed(now: number): Store {
       { id: "motorista-2", name: "Ana", cashHeld: 0 },
     ],
     pool: { available: 5_000_00 * UNITS_PER_CENT, buffer: 50_00 * UNITS_PER_CENT }, // deploy.sh seeds $50
+    payments: [],
   };
 }
 
@@ -219,6 +223,26 @@ export function createDemoInvoice(shopId?: string): Invoice {
 
 // ---------- writes (same checks, in the same order, as the contract) ----------
 
+function logPayment(shopId: string, invoiceId: number | null, method: Payment["method"], amount: number, driverId?: string) {
+  db().payments.push({ shopId, invoiceId, method, amount, at: clock(), driverId });
+}
+
+/** Every payment the shop made and what it still owes, newest first (#136). */
+export function getShopHistory(shopId: string): ShopHistory | null {
+  const shop = findShop(shopId);
+  if (!shop) return null;
+  return buildHistory({
+    invoices: db().invoices.filter((i) => i.shopId === shopId).map(toInvoice),
+    payments: db()
+      .payments.filter((p) => p.shopId === shopId)
+      .map((p) => ({ invoiceId: p.invoiceId, method: p.method, amount: dollars(p.amount), at: iso(p.at), driverId: p.driverId })),
+    creditOwed: dollars(shop.owed),
+    creditDue: shop.owed > 0 ? iso(shop.dueAt) : undefined,
+    distributor: DISTRIBUTOR_NAME,
+    now: clock(),
+  });
+}
+
 /** The shop's dollars digitales on hand. */
 export function getBalance(shopId: string): number | null {
   const shop = findShop(shopId);
@@ -263,6 +287,7 @@ export function payNow(invoiceId: number, amount?: number): Receipt {
 
   invoice.paid += pay;
   invoice.method = nextMethod(invoice.method, "digital");
+  logPayment(invoice.shopId, invoice.id, "digital", pay);
   const payer = findShop(invoice.shopId);
   if (payer) payer.balance = Math.max(0, payer.balance - pay);
   return pay === left
@@ -297,6 +322,7 @@ export function payLater(invoiceId: number): Receipt {
   }
   shop.owed += amount;
   shop.cycleBorrowed += amount;
+  logPayment(shop.id, invoice.id, "credit", amount);
   invoice.paid = invoice.amount;
   invoice.method = nextMethod(invoice.method, "credit");
   return ok(`Listo. Tiene hasta el ${formatDay(iso(shop.dueAt))} para pagar ${money(amount)}, sin intereses.`);
@@ -326,6 +352,7 @@ export function confirmCash(invoiceId: number, amount: number): Receipt {
   if (cash > invoice.amount - invoice.paid) return fail("El efectivo registrado es mayor que lo que falta pagar.");
 
   invoice.paid += cash;
+  logPayment(invoice.shopId, invoice.id, "cash", cash, invoice.driverId);
   invoice.method = nextMethod(invoice.method, "cash");
   delete invoice.cashClaim;
   const driver = db().drivers.find((d) => d.id === invoice.driverId);
@@ -341,6 +368,7 @@ export function repay(shopId: string, amount: number): Receipt {
 
   db().pool.available += pay * UNITS_PER_CENT;
   shop.owed -= pay;
+  logPayment(shop.id, null, "repay", pay);
   shop.balance = Math.max(0, shop.balance - pay);
   if (shop.owed > 0) return ok(`Pago recibido: ${money(pay)}. Falta ${money(shop.owed)}.`);
 
