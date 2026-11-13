@@ -157,6 +157,12 @@ const RULES: Rule[] = [
   exact("Escriba el nombre de cada contacto.", "Enter each contact's name."),
   exact("Escriba un teléfono de El Salvador (8 dígitos) para cada contacto.", "Enter a Salvadoran phone number (8 digits) for each contact."),
   exact("Un contacto de confianza no puede ser su propio teléfono.", "A trusted contact can't be your own phone."),
+
+  // Mi cuenta → Datos (#127)
+  exact("Datos guardados.", "Details saved."),
+  exact("Escriba el nombre de la tienda.", "Type the shop's name."),
+  exact("Revise el teléfono.", "Check the phone number."),
+  exact("Revise el DUI (9 números).", "Check the DUI (9 digits)."),
 ];
 
 /**

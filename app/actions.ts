@@ -6,17 +6,19 @@
 
 import { formatDay, formatMoney } from "@/lib/format";
 import { getDirectory, type Directory } from "@/lib/server/directory";
-import { explorerTx } from "@/lib/stellar/config";
+import { addressOf, config, DRIVER_IDS, explorerTx, nameOf, roleOf, SHOP_IDS, type Role } from "@/lib/stellar/config";
 import { readClient } from "@/lib/stellar/client";
 import { ContractError, FALLBACK_MESSAGE } from "@/lib/stellar/errors";
 import { toInvoice, toShop } from "@/lib/stellar/map";
 import { read, run } from "@/lib/stellar/send";
 import { toDollars, toUnits } from "@/lib/stellar/units";
+import { buildHistory } from "@/lib/history";
+import { rpc, scValToNative } from "@stellar/stellar-sdk";
 import type { Invoice as ChainInvoice } from "@/packages/route_ledger/src/index";
 import { toUnixSeconds } from "@/lib/dates";
 import { getDb } from "@/lib/server/db";
 import { choices, dueAt, myApprovedDistributor } from "@/lib/server/invoices";
-import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type InvoiceRow, type Pool, type Receipt, type Shop, type Totals } from "@/lib/types";
+import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type InvoiceRow, type Pool, type Receipt, type Payment, type Shop, type ShopHistory, type Supplier, type Totals } from "@/lib/types";
 
 // ---------- reads ----------
 
@@ -80,6 +82,89 @@ export async function getDrivers(): Promise<Driver[]> {
       cashHeld: toDollars(await read(readClient().get_driver_cash({ driver: driver.address }))),
     })),
   );
+}
+
+/** The shop's test dollars on hand, read from Horizon (its trustline balance). */
+export async function getBalance(shopId: string): Promise<number | null> {
+  const address = addressOf(shopId);
+  if (!address || !SHOP_IDS.includes(shopId as Role)) return null;
+  const res = await fetch(`${config.horizonUrl}/accounts/${address}`, { cache: "no-store" });
+  if (!res.ok) return 0;
+  const account = (await res.json()) as { balances?: { asset_code?: string; asset_issuer?: string; balance: string }[] };
+  const line = account.balances?.find((b) => b.asset_code === config.token.code && b.asset_issuer === config.token.issuer);
+  return line ? Number(line.balance) : 0;
+}
+
+const PAYMENT_EVENTS: Record<string, Payment["method"]> = {
+  invoice_paid: "digital",
+  cash_confirmed: "cash",
+  paid_with_credit: "credit",
+  repaid: "repay",
+};
+
+/**
+ * The shop's payments from the contract's events (InvoicePaid, CashConfirmed, PaidWithCredit,
+ * Repaid). The network keeps about a week of events, so anything older shows from the invoice
+ * alone, without a date (lib/history.ts adds those rows).
+ */
+async function shopPayments(address: string): Promise<Payment[]> {
+  const server = new rpc.Server(config.rpcUrl);
+  const health = await server.getHealth();
+  const filters = [{ type: "contract" as const, contractIds: [config.contracts.routeLedger] }];
+  const payments: Payment[] = [];
+  let page = await server.getEvents({ filters, startLedger: Math.max(health.oldestLedger, health.latestLedger - 120_000), limit: 1000 });
+  for (let pages = 0; pages < 20; pages++) {
+    for (const e of page.events) {
+      const name = String(scValToNative(e.topic[0]));
+      const method = PAYMENT_EVENTS[name];
+      if (!method) continue;
+      const data = scValToNative(e.value) as { shop?: string; driver?: string; amount?: bigint };
+      if (data.shop !== address || data.amount === undefined) continue;
+      payments.push({
+        invoiceId: method === "repay" ? null : Number(scValToNative(e.topic[1])),
+        method,
+        amount: toDollars(data.amount),
+        at: new Date(e.ledgerClosedAt).toISOString(),
+        driverId: data.driver ? roleOf(data.driver) : undefined,
+        txHash: e.txHash,
+      });
+    }
+    if (page.events.length < 1000) break;
+    page = await server.getEvents({ filters, cursor: page.cursor, limit: 1000 });
+  }
+  return payments;
+}
+
+/** Every payment the shop made and what it still owes, newest first (#136). */
+export async function getShopHistory(shopId: string): Promise<ShopHistory | null> {
+  const address = addressOf(shopId);
+  if (!address || !SHOP_IDS.includes(shopId as Role)) return null;
+  const total = await read(readClient().invoice_count());
+  const [history, shop, payments] = await Promise.all([
+    getInvoiceHistory(Math.min(10, Math.ceil(total / HISTORY_PAGE) || 1)),
+    getShop(shopId),
+    shopPayments(address).catch((error) => {
+      console.error("[actions] events", error);
+      return [] as Payment[]; // the invoices alone still give a history, just without dates
+    }),
+  ]);
+  if (!shop) return null;
+  return buildHistory({
+    invoices: history.invoices.filter((i) => i.shopId === shopId),
+    payments,
+    creditOwed: shop.creditOwed,
+    creditDue: shop.creditDue,
+    distributor: nameOf("distributor"),
+    now: Date.now(),
+    explorerTx,
+  });
+}
+
+/** The distributors this shop buys from: today the one in config/testnet.json. */
+export async function getSuppliers(shopId: string): Promise<Supplier[]> {
+  const mine = (await getInvoices()).filter((i) => i.shopId === shopId);
+  if (mine.length === 0) return [];
+  return [{ id: "distributor", name: nameOf("distributor"), invoices: mine.length, unpaid: mine.filter((i) => i.status !== "paid").length }];
 }
 
 export async function getPool(): Promise<Pool> {
