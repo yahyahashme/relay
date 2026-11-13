@@ -5,6 +5,7 @@
 // with set_terms (admin key), so "Pagar en 7 días" works right away.
 
 import { getDb } from "@/lib/server/db";
+import { callerIp, countRecent, noteEvent, signUpBlocked, TOO_MANY } from "@/lib/server/rate-limit";
 import { getDirectory } from "@/lib/server/directory";
 import { currentUser, startSession } from "@/lib/server/session";
 import { checkOwner, claimShop, saveTrustedContacts, type ShopDetails, signUpShop, trustedContacts } from "@/lib/server/shops";
@@ -29,7 +30,12 @@ async function startingCredit(stellarAddress: string): Promise<number> {
 
 /** Step 1: checks the owner's details before anything is created. */
 export async function checkOwnerAction(input: { name: string; phone: string; password: string }): Promise<Reply> {
-  if (!getDb()) return { ok: false, message: NO_ACCOUNTS };
+  const db = getDb();
+  if (!db) return { ok: false, message: NO_ACCOUNTS };
+  // It says whether a phone has an account: a cap per IP so it can't be used to walk through numbers.
+  const key = `checkowner:${await callerIp()}`;
+  if ((await countRecent(db, key, 600)) >= 20) return { ok: false, message: TOO_MANY };
+  await noteEvent(db, key);
   const problem = await checkOwner(input);
   return problem ? { ok: false, message: problem } : { ok: true };
 }
@@ -44,6 +50,7 @@ export async function signUpShopAction(
   if (!getDb()) return { ok: false, message: NO_ACCOUNTS };
   let shopId: string;
   try {
+    if (await signUpBlocked()) return { ok: false, message: TOO_MANY };
     const result = code
       ? await claimShop(code, { ownerName: input.name, phone: input.phone, password: input.password, shopName: input.shopName, address: input.address, kind: input.kind })
       : await signUpShop(input);

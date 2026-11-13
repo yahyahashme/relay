@@ -4,6 +4,7 @@
 // a code, and seeing / removing the distributors that added it.
 
 import { getDb } from "@/lib/server/db";
+import { countRecent, noteEvent, TOO_MANY } from "@/lib/server/rate-limit";
 import { getDirectory } from "@/lib/server/directory";
 import { distributorForUser } from "@/lib/server/distributors";
 import { driverIdForUser } from "@/lib/server/drivers";
@@ -90,6 +91,11 @@ export async function addShopAction(input: {
   const distributor = await myApprovedDistributor();
   if (!distributor) return { ok: false, message: NOT_YOURS };
   try {
+    // Each new shop funds a Stellar account: a cap per distributor per hour.
+    const db = getDb()!;
+    const key = `addshop:${distributor.id}`;
+    if ((await countRecent(db, key, 3600)) >= 30) return { ok: false, message: TOO_MANY };
+    await noteEvent(db, key);
     const result = await addShopWithoutAccount(distributor.id, { ...input, driverId: await ownDriver(distributor.id, input.driverId) });
     if ("error" in result) return { ok: false, message: result.error };
     return { ok: true, ...result };
@@ -115,7 +121,8 @@ export async function getRouteInvites(driverId: string, shopIds: string[]): Prom
   const isTheirDistributor = user.role === "distribuidora" && (await distributorForUser(user.id))?.id === driver.distributorId;
   if (!isDriver && !isTheirDistributor) return none;
   const distributorName = directory.find(driver.distributorId ?? "", "distributor")?.name ?? "";
-  return { distributorName, codes: await pendingCodes(shopIds) };
+  if (!driver.distributorId) return none;
+  return { distributorName, codes: await pendingCodes(driver.distributorId, shopIds) };
 }
 
 // ---------- the shop's side ----------
@@ -128,12 +135,18 @@ export async function getShopInvite(code: string): Promise<{ distributorName: st
 
 export type ShopSuppliers = { suppliers: { distributorId: string; name: string; addedAt: string }[]; isOwner: boolean };
 
-/** Who sells to this shop on Relay, and whether the viewer owns the shop (and can remove one). */
+/** Who sells to this shop on Relay, and whether the viewer owns the shop (and can remove one). Only for the owner or those distributors. */
 export async function getShopSuppliers(shopId: string): Promise<ShopSuppliers | null> {
   if (!getDb()) return null;
   const user = await currentUser();
-  const isOwner = user ? (await shopIdForUser(user)) === shopId : false;
-  return { suppliers: await suppliersOf(shopId), isOwner };
+  if (!user) return null;
+  const isOwner = (await shopIdForUser(user)) === shopId;
+  const suppliers = await suppliersOf(shopId);
+  if (!isOwner) {
+    const mine = user.role === "distribuidora" ? await distributorForUser(user.id) : null;
+    if (!mine || !suppliers.some((s) => s.distributorId === mine.id)) return null;
+  }
+  return { suppliers, isOwner };
 }
 
 export async function removeSupplierAction(shopId: string, distributorId: string): Promise<Reply> {

@@ -5,6 +5,7 @@
 
 import { endSession, signIn, signUp, type Role } from "@/lib/server/accounts";
 import { getDb } from "@/lib/server/db";
+import { callerIp, clearEvents, countRecent, noteEvent, signUpBlocked, TOO_MANY, WRONG_PASSWORD } from "@/lib/server/rate-limit";
 import { clearSession, currentUser, sessionId, startSession } from "@/lib/server/session";
 import { config } from "@/lib/stellar/config";
 
@@ -37,6 +38,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 export async function signUpAction(input: { role: Role; name: string; contact: string; password: string }): Promise<AuthReply> {
   if (!getDb()) return { ok: false, message: NO_ACCOUNTS };
   try {
+    if (await signUpBlocked()) return { ok: false, message: TOO_MANY };
     const result = await signUp(input);
     if (!result.ok) return result;
     await startSession(result.sessionId);
@@ -48,10 +50,23 @@ export async function signUpAction(input: { role: Role; name: string; contact: s
 }
 
 export async function signInAction(contact: string, password: string): Promise<AuthReply> {
-  if (!getDb()) return { ok: false, message: NO_ACCOUNTS };
+  const db = getDb();
+  if (!db) return { ok: false, message: NO_ACCOUNTS };
   try {
+    // Wrong passwords: a few per phone or email, a few more per IP, then wait.
+    const byContact = `signin:${String(contact).trim().toLowerCase().replace(/[\s()-]/g, "")}`;
+    const byIp = `signin-ip:${await callerIp()}`;
+    const [forContact, forIp] = await Promise.all([
+      countRecent(db, byContact, WRONG_PASSWORD.windowSeconds),
+      countRecent(db, byIp, WRONG_PASSWORD.windowSeconds),
+    ]);
+    if (forContact >= WRONG_PASSWORD.max || forIp >= WRONG_PASSWORD.max * 3) return { ok: false, message: TOO_MANY };
     const result = await signIn(contact, password);
-    if (!result.ok) return result;
+    if (!result.ok) {
+      await Promise.all([noteEvent(db, byContact), noteEvent(db, byIp)]);
+      return result;
+    }
+    await clearEvents(db, byContact);
     await startSession(result.sessionId);
     return { ok: true };
   } catch (error) {
