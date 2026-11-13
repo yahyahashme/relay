@@ -10,14 +10,14 @@ Written Wed Nov 11 from `docs/deck-outline.md`, `docs/pitch.md` (PR #83) and `do
 
 ## 1. Name and one-line pitch (10 s)
 
-**Headline:** [NAME]
+**Headline:** Relay (tagline under it: *Paga tu ruta*)
 
 1. Pay the truck now, in cash, or in 7 days.
 2. No interest.
 
 **Small print:** none.
 **Visual:** the name, large. No logo yet.
-**Waiting on:** the team name (#26).
+**Waiting on:** nothing (name decided Nov 12).
 
 ## 2. The problem (30 s)
 
