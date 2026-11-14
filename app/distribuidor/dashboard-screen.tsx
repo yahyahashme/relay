@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CsvImport } from "@/components/csv-import";
 import { DistributorShell } from "@/components/distributor-shell";
 import { ActionLink, Button, ButtonLink, TextButton } from "@/components/kit/button";
 import { FilterSelect } from "@/components/kit/field";
@@ -549,15 +548,14 @@ export default function DashboardScreen() {
         <div className="min-h-11">{cashReceipt && <Answer receipt={cashReceipt} />}</div>
       </section>
 
-      <section id="importar" className={`${SECTION} ${SMALL}`}>
-        <h2 className={HEADING}>{t("Varias facturas a la vez", "Several invoices at once")}</h2>
-        <CsvImport
-          shopName={shopName}
-          driverName={driverName}
-          onCreated={reload}
-          known={scope.isDemo ? undefined : { shops: shops.map((s) => ({ id: s.id, name: s.name })), drivers: drivers.map((d) => ({ id: d.id, name: d.name })) }}
+      {/* A file of invoices is imported on the Nueva factura page, beside the form. */}
+      <div className={SMALL}>
+        <ActionLink
+          href="/distribuidor/factura#importar"
+          title={t("Importar facturas (CSV)", "Import invoices (CSV)")}
+          hint={t("Varias facturas a la vez, desde un archivo.", "Several invoices at once, from a file.")}
         />
-      </section>
+      </div>
     </div>,
   );
 }
