@@ -1,7 +1,17 @@
 export type InvoiceStatus = "due" | "part_paid" | "paid";
 export type PayMethod = "digital" | "cash" | "credit" | "mixed";
-export type Invoice = { id: number; shopId: string; driverId: string; amount: number; paid: number; dueDate: string; status: InvoiceStatus; method?: PayMethod; cashClaim?: number };
-export type Shop = { id: string; name: string; owner: string; creditLimit: number; creditOwed: number; creditDue?: string; overdue: boolean; onTime: number; late: number; writtenOff?: number };
+export type Invoice = { id: number; shopId: string; driverId: string; amount: number; paid: number; dueDate: string; status: InvoiceStatus; method?: PayMethod; cashClaim?: number; creditFee?: number };
+export type Shop = {
+  id: string; name: string; owner: string; creditLimit: number; creditOwed: number; creditDue?: string; overdue: boolean;
+  onTime: number;
+  /** All late repayments (and defaults). `lateMinor` = 2-7 days late, `lateMajor` = 8+ days. */
+  late: number; lateMinor: number; lateMajor: number;
+  /** The most days late it ever repaid; 0 if never late. */
+  maxDaysLate: number;
+  /** When it first used credit; absent if never. */
+  firstCredit?: string;
+  writtenOff?: number;
+};
 export type Driver = { id: string; name: string; cashHeld: number; distributorId?: string };
 export type Pool = { available: number; buffer: number };
 /** Everything ever paid, by method (dollars), and how many invoices exist. */

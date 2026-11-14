@@ -5,7 +5,7 @@ import type { HistoryRow, Shop } from "./types";
 const NOW = Date.parse("2026-11-13T12:00:00Z");
 const DAY = 24 * 60 * 60 * 1000;
 const shop = (over: Partial<Shop> = {}): Shop => ({
-  id: "tienda-1", name: "Tienda Rosa", owner: "Rosa", creditLimit: 200, creditOwed: 0, overdue: false, onTime: 0, late: 0, ...over,
+  id: "tienda-1", name: "Tienda Rosa", owner: "Rosa", creditLimit: 200, creditOwed: 0, overdue: false, onTime: 0, late: 0, lateMinor: 0, lateMajor: 0, maxDaysLate: 0, ...over,
 });
 const paid = (daysAgo: number, daysLate = 0, amount = 100): HistoryRow => ({
   key: `${daysAgo}-${daysLate}`, kind: "payment", invoiceId: 1, distributor: "El Sol", method: "digital",
