@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { useT } from "@/lib/i18n";
 import { ChevronBack } from "./icons";
 
@@ -42,12 +42,29 @@ export function Split({ nav, facts, actions, className = "" }: { nav?: ReactNode
   );
 }
 
-/** The row above a screen: where you came from on the left, one other place on the right. Blue words, full-size targets. */
-export function TopNav({ back, backLabel, children }: { back?: string; backLabel?: ReactNode; children?: ReactNode }) {
+/**
+ * The row above a screen: where you came from on the left, one other place on the right. Blue words, full-size targets.
+ * `size="lg"` is the driver's row (56 px). `onBack` lets a screen that keeps two views in one page (the driver's
+ * route and its open stop) go back itself: call `event.preventDefault()` in it.
+ */
+export function TopNav({
+  back,
+  backLabel,
+  onBack,
+  size = "md",
+  children,
+}: {
+  back?: string;
+  backLabel?: ReactNode;
+  onBack?: (event: MouseEvent<HTMLAnchorElement>) => void;
+  size?: "md" | "lg";
+  children?: ReactNode;
+}) {
+  const height = size === "lg" ? "min-h-14" : "min-h-12";
   return (
-    <nav className="flex min-h-12 items-center justify-between gap-3">
+    <nav className={`flex items-center justify-between gap-3 ${height}`}>
       {back ? (
-        <Link href={back} className="-ml-1.5 inline-flex min-h-12 items-center gap-0.5 pr-2 text-[1.0625rem] font-bold text-brand">
+        <Link href={back} onClick={onBack} prefetch={onBack ? false : undefined} className={`-ml-1.5 inline-flex shrink-0 items-center gap-0.5 pr-2 text-[1.0625rem] font-bold text-brand ${height}`}>
           <ChevronBack />
           {backLabel}
         </Link>
@@ -133,6 +150,7 @@ export function Shell({
         aria-label={t("Secciones", "Sections")}
         className="fixed inset-x-0 bottom-0 z-4 flex justify-between overflow-hidden border-t border-counter-rule bg-counter px-[max(0.25rem,env(safe-area-inset-left))] pb-[env(safe-area-inset-bottom)] lg:hidden"
       >
+        {/* Four places must fit a phone at any text size: a label stops growing where the row is full, and is never under 14 px. */}
         {nav
           .filter((item) => !item.sidebarOnly)
           .map((item) => (
@@ -140,10 +158,7 @@ export function Shell({
               key={item.href}
               href={item.href}
               aria-current={item.current ? "page" : undefined}
-              // 5vw is 14 px on the narrowest phone, so the labels keep their size; it only holds back a large system text size, which would push
-              // the last place off a small screen (the side padding is in px for the same reason). The bar never grows wider than
-              // the screen: a bar that did would widen the page, and then keep it wide.
-              className={`flex min-h-14 min-w-0 flex-auto items-center justify-center px-[6px] text-center text-[length:min(var(--text-label),5vw)] leading-tight font-bold -outline-offset-3 ${
+              className={`flex min-h-14 min-w-0 flex-auto items-center justify-center px-1.5 text-center text-[min(var(--text-label),max(14px,4.4vw))] leading-tight font-bold -outline-offset-3 ${
                 item.current ? "rounded-b-paper bg-paper text-ink" : "text-brand"
               }`}
             >

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Loading, Screen } from "@/components/ui";
+import { Brand } from "@/components/auth";
+import { Slip } from "@/components/kit/layout";
+import { Loading } from "@/components/kit/states";
 import ClaimScreen from "./claim-screen";
 
 export const metadata: Metadata = { title: "Crear la cuenta de su tienda · Relay" };
@@ -11,9 +13,10 @@ export default function Page() {
   return (
     <Suspense
       fallback={
-        <Screen>
+        <Slip>
+          <Brand />
           <Loading />
-        </Screen>
+        </Slip>
       }
     >
       <ClaimScreen />
