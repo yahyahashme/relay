@@ -92,7 +92,10 @@ export default function LenderScreen() {
       <section className="flex max-w-[40rem] flex-col gap-2">
         <h2 className={HEADING}>{t("Cómo funciona", "How it works")}</h2>
         <ul className="flex list-disc flex-col gap-1.5 pl-5 text-pretty">
-          <li>{t("Solo los prestamistas que Relay aprueba pueden poner dinero. Pueden estar en cualquier país.", "Only lenders Relay approves can put money in. They can be in any country.")}</li>
+          <li>{t(
+              "Solo los prestamistas que Relay aprueba, después de revisar la empresa, pueden poner dinero. En el piloto, la distribuidora; después, prestamistas con licencia en El Salvador. Relay puede quitar la aprobación: entonces no pone más dinero, pero siempre puede retirar el suyo.",
+              "Only lenders Relay approves, after checking the business, can put money in. In the pilot, the distributor; after that, lenders licensed in El Salvador. Relay can take the approval away: then it can't put more in, but it can always take its money out.",
+            )}</li>
           <li>{t("Ganan 0.50% de cada venta a crédito. La distribuidora paga esa comisión, la tienda nunca.", "They earn 0.50% of every credit sale. The distributor pays that fee, never the shop.")}</li>
           <li>{t("Pueden retirar lo que no está prestado. Lo prestado vuelve cuando las tiendas pagan.", "They can take out what isn't lent. Lent money comes back as shops pay.")}</li>
           <li>{t("Si una tienda no paga, el fondo de respaldo cubre primero. Lo que no cubre, lo comparten todos los prestamistas.", "If a shop doesn't pay, the backup fund covers it first. What it can't cover, all lenders share.")}</li>
