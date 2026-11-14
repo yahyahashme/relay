@@ -87,7 +87,7 @@ export function AccountSections({ shop, balance, suppliers }: { shop: Shop; bala
         </Row>
         <OptionLink href={info("agregar")} title={t("Agregar dinero", "Add money")} hint={t("Con efectivo o desde su banco", "With cash or from your bank")} />
         <OptionLink href={info("retirar")} title={t("Retirar", "Withdraw")} hint={t("A su banco o en efectivo", "To your bank or in cash")} />
-        <OptionLink href={info("recibos")} title={t("Recibos", "Receipts")} hint={t("Cada pago, con su recibo", "Every payment, with its receipt")} />
+        <OptionLink href={`${base}/historial`} title={t("Historial y recibos", "History and receipts")} hint={t("Cada pago, con su recibo", "Every payment, with its receipt")} />
       </Section>
 
       <Section title={t("Crédito", "Credit")}>

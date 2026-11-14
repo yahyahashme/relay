@@ -8,7 +8,7 @@
 
 import * as live from "@/app/actions";
 import * as mock from "./mock";
-import type { Driver, Invoice, InvoiceHistory, InvoiceRow, Pool, Profile, Receipt, Shop, Supplier, Totals } from "./types";
+import type { Driver, Invoice, InvoiceHistory, InvoiceRow, Pool, Profile, Receipt, Shop, ShopHistory, Supplier, Totals } from "./types";
 
 export const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS !== "false";
 
@@ -50,6 +50,9 @@ export const getInvoiceHistory = (pages: number): Promise<InvoiceHistory> =>
   read(() => mock.getInvoiceHistory(pages), () => live.getInvoiceHistory(pages));
 /** Everything ever paid, by method, for the dashboard's totals. */
 export const getTotals = (): Promise<Totals> => read(mock.getTotals, live.getTotals);
+/** Every payment the shop made, and what it still owes, newest first (#136). */
+export const getShopHistory = (shopId: string): Promise<ShopHistory | null> =>
+  read(() => mock.getShopHistory(shopId), () => live.getShopHistory(shopId));
 /** The shop's dollars digitales on hand. */
 export const getBalance = (shopId: string): Promise<number | null> =>
   read(() => mock.getBalance(shopId), () => live.getBalance(shopId));

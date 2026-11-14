@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { BackLink, Card, Chip, Label, LoadError, Loading, ReceiptView, Screen } from "@/components/ui";
 import { CsvImport } from "@/components/csv-import";
@@ -243,7 +244,9 @@ export default function Dashboard() {
                 <li key={shop.id}>
                   <Card className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex flex-col">
-                      <span className="text-lg font-semibold">{shop.name}</span>
+                      <Link href={`/distribuidor/tienda/${shop.id}`} className="text-lg font-semibold text-brand underline-offset-4 hover:underline">
+                        {shop.name}
+                      </Link>
                       <span className={shop.overdue ? "font-medium text-bad" : "text-muted"}>
                         {t(`Debe ${formatMoney(shop.creditOwed)}`, `Owes ${formatMoney(shop.creditOwed)}`)}
                         {shop.creditDue
@@ -332,7 +335,11 @@ export default function Dashboard() {
                   className={`transition-colors duration-700 lg:text-lg ${invoice.id === newest || changed.has(invoice.id) ? "bg-brand-soft" : ""}`}
                 >
                   <td className="px-4 py-3 font-medium tabular-nums">{invoice.id}</td>
-                  <td className="px-4 py-3">{shopName(invoice.shopId)}</td>
+                  <td className="px-4 py-3">
+                    <Link href={`/distribuidor/tienda/${invoice.shopId}`} className="text-brand underline-offset-4 hover:underline">
+                      {shopName(invoice.shopId)}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3">{driverName(invoice.driverId)}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{formatMoney(invoice.amount)}</td>
                   <td className="px-4 py-3 text-right tabular-nums">
