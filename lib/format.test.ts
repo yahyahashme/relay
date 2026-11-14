@@ -1,11 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { dueOn, formatDay, formatMoney, plural } from "./format";
+import { dueOn, formatAmount, formatDay, formatMoney, plural } from "./format";
 
 describe("formatMoney", () => {
   it("shows dollars with commas and cents", () => {
     expect(formatMoney(1234.5)).toBe("$1,234.50");
     expect(formatMoney(85.5)).toBe("$85.50");
     expect(formatMoney(0)).toBe("$0.00");
+  });
+});
+
+describe("formatAmount", () => {
+  it("puts a thin space after the sign and always shows two decimals", () => {
+    expect(formatAmount(48.5)).toBe("$\u200948.50");
+    expect(formatAmount(1234.5)).toBe("$\u20091,234.50");
+    expect(formatAmount(0)).toBe("$\u20090.00");
   });
 });
 
