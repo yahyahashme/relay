@@ -1,6 +1,6 @@
 # Finals deck outline (#41)
 
-Scaffold written Wed Nov 11; the slide text was added the same day. Refreshed Thu Nov 12 late evening against `main` at 9c1b0fe (#72, #73, #83, #84, #85, #86, #90, #100 and #102 are merged; #81 and #82 are still open). **The text to paste into the template is in `docs/deck-slides.md`.** This file keeps the plan: the time budget, the source and visual for each slide, what each still needs, the screenshot steps and the open questions. Every `[bracket]` is something we don't have yet.
+Scaffold written Wed Nov 11; the slide text was added the same day. Refreshed Thu Nov 12 late evening against `main` at 9c1b0fe (#72, #73, #83, #84, #85, #86, #90, #100 and #102 are merged; #81 and #82 are still open). Update Fri Nov 13 night: #82 is merged, and `docs/img/code-slide.png` was re-rendered after #139 with the new contract ID (see slide 5). **The text to paste into the template is in `docs/deck-slides.md`.** This file keeps the plan: the time budget, the source and visual for each slide, what each still needs, the screenshot steps and the open questions. Every `[bracket]` is something we don't have yet.
 
 ## Rules
 
@@ -53,13 +53,13 @@ The words for each slide are in `docs/deck-slides.md`, under the same number.
 
 ### 5. The code
 - **Message:** the credit rules are real contract code, not a mock-up.
-- **Visual:** `docs/img/code-slide.png` (from #56). **Not ready on `main`:** it shows the old contract ID (CAPQ6ZDD..., from before the redeploy), and its limit check is the pre-#66 code. PR #82 (open, not merged) repairs the render, re-renders the PNG with the new ID (CDHDZX7V..., equal to `contracts.routeLedger` in `config/testnet.json`) and the current `match` block, and adds `SCALE=3 node docs/slides/render.mjs` for print-size images. Use the image only after #82 merges.
-- **Needs:** PR #82 merged, then Yahya's confirmation that the code on the slide is what's deployed (the open "Done means" line of #56). `git log` shows nothing under `contracts/` since #80 (Thu Nov 12, 4:33 PM ET), which came before the redeploy (#90, 6:22 PM ET).
+- **Visual:** `docs/img/code-slide.png` (from #56). Ready on `main`: PR #82 (merged) repaired the render and added `SCALE=3 node docs/slides/render.mjs` for print-size images, and the PNG was re-rendered Fri Nov 13 after #139, so it shows the current contract ID (CAGCZ3I7..., equal to `contracts.routeLedger` in `config/testnet.json`) and the current `pay_with_credit` blocks (overdue check, `match` limit check, pool check). The two older IDs it used to show (CAPQ6ZDD... before #90, CDHDZX7V... between #90 and #139) are gone. The script reads the ID and the code itself, but the PNG does not update itself: re-render it after any redeploy or any change to `pay_with_credit`.
+- **Needs:** Yahya's confirmation that the code on the slide is what's deployed (the open "Done means" line of #56). `git log` shows #139 (Fri Nov 13, 7:36 PM ET, commit 517b426) as the last change under `contracts/`; its merge also put the new ID in `config/testnet.json`.
 
 ### 6. Money in 30 seconds, and go-to-market
 - **Message:** distributors pay, shops never do.
 - **Source:** facts entry 29 (#84) for the fees; entries 25 and 26 (#73) for Ecuador and Panama; context §14 for "one distributor first". All on `main`.
-- **Never say:** "$98.40", "$0.35 per credit sale", a "$2.5 million" revenue figure (facts, "Never use"), or that fee sponsorship works. Fee wording: "$98.50 per $100", with the 1.5% paid by the distributor.
+- **Never say:** "$98.40", "$0.35 per credit sale", a "$2.5 million" revenue figure (facts, "Never use"), or that fee sponsorship works. Fee wording: "$98.50 per $100" for an invoice fully on credit, with a fee of "up to 1.5%" paid by the distributor (facts entry 29, update Nov 13: #139 made the fee slide from 1.50% down to 1.00% the more the shop pays up front, so never say a flat 1.5%).
 - **Visual:** the $100 example as 3 rows.
 
 ### 7. Risk #1, our plan, what users told us
@@ -110,8 +110,8 @@ For slide 3 and the trifold's middle panel. They have to come from the live app 
 | "What we heard from N people" | #30; `docs/research.md` (#72) | open; the log has only the two advisor calls |
 | Slide text for the 8 slides | `docs/deck-slides.md` | refreshed Nov 12 (brackets still open) |
 | Real phone screenshots | live app, captured by Jack, steps above | not started; unblocked (redeploy landed, #90) |
-| Code slide with the real contract ID | #56 follow-up, PR #82 | PR #82 (open, not merged) has the re-render; `docs/img/code-slide.png` on `main` is stale until it merges |
-| Print-size slide images | `SCALE=3 node docs/slides/render.mjs` (PR #82) | option written in PR #82 |
+| Code slide with the real contract ID | #56 follow-up, PR #82 | done (Nov 13): PR #82 merged, and the PNG was re-rendered after #139; `docs/img/code-slide.png` on `main` shows the current ID (CAGCZ3I7...). Re-render after any redeploy |
+| Print-size slide images | `SCALE=3 node docs/slides/render.mjs` (PR #82) | merged; the option is in `docs/slides/render.mjs` (render on the computer that prints, after the last redeploy) |
 | Architecture picture without the fee-sponsorship line | edit `docs/slides/architecture.html`, re-render | not done |
 | Our ask | team decision | open |
 
@@ -144,7 +144,7 @@ Our slides 5 (the code) and 6 (money and go-to-market) have no template slot, an
 
 1. Open the template and make a copy. Keep its layouts and fonts.
 2. Paste the slide text from `docs/deck-slides.md`, replacing every `[bracket]`.
-3. Insert the images and the three screenshots. Our PNGs are 1920 x 1080 and the template is 16:9, so they fit. Use `docs/img/architecture.png` only after the fee-sponsorship line is removed, and `docs/img/code-slide.png` only after PR #82 is merged.
+3. Insert the images and the three screenshots. Our PNGs are 1920 x 1080 and the template is 16:9, so they fit. Use `docs/img/architecture.png` only after the fee-sponsorship line is removed, and `docs/img/code-slide.png` after checking that the ID on it equals `contracts.routeLedger` in `config/testnet.json` (PR #82 is merged and the PNG was re-rendered after #139; re-render after any redeploy).
 4. Check there are no animations or transitions on any slide.
 5. Download as PowerPoint (.pptx) and open it in PowerPoint itself, not only in Google Slides, to check fonts and layout.
 6. Save it where all four of us can open it, and post the link in the group chat.
