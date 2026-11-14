@@ -34,6 +34,8 @@
   /* Shape: near-square paper, rounder controls */
   --radius-paper: 2px;
   --radius-control: 10px;
+  /* An account card (Mi cuenta, the panel): soft corners, so it reads as an account, not a receipt. */
+  --radius-card: 14px;
 
   /* Fluid type, 320 to 1440 px wide. Body never under 16 px, labels never under 14 px. */
   --text-label: 0.875rem;
