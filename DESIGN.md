@@ -71,6 +71,10 @@ An invoice that is simply waiting (unpaid, and not yet near its due date) carrie
 
 One tint is allowed outside a stamp: on the dashboard, an invoice that is new or has just changed (a shop paid) is lit for four seconds, then goes back to paper.
 
+Mi cuenta is a short slip beside a long list, so its `Split` takes `pin="facts"`: the list scrolls with the page and the slip stays in view on a screen tall enough to hold it. `Slip wide` (56 rem) is a ledger page outside the Shell, and `LedgerFigures pair` keeps two figures across. On the account slip Debe is the large figure with its due date beside the label; Límite, Disponible, Puntaje Relay and Saldo are its lines; the foot carries EN CRÉDITO, VENCE PRONTO, VENCIDA or PAGADA. No debt means no stamp.
+
+A score is a number, its word as a stamp, and its reasons in a ruled list marked "A favor" or "En contra" in words, with no tick or warning glyphs. A late payment keeps its PAGADA stamp, in amber, with "N días de atraso" beside it. A switch is a blue-ruled row with its state in words ("Sí" / "No") beside the track. A record shown to strangers (`/compartido`) carries the logo, full dates with the year, and a closing line under a double rule.
+
 ## Motion
 
 In a payment flow, motion never delays or blurs what happened.
@@ -97,4 +101,4 @@ Every string goes through `t("español", "English")`, in usted. Screens say "dó
 
 `node scripts/screens.mjs <group>` opens each screen at 30 device sizes, from a 280 px fold to 1920 px, portrait and sideways, fails on sideways scroll, a page wider than the screen (a phone would zoom out), clipped text or a touch target under 44 px, and writes a contact sheet to `docs/screenshots/redesign/`. Add `--lang en`, `--zoom 2` (200% zoom), `--text 1.5` (large system text), `--size 1280x800` (one size) or, last, `--full` (the whole page, not the first screenful). Two frames are fixed: at 360x640 the shop sees all three pay options without scrolling (the slip tightens and folds its lines on a short screen: the `short:` and `tall:` variants), and at 1280x800 the distributor sees the header strip and ten invoice rows.
 
-`node scripts/pay-taps.mjs` taps every pay button on the shop's invoice, the driver's "Recibí efectivo", a stop's row at the spot where that button will be (no cash may be recorded), and the distributor's cash hand-in with two drivers holding cash, twice quickly, then every second, then every two seconds. It fails unless each run makes one payment (or one hand-in) and no later tap reaches a button or a link.
+`node scripts/pay-taps.mjs` taps every pay button on the shop's invoice, the driver's "Recibí efectivo", "Pagar deuda" on Mi cuenta, a stop's row at the spot where that button will be (no cash may be recorded), and the distributor's cash hand-in with two drivers holding cash, twice quickly, then every second, then every two seconds. It fails unless each run makes one payment (or one hand-in) and no later tap reaches a button or a link.
