@@ -6,7 +6,7 @@
 // contract) so sums never drift. Everything returned is in dollars.
 
 import { formatDay, formatMoney, plural } from "./format";
-import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type InvoiceRow, type PayMethod, type Pool, type Receipt, type Shop, type Totals } from "./types";
+import { HISTORY_PAGE, type Driver, type Profile, type Supplier, type Invoice, type InvoiceHistory, type InvoiceRow, type PayMethod, type Pool, type Receipt, type Shop, type Totals } from "./types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CREDIT_DAYS = 7;
@@ -40,6 +40,8 @@ type ShopRecord = {
   late: number;
   cycleBorrowed: number; // borrowed since owed was last 0
   lastRaiseAt: number; // 0 if never
+  balance: number; // dollars digitales on hand, in cents
+  profile: Profile;
 };
 type DriverRecord = { id: string; name: string; cashHeld: number };
 type Store = {
@@ -64,23 +66,26 @@ const DEMO_DRIVER: Record<string, string> = {
   "tienda-2": "motorista-2",
   "tienda-3": "motorista-2",
 };
+const DISTRIBUTOR_NAME = "Distribuidora El Sol";
 const DEMO_AMOUNTS = [45_75, 120_00, 68_40, 99_90, 152_30];
 
 let clock = () => Date.now();
 let store: Store | null = null;
 
 function seed(now: number): Store {
-  const shop = (id: string, name: string, owner: string): ShopRecord => ({
+  const shop = (id: string, name: string, owner: string, address: string, phone: string, dui: string): ShopRecord => ({
     id, name, owner, limit: 200_00, owed: 0, dueAt: 0, onTime: 0, late: 0, cycleBorrowed: 0, lastRaiseAt: 0,
+    balance: 1_000_00, // setup.sh gives each testnet shop $1,000 of test dollars
+    profile: { owner, shopName: name, address, phone, dui },
   });
   return {
     invoices: SEED_INVOICES.map(([id, shopId, driverId, amount]) => ({
       id, shopId, driverId, amount, paid: 0, dueAt: now + CREDIT_DAYS * DAY_MS,
     })),
     shops: [
-      shop("tienda-1", "Tienda Rosa", "Rosa Martínez"),
-      shop("tienda-2", "Tienda Don Luis", "Luis Hernández"),
-      shop("tienda-3", "Mini Súper La Esquina", "Marta López"),
+      shop("tienda-1", "Tienda Rosa", "Rosa Martínez", "Col. Escalón, San Salvador", "7012-3456", "04512345-6"),
+      shop("tienda-2", "Tienda Don Luis", "Luis Hernández", "Barrio El Centro, Santa Tecla", "7123-4567", "03498765-2"),
+      shop("tienda-3", "Mini Súper La Esquina", "Marta López", "Col. Miramonte, San Salvador", "7234-5678", "05276543-1"),
     ],
     drivers: [
       { id: "motorista-1", name: "Carlos", cashHeld: 0 },
@@ -214,6 +219,39 @@ export function createDemoInvoice(shopId?: string): Invoice {
 
 // ---------- writes (same checks, in the same order, as the contract) ----------
 
+/** The shop's dollars digitales on hand. */
+export function getBalance(shopId: string): number | null {
+  const shop = findShop(shopId);
+  return shop ? dollars(shop.balance) : null;
+}
+
+/** The distributors this shop buys from. The demo has one. */
+export function getSuppliers(shopId: string): Supplier[] {
+  const mine = db().invoices.filter((i) => i.shopId === shopId);
+  if (mine.length === 0) return [];
+  return [{ id: "distributor", name: DISTRIBUTOR_NAME, invoices: mine.length, unpaid: mine.filter((i) => i.paid < i.amount).length }];
+}
+
+export function getProfile(shopId: string): Profile | null {
+  const shop = findShop(shopId);
+  return shop ? { ...shop.profile } : null;
+}
+
+/** Checks and saves the shop's details. The shop's name on screen follows the new one. */
+export function saveProfile(shopId: string, profile: Profile): Receipt {
+  const shop = findShop(shopId);
+  if (!shop) return fail("No encontramos esa tienda.");
+  const clean = Object.fromEntries(Object.entries(profile).map(([k, v]) => [k, String(v ?? "").trim()])) as Profile;
+  if (!clean.owner) return fail("Escriba su nombre.");
+  if (!clean.shopName) return fail("Escriba el nombre de la tienda.");
+  if (clean.phone && !/^\+?[\d\s-]{8,15}$/.test(clean.phone)) return fail("Revise el teléfono.");
+  if (clean.dui && !/^\d{8}-?\d$/.test(clean.dui)) return fail("Revise el DUI (9 números).");
+  shop.profile = clean;
+  shop.owner = clean.owner;
+  shop.name = clean.shopName;
+  return ok("Datos guardados.");
+}
+
 export function payNow(invoiceId: number, amount?: number): Receipt {
   const invoice = findInvoice(invoiceId);
   if (!invoice) return fail("No encontramos esa factura.");
@@ -225,6 +263,8 @@ export function payNow(invoiceId: number, amount?: number): Receipt {
 
   invoice.paid += pay;
   invoice.method = nextMethod(invoice.method, "digital");
+  const payer = findShop(invoice.shopId);
+  if (payer) payer.balance = Math.max(0, payer.balance - pay);
   return pay === left
     ? ok(`Pago recibido: ${money(pay)} en dólares digitales.`)
     : ok(`Pago recibido: ${money(pay)}. Falta ${money(left - pay)}.`);
@@ -301,6 +341,7 @@ export function repay(shopId: string, amount: number): Receipt {
 
   db().pool.available += pay * UNITS_PER_CENT;
   shop.owed -= pay;
+  shop.balance = Math.max(0, shop.balance - pay);
   if (shop.owed > 0) return ok(`Pago recibido: ${money(pay)}. Falta ${money(shop.owed)}.`);
 
   const now = clock();

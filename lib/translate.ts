@@ -99,6 +99,13 @@ const RULES: Rule[] = [
   exact("No se pudo completar. Intente de nuevo.", "Couldn't complete it. Please try again."),
   exact("Algo salió mal. Intente de nuevo.", "Something went wrong. Please try again."),
   exact("Todavía no está conectado al contrato.", "Not connected to the contract yet."),
+
+  // Mi cuenta → Datos (#127)
+  exact("Datos guardados.", "Details saved."),
+  exact("Escriba su nombre.", "Type your name."),
+  exact("Escriba el nombre de la tienda.", "Type the shop's name."),
+  exact("Revise el teléfono.", "Check the phone number."),
+  exact("Revise el DUI (9 números).", "Check the DUI (9 digits)."),
 ];
 
 /**
