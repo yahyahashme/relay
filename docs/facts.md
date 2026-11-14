@@ -906,7 +906,7 @@ _Entry 57 comes from `docs/research.md` on `main`, not from a web page. Claude r
 
 ## From the repo and the public ledger, added under #61 (13 Nov 2026)
 
-_Entry 59 comes from our own code and from Stellar's public testnet ledger, not from a web page. Claude read the code and fetched the ledger on Nov 13, 2026; no teammate has confirmed it yet._
+_Entries 59 to 61 come from our own code and from Stellar's public testnet ledger, not from a web page. Claude read the code and fetched the ledger on Nov 13, 2026; no teammate has confirmed them yet. None of them is in the Pitch highlights list._
 
 ## 59. Our sponsor account pays the network fees
 - **Claim:** In the demo, our sponsor account pays the Stellar network fee for the app's transactions, so shops, drivers and the distributor never spend XLM on fees.
@@ -921,3 +921,43 @@ _Entry 59 comes from our own code and from Stellar's public testnet ledger, not 
   - "It is in Vercel" is PR #113's statement. Claude did not look at Vercel's settings. The ledger shows the sponsor paid the 8 most recent transactions on its account (19:41 to 19:51 UTC on 13 Nov), from 6 different accounts, all successful, so the deployed app was sponsoring then.
   - The fee on a contract call is more than the plain 100-stroop payment fee, so don't quote a fee per payment. Stellar's "under a cent" is entry 37, attributed to Stellar.
 - **Checked:** Claude, 13 Nov 2026: the transaction and the sponsor account's latest transactions fetched from Horizon testnet; `sponsor.ts`, `send.ts` and `config/testnet.json` read on `main`. Not in the Pitch highlights list until a teammate opens the transaction link and confirms it.
+
+## 60. The credit fee slides from 1.50% to 1.00% (as built in #139)
+- **Claim:** The distributor's credit fee is at most 1.50%. It drops toward 1.00% the more of the invoice the shop paid up front. Lenders always get 0.50%, and the rest splits 3:1 between the loss buffer and us. The shop never pays it.
+- **Number:**
+  - Top rate 150 basis points (`CREDIT_FEE_BPS`), when the whole invoice goes on credit. Floor 100 (`MIN_CREDIT_FEE_BPS`), when 10% or less does.
+  - In between: 100 + 50 × (f − 0.10) ÷ 0.90 basis points, where f is the part on credit divided by the invoice, rounded down.
+  - Split of each $100 put on credit (buffer / lenders / us): at 1.50%, $0.75 / $0.50 / $0.25. At 1.22% (half the invoice on credit), $0.54 / $0.50 / $0.18. At 1.00% (a tenth or less), $0.38 / $0.50 / $0.12.
+  - Worked example from the contract's own test: a $100 invoice, $50 paid first, then "pay in 7 days" on the other $50. The fee is $0.61 (1.22% of $50) and the distributor gets $49.39 on top of the $49.95 from the first part.
+  - "$98.50 per $100" holds only when the whole invoice goes on credit.
+- **Source:** `contracts/route_ledger/src/lib.rs` on `main` at 517b426 (#139, merged 13 Nov 2026): `USAGE_FEE_BPS` line 20, `CREDIT_FEE_BPS` line 24, `MIN_CREDIT_FEE_BPS` line 26, `LENDER_BPS` line 30; `credit_fee_bps` line 837; `fee_split` line 852; the fee is applied in `pay_with_credit` from line 616 and stored on the invoice as `credit_fee` (line 654). Tests in `contracts/route_ledger/src/test.rs`: `credit_fee_slides_with_the_share_on_credit` (line 1392), `half_paid_up_front_pays_a_lower_fee` (line 1437) and `fee_split(100) == (38, 12)`. The app does the same maths in `lib/labels.ts` (`creditFeeBps` line 50, `creditFee` line 60), and the README's "Pagar en 7 días" bullet states it.
+- **Exact quote:** "So 1.50% when the whole invoice goes on credit, 1.22% for half, 1.00% for a tenth or less." (code comment, `lib.rs` lines 835 and 836, line breaks removed)
+- **Translation:** n/a (English source)
+- **Use in:** Q&A and `docs/assumptions.md` ("how do you make money?"). Always say "up to 1.5%". Not a headline.
+- **Caveat:**
+  - Testnet demo parameters. Fees round down. The 1.22% applies only to the part left on credit.
+  - Say "at most 25 cents of each $100 is ours". Our share is 0.25% at the top and 0.12% at the floor: the contract gives the odd basis point to the buffer (38 / 12), so the unrounded 0.125% is not what is charged.
+  - The yearly-cost numbers in entry 56 (79% simple, 120% compounded) are for the top rate, so they are the most it can cost the distributor.
+  - Still a fee the distributor pays to be paid early, not interest. The lawyer check in entry 29 applies at every rate.
+  - Entry 29's update line says the same in short; this entry adds the split at each rate, the code lines and the tests. Entries 30, 31 and 56 get their own #139 notes in PR #163.
+  - The only live credit sale we checked is in entry 61, at the top rate. The lower rates are covered by the contract tests, not by a live sale.
+- **Checked:** Claude, 13 Nov 2026: `lib.rs` read on `origin/main` at 517b426, arithmetic redone (150: rest 100, us 25, buffer 75. 122: rest 72, us 18, buffer 54. 100: rest 50, us 12, buffer 38. Half on credit: (10 × 50 − 100) × 50 ÷ (9 × 100) = 22.2, so 122). `cargo test` at the repo root, on this branch merged with `main` at 517b426: 76 passed, 0 failed. No teammate has confirmed it yet.
+
+## 61. The live contract: a 7-day credit period, and a credit sale charged 1.50%
+- **Claim:** The contract in `config/testnet.json` and the README is set to a credit period of 7 days. A credit sale on it was charged the 1.50% fee, with our 0.25% going to the treasury.
+- **Number:**
+  - `credit_period_secs` = 604,800 seconds = 7 days.
+  - Invoice 1002: $85.50 on credit. The distributor was paid $84.2175, so the fee was $1.2825 (1.50%). The treasury got $0.21375 (0.25%).
+  - Pool when read: $4,914.93 available and $50.64 in the buffer. These change whenever anyone pays, so they are a snapshot only.
+- **Source:** Stellar's public testnet, read by Claude on 13 Nov 2026.
+  - Soroban RPC (`soroban-testnet.stellar.org`): a read-only simulation of `get_config` and `get_pool` on `CAGCZ3I7CQHZDELPV5OB2W4D4LHA7MPSOBP4NO2AV4JO2G6HED7HV4ML`, which equals `contracts.routeLedger` in `config/testnet.json` on `main` at 517b426 and the README table. Read at ledger 5,721,089 at 11:05 PM ET (04:05 UTC on 14 Nov). A public account was the source; nothing was signed or sent.
+  - Transaction `951af940c18a6201a80f2f5f08d5f81612d21b3f015811a571fbc31b7e520a09` (https://stellar.expert/explorer/testnet/tx/951af940c18a6201a80f2f5f08d5f81612d21b3f015811a571fbc31b7e520a09): successful, ledger 5,717,936, 6:42 PM ET on 13 Nov (23:42:04 UTC). It calls `pay_with_credit` on that contract with invoice id 1002. Its source account is `GDX3MH…` (Tienda Don Luis in the README). Its `paid_with_credit` event has amount 855,000,000 units and payout 842,175,000 (7 decimals). The two token transfers out of the contract went to the distributor `GBGNJT…` (842,175,000) and the treasury `GBCFUV…` (2,137,500). Both addresses are in `config/testnet.json`.
+- **Exact quote:** `"credit_period_secs": "604800"` (the value `get_config` returned)
+- **Translation:** n/a (ledger data)
+- **Use in:** Q&A ("is it really 7 days?", "is it live?"). It is the `get_config` check that entries 31 and 32 ask Yahya to run.
+- **Caveat:**
+  - The ledger shows the settings and one sale. It does not show that the deployed code is the `lib.rs` on `main`: we could not compare code hashes (no Stellar CLI here). PR #139 says Yahya deployed after commit f31c795, and the sale's fee matches `credit_fee_bps` for a fully credited invoice. That sale only tests the top rate.
+  - Entries 31 and 32 still say the credit period is unverified, and their line numbers are from 044f987. They keep that wording until a teammate repeats this read (any Soroban RPC client can simulate `get_config`) and the entries are re-cited.
+  - The transaction's `fee_account` is `GA4Q52…`, the sponsor account in entry 59, so it is a second sponsor-paid transaction.
+  - Testnet can be reset by the Stellar Development Foundation (`docs/security.md` section 5). The contract and these balances would disappear.
+- **Checked:** Claude, 13 Nov 2026, 11:05 PM ET, from Soroban RPC and Horizon on the public testnet. No teammate has opened the links yet.
