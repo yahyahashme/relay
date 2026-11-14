@@ -2,19 +2,38 @@ import type { Invoice, PayMethod } from "./types";
 
 export type StatusTone = "due" | "part" | "paid" | "credit";
 
+/** The chip label for each tone, in both languages. */
+export const STATUS_LABEL: Record<StatusTone, { es: string; en: string }> = {
+  due: { es: "Pendiente", en: "Unpaid" },
+  part: { es: "Parcial", en: "Part paid" },
+  paid: { es: "Pagada", en: "Paid" },
+  credit: { es: "Crédito", en: "Credit" },
+};
+
 /** The chip on an invoice: Pendiente, Parcial, Pagada, or Crédito (paid with credit). */
-export function invoiceStatus(invoice: Invoice): { label: string; tone: StatusTone } {
-  if (invoice.status === "paid") {
-    return invoice.method === "credit" ? { label: "Crédito", tone: "credit" } : { label: "Pagada", tone: "paid" };
-  }
-  return invoice.status === "part_paid" ? { label: "Parcial", tone: "part" } : { label: "Pendiente", tone: "due" };
+export function invoiceStatus(invoice: Invoice, lang: "es" | "en" = "es"): { label: string; tone: StatusTone } {
+  const tone: StatusTone =
+    invoice.status === "paid" ? (invoice.method === "credit" ? "credit" : "paid") : invoice.status === "part_paid" ? "part" : "due";
+  return { label: STATUS_LABEL[tone][lang], tone };
+}
+
+const METHODS: Record<PayMethod, { es: string; en: string }> = {
+  digital: { es: "Digital", en: "Digital" },
+  cash: { es: "Efectivo", en: "Cash" },
+  credit: { es: "Crédito", en: "Credit" },
+  mixed: { es: "Mixto", en: "Mixed" },
+};
+
+/** How an invoice was paid: Digital, Efectivo, Crédito or Mixto. */
+export function methodLabel(method: PayMethod, lang: "es" | "en" = "es"): string {
+  return METHODS[method][lang];
 }
 
 export const METHOD_LABEL: Record<PayMethod, string> = {
-  digital: "Digital",
-  cash: "Efectivo",
-  credit: "Crédito",
-  mixed: "Mixto",
+  digital: METHODS.digital.es,
+  cash: METHODS.cash.es,
+  credit: METHODS.credit.es,
+  mixed: METHODS.mixed.es,
 };
 
 /** What's still to pay, in dollars, without float leftovers like 0.30000000000000004. */

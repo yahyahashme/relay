@@ -1,4 +1,9 @@
-# Relay
+<h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="public/brand/relay-logo-white.svg">
+    <img src="public/brand/relay-logo.svg" alt="Relay" height="56">
+  </picture>
+</h1>
 
 *Paga tu ruta*
 
@@ -48,6 +53,15 @@ Public keys only (from `config/testnet.json`, which is the source of truth after
 | Shop | Mini Súper La Esquina | `GDBFDE5UJXZKZNL7ZXHKPTNYIL4SFWWIT3CAHGDY7VHC32IBL45JVLZS` |
 
 The test USDC is our own asset, issued by `tiendas-issuer` on testnet. It is not Circle's USDC.
+
+## Accounts
+
+Anyone can sign up at `/registro` (shop or distributor; drivers join by their distributor's invite) and sign in at `/entrar`.
+
+- **Database:** Neon Postgres through the Vercel integration (`DATABASE_URL`). Tables in `db/schema.sql`. `npm run db:setup` creates them and adds the demo accounts above as seed rows. It's safe to run again.
+- **Passwords:** salted scrypt. **Sessions:** a random id in an httpOnly cookie signed with `SESSION_SECRET`, stored in the database so signing out ends it.
+- **A Stellar account per user:** made at sign-up. A new key, funded by friendbot, with the test-USDC trustline (the sponsor pays the fee). The secret key is stored encrypted with AES-256-GCM under `WALLET_KEY` and never leaves the server. This is testnet-only custody for the demo; the real product uses passkey wallets on the user's phone.
+- **Who is who:** shops, drivers and distributors come from the database (`lib/server/directory.ts`), falling back to `config/testnet.json` when there is none, so the app still runs with demo data and no database.
 
 ## Risk #1: turning cash into digital dollars
 

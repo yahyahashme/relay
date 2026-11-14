@@ -213,3 +213,29 @@ describe("history and totals", () => {
     expect(mock.getTotals()).toMatchObject({ digital: 150, cash: 60 });
   });
 });
+
+describe("Mi cuenta (#127)", () => {
+  it("starts each shop with $1,000 and lowers it when the shop pays", () => {
+    expect(mock.getBalance("tienda-1")).toBe(1000);
+    mock.payNow(1001, 50);
+    expect(mock.getBalance("tienda-1")).toBe(950);
+    mock.payLater(1004);
+    mock.repay("tienda-1", 60);
+    expect(mock.getBalance("tienda-1")).toBe(890);
+    expect(mock.getBalance("nadie")).toBeNull();
+  });
+
+  it("lists the distributor the shop buys from", () => {
+    expect(mock.getSuppliers("tienda-1")).toEqual([{ id: "distributor", name: "Distribuidora El Sol", invoices: 3, unpaid: 3 }]);
+  });
+
+  it("saves the shop's details and checks them", () => {
+    const profile = mock.getProfile("tienda-1")!;
+    expect(profile.owner).toBe("Rosa Martínez");
+    expect(mock.saveProfile("tienda-1", { ...profile, owner: " " }).message).toBe("Escriba su nombre.");
+    expect(mock.saveProfile("tienda-1", { ...profile, dui: "123" }).message).toBe("Revise el DUI (9 números).");
+    expect(mock.saveProfile("tienda-1", { ...profile, phone: "abc" }).message).toBe("Revise el teléfono.");
+    expect(mock.saveProfile("tienda-1", { ...profile, shopName: "Tienda Rosa #2" }).message).toBe("Datos guardados.");
+    expect(mock.getShop("tienda-1")?.name).toBe("Tienda Rosa #2");
+  });
+});
