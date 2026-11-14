@@ -58,9 +58,12 @@ Each status colour has a `-tint` for stamp fills only. No gradients, glass, blur
 | `manifest.tsx` | `ManifestRow`: paper with a blue end (`current` circles the open stop in ink; under 19 rem of row the amount takes its own line). `StopSlip`: the open stop, with the code at 70% of the width or more, two reserved lines under it for a failure, and the stamp across the faded code once paid |
 | `field.tsx` | `Field`, `MoneyField`, `SelectField`, `PasswordField`, `FilterSelect` (a ledger's filters, one row) |
 | `states.tsx` | `Loading` (a blank ruled slip), `Empty`, `Failure` with Reintentar, `Answer` (what the server said after an action) |
+| `form.tsx` | `Form` (brings a field's error into view and focuses it), `FormHead` (step and title; takes focus when the step changes), `Choices` / `Choice`, `FormSubmit` (the button with two reserved lines above it, so a message never moves it) |
 | `band.tsx` | the testnet band and the ES / EN switch |
 
 Buttons are at least 52 px tall, 60 px on the driver's screens, with 8 px between neighbours. A driver's screen carries `data-gloves`: every target on it is at least 56 px, the band's ES / EN switch included (`gloves:`), with `TopNav`, `TextButton`, `Failure` and the action rows at `size="lg"`. `sideways:` is a short screen with room for two columns: the code moves beside the facts so it and "Recibí efectivo" stay in view on a phone on its side. `/sistema` shows every component in every state.
+
+A message about one field goes under that field (`lib/form-errors.ts` maps the server's fixed messages to their field); anything else goes in the reserved lines above the button. Waiting, not valid and ready screens are a slip with one title, one sentence and a stamp (EN REVISIÓN, NO APROBADA, NO VÁLIDO, LISTA). A large stamp of more than about eight letters takes `fit={letters}` so it shrinks to its paper. On the landing, at 360x640 and 390x844, the logo, the sentence and both ways in are in view: the receipt's lines give way first. Server pages use `<T es en />` from `lib/i18n`.
 
 A ledger row's actions (Historial, Repetir) show on hover or keyboard focus when there is a mouse and room for every column. They sit at the end of the shop cell and shorten a long name with "…", so they never cover an amount, a stamp or a date. Anywhere else the row ends in a chevron that unfolds them, together with the folded columns. The one action a small ledger exists for ("Recordar por WhatsApp", "Marcar efectivo entregado") is a column of its own and always visible.
 

@@ -153,12 +153,90 @@ const GROUPS = {
       },
     ],
   ],
-  auth: [
-    ["inicio", "/"],
-    ["registro", "/registro"],
-    ["entrar", "/entrar"],
-    ["espera", "/distribuidor/espera"],
-  ],
+  auth: (() => {
+    // The home page's first screen, on a 360x640 phone and on a 390x844 one: the logo, the sentence and both ways in.
+    const fold = { selector: 'main svg[aria-label="Relay"], main h1 + p, main a[href^="/registro/"]', count: 4 };
+    // Mock data has no accounts, so a screen that asks the server "who is this?" would only show its way out.
+    // Here the browser answers the page's questions itself (the 1st with the 1st value, and so on; the last one
+    // repeats), the page is opened again, and the real screen draws. `shows` is a word that must then be on it.
+    // Nothing these screens send reaches the server, so the check can't make an account anywhere.
+    const answers =
+      (path, shows, ...values) =>
+      async (page) => {
+        let asked = 0;
+        await page.route("**/*", (route) => {
+          if (route.request().method() !== "POST" || !route.request().headers()["next-action"]) return route.fallback();
+          const value = values[Math.min(asked++, values.length - 1)];
+          return route.fulfill({ status: 200, contentType: "text/x-component", body: `0:{"a":"$@1","q":"","i":false}\n1:${JSON.stringify(value)}\n` });
+        });
+        const english = await page.evaluate(() => document.documentElement.lang === "en");
+        await page.goto(new URL(`${path}${english ? "?lang=en" : ""}`, page.url()).href, { waitUntil: "networkidle" });
+        await page.getByText(shows).first().waitFor({ timeout: 8000 });
+      };
+    const tap = (page, name) => page.getByRole("button", { name }).click();
+    const sol = "Distribuidora El Sol";
+    const waiting = { id: "d-1", businessName: sol, status: "pendiente", autoApprove: true };
+    /** A shop claims its invite and walks to `step` (2 the shop, 3 security, 4 done). */
+    const claim = (step) => async (page) => {
+      const suppliers = { suppliers: [{ distributorId: "distributor", name: sol, addedAt: "2026-11-13T15:00:00Z" }], isOwner: true };
+      await answers("/unirse/demo", /Paso 1|Step 1/, { distributorName: sol }, { ok: true }, { ok: true, shopId: "tienda-1", creditLimit: 200 }, suppliers)(page);
+      await page.locator("input").nth(0).fill("Rosa Martínez");
+      await page.locator("input").nth(1).fill("7000 0132");
+      await page.locator("input").nth(2).fill("secreto-2026");
+      await tap(page, /Siguiente|Next/);
+      await page.getByText(/Paso 2|Step 2/).waitFor();
+      if (step === 2) return;
+      await page.locator("input").nth(0).fill("Tienda Rosa");
+      await tap(page, /^(Tienda|Corner shop)$/);
+      await tap(page, /Crear mi cuenta|Create my account/);
+      await page.getByText(/Paso 3|Step 3/).waitFor();
+      if (step === 3) return tap(page, /Agregar otro contacto|Add another contact/);
+      await tap(page, /Más tarde|Later/);
+      await page.getByText(/Paso 4|Step 4/).waitFor();
+    };
+    return [
+      ["inicio", "/", { inView: { "360x640": fold, "390x844": fold } }],
+      ["registro", "/registro"],
+      ["registro-tienda", "/registro/tienda"],
+      ["registro-distribuidora", "/registro/distribuidora"],
+      [
+        "registro-distribuidora-2",
+        "/registro/distribuidora",
+        {
+          prepare: async (page) => {
+            await page.locator("input").nth(0).fill(sol);
+            await page.locator("input").nth(1).fill("0614-010190-101-2");
+            await page.locator("input").nth(2).fill("Calle Arce 123, San Salvador");
+            await tap(page, /^(Abarrotes|Groceries)$/);
+            await tap(page, /Siguiente|Next/);
+            await page.getByText(/Paso 2|Step 2/).waitFor();
+          },
+        },
+      ],
+      ["entrar", "/entrar"],
+      // Signed out, these two and "cuenta" send the person to /entrar, so the check starts there, as a person would.
+      ["espera", "/entrar", { prepare: answers("/distribuidor/espera", /En revisión|In review/, waiting) }],
+      ["espera-rechazada", "/entrar", { prepare: answers("/distribuidor/espera", /No aprobada|Not approved/, { ...waiting, status: "rechazado" }) }],
+      ["unirse", "/unirse/demo", { prepare: answers("/unirse/demo", /Paso 1|Step 1/, { distributorName: sol }) }],
+      ["unirse-tienda", "/unirse/demo", { prepare: claim(2) }],
+      ["unirse-seguridad", "/unirse/demo", { prepare: claim(3) }],
+      ["unirse-lista", "/unirse/demo", { prepare: claim(4) }],
+      ["unirse-no-valido", "/unirse/demo"],
+      ["invitacion", "/invitacion/demo", { prepare: answers("/invitacion/demo", /Su cuenta|Your account/, { distributorName: sol, name: "Carlos Hernández", phoneEnd: "0132" }) }],
+      [
+        "cuenta",
+        "/entrar",
+        {
+          prepare: answers(
+            "/cuenta",
+            /Ir a mi tienda|Go to my shop/,
+            { name: "Rosa Martínez", role: "tienda", contact: "+50370000132", stellarAddress: "GDEMO00000000000000000000000000000000000000000000000DEMO", explorerUrl: "https://example.com/detalles" },
+            "tienda-1",
+          ),
+        },
+      ],
+    ];
+  })(),
   account: [
     ["cuenta", "/tienda/cuenta/tienda-1"],
     ["historial", "/tienda/cuenta/tienda-1/historial"],
