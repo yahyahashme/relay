@@ -71,7 +71,9 @@ async function workingDay(page) {
   await move(page, "/ruta/motorista-1");
   await page.waitForSelector("main [data-next]", { timeout: 20_000 });
   await page.locator("main a", { hasText: "1004" }).first().click();
-  await page.waitForTimeout(900); // the button is quiet for a beat after a stop opens
+  // On a small phone at a large text size the button can open right where the row was tapped, and a tap on the
+  // same spot within 2.5 s is ignored on purpose (lib/taps.ts).
+  await page.waitForTimeout(2700);
   await press(page, /Recibí efectivo|I received cash/);
   await page.waitForTimeout(2500);
   await open("/tienda/1004");
