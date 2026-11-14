@@ -50,15 +50,35 @@ export function ReceiptLines({ children }: { children: ReactNode }) {
   return <dl className="flex flex-col gap-1.5">{children}</dl>;
 }
 
-/** One printed line: label, dotted leader, figure. `strong` for the line that matters most. */
-export function ReceiptLine({ label, children, strong = false, className = "" }: { label: ReactNode; children: ReactNode; strong?: boolean; className?: string }) {
+/**
+ * One printed line: label, dotted leader, figure. `strong` for the line that matters most.
+ * The label never gives up a word. A value too long to sit beside it (a long shop name on a small phone,
+ * or any name at a large text size) drops to a line of its own, at the right, and wraps there if it must.
+ * `shorten` is for a name, never for an amount: on a short screen the name stays on its line and is cut
+ * with "…" instead, so the slip keeps its height and every way to pay stays in view.
+ */
+export function ReceiptLine({
+  label,
+  children,
+  strong = false,
+  shorten = false,
+  className = "",
+}: {
+  label: ReactNode;
+  children: ReactNode;
+  strong?: boolean;
+  shorten?: boolean;
+  className?: string;
+}) {
   return (
-    <div className={`flex items-end font-mono text-base ${strong ? "font-semibold text-ink" : "font-medium text-muted"} ${className}`}>
-      <dt className="flex min-w-0 flex-1 items-end">
-        <span className="min-w-0">{label}</span>
-        <span aria-hidden className="leader" />
+    <div
+      className={`flex flex-wrap items-end justify-end font-mono text-base ${shorten ? "short:flex-nowrap" : ""} ${strong ? "font-semibold text-ink" : "font-medium text-muted"} ${className}`}
+    >
+      <dt className="flex flex-1 items-end">
+        <span>{label}</span>
+        <span aria-hidden className={`leader ${shorten ? "short:min-w-0" : ""}`} />
       </dt>
-      <dd className="shrink-0 text-right text-ink">{children}</dd>
+      <dd className={`max-w-full text-right text-ink wrap-anywhere ${shorten ? "short:min-w-0 short:truncate" : ""}`}>{children}</dd>
     </div>
   );
 }
@@ -109,12 +129,16 @@ export function ReceiptTotal({ label, value, note, children }: { label: ReactNod
   );
 }
 
-/** The foot of a slip: a line of words on the left, the stamp slot on the right. */
+/**
+ * The foot of a slip: a line of words on the left, the stamp slot on the right.
+ * The words may fold to their longest word to make room. When even that and the stamp cannot share a line
+ * (a small phone, a large text size), the stamp moves under the words: it never lies over "Ver detalles".
+ */
 export function ReceiptFoot({ children, stamp }: { children?: ReactNode; stamp?: ReactNode }) {
   return (
-    <div className="flex min-h-11 items-center justify-between gap-3">
-      <div className="min-w-0 text-base text-muted">{children}</div>
-      {stamp && <div className="-mt-2 shrink-0 pr-1">{stamp}</div>}
+    <div className="flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-4">
+      <div className="w-min grow text-base text-muted">{children}</div>
+      {stamp && <div className="-mt-2 ml-auto max-w-full pr-1">{stamp}</div>}
     </div>
   );
 }
