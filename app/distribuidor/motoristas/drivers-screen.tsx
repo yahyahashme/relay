@@ -9,7 +9,7 @@ import { Ledger, LedgerCard, type LedgerColumn, RowAction, RowButton } from "@/c
 import { Money } from "@/components/kit/money";
 import { Stamp } from "@/components/kit/stamp";
 import { Empty, Failure, Loading } from "@/components/kit/states";
-import { TapShield, useMovedGuard, useTapShield } from "@/components/tap-shield";
+import { HOLD_MS, TapShield, useMovedGuard, useTapShield } from "@/components/tap-shield";
 import { formatPhone } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { chatLink } from "@/lib/whatsapp";
@@ -158,7 +158,7 @@ export default function DriversScreen() {
     // The rows under the one removed have moved up: hold every tap until the taps have stopped.
     setHeld(true);
     setRemoving(null);
-    await settle();
+    await settle(HOLD_MS);
     setHeld(false);
     running.current = false;
   }

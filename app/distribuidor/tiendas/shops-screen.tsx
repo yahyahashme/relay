@@ -10,7 +10,7 @@ import { Money } from "@/components/kit/money";
 import { Stamp, type StampTone } from "@/components/kit/stamp";
 import { Empty, Failure, Loading } from "@/components/kit/states";
 import { ShopInvite } from "@/components/shop-invite";
-import { TapShield, useMovedGuard, useTapShield } from "@/components/tap-shield";
+import { HOLD_MS, TapShield, useMovedGuard, useTapShield } from "@/components/tap-shield";
 import { formatPhone } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 
@@ -114,7 +114,7 @@ export default function ShopsScreen() {
     // The shop left the list of results and the ones under it moved up: hold every tap until the taps have stopped.
     setHeld(true);
     setBusy(null);
-    await settle();
+    await settle(HOLD_MS);
     setHeld(false);
     running.current = false;
   }
