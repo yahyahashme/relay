@@ -66,7 +66,7 @@ export const getRouteInvites = (driverId: string, shopIds: string[]) =>
 /** Everything ever paid, by method, for the dashboard's totals. */
 export const getTotals = (): Promise<Totals> => read(mock.getTotals, live.getTotals);
 export const createDemoInvoice = (shopId?: string): Promise<Invoice> =>
-  read(() => mock.createDemoInvoice(shopId), () => live.createDemoInvoice(shopId));
+  read(() => mock.createDemoInvoice(shopId), () => live.createDemoInvoice());
 
 // ---------- writes ----------
 
