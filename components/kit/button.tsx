@@ -14,14 +14,14 @@ type Size = "md" | "lg";
 const HEIGHT: Record<Size, string> = { md: "min-h-13", lg: "min-h-15" };
 
 const PRESS =
-  "transition-[scale,background-color,border-color] duration-[120ms] ease-snap active:scale-[0.97] disabled:cursor-not-allowed disabled:active:scale-100 select-none";
+  "transition-[scale,background-color,border-color] duration-[120ms] ease-snap active:scale-[0.97] motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:active:scale-100 select-none";
 
 /** A filled button can also be "sm" (44 px), for a top bar. */
 type FilledSize = Size | "sm";
 const FILL: Record<FilledSize, string> = {
   sm: "min-h-11 px-3.5 py-1 text-base leading-tight text-balance",
-  md: "min-h-13 px-5 py-2 text-[1.125rem]",
-  lg: "min-h-15 px-5 py-2 text-[1.125rem]",
+  md: "min-h-13 px-5 py-2 text-[1.125rem] text-balance",
+  lg: "min-h-15 px-5 py-2 text-[1.125rem] text-balance",
 };
 
 const FILLED = `flex w-full flex-col items-center justify-center rounded-control text-center font-bold text-white ${PRESS}`;

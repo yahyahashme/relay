@@ -57,7 +57,9 @@ async function workingDay(page) {
   await paid(/Pagada · Digital|Paid · Digital/);
   await open("/tienda/1007");
   await press(page, /Pagar en 7 días|Pay in 7 days/);
-  await page.waitForTimeout(800);
+  // On a short screen the panel can open with "Confirmo" right where the row was tapped, and a tap on the
+  // same spot within 2.5 s is ignored on purpose (lib/taps.ts). A person reads the terms first; so does this.
+  await page.waitForTimeout(2700);
   await press(page, /^Confirmo|^Confirm/);
   await paid(/Pagada · Crédito|Paid · Credit/);
   await open("/tienda/1006");
@@ -174,10 +176,12 @@ try {
 }
 
 /** Runs in the page: what's wrong at this size? */
-function inspect(minTarget) {
+function inspect([minTarget, width]) {
   const problems = [];
   const doc = document.documentElement;
   if (doc.scrollWidth > doc.clientWidth + 1) problems.push(`scrolls sideways by ${doc.scrollWidth - doc.clientWidth}px`);
+  // A phone browser widens the page to fit what sticks out, so nothing "scrolls": the page is just wider than the screen.
+  if (window.innerWidth > width + 1) problems.push(`${window.innerWidth - width}px wider than the screen (a phone would zoom out or scroll sideways)`);
   const shown = (el) => {
     const style = getComputedStyle(el);
     const box = el.getBoundingClientRect();
@@ -237,7 +241,7 @@ for (const [screen, path, { inView = {}, minTarget = MIN_TARGET, prepare } = {}]
       await loaded(page);
     }
     await page.waitForTimeout(1200); // the slip prints in
-    const result = await page.evaluate(inspect, minTarget);
+    const result = await page.evaluate(inspect, [minTarget, width]);
     const wanted = zoom === 1 && text === 1 ? inView[`${width}x${height}`] : undefined;
     if (wanted) {
       const { selector, count = 1 } = typeof wanted === "string" ? { selector: wanted } : wanted;

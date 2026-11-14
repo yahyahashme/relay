@@ -20,7 +20,7 @@ export function DistributorShell({
   children,
 }: {
   current: "panel" | "motoristas" | "tiendas";
-  /** The business the dashboard belongs to. */
+  /** The business the dashboard belongs to (not known yet while the screen loads). */
   name?: string;
   /** False once we know a signed-in, approved distributor is looking. */
   demo?: boolean;
@@ -32,7 +32,7 @@ export function DistributorShell({
 }) {
   const { t } = useT();
   const nav: ShellItem[] = [
-    { href: "/distribuidor", label: "Panel", current: current === "panel" },
+    { href: "/distribuidor", label: t("Panel", "Dashboard"), current: current === "panel" },
     { href: "/distribuidor#facturas", label: t("Facturas", "Invoices") },
     { href: demo ? "/distribuidor#motoristas" : "/distribuidor/motoristas", label: t("Motoristas", "Drivers"), current: current === "motoristas" },
     { href: demo ? "/distribuidor#tiendas" : "/distribuidor/tiendas", label: t("Tiendas", "Shops"), current: current === "tiendas" },
@@ -45,7 +45,7 @@ export function DistributorShell({
           <Logo className="h-7 w-auto" />
         </Link>
       }
-      name={name}
+      name={name ?? ""}
       nav={nav}
       action={action}
     >

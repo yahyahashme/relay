@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { useT } from "@/lib/i18n";
 import { ChevronBack } from "./icons";
 
 // The three page layouts. All of them leave room for the notch and the home bar (safe areas),
@@ -88,19 +89,20 @@ export function Shell({
 }: {
   /** The logo, linked home. */
   brand: ReactNode;
-  /** The business the dashboard belongs to. */
+  /** The business the dashboard belongs to. Pass "" while it loads: its line is kept, so the sidebar doesn't jump when the name arrives. */
   name?: ReactNode;
   nav: ShellItem[];
   /** The one main action of the app ("Nueva factura"): full size at the foot of the sidebar, compact in the top bar. */
   action?: (place: "side" | "bar") => ReactNode;
   children: ReactNode;
 }) {
+  const { t } = useT();
   return (
     <div className="flex flex-1 flex-col lg:flex-row">
       <aside className="hidden w-60 shrink-0 flex-col gap-5 border-r border-counter-rule py-5 pl-[max(1.25rem,env(safe-area-inset-left))] lg:sticky lg:top-(--band-h) lg:flex lg:h-[calc(100dvh-var(--band-h))]">
         <div className="pr-5">{brand}</div>
-        {name && <p className="pr-5 text-label font-semibold uppercase tracking-[0.1em] text-muted text-balance">{name}</p>}
-        <nav aria-label="Secciones" className="flex flex-col gap-1">
+        {name !== undefined && <p className="min-h-[1lh] pr-5 text-label font-semibold uppercase tracking-[0.1em] text-muted text-balance">{name}</p>}
+        <nav aria-label={t("Secciones", "Sections")} className="flex flex-col gap-1">
           {nav.map((item) => (
             <Link
               key={item.href}
@@ -128,7 +130,7 @@ export function Shell({
       <main className={`@container min-w-0 max-w-[88rem] flex-1 pt-4 ${SIDE} pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-8`}>{children}</main>
 
       <nav
-        aria-label="Secciones"
+        aria-label={t("Secciones", "Sections")}
         className="fixed inset-x-0 bottom-0 z-4 flex justify-between border-t border-counter-rule bg-counter px-[max(0.25rem,env(safe-area-inset-left))] pb-[env(safe-area-inset-bottom)] lg:hidden"
       >
         {nav

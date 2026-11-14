@@ -1,15 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { type CSSProperties, Fragment, type ReactNode, useState } from "react";
+import { Children, type CSSProperties, Fragment, isValidElement, type ReactNode, useState } from "react";
 import { useT } from "@/lib/i18n";
 import { Chevron } from "./icons";
 import { Money, moneyWidth } from "./money";
 
 // El libro mayor: the distributor's ledger. Ruled columns, right-aligned mono figures,
 // totals under a double rule. With less than 60 rem of room it keeps its priority columns
-// and folds the rest into each row; below 40 rem each row becomes a ledger card.
-// It never scrolls sideways.
+// and folds the rest into each row (a column worth more than its room can come back sooner);
+// below 40 rem each row becomes a ledger card. It never scrolls sideways.
 
 export type LedgerColumn<Row> = {
   id: string;
@@ -20,8 +20,11 @@ export type LedgerColumn<Row> = {
   mono?: boolean;
   /** Right-aligned without the rules (dates). */
   end?: boolean;
-  /** Not a priority column: with less than 60 rem of room it moves into the row's fold. */
-  secondary?: boolean;
+  /**
+   * Not a priority column: with little room it moves into the row's fold. `true` brings it back as a column
+   * at 60 rem of room; 54 brings it back sooner (a large iPad on its side has room for more than an upright one).
+   */
+  secondary?: boolean | 54;
   /** Stays a column of the table at every width, but on a phone's card it goes into the card's fold (the invoice number). */
   foldOnCard?: boolean;
   /** The one column that takes the room the others leave. A name too long for it ends in "…", so every row keeps one height. */
@@ -35,12 +38,21 @@ export type LedgerColumn<Row> = {
   className?: string;
 };
 
-// Row actions come up on hover or focus, when there is a mouse and room for every column. They sit at the end
-// of the `grow` cell, over the room a name leaves, so they never cover an amount, a stamp or a date (a ledger
-// without a `grow` column shows them over the end of the row). Everywhere else (touch, or a narrower table)
-// each row has a fold button instead, and the actions sit inside the fold with the columns that didn't fit.
+// Row actions come up on hover or focus, when there is a mouse and room for every column. They take the end
+// of the `grow` cell and the name shortens with "…" to make room, so they never cover an amount, a stamp or a
+// date (a ledger without a `grow` column shows them over the end of the row). Until then they are out of sight
+// but still reachable with Tab. Everywhere else (touch, or a narrower table) each row has a fold button instead,
+// and the actions sit inside the fold with the columns that didn't fit.
 const HOVER_ONLY = "hidden pointer-fine:@min-[60rem]:table-cell";
 const HOVER_ACTIONS = "items-center gap-1 bg-paper pl-3 whitespace-nowrap opacity-0 group-focus-within:opacity-100 group-hover:opacity-100";
+const IN_CELL_ACTIONS = "sr-only hidden shrink-0 group-focus-within:not-sr-only group-hover:not-sr-only pointer-fine:@min-[60rem]:block";
+
+/** When a folded column comes back as a column of the table, and the rule that takes it out of the fold then. */
+const RETURNS = {
+  54: { column: "hidden @min-[54rem]:table-cell", fold: "@min-[54rem]:hidden" },
+  60: { column: "hidden @min-[60rem]:table-cell", fold: "@min-[60rem]:hidden" },
+} as const;
+const returnsAt = (column: { secondary?: boolean | 54 }) => (column.secondary === true ? 60 : column.secondary || undefined);
 
 export function Ledger<Row>({
   label,
@@ -86,7 +98,7 @@ export function Ledger<Row>({
   const foldOnly = actions ? "pointer-fine:@min-[60rem]:hidden" : "@min-[60rem]:hidden";
   const place = (column: LedgerColumn<Row>) =>
     `${column.figure ? "border-x border-paper-rule text-right font-mono font-medium" : column.end ? "text-right" : "text-left"} ${column.mono ? "font-mono font-medium" : ""} ${
-      column.secondary ? "hidden @min-[60rem]:table-cell" : ""
+      column.secondary ? RETURNS[returnsAt(column)!].column : ""
     } ${column.grow ? "w-full max-w-0 truncate" : "whitespace-nowrap"}`;
   const more = (row: Row, key: string | number) => t(`Ver más de ${rowName?.(row) ?? key}`, `See more of ${rowName?.(row) ?? key}`);
   const details = (row: Row, inCard: boolean) => (
@@ -94,7 +106,7 @@ export function Ledger<Row>({
       {(inCard ? cardFolded : folded).length > 0 && (
         <dl className={`flex flex-wrap gap-x-8 gap-y-1 ${inCard ? "" : "@min-[60rem]:hidden"}`}>
           {(inCard ? cardFolded : folded).map((column) => (
-            <div key={column.id} className="flex items-baseline gap-2">
+            <div key={column.id} className={`flex items-baseline gap-2 ${inCard || !column.secondary ? "" : RETURNS[returnsAt(column)!].fold}`}>
               <dt className="text-label font-semibold uppercase tracking-[0.08em] text-muted">{column.header}</dt>
               <dd className={column.figure || column.mono ? "font-mono font-medium" : ""}>{column.cell(row)}</dd>
             </div>
@@ -136,12 +148,25 @@ export function Ledger<Row>({
             return (
               <Fragment key={key}>
                 <tr className={`group border-b border-paper-rule ${rowClassName?.(row) ?? ""}`}>
-                  {columns.map((column) => (
-                    <td key={column.id} title={column.title?.(row)} className={`h-11 px-3 py-1 text-base ${place(column)} ${column.grow && actions ? "relative" : ""} ${column.className ?? ""}`}>
-                      {column.cell(row)}
-                      {column.grow && actions && <div className={`absolute inset-y-0 right-0 hidden pr-1 pointer-fine:@min-[60rem]:flex ${HOVER_ACTIONS}`}>{actions(row)}</div>}
-                    </td>
-                  ))}
+                  {columns.map((column) => {
+                    // The `grow` cell names the row (the shop, the driver): it is the row's header.
+                    const Cell = column.grow ? "th" : "td";
+                    return (
+                      <Cell key={column.id} scope={column.grow ? "row" : undefined} title={column.title?.(row)} className={`h-11 px-3 py-1 text-base ${column.grow ? "font-normal" : ""} ${place(column)} ${column.className ?? ""}`}>
+                        {column.grow && actions ? (
+                          <div className="flex items-center gap-1">
+                            <span className="min-w-0 flex-1 truncate">{column.cell(row)}</span>
+                            <span className={IN_CELL_ACTIONS}>
+                              {/* As tall as the cell's words, so the row keeps its height when they come up. */}
+                              <span className="flex h-9 items-center gap-1">{actions(row)}</span>
+                            </span>
+                          </div>
+                        ) : (
+                          column.cell(row)
+                        )}
+                      </Cell>
+                    );
+                  })}
                   {endActions && (
                     <td className={`w-0 p-0 ${HOVER_ONLY}`}>
                       <div className="relative">
@@ -159,7 +184,7 @@ export function Ledger<Row>({
                 </tr>
                 {isOpen && hasFold && (
                   <tr className={`border-b border-paper-rule ${foldOnly}`}>
-                    <td colSpan={columns.length + 2} className="px-3 pt-1 pb-2">
+                    <td colSpan={columns.length + (endActions ? 2 : 1)} className="px-3 pt-1 pb-2">
                       <div className="flex flex-col gap-1">{details(row, false)}</div>
                     </td>
                   </tr>
@@ -171,11 +196,14 @@ export function Ledger<Row>({
         {hasTotals && (
           <tfoot>
             <tr className="border-t-[3px] border-double border-ink">
-              {columns.map((column) => (
-                <td key={column.id} className={`h-12 px-3 text-base ${place(column)} font-semibold`}>
-                  {column.total}
-                </td>
-              ))}
+              {columns.map((column) => {
+                const Cell = column.grow ? "th" : "td";
+                return (
+                  <Cell key={column.id} scope={column.grow ? "row" : undefined} className={`h-12 px-3 text-base ${place(column)} font-semibold`}>
+                    {column.total}
+                  </Cell>
+                );
+              })}
               {endActions && <td className={`p-0 ${HOVER_ONLY}`} />}
               {hasFold && <td className={`p-0 ${foldOnly}`} />}
             </tr>
@@ -248,8 +276,11 @@ export function RowLink({ children, href, label, external = false }: { children:
   );
 }
 
-/** A row's own main action, always in view ("Marcar efectivo entregado"): a small outlined blue button. */
-export function RowButton({ children, onClick, disabled = false, busy = false }: { children: ReactNode; onClick: () => void; disabled?: boolean; busy?: boolean }) {
+/**
+ * A row's own main action, always in view ("Marcar efectivo entregado"): a small outlined blue button.
+ * `label` says out loud which row it acts on; start it with the words on the button.
+ */
+export function RowButton({ children, onClick, label, disabled = false, busy = false }: { children: ReactNode; onClick: () => void; label?: string; disabled?: boolean; busy?: boolean }) {
   const { t } = useT();
   return (
     <button
@@ -257,6 +288,7 @@ export function RowButton({ children, onClick, disabled = false, busy = false }:
       onClick={onClick}
       disabled={disabled || busy}
       aria-busy={busy}
+      aria-label={label}
       className="inline-flex min-h-11 items-center justify-center rounded-control border-[1.5px] border-brand px-3 py-1 text-center font-sans text-base leading-tight font-bold text-brand select-none hover:bg-brand/6 active:bg-brand/10 disabled:cursor-not-allowed disabled:border-counter-rule disabled:text-muted disabled:hover:bg-transparent"
     >
       {busy ? t("Guardando...", "Saving...") : children}
@@ -266,26 +298,33 @@ export function RowButton({ children, onClick, disabled = false, busy = false }:
 
 /**
  * The strip of figures that opens a ledger page: labels above, big mono numbers, a double rule underneath.
- * Four across with room; two by two on a phone.
+ * Four across with room; two by two on a phone. Every figure is set at one size: the size at which the
+ * longest of them fits the narrowest column, so one amount passing $1,000 never looks smaller than its neighbours.
  */
 export function LedgerFigures({ children }: { children: ReactNode }) {
+  const longest = Math.max(1, ...Children.toArray(children).map((child) => (isValidElement<{ value?: number }>(child) && typeof child.props.value === "number" ? moneyWidth(child.props.value) : 0)));
   return (
     <div className="@container/figures">
-      <dl className="grid grid-cols-2 rounded-t-paper bg-paper @min-[44rem]:grid-cols-4 @min-[58rem]:grid-cols-[1fr_1fr_1fr_1.3fr]">{children}</dl>
+      <dl
+        style={{ "--fit-chars": longest } as CSSProperties}
+        className="grid grid-cols-2 rounded-t-paper bg-paper [--fit-cols:2] @min-[44rem]:grid-cols-4 @min-[44rem]:[--fit-cols:4] @min-[58rem]:grid-cols-[1fr_1fr_1fr_1.3fr] @min-[58rem]:[--fit-cols:4.3]"
+      >
+        {children}
+      </dl>
       <hr className="rule-double bg-paper" />
     </div>
   );
 }
 
-/** One figure of the strip. A long amount shrinks to stay inside its column. */
+/** One figure of the strip, for <LedgerFigures>. A long amount shrinks to stay inside its column, and the others with it. */
 export function LedgerFigure({ label, value, note }: { label: ReactNode; value: number; note?: ReactNode }) {
   return (
-    <div className="@container flex flex-col gap-0.5 border-paper-rule px-4 pt-2.5 pb-2.5 not-first:border-l @max-[43.99rem]/figures:nth-[3]:border-l-0 @max-[43.99rem]/figures:nth-[n+3]:border-t">
-      {/* Four across on a tablet, a long label takes two lines: every label keeps room for two, so the figures stay on one line. */}
+    <div className="flex flex-col gap-0.5 border-paper-rule px-4 pt-2.5 pb-2.5 not-first:border-l @max-[43.99rem]/figures:nth-[3]:border-l-0 @max-[43.99rem]/figures:nth-[n+3]:border-t @max-[43.99rem]/figures:[&:nth-child(n+3)>dt]:min-h-[2lh]">
+      {/* A long label takes two lines (four across on a tablet, the second pair on a phone): its row of labels keeps room for two, so the figures stay in line. */}
       <dt className="flex items-end text-label font-semibold uppercase tracking-[0.08em] text-muted @min-[44rem]/figures:@max-[57.99rem]/figures:min-h-[2lh]">{label}</dt>
       <dd
-        className="fit-figure font-mono leading-tight font-semibold tracking-[-0.02em]"
-        style={{ "--fit-max": "var(--text-figure)", "--fit-chars": moneyWidth(value) } as CSSProperties}
+        className="font-mono leading-tight font-semibold tracking-[-0.02em]"
+        style={{ fontSize: "min(var(--text-figure), calc((100cqi / var(--fit-cols) - 2rem) / (var(--fit-chars) * 0.62)))" }}
       >
         <Money value={value} />
       </dd>

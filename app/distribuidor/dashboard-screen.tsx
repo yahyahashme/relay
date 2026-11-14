@@ -12,9 +12,9 @@ import { Answer, Empty, Failure, Loading } from "@/components/kit/states";
 import { TapShield, useMovedGuard, useTapShield } from "@/components/tap-shield";
 import { createDemoInvoice, getDistributorView, handInCash } from "@/lib/api";
 import { DEMO_PHONES } from "@/lib/demo-contacts";
-import { formatDay, plural } from "@/lib/format";
+import { formatAmount, formatDay, plural } from "@/lib/format";
 import { useT } from "@/lib/i18n";
-import { invoiceStatus, leftToPay, methodLabel, STATUS_LABEL, type StatusTone } from "@/lib/labels";
+import { invoiceStatus, leftToPay, methodLabel, type StatusTone } from "@/lib/labels";
 import { toUnits } from "@/lib/money";
 import { dueWindow, invoiceMark, MARK } from "@/lib/stamps";
 import type { Driver, Invoice, Receipt, Shop } from "@/lib/types";
@@ -92,6 +92,8 @@ function useChangedRows(invoices: Invoice[] | undefined): Set<number> {
 const sum = (values: number[]) => Math.round(values.reduce((a, b) => a + b, 0) * 100) / 100;
 
 const SECTION = "flex scroll-mt-[calc(var(--band-h)+0.75rem)] flex-col gap-2";
+/** The small ledgers under the invoices share one width. */
+const SMALL = "max-w-[48rem]";
 const HEADING = "text-lead leading-tight font-bold";
 
 /** "Primeros pasos" for a new distributor (#130): done when there is at least one of each. A done step is a fact on paper; a step to do is a blue row. */
@@ -125,7 +127,7 @@ function FirstSteps({ steps }: { steps: { label: string; done: boolean; href: st
 export default function DashboardScreen() {
   const [pages, setPages] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
-  const { data, failed, reload } = usePolling("dashboard", () => loadDashboard(pages));
+  const { data, failed, reload, stale } = usePolling("dashboard", () => loadDashboard(pages));
   const firstPages = useRef(pages);
   useEffect(() => {
     if (pages === firstPages.current) return; // the first load is usePolling's
@@ -215,7 +217,13 @@ export default function DashboardScreen() {
     </DistributorShell>
   );
 
-  if (!data) return shell(failed ? <Failure onRetry={reload} /> : <Loading lines={8} torn={false} />);
+  if (!data)
+    return shell(
+      <>
+        <h1 className="sr-only">{t("Panel", "Dashboard")}</h1>
+        {failed ? <Failure onRetry={reload} /> : <Loading lines={8} torn={false} />}
+      </>,
+    );
 
   const { invoices, total, totals, drivers, shops, scope, now } = data;
   const shopName = (id: string) => shops.find((s) => s.id === id)?.name ?? id;
@@ -245,6 +253,8 @@ export default function DashboardScreen() {
 
   const stamp = (i: Invoice) => {
     const mark = invoiceMark(i, now);
+    // Nothing has happened to an unpaid invoice yet, so nothing is stamped on it: plain words, and the stamps stand out.
+    if (mark === "due") return <span className="text-muted">{MARK.due[lang]}</span>;
     return (
       <Stamp small tone={MARK[mark].tone} fresh={changed.has(i.id) && (mark === "paid" || mark === "credit")}>
         {MARK[mark][lang]}
@@ -254,22 +264,28 @@ export default function DashboardScreen() {
   // What the distributor paid for the part that went on credit (#135). Two tight lines, so the row keeps its height.
   const paidCell = (i: Invoice) =>
     i.creditFee !== undefined ? (
-      <span className="inline-flex flex-col items-end leading-[1.1]" title={t("Comisión de crédito", "Credit fee")}>
+      <span className="inline-flex flex-col items-end align-middle leading-[1.1]" title={t("Comisión de crédito", "Credit fee")}>
         <Money value={i.paid} />
         <span className="font-sans text-[0.875rem]/[1.1] font-normal text-muted">
           <span className="sr-only">{t("comisión de crédito", "credit fee")}</span>
-          <span aria-hidden>{t("comisión", "fee")}</span> <Money value={i.creditFee} />
+          <span aria-hidden>{t("comisión", "fee")}</span> <Money value={i.creditFee} className="text-ink" />
         </span>
       </span>
-    ) : (
+    ) : i.paid > 0 ? (
       <Money value={i.paid} />
+    ) : (
+      // Nothing paid yet reads as a dash, like the method beside it: the amounts that were paid are the ones to see.
+      <span className="font-sans text-muted">
+        <span aria-hidden>—</span>
+        <span className="sr-only">{formatAmount(0)}</span>
+      </span>
     );
   const invoiceColumns: LedgerColumn<Invoice>[] = [
     { id: "id", header: t("N.º", "No."), mono: true, foldOnCard: true, cell: (i) => i.id },
     { id: "shop", header: t("Tienda", "Shop"), grow: true, cell: (i) => shopName(i.shopId), title: (i) => shopName(i.shopId), total: `Total · ${plural(rows.length, t("factura", "invoice"), t("facturas", "invoices"))}` },
-    { id: "driver", header: t("Motorista", "Driver"), secondary: true, cell: (i) => driverName(i.driverId) },
+    { id: "driver", header: t("Motorista", "Driver"), secondary: 54, cell: (i) => driverName(i.driverId) },
     { id: "amount", header: t("Monto", "Amount"), figure: true, cell: (i) => <Money value={i.amount} />, total: <Money value={sum(rows.map((i) => i.amount))} /> },
-    { id: "paid", header: t("Pagado", "Paid"), figure: true, secondary: true, cell: paidCell, total: <Money value={sum(rows.map((i) => i.paid))} /> },
+    { id: "paid", header: t("Pagado", "Paid"), figure: true, secondary: 54, cell: paidCell, total: <Money value={sum(rows.map((i) => i.paid))} /> },
     { id: "status", header: t("Estado", "Status"), cell: stamp },
     { id: "method", header: t("Método", "Method"), secondary: true, cell: (i) => (i.method ? methodLabel(i.method, lang) : i.cashClaim !== undefined ? methodLabel("cash", lang) : "—") },
     { id: "due", header: t("Vence", "Due"), mono: true, end: true, cell: (i) => formatDay(i.dueDate, lang) },
@@ -277,7 +293,13 @@ export default function DashboardScreen() {
 
   const handIn = (d: Driver) =>
     d.cashHeld > 0 ? (
-      <RowButton onClick={() => void cashHandedIn(d.id, d.cashHeld)} disabled={handingIn !== null || held} busy={handingIn === d.id}>
+      <RowButton
+        onClick={() => void cashHandedIn(d.id, d.cashHeld)}
+        label={t(`Marcar efectivo entregado: ${d.name}, ${formatAmount(d.cashHeld)}`, `Mark cash handed in: ${d.name}, ${formatAmount(d.cashHeld)}`)}
+        // Old figures (the page was left and come back to) could hand in an amount the driver no longer holds.
+        disabled={handingIn !== null || held || Boolean(stale)}
+        busy={handingIn === d.id}
+      >
         {t("Marcar efectivo entregado", "Mark cash handed in")}
       </RowButton>
     ) : (
@@ -287,7 +309,8 @@ export default function DashboardScreen() {
   const driverColumns: LedgerColumn<Driver>[] = [
     { id: "driver", header: t("Motorista", "Driver"), grow: true, cell: (d) => d.name, title: (d) => d.name, total: "Total" },
     { id: "cash", header: t("Efectivo", "Cash"), figure: true, cell: (d) => <Money value={d.cashHeld} />, total: <Money value={cashOut} /> },
-    { id: "hand", header: <span className="sr-only">{t("Entrega", "Hand-in")}</span>, end: true, className: "py-1", cell: handIn },
+    // One width whatever it holds (the button, "Guardando...", "Nada por entregar"), so the cash column never moves sideways.
+    { id: "hand", header: <span className="sr-only">{t("Entrega", "Hand-in")}</span>, end: true, className: "w-64 min-w-64 py-1", cell: handIn },
   ];
 
   const remind = (shop: Shop) => {
@@ -334,7 +357,7 @@ export default function DashboardScreen() {
             note={
               collected > 0 ? (
                 <>
-                  <Money value={cashless} /> {t("sin efectivo", "without cash")}
+                  <Money value={cashless} className="text-ink" /> {t("sin efectivo", "without cash")}
                 </>
               ) : (
                 t("Todavía nada", "Nothing yet")
@@ -344,9 +367,12 @@ export default function DashboardScreen() {
           <LedgerFigure
             label={t("Por cobrar", "To collect")}
             value={toCollect}
-            note={`${plural(unpaid.length, t("factura", "invoice"), t("facturas", "invoices"))}${
-              invoices.length < total ? t(` de las ${invoices.length} más recientes`, ` of the ${invoices.length} most recent`) : ""
-            }`}
+            // Older invoices that aren't loaded aren't in the sum, and the note says so in one line.
+            note={
+              invoices.length < total
+                ? t(`en las ${invoices.length} más recientes`, `in the ${invoices.length} most recent`)
+                : plural(unpaid.length, t("factura", "invoice"), t("facturas", "invoices"))
+            }
           />
           <LedgerFigure
             label={t("En crédito", "On credit")}
@@ -354,7 +380,7 @@ export default function DashboardScreen() {
             note={
               overdue > 0 ? (
                 <span className="font-semibold text-bad">
-                  <Money value={overdue} /> {t("vencido", "overdue")}
+                  <Money value={overdue} className="text-ink" /> {t("vencido", "overdue")}
                 </span>
               ) : onCredit > 0 ? (
                 t("Al día", "On time")
@@ -385,7 +411,7 @@ export default function DashboardScreen() {
                 <option value="all">{t("Todas", "All")}</option>
                 {STATUS_FILTERS.map((tone) => (
                   <option key={tone} value={tone}>
-                    {STATUS_LABEL[tone][lang]}
+                    {MARK[tone][lang]}
                   </option>
                 ))}
               </FilterSelect>
@@ -433,23 +459,7 @@ export default function DashboardScreen() {
                   )}
                 </>
               )}
-              empty={
-                <div className="flex flex-col items-start gap-1">
-                  <p className="text-lead">{t("No hay facturas con este filtro.", "No invoices match this filter.")}</p>
-                  {/* Its own line, so the words start under the sentence. */}
-                  <div className="-ml-4">
-                    <TextButton
-                      onClick={() => {
-                        setStatusFilter("all");
-                        setDriverFilter("all");
-                        setDueFilter("all");
-                      }}
-                    >
-                      {t("Quitar filtros", "Clear filters")}
-                    </TextButton>
-                  </div>
-                </div>
-              }
+              empty={<p className="text-lead">{t("No hay facturas con este filtro.", "No invoices match this filter.")}</p>}
             />
             <div className="flex flex-wrap items-center justify-between gap-x-4">
               <p className="text-label text-muted">
@@ -464,6 +474,17 @@ export default function DashboardScreen() {
                     ? t(`${plural(total, "factura", "facturas")} en total.`, `${plural(total, "invoice", "invoices")} in all.`)
                     : t(`Mostrando las ${rows.length} facturas más recientes de ${total}.`, `Showing the ${rows.length} most recent invoices of ${total}.`)}
               </p>
+              {filtered && (
+                <TextButton
+                  onClick={() => {
+                    setStatusFilter("all");
+                    setDriverFilter("all");
+                    setDueFilter("all");
+                  }}
+                >
+                  {t("Quitar filtros", "Clear filters")}
+                </TextButton>
+              )}
               {(moreLoaded || invoices.length < total) && (
                 <TextButton
                   disabled={loadingMore}
@@ -480,7 +501,7 @@ export default function DashboardScreen() {
         )}
       </section>
 
-      <section id="tiendas" className={SECTION}>
+      <section id="tiendas" className={`${SECTION} ${SMALL}`}>
         <h2 className={HEADING}>{t("Tiendas con deuda", "Shops that owe")}</h2>
         <Ledger
           label={t("Tiendas con deuda", "Shops that owe")}
@@ -514,7 +535,7 @@ export default function DashboardScreen() {
         )}
       </section>
 
-      <section id="motoristas" ref={driversBlock} className={`${SECTION} max-w-[44rem]`}>
+      <section id="motoristas" ref={driversBlock} className={`${SECTION} ${SMALL}`}>
         <h2 className={HEADING}>{t("Efectivo con motoristas", "Cash with drivers")}</h2>
         <Ledger
           label={t("Efectivo con motoristas", "Cash with drivers")}
@@ -524,11 +545,11 @@ export default function DashboardScreen() {
           card={(d) => <LedgerCard title={d.name} amount={<Money value={d.cashHeld} />} actions={handIn(d)} />}
           empty={<p className="text-lead">{t("Todavía no tiene motoristas.", "You don't have drivers yet.")}</p>}
         />
-        {/* Its line is always there, so the news of a hand-in never moves the buttons. */}
-        <div className="min-h-6">{cashReceipt && <Answer receipt={cashReceipt} />}</div>
+        {/* Its place is always there, so the news of a hand-in never moves anything. */}
+        <div className="min-h-11">{cashReceipt && <Answer receipt={cashReceipt} />}</div>
       </section>
 
-      <section id="importar" className={`${SECTION} max-w-[44rem]`}>
+      <section id="importar" className={`${SECTION} ${SMALL}`}>
         <h2 className={HEADING}>{t("Varias facturas a la vez", "Several invoices at once")}</h2>
         <CsvImport
           shopName={shopName}
