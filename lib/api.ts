@@ -78,7 +78,7 @@ export const getProfile = (shopId: string): Promise<Profile | null> => read(() =
 export const saveProfile = (shopId: string, profile: Profile) =>
   write(() => mock.saveProfile(shopId, profile), async () => mock.saveProfile(shopId, profile));
 export const createDemoInvoice = (shopId?: string): Promise<Invoice> =>
-  read(() => mock.createDemoInvoice(shopId), () => live.createDemoInvoice(shopId));
+  read(() => mock.createDemoInvoice(shopId), () => live.createDemoInvoice());
 
 // ---------- writes ----------
 

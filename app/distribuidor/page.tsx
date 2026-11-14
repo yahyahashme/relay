@@ -10,7 +10,7 @@ import { formatDay, formatMoney } from "@/lib/format";
 import { toUnits } from "@/lib/money";
 import { reminderLink } from "@/lib/whatsapp";
 import { useT } from "@/lib/i18n";
-import { creditPayout, invoiceStatus, methodLabel, STATUS_LABEL, type StatusTone } from "@/lib/labels";
+import { invoiceStatus, methodLabel, STATUS_LABEL, type StatusTone } from "@/lib/labels";
 import type { Invoice, Receipt, Shop } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
 
@@ -430,9 +430,9 @@ export default function Dashboard() {
                         <td className="px-4 py-3 text-right tabular-nums">{formatMoney(invoice.amount)}</td>
                         <td className="px-4 py-3 text-right tabular-nums">
                           {formatMoney(invoice.paid)}
-                          {invoice.method === "credit" && (
+                          {invoice.creditFee !== undefined && (
                             <span className="block text-sm text-muted">
-                              {t(`recibió ${formatMoney(creditPayout(invoice.paid))}`, `received ${formatMoney(creditPayout(invoice.paid))}`)}
+                              {t(`comisión de crédito ${formatMoney(invoice.creditFee)}`, `credit fee ${formatMoney(invoice.creditFee)}`)}
                             </span>
                           )}
                         </td>
