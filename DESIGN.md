@@ -46,6 +46,16 @@ Each status colour has a `-tint` for stamp fills only. No gradients, glass, blur
 
 2 px corners on paper, 10 px on controls. A receipt is torn top and bottom (zig-zag drawn in CSS), its lines use dotted leaders, and its total sits under a double rule. A ledger has 1 px row rules, vertical rules beside its money columns, and a double rule above totals. No illustrations, emoji or decorative icons; the only drawn marks are chevrons.
 
+## Account screens (Nov 14)
+
+Yahya asked for Mi cuenta to look like a real account (clean, like a bank app), not a receipt. Account screens use `components/kit/account.tsx`:
+
+- One white **card** (14 px corners) holds the account: initials, name, what is owed in large mono figures, available credit with a bar, balance and score. No dotted leaders, no torn edge.
+- Round blue **shortcuts** under it (Agregar, Retirar, Historial).
+- A list of places to go is **one card of rows** split by hairlines: a small round icon, a title, a line under it, a blue chevron. Here a white row with a chevron is tappable; that is the one exception to "if it looks like paper, it isn't a button".
+- Small line icons are allowed on these rows and shortcuts only. Amounts stay in mono; status stays a stamp (the small upright one on the card).
+- The invoice slip, the route sheet and the ledger keep the receipt and ledger look.
+
 ## Components (`components/kit/`)
 
 | File | What it holds |
