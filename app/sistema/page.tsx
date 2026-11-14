@@ -43,7 +43,7 @@ export default function Sistema() {
         </nav>
       </header>
 
-      <div className="grid gap-x-8 gap-y-10 @min-[60rem]:grid-cols-2 @min-[84rem]:grid-cols-3">
+      <div className="grid grid-cols-1 gap-x-8 gap-y-10 @min-[60rem]:grid-cols-2 @min-[84rem]:grid-cols-3">
         <Section title={t("Recibo: por pagar", "Receipt: unpaid")}>
           <InvoiceReceipt />
         </Section>
@@ -90,9 +90,9 @@ export default function Sistema() {
         <Section title={t("Color", "Colour")}>
           <ul className="grid grid-cols-2 gap-2">
             {COLOURS.map(([name, swatch, hex]) => (
-              <li key={name} className="flex items-center gap-2">
+              <li key={name} className="flex flex-wrap items-center gap-2">
                 <span className={`size-9 shrink-0 rounded-paper border border-counter-rule ${swatch}`} />
-                <span className="flex flex-col leading-tight">
+                <span className="flex min-w-0 flex-col leading-tight wrap-anywhere">
                   <span className="text-label font-semibold">{name}</span>
                   <span className="font-mono text-label font-medium text-muted">{hex}</span>
                 </span>

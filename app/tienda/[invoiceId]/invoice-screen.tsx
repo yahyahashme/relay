@@ -241,10 +241,12 @@ export default function InvoiceScreen() {
 
   const who = (
     <ReceiptLines>
-      <ReceiptLine label={t("Cliente", "Customer")}>{shop?.name ?? t("Tienda", "Shop")}</ReceiptLine>
+      <ReceiptLine label={t("Cliente", "Customer")} shorten>
+        {shop?.name ?? t("Tienda", "Shop")}
+      </ReceiptLine>
       {driver && (
         // On a short phone a part-paid slip has one line more ("Pagado"), so this one steps aside for the pay options.
-        <ReceiptLine label={t("Motorista", "Driver")} className={partPaid ? "short:hidden" : ""}>
+        <ReceiptLine label={t("Motorista", "Driver")} shorten className={partPaid ? "short:hidden" : ""}>
           {driver.name}
         </ReceiptLine>
       )}

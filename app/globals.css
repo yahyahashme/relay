@@ -249,7 +249,11 @@ body {
     line-height: 1;
     letter-spacing: 0.09em;
     text-transform: uppercase;
-    white-space: nowrap;
+    /* One line wherever it fits. At a large text size on a small phone a long one (EN CRÉDITO, VENCE PRONTO)
+       takes two lines instead of running off the paper. */
+    max-width: 100%;
+    text-align: center;
+    text-wrap: balance;
     rotate: var(--stamp-tilt, -5deg);
     mix-blend-mode: multiply;
     /* worn rubber: ink that didn't take */
@@ -268,6 +272,8 @@ body {
 
   /* The small form for dense tables: upright, no wear, still text plus colour. */
   .stamp-small {
+    max-width: none;
+    white-space: nowrap;
     padding: 0.22em 0.5em 0.16em;
     border-width: 1.5px;
     border-radius: 2px;
