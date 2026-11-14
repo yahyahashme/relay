@@ -79,7 +79,7 @@ export function ManifestRow({
       >
         <span className="flex min-w-0 flex-1 items-stretch rounded-l-paper bg-paper">
           <span
-            className={`flex shrink-0 items-center justify-center border-r-2 border-dotted border-paper-rule font-mono font-semibold ${
+            className={`flex shrink-0 items-center justify-center border-r-2 border-solid border-paper-rule font-mono font-semibold ${
               next ? "w-14 text-[2.5rem] @max-[19rem]/row:w-11 @max-[19rem]/row:text-[2rem]" : "w-12 text-[1.75rem] @max-[19rem]/row:w-10 @max-[19rem]/row:text-[1.5rem]"
             } ${done ? "text-muted" : "text-ink"}`}
           >
@@ -90,13 +90,13 @@ export function ManifestRow({
             <span className="@container flex min-w-0 flex-1 flex-col justify-center gap-0.5 px-3 py-2.5 @max-[19rem]/row:px-2.5">
               {(label || stamp) && (
                 <span className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-                  {label && <span className="text-label font-bold uppercase tracking-[0.1em] text-muted @max-[16.5rem]/row:hidden">{label}</span>}
+                  {label && <span className="text-label font-bold text-muted @max-[16.5rem]/row:hidden">{label}</span>}
                   {stamp && <span className="ml-auto">{stamp}</span>}
                 </span>
               )}
               <span className="text-lead font-bold text-balance wrap-anywhere">{name}</span>
               <span className="flex flex-wrap items-baseline justify-between gap-x-3">
-                <span className="min-w-0 font-mono text-label font-medium text-muted wrap-anywhere">{detail}</span>
+                <span className="min-w-0 text-label text-muted wrap-anywhere">{detail}</span>
                 <span className={`ml-auto text-right font-mono leading-[1.1] font-semibold ${fit ? "fit-figure" : "text-[1.5rem]"}`} style={fit}>
                   {amount}
                 </span>
@@ -112,7 +112,7 @@ export function ManifestRow({
                 </span>
               </span>
               <span className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-                <span className="min-w-0 font-mono text-label font-medium text-muted wrap-anywhere">{detail}</span>
+                <span className="min-w-0 text-label text-muted wrap-anywhere">{detail}</span>
                 {stamp && <span className="ml-auto">{stamp}</span>}
               </span>
             </span>
@@ -174,21 +174,21 @@ export function StopSlip({
     <section aria-label={label} className="@container/stop">
       <div className="grid gap-2 rounded-paper bg-paper p-3 short:gap-1.5 short:py-2 sideways:grid-cols-[auto_minmax(0,1fr)] sideways:items-start sideways:gap-x-2.5 sideways:p-2.5">
         {/* The amount keeps the name company while both fit; on a narrow slip, or with large text, it takes the line below. */}
-        <header className="@container flex flex-wrap items-center gap-x-3 gap-y-0.5 border-b-2 border-dotted border-paper-rule pb-2 sideways:col-start-2 sideways:row-start-1 sideways:flex-col sideways:flex-nowrap sideways:items-start sideways:border-b-0 sideways:pb-0">
-          <span className="flex items-center self-stretch border-r-2 border-dotted border-paper-rule pr-3 font-mono text-[2.5rem] leading-none font-semibold sideways:self-auto sideways:border-r-0 sideways:pr-0 sideways:text-[1.75rem]">
+        <header className="@container flex flex-wrap items-center gap-x-3 gap-y-0.5 border-b-2 border-solid border-paper-rule pb-2 sideways:col-start-2 sideways:row-start-1 sideways:flex-col sideways:flex-nowrap sideways:items-start sideways:border-b-0 sideways:pb-0">
+          <span className="flex items-center self-stretch border-r-2 border-solid border-paper-rule pr-3 font-mono text-[2.5rem] leading-none font-semibold sideways:self-auto sideways:border-r-0 sideways:pr-0 sideways:text-[1.75rem]">
             {number}
           </span>
           <div className="flex min-w-[7.5rem] flex-1 flex-col sideways:min-w-0 sideways:flex-none">
             <h2 ref={headRef} tabIndex={-1} className="text-lead font-bold text-balance sideways:line-clamp-3">
               {name}
             </h2>
-            <p className="font-mono text-label font-medium uppercase tracking-[0.04em] text-muted sideways:tracking-normal">{detail}</p>
+            <p className="text-label text-muted">{detail}</p>
           </div>
           <p className="ml-auto flex flex-col items-end gap-1 text-right sideways:ml-0 sideways:items-start sideways:pt-1 sideways:text-left">
             <span className="fit-figure font-mono leading-none font-semibold" style={{ "--fit-max": "var(--text-figure)", "--fit-chars": moneyWidth(value) } as CSSProperties}>
               <Money value={value} />
             </span>
-            {valueNote && <span className="font-mono text-label font-medium text-muted">{valueNote}</span>}
+            {valueNote && <span className="text-label text-muted">{valueNote}</span>}
           </p>
         </header>
         <div

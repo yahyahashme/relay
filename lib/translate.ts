@@ -185,6 +185,21 @@ const RULES: Rule[] = [
   exact("Escriba el nombre de la tienda.", "Type the shop's name."),
   exact("Revise el teléfono.", "Check the phone number."),
   exact("Revise el DUI (9 números).", "Check the DUI (9 digits)."),
+  // Payment confirmation: face, fingerprint or PIN (#199)
+  exact("No se puede confirmar pagos en este servidor.", "Payments can't be confirmed on this server."),
+  exact("La confirmación venció. Toque pagar otra vez.", "The confirmation expired. Tap pay again."),
+  exact("No se pudo confirmar. Intente de nuevo.", "Couldn't confirm. Please try again."),
+  exact("Esta llave no es de esta cuenta. Use su PIN.", "That passkey isn't for this account. Use your PIN."),
+  exact("Sus pagos ya están protegidos. Confirme con su cara, huella o PIN.", "Your payments are already protected. Confirm with your face, fingerprint or PIN."),
+  exact("Aún no tiene un PIN.", "You don't have a PIN yet."),
+  exact("PIN bloqueado por 5 intentos. Espere 15 minutos.", "PIN locked after 5 tries. Wait 15 minutes."),
+  exact("PIN incorrecto. Le queda 1 intento.", "Wrong PIN. 1 try left."),
+  pattern(String.raw`PIN incorrecto\. Le quedan ${NUM} intentos\.`, "Wrong PIN. $1 tries left."),
+  exact("PIN incorrecto.", "Wrong PIN."),
+  exact("Confirme el pago con su cara, huella o PIN.", "Confirm the payment with your face, fingerprint or PIN."),
+  exact("El monto cambió. Confirme el pago otra vez.", "The amount changed. Confirm the payment again."),
+  exact("El PIN debe tener 6 números.", "The PIN must be 6 digits."),
+  exact("Ese PIN es muy fácil de adivinar. Elija otro.", "That PIN is too easy to guess. Pick another one."),
 ];
 
 /**

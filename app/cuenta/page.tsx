@@ -28,7 +28,7 @@ const short = (address: string) => `${address.slice(0, 4)}…${address.slice(-4)
 function Fact({ label, mono = false, children }: { label: ReactNode; mono?: boolean; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <dt className="text-label font-semibold uppercase tracking-[0.08em] text-muted">{label}</dt>
+      <dt className="text-label font-semibold text-muted">{label}</dt>
       <dd className={`text-lead font-semibold break-all ${mono ? "font-mono" : ""}`}>{children}</dd>
     </div>
   );

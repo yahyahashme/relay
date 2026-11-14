@@ -13,7 +13,7 @@ export function Loading({ lines = 4, torn = true }: { lines?: number; torn?: boo
   const { t } = useT();
   return (
     <div role="status" className={`flex flex-col bg-paper px-4 pb-5 pt-4 ${torn ? "torn" : "rounded-paper"}`}>
-      <p className="font-mono text-base font-medium text-muted">{t("Cargando...", "Loading...")}</p>
+      <p className="text-base text-muted">{t("Cargando...", "Loading...")}</p>
       {Array.from({ length: lines }, (_, line) => (
         <span key={line} aria-hidden className="mt-7 block border-b border-paper-rule" />
       ))}

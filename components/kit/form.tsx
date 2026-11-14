@@ -66,7 +66,7 @@ export function FormHead({ step, at, title, children }: { step?: ReactNode; at?:
   }, [at]);
   return (
     <header className="flex flex-col gap-1.5">
-      {step && <p className="text-label font-semibold uppercase tracking-[0.1em] text-muted">{step}</p>}
+      {step && <p className="text-label font-semibold text-muted">{step}</p>}
       <h1 ref={name} tabIndex={-1} className="text-title font-bold text-balance outline-none">
         {title}
       </h1>

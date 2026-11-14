@@ -5,9 +5,10 @@ import { type ReactNode, useRef, useState } from "react";
 import { ActionLink, Button, DetailLink, Held } from "@/components/kit/button";
 import { Split, TopNav } from "@/components/kit/layout";
 import { Money, MoneyText } from "@/components/kit/money";
-import { Receipt, ReceiptFoot, ReceiptHeader, ReceiptLine, ReceiptLines, ReceiptTotal } from "@/components/kit/paper";
+import { Card, icons, initials, Meter, Shortcut } from "@/components/kit/account";
 import { Stamp } from "@/components/kit/stamp";
 import { Empty, Failure, Loading } from "@/components/kit/states";
+import { usePayConfirm } from "@/components/pay-confirm";
 import { HOLD_MS, TapShield, useMovedGuard, useQuietOnArrival, useSameSpotGuard, useTapShield } from "@/components/tap-shield";
 import { getBalance, getInvoices, getShop, getShopHistory, getSuppliers, repay } from "@/lib/api";
 import { creditScore } from "@/lib/credit";
@@ -36,7 +37,14 @@ export default function AccountScreen() {
       getSuppliers(shopId),
       getShopHistory(shopId).catch(() => null), // the score can wait; the debt can't
     ]);
-    return { shop, balance, suppliers, history, unpaid: invoices.filter((i) => i.shopId === shopId && i.status !== "paid"), now: Date.now() };
+    return {
+      shop,
+      balance,
+      suppliers,
+      history,
+      unpaid: invoices.filter((i) => i.shopId === shopId && i.status !== "paid"),
+      now: Date.now(),
+    };
   });
   const [busy, setBusy] = useState(false);
   const running = useRef(false);
@@ -44,7 +52,11 @@ export default function AccountScreen() {
   const [held, setHeld] = useState(false);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   // The debt paid on this visit, so the slip can show it stamped and say how the limit moved.
-  const [paid, setPaid] = useState<{ amount: number; limit: number; due?: string } | null>(null);
+  const [paid, setPaid] = useState<{
+    amount: number;
+    limit: number;
+    due?: string;
+  } | null>(null);
   const [landed, setLanded] = useState(false); // the stamp has played; don't replay it
   const { noteTap, settle } = useTapShield();
   const { watch, typed, stray } = useSameSpotGuard();
@@ -52,6 +64,7 @@ export default function AccountScreen() {
   // right under the slip: for a beat after it has changed place, it ignores taps.
   const { ref: payPlace, justMoved } = useMovedGuard<HTMLDivElement>();
   const { lang, t, msg } = useT();
+  const { ask, sheet } = usePayConfirm();
   // "Pagar deuda" pays with one tap, so it waits a beat after it comes on screen: a double tap on the screen before can't pay.
   const arriving = useQuietOnArrival(Boolean(data?.shop && !stale && data.shop.creditOwed > 0));
 
@@ -76,10 +89,21 @@ export default function AccountScreen() {
   async function payDebt() {
     if (!shop || running.current) return; // two taps in the same instant, before the screen has redrawn: one payment
     running.current = true;
-    const before = { amount: shop.creditOwed, limit: shop.creditLimit, due: shop.creditDue };
-    setBusy(true);
+    const before = {
+      amount: shop.creditOwed,
+      limit: shop.creditLimit,
+      due: shop.creditDue,
+    };
     setOutcome(null);
-    const result = await repay(shop.id, before.amount);
+    // Face ID, fingerprint or PIN first (#199): nothing moves until the shop confirms this amount.
+    const answer = await ask({ action: "repay", shopId: shop.id, amount: before.amount });
+    if (!answer.ok) {
+      if (answer.message) setOutcome({ ok: false, message: answer.message });
+      running.current = false;
+      return;
+    }
+    setBusy(true);
+    const result = await repay(shop.id, before.amount, answer.id);
     if (result.ok) {
       setPaid(before);
       setLanded(false);
@@ -109,61 +133,92 @@ export default function AccountScreen() {
   const inDollars = t("con dólares digitales", "in digital dollars");
 
   const slip = (
-    <Receipt>
-      <ReceiptHeader as="h1" from={shop.name} number={t("Mi cuenta", "My account")} date={shop.owner} />
-      <ReceiptTotal
-        label={justPaid ? t("Deuda", "Debt") : t("Debe", "You owe")}
-        value={justPaid ? paid.amount : shop.creditOwed}
-        note={
-          justPaid ? (
-            t("Pagada hoy", "Paid today")
-          ) : owes && shop.creditDue ? (
-            shop.overdue ? (
-              <span className="font-semibold text-bad">{t(`Venció el ${formatDay(shop.creditDue)}`, `Was due ${formatDay(shop.creditDue, "en")}`)}</span>
+    <Card as="section" className="flex flex-col gap-4 px-5 py-5">
+      <header className="flex items-center gap-3">
+        <span aria-hidden className="flex size-12 shrink-0 items-center justify-center rounded-full bg-ink text-base font-bold text-white">
+          {initials(shop.name)}
+        </span>
+        <span className="flex min-w-0 flex-1 flex-col">
+          <h1 className="text-[1.25rem] leading-tight font-bold text-balance">{shop.name}</h1>
+          <span className="text-label text-muted">
+            {t("Mi cuenta", "My account")}
+            {shop.owner && ` · ${shop.owner}`}
+          </span>
+        </span>
+      </header>
+
+      <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-2">
+        <div className="flex flex-col gap-0.5">
+          <p className="text-label font-semibold text-muted">{justPaid ? t("Deuda", "Debt") : t("Debe", "You owe")}</p>
+          <Money value={justPaid ? paid.amount : shop.creditOwed} className="text-[2.5rem] leading-none font-semibold tracking-[-0.02em]" />
+          <p className="pt-1 text-label text-muted">
+            {justPaid ? (
+              t("Pagada hoy", "Paid today")
+            ) : owes && shop.creditDue ? (
+              shop.overdue ? (
+                <span className="font-semibold text-bad">{t(`Venció el ${formatDay(shop.creditDue)}`, `Was due ${formatDay(shop.creditDue, "en")}`)}</span>
+              ) : (
+                t(`Vence el ${formatDay(shop.creditDue)}`, `Due ${formatDay(shop.creditDue, "en")}`)
+              )
             ) : (
-              t(`Vence el ${formatDay(shop.creditDue)}`, `Due ${formatDay(shop.creditDue, "en")}`)
-            )
-          ) : undefined
-        }
-      />
-      <ReceiptLines>
-        <ReceiptLine label={t("Límite", "Limit")}>
-          <Money value={shop.creditLimit} />
-        </ReceiptLine>
-        {limitMoved !== 0 && (
-          <ReceiptLine label={limitMoved > 0 ? t("Su límite subió", "Your limit went up") : t("Su límite bajó", "Your limit went down")}>
-            <span className={`font-semibold ${limitMoved > 0 ? "text-ok" : "text-bad"}`}>
-              {limitMoved > 0 && "+"}
-              <Money value={limitMoved} />
+              "\u00a0"
+            )}
+          </p>
+        </div>
+        {mark && (
+          <span className="pb-1 pr-1">
+            <Stamp small tone={MARK[mark].tone} fresh={mark === "paid" && !landed} onLanded={() => setLanded(true)}>
+              {MARK[mark][lang]}
+            </Stamp>
+          </span>
+        )}
+      </div>
+
+      {hasCredit && (
+        <div className="flex flex-col gap-2 rounded-control bg-counter/50 px-4 py-3">
+          <p className="flex items-baseline justify-between gap-3">
+            <span className="font-semibold">{t("Crédito disponible", "Credit available")}</span>
+            {/* No sum with a late debt: the shop can't use what's left, so a dollar figure would mislead. */}
+            {shop.overdue ? <span className="font-semibold text-bad">{t("En pausa", "On hold")}</span> : <Money value={available} className="font-semibold" />}
+          </p>
+          <Meter used={shop.creditOwed} of={shop.creditLimit} label={t("Crédito usado", "Credit used")} />
+          <p className="flex flex-wrap items-baseline justify-between gap-x-3 text-label text-muted">
+            <span>
+              {t("Límite", "Limit")} <Money value={shop.creditLimit} />
             </span>
-          </ReceiptLine>
-        )}
-        <ReceiptLine label={t("Disponible", "Available")} strong>
-          {/* No sum with a late debt: the shop can't use what's left, so a dollar figure would mislead. */}
-          {shop.overdue ? <span className="text-bad">{t("En pausa", "On hold")}</span> : <Money value={available} />}
-        </ReceiptLine>
+            {limitMoved !== 0 && (
+              <span className={`font-semibold ${limitMoved > 0 ? "text-ok" : "text-bad"}`}>
+                {limitMoved > 0 ? t("Subió ", "Up ") : t("Bajó ", "Down ")}
+                {limitMoved > 0 && "+"}
+                <Money value={limitMoved} />
+              </span>
+            )}
+          </p>
+        </div>
+      )}
+
+      <dl className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-0.5">
+          <dt className="text-label text-muted">{t("Saldo", "Balance")}</dt>
+          <dd className="font-semibold">{balance === null ? "—" : <Money value={balance} />}</dd>
+        </div>
         {score && (
-          <ReceiptLine label={t("Puntaje Relay", "Relay score")}>
-            {score.score} {t("de 100", "of 100")}
-          </ReceiptLine>
+          <div className="flex flex-col gap-0.5">
+            <dt className="text-label text-muted">{t("Puntaje Relay", "Relay score")}</dt>
+            <dd className="font-semibold">
+              <span className="font-mono">{score.score}</span> {t("de 100", "of 100")}
+            </dd>
+          </div>
         )}
-        <ReceiptLine label={t("Saldo", "Balance")}>{balance === null ? "—" : <Money value={balance} />}</ReceiptLine>
-      </ReceiptLines>
+      </dl>
+
       {result?.ok && (
         <p role="status" className="font-semibold text-pretty">
           <MoneyText>{msg(result.message)}</MoneyText>
         </p>
       )}
-      {/* The foot is always there, and a payment that failed says so here, inside the paper: no message ever pushes the button. */}
-      <ReceiptFoot
-        stamp={
-          mark && (
-            <Stamp tone={MARK[mark].tone} fresh={mark === "paid" && !landed} onLanded={() => setLanded(true)}>
-              {MARK[mark][lang]}
-            </Stamp>
-          )
-        }
-      >
+      {/* The foot is always there, and a payment that failed says so here, inside the card: no message ever pushes the button. */}
+      <div className="min-h-6 border-t border-paper-rule pt-3 text-muted">
         {result && !result.ok ? (
           <p role="alert" className="font-semibold text-bad text-pretty">
             <MoneyText>{msg(result.message)}</MoneyText>
@@ -183,8 +238,23 @@ export default function AccountScreen() {
         ) : (
           <p className="text-pretty">{t("Su tienda no tiene crédito por ahora.", "Your shop doesn't have credit for now.")}</p>
         )}
-      </ReceiptFoot>
-    </Receipt>
+      </div>
+    </Card>
+  );
+
+  const base = `/tienda/cuenta/${shop.id}`;
+  const shortcuts = (
+    <nav aria-label={t("Dinero", "Money")} className="flex gap-2">
+      <Shortcut href={`${base}/info/agregar`} icon={icons.add}>
+        {t("Agregar", "Add")}
+      </Shortcut>
+      <Shortcut href={`${base}/info/retirar`} icon={icons.withdraw}>
+        {t("Retirar", "Withdraw")}
+      </Shortcut>
+      <Shortcut href={`${base}/historial`} icon={icons.history}>
+        {t("Historial", "History")}
+      </Shortcut>
+    </nav>
   );
 
   return (
@@ -193,6 +263,7 @@ export default function AccountScreen() {
         {busy ? t("Procesando...", "Processing...") : ""}
       </p>
       {(busy || held) && <TapShield onTap={noteTap} />}
+      {sheet}
       <Split
         pin="facts"
         nav={
@@ -205,7 +276,12 @@ export default function AccountScreen() {
             )}
           </TopNav>
         }
-        facts={<div id="estado-de-cuenta">{slip}</div>}
+        facts={
+          <div id="estado-de-cuenta" className="flex flex-col gap-4">
+            {slip}
+            {shortcuts}
+          </div>
+        }
         actions={
           <>
             <div ref={payPlace} className="empty:hidden">

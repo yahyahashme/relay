@@ -573,6 +573,7 @@ The target is still a mid-size distributor with a few routes (§9). The big grou
 
 ### 8.3 Keys and accounts
 - **Demo:** the app's server holds the testnet secret keys for each demo role, in Vercel environment variables only. Never in the repo, the browser or a chat.
+- **Payment confirmation (#199):** the server signs for the shop, so every payment, "pay in 7 days", cash confirmation and repayment first needs the owner's passkey (Face ID / fingerprint / phone lock) or a 6-digit PIN (hashed, locked after 5 wrong tries). The server ties each confirmation to one action, invoice and amount, uses it once, and lets it expire after 2 minutes. The first payment on a phone sets one up. Demo shops keep it per phone (a signed cookie), so each judge's phone sets up its own. Code: `lib/server/pay-confirm.ts`, `components/pay-confirm.tsx`.
 - **Real product:** shops sign in with a passkey (fingerprint or face, no seed phrase) through a smart wallet. Fees are sponsored, so nobody needs XLM. The licensed partner does KYC.
 
 ### 8.4 On-chain and off-chain
@@ -772,6 +773,7 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 - *Have real users tried it?* The exact numbers from `docs/research.md`, and one thing we changed because of them.
 - *Is it legal?* Shops pay no interest. The distributor pays a fee to be paid early. A licensed lender funds the pool and does KYC, and a partner registered with the CNAD handles the digital dollars; one Salvadoran bank already is registered (facts 46, 47). We know the interest caps (highest 96.88% a year, entry 49) and the 2024 data law (50), and a lawyer confirms the structure before launch (§11.1).
 - *Why Stellar?* USDC is native, and El Salvador already uses dollars. Payments settle in seconds, and Stellar describes its fees as under a cent. Anchors connect to cash. Soroban enforces the credit rules. Fee sponsorship and passkeys hide the crypto.
+- *Stolen phone?* The payment still needs the owner's face, finger or PIN. Every tap on a pay button opens "Confirme el pago" with the amount and the distributor, then Face ID or fingerprint (a passkey) or a 6-digit PIN, like a UPI PIN. Our server checks it before it signs, and only for that invoice and that amount (#199).
 - *What about privacy?* No names on-chain, details off-chain, batching later. The off-chain data follows El Salvador's 2024 data protection law (facts 50).
 
 ---
@@ -827,6 +829,7 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 | Nov 10 | Credit sales pay no usage fee: the distributor gets $98.50 per $100 (one 1.5% fee; our 0.25% is inside it). The limit grows only after a $40+ cycle, once per credit period; late repayment drops it $25. The buffer covers defaults 4 credit periods late (`cover_default`), and only approved distributors can invoice. |
 | Nov 10 | Only Yahya contacts the advisors (our startup advisor and our technical and finance advisor), with at most two follow-ups each (#17). |
 | Nov 10 | Yahya's PRs wait for Jack's review before they merge; the admin bypass is a rare exception, not the habit. |
+| Nov 14 | Every shop payment needs a confirmation, like a UPI PIN (#199): "Confirme el pago: $X a {distribuidora}", then a passkey (Face ID / fingerprint) with a 6-digit PIN as the backup. The server checks it, bound to that invoice and amount, before it signs. No contract change. |
 
 ---
 

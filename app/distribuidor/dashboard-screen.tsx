@@ -346,7 +346,7 @@ export default function DashboardScreen() {
     <div className="flex flex-col gap-4">
       {(handingIn !== null || held) && <TapShield onTap={noteTap} />}
       <h1 className="sr-only">{t(`Panel de ${scope.name}`, `${scope.name} dashboard`)}</h1>
-      <p aria-hidden className="text-label font-semibold uppercase tracking-[0.1em] text-muted sm:hidden">
+      <p aria-hidden className="text-label font-semibold text-muted sm:hidden">
         {scope.name}
       </p>
 

@@ -2,14 +2,14 @@
 
 import { useParams } from "next/navigation";
 import { ActionLink } from "@/components/kit/button";
-import { Receipt, ReceiptHeader, ReceiptRule } from "@/components/kit/paper";
+import { Card } from "@/components/kit/account";
 import { Stamp } from "@/components/kit/stamp";
 import { Empty } from "@/components/kit/states";
 import { HELP, isHelpTopic } from "@/lib/account-help";
 import { useT } from "@/lib/i18n";
 import { AccountPage } from "../../account-page";
 
-/** One of Mi cuenta's explainers: how an option will work, clearly marked as not built yet. A printed leaflet: paper, nothing to tap on it. */
+/** One of Mi cuenta's explainers: how an option will work, clearly marked as not built yet. An account card with nothing to tap on it. */
 export default function HelpScreen() {
   const { shopId, topic } = useParams<{ shopId: string; topic: string }>();
   const { lang, t } = useT();
@@ -26,22 +26,25 @@ export default function HelpScreen() {
   const help = HELP[topic][lang];
   return (
     <AccountPage shopId={shopId}>
-      <Receipt>
-        {/* The stamp comes first, under the title: nobody should read the steps thinking they can do them today. */}
-        <ReceiptHeader as="h1" from={help.title} number={t("Así funcionará", "How it will work")}>
-          <span className="pt-2 pb-1">
-            <Stamp tone="warn">{t("Aún no activo", "Not live yet")}</Stamp>
+      <Card as="section" className="flex flex-col gap-4 px-5 py-5">
+        {/* The mark comes first, beside the title: nobody should read the steps thinking they can do them today. */}
+        <header className="flex flex-col gap-2">
+          <span className="text-label text-muted">{t("Así funcionará", "How it will work")}</span>
+          <h1 className="text-title font-bold text-balance">{help.title}</h1>
+          <span>
+            <Stamp small tone="warn">
+              {t("Aún no activo", "Not live yet")}
+            </Stamp>
           </span>
-        </ReceiptHeader>
-        <ReceiptRule />
+        </header>
         <p className="text-lead text-pretty">{help.intro}</p>
-        <ol className="flex flex-col border-t border-paper-rule">
+        <ol className="flex flex-col divide-y divide-paper-rule">
           {help.points.map((point, i) => (
-            <li key={i} className="flex gap-3 border-b border-paper-rule py-2.5 text-pretty">
-              <span aria-hidden className="w-5 shrink-0 font-mono font-semibold">
-                {i + 1}.
+            <li key={i} className="flex items-start gap-3 py-3 text-pretty">
+              <span aria-hidden className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-tint text-label font-bold text-brand">
+                {i + 1}
               </span>
-              <span>{point}</span>
+              <span className="pt-0.5">{point}</span>
             </li>
           ))}
         </ol>
@@ -51,7 +54,7 @@ export default function HelpScreen() {
             "A licensed partner checks each shop's identity and handles the cash. Relay doesn't do that on its own.",
           )}
         </p>
-      </Receipt>
+      </Card>
       {back}
     </AccountPage>
   );

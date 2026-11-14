@@ -107,7 +107,7 @@ export function Ledger<Row>({
         <dl className={`flex flex-wrap gap-x-8 gap-y-1 ${inCard ? "" : "@min-[60rem]:hidden"}`}>
           {(inCard ? cardFolded : folded).map((column) => (
             <div key={column.id} className={`flex flex-wrap items-baseline gap-x-2 ${inCard || !column.secondary ? "" : RETURNS[returnsAt(column)!].fold}`}>
-              <dt className="text-label font-semibold uppercase tracking-[0.08em] text-muted">{column.header}</dt>
+              <dt className="text-label font-semibold text-muted">{column.header}</dt>
               <dd className={column.figure || column.mono ? "font-mono font-medium" : ""}>{column.cell(row)}</dd>
             </div>
           ))}
@@ -125,7 +125,7 @@ export function Ledger<Row>({
         <thead>
           <tr className="border-b border-ink">
             {columns.map((column) => (
-              <th key={column.id} scope="col" className={`h-10 px-3 text-label font-semibold uppercase tracking-[0.08em] text-muted ${place(column)} font-sans`}>
+              <th key={column.id} scope="col" className={`h-10 px-3 text-label font-semibold text-muted ${place(column)} font-sans`}>
                 {column.header}
               </th>
             ))}
@@ -244,7 +244,7 @@ export function LedgerCard({ title, amount, stamp, note, actions }: { title: Rea
       {(stamp || note) && (
         <p className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
           <span className="flex flex-wrap items-center gap-1.5">{stamp}</span>
-          {note && <span className="font-mono text-label font-medium text-muted">{note}</span>}
+          {note && <span className="text-label text-muted">{note}</span>}
         </p>
       )}
       {actions && <div className="flex flex-col gap-2 pt-1">{actions}</div>}
@@ -321,7 +321,7 @@ export function LedgerFigure({ label, value, note }: { label: ReactNode; value: 
   return (
     <div className="flex min-w-0 flex-col gap-0.5 border-paper-rule px-4 pt-2.5 pb-2.5 not-first:border-l @max-[43.99rem]/figures:nth-[3]:border-l-0 @max-[43.99rem]/figures:nth-[n+3]:border-t @max-[43.99rem]/figures:[&:nth-child(n+3)>dt]:min-h-[2lh]">
       {/* A long label takes two lines (four across on a tablet, the second pair on a phone): its row of labels keeps room for two, so the figures stay in line. */}
-      <dt className="flex items-end wrap-anywhere text-label font-semibold uppercase tracking-[0.08em] text-muted @min-[44rem]/figures:@max-[57.99rem]/figures:min-h-[2lh]">{label}</dt>
+      <dt className="flex items-end wrap-anywhere text-label font-semibold text-muted @min-[44rem]/figures:@max-[57.99rem]/figures:min-h-[2lh]">{label}</dt>
       <dd
         className="font-mono leading-tight font-semibold tracking-[-0.02em]"
         style={{ fontSize: "min(var(--text-figure), calc((100cqi / var(--fit-cols) - 2rem) / (var(--fit-chars) * 0.62)))" }}
