@@ -24,13 +24,13 @@ export function Receipt({ children, printIn = false, className = "" }: { childre
   );
 }
 
-/** Who the slip is from, then its number and date in mono, centred like a printed header. `as="h1"` when it names the page. */
+/** Who the slip is from, then its number and date, centred. `as="h1"` when it names the page. */
 export function ReceiptHeader({ from, number, date, as: Tag = "p", children }: { from: ReactNode; number?: ReactNode; date?: ReactNode; as?: "p" | "h1" | "h2"; children?: ReactNode }) {
   return (
     <header className="flex flex-col items-center gap-1 text-center">
-      <Tag className="text-lead font-bold uppercase tracking-[0.06em] text-balance">{from}</Tag>
+      <Tag className="text-lead font-bold text-balance">{from}</Tag>
       {(number || date) && (
-        <p className="font-mono text-label font-medium uppercase tracking-[0.04em] text-muted">
+        <p className="text-label text-muted">
           {number}
           {number && date && " · "}
           {date}
@@ -51,7 +51,7 @@ export function ReceiptLines({ children }: { children: ReactNode }) {
 }
 
 /**
- * One printed line: label, dotted leader, figure. `strong` for the line that matters most.
+ * One line: label on the left, figure on the right (amounts in mono through Money). `strong` for the line that matters most.
  * The label never gives up a word. A value too long to sit beside it (a long shop name on a small phone,
  * or any name at a large text size) drops to a line of its own, at the right, and wraps there if it must.
  * `shorten` is for a name, never for an amount: on a short screen the name stays on its line and is cut
@@ -72,7 +72,7 @@ export function ReceiptLine({
 }) {
   return (
     <div
-      className={`flex flex-wrap items-end justify-end font-mono text-base ${shorten ? "short:flex-nowrap" : ""} ${strong ? "font-semibold text-ink" : "font-medium text-muted"} ${className}`}
+      className={`flex flex-wrap items-end justify-end text-base ${shorten ? "short:flex-nowrap" : ""} ${strong ? "font-semibold text-ink" : "text-muted"} ${className}`}
     >
       <dt className="flex flex-1 items-end">
         <span>{label}</span>
@@ -107,7 +107,7 @@ export function ReceiptFold({ count, label, children }: { count: number; /** Ins
 }
 
 /**
- * The total under its double rule. On the shop's invoice this is the largest thing in the product, and it
+ * The total under a rule. On the shop's invoice this is the largest thing in the product, and it
  * shrinks to fit rather than clip when the amount is long or the screen is 280 px wide.
  */
 export function ReceiptTotal({ label, value, note, children }: { label: ReactNode; value: number; note?: ReactNode; children?: ReactNode }) {
@@ -115,8 +115,8 @@ export function ReceiptTotal({ label, value, note, children }: { label: ReactNod
     <div className="flex flex-col gap-1">
       <ReceiptRule double />
       <p className="flex items-baseline justify-between gap-3 pt-1.5">
-        <span className="text-label font-bold uppercase tracking-[0.12em]">{label}</span>
-        {note && <span className="text-right font-mono text-label font-medium text-muted">{note}</span>}
+        <span className="text-label font-semibold text-muted">{label}</span>
+        {note && <span className="text-right text-label text-muted">{note}</span>}
       </p>
       <p
         className="fit-figure font-mono font-semibold leading-none tracking-[-0.03em]"

@@ -189,7 +189,7 @@ export default function AdminScreen() {
             <LedgerCard
               title={d.businessName}
               amount={null}
-              stamp={<span className="font-mono text-label font-medium text-muted">{[d.nit ? `NIT ${d.nit}` : "", `${t("Registrada", "Signed up")} ${formatDay(d.createdAt, lang)}`].filter(Boolean).join(" · ")}</span>}
+              stamp={<span className="text-label text-muted">{[d.nit ? `NIT ${d.nit}` : "", `${t("Registrada", "Signed up")} ${formatDay(d.createdAt, lang)}`].filter(Boolean).join(" · ")}</span>}
               actions={<span className="flex justify-start">{decideCell(d)}</span>}
             />
           )}

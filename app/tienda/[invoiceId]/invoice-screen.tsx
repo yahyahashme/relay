@@ -93,7 +93,7 @@ function CreditFacts({ shop, lang }: { shop: Shop; lang: Lang }) {
   const available = Math.max(0, Math.round((shop.creditLimit - shop.creditOwed) * 100) / 100);
   return (
     <Paper className="hidden flex-col gap-2.5 px-4 py-4 @min-[40rem]/split:flex">
-      <h2 className="flex items-center justify-between gap-3 text-label font-bold uppercase tracking-[0.12em]">
+      <h2 className="flex items-center justify-between gap-3 text-label font-bold">
         {t("Su crédito", "Your credit")}
         {shop.overdue && (
           <Stamp small tone="bad">

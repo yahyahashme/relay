@@ -5,31 +5,11 @@ import { type ReactNode, useRef, useState } from "react";
 import { ActionLink, Button, DetailLink, Held } from "@/components/kit/button";
 import { Split, TopNav } from "@/components/kit/layout";
 import { Money, MoneyText } from "@/components/kit/money";
-import {
-  Card,
-  icons,
-  initials,
-  Meter,
-  Shortcut,
-} from "@/components/kit/account";
+import { Card, icons, initials, Meter, Shortcut } from "@/components/kit/account";
 import { Stamp } from "@/components/kit/stamp";
 import { Empty, Failure, Loading } from "@/components/kit/states";
-import {
-  HOLD_MS,
-  TapShield,
-  useMovedGuard,
-  useQuietOnArrival,
-  useSameSpotGuard,
-  useTapShield,
-} from "@/components/tap-shield";
-import {
-  getBalance,
-  getInvoices,
-  getShop,
-  getShopHistory,
-  getSuppliers,
-  repay,
-} from "@/lib/api";
+import { HOLD_MS, TapShield, useMovedGuard, useQuietOnArrival, useSameSpotGuard, useTapShield } from "@/components/tap-shield";
+import { getBalance, getInvoices, getShop, getShopHistory, getSuppliers, repay } from "@/lib/api";
 import { creditScore } from "@/lib/credit";
 import { formatDay } from "@/lib/format";
 import { useT } from "@/lib/i18n";
@@ -43,40 +23,28 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 /** The screen before its numbers arrive, and when they can't be found. */
 export function AccountFrame({ children }: { children: ReactNode }) {
   const { t } = useT();
-  return (
-    <Split
-      pin="facts"
-      nav={<TopNav back="/" backLabel={t("Inicio", "Home")} />}
-      facts={children}
-      actions={null}
-    />
-  );
+  return <Split pin="facts" nav={<TopNav back="/" backLabel={t("Inicio", "Home")} />} facts={children} actions={null} />;
 }
 
 export default function AccountScreen() {
   const { shopId } = useParams<{ shopId: string }>();
-  const { data, failed, stale, reload } = usePolling(
-    `account-${shopId}`,
-    async () => {
-      const [shop, invoices, balance, suppliers, history] = await Promise.all([
-        getShop(shopId),
-        getInvoices(),
-        getBalance(shopId).catch(() => null), // a missing balance shouldn't hide the debt
-        getSuppliers(shopId),
-        getShopHistory(shopId).catch(() => null), // the score can wait; the debt can't
-      ]);
-      return {
-        shop,
-        balance,
-        suppliers,
-        history,
-        unpaid: invoices.filter(
-          (i) => i.shopId === shopId && i.status !== "paid",
-        ),
-        now: Date.now(),
-      };
-    },
-  );
+  const { data, failed, stale, reload } = usePolling(`account-${shopId}`, async () => {
+    const [shop, invoices, balance, suppliers, history] = await Promise.all([
+      getShop(shopId),
+      getInvoices(),
+      getBalance(shopId).catch(() => null), // a missing balance shouldn't hide the debt
+      getSuppliers(shopId),
+      getShopHistory(shopId).catch(() => null), // the score can wait; the debt can't
+    ]);
+    return {
+      shop,
+      balance,
+      suppliers,
+      history,
+      unpaid: invoices.filter((i) => i.shopId === shopId && i.status !== "paid"),
+      now: Date.now(),
+    };
+  });
   const [busy, setBusy] = useState(false);
   const running = useRef(false);
   // After a payment the screen has changed under the thumb: taps stay blocked until they stop.
@@ -96,9 +64,7 @@ export default function AccountScreen() {
   const { ref: payPlace, justMoved } = useMovedGuard<HTMLDivElement>();
   const { lang, t, msg } = useT();
   // "Pagar deuda" pays with one tap, so it waits a beat after it comes on screen: a double tap on the screen before can't pay.
-  const arriving = useQuietOnArrival(
-    Boolean(data?.shop && !stale && data.shop.creditOwed > 0),
-  );
+  const arriving = useQuietOnArrival(Boolean(data?.shop && !stale && data.shop.creditOwed > 0));
 
   // Coming back to this screen is a new visit: the last visit's stamp and message don't carry over.
   if (stale && (paid !== null || outcome !== null)) {
@@ -107,27 +73,13 @@ export default function AccountScreen() {
   }
 
   // Never show a debt from an earlier visit: wait for today's numbers.
-  if (!data || stale)
-    return (
-      <AccountFrame>
-        {failed ? <Failure onRetry={reload} /> : <Loading lines={6} />}
-      </AccountFrame>
-    );
+  if (!data || stale) return <AccountFrame>{failed ? <Failure onRetry={reload} /> : <Loading lines={6} />}</AccountFrame>;
 
   const { shop, balance, suppliers, history, unpaid, now } = data;
   if (!shop) {
     return (
       <AccountFrame>
-        <Empty
-          action={
-            <ActionLink
-              href="/"
-              title={t("Volver al inicio", "Back to the start")}
-            />
-          }
-        >
-          {t("No encontramos esa tienda.", "We couldn't find that shop.")}
-        </Empty>
+        <Empty action={<ActionLink href="/" title={t("Volver al inicio", "Back to the start")} />}>{t("No encontramos esa tienda.", "We couldn't find that shop.")}</Empty>
       </AccountFrame>
     );
   }
@@ -161,48 +113,24 @@ export default function AccountScreen() {
   const owes = shop.creditOwed > 0;
   const justPaid = paid !== null && !owes;
   const hasCredit = shop.creditLimit > 0;
-  const available = Math.max(
-    0,
-    Math.round((shop.creditLimit - shop.creditOwed) * 100) / 100,
-  );
-  const limitMoved = justPaid
-    ? Math.round((shop.creditLimit - paid.limit) * 100) / 100
-    : 0;
+  const available = Math.max(0, Math.round((shop.creditLimit - shop.creditOwed) * 100) / 100);
+  const limitMoved = justPaid ? Math.round((shop.creditLimit - paid.limit) * 100) / 100 : 0;
   // A "paid" message stops being true once the shop has taken new credit (a new due date); an error stays until the next try.
   const owesAgain = owes && paid !== null && shop.creditDue !== paid.due;
   const result = outcome && (!outcome.ok || !owesAgain) ? outcome : null;
-  const score = history
-    ? creditScore(shop, history.rows, suppliers.length, now)
-    : null;
-  const dueSoon =
-    owes &&
-    !shop.overdue &&
-    shop.creditDue !== undefined &&
-    Date.parse(shop.creditDue) - now <= 2 * DAY_MS;
-  const mark = justPaid
-    ? "paid"
-    : shop.overdue
-      ? "overdue"
-      : dueSoon
-        ? "soon"
-        : owes
-          ? "credit"
-          : null;
+  const score = history ? creditScore(shop, history.rows, suppliers.length, now) : null;
+  const dueSoon = owes && !shop.overdue && shop.creditDue !== undefined && Date.parse(shop.creditDue) - now <= 2 * DAY_MS;
+  const mark = justPaid ? "paid" : shop.overdue ? "overdue" : dueSoon ? "soon" : owes ? "credit" : null;
   const inDollars = t("con dólares digitales", "in digital dollars");
 
   const slip = (
     <Card as="section" className="flex flex-col gap-4 px-5 py-5">
       <header className="flex items-center gap-3">
-        <span
-          aria-hidden
-          className="flex size-12 shrink-0 items-center justify-center rounded-full bg-ink text-base font-bold text-white"
-        >
+        <span aria-hidden className="flex size-12 shrink-0 items-center justify-center rounded-full bg-ink text-base font-bold text-white">
           {initials(shop.name)}
         </span>
         <span className="flex min-w-0 flex-1 flex-col">
-          <h1 className="text-[1.25rem] leading-tight font-bold text-balance">
-            {shop.name}
-          </h1>
+          <h1 className="text-[1.25rem] leading-tight font-bold text-balance">{shop.name}</h1>
           <span className="text-label text-muted">
             {t("Mi cuenta", "My account")}
             {shop.owner && ` · ${shop.owner}`}
@@ -212,29 +140,16 @@ export default function AccountScreen() {
 
       <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-2">
         <div className="flex flex-col gap-0.5">
-          <p className="text-label font-semibold text-muted">
-            {justPaid ? t("Deuda", "Debt") : t("Debe", "You owe")}
-          </p>
-          <Money
-            value={justPaid ? paid.amount : shop.creditOwed}
-            className="text-[2.5rem] leading-none font-semibold tracking-[-0.02em]"
-          />
+          <p className="text-label font-semibold text-muted">{justPaid ? t("Deuda", "Debt") : t("Debe", "You owe")}</p>
+          <Money value={justPaid ? paid.amount : shop.creditOwed} className="text-[2.5rem] leading-none font-semibold tracking-[-0.02em]" />
           <p className="pt-1 text-label text-muted">
             {justPaid ? (
               t("Pagada hoy", "Paid today")
             ) : owes && shop.creditDue ? (
               shop.overdue ? (
-                <span className="font-semibold text-bad">
-                  {t(
-                    `Venció el ${formatDay(shop.creditDue)}`,
-                    `Was due ${formatDay(shop.creditDue, "en")}`,
-                  )}
-                </span>
+                <span className="font-semibold text-bad">{t(`Venció el ${formatDay(shop.creditDue)}`, `Was due ${formatDay(shop.creditDue, "en")}`)}</span>
               ) : (
-                t(
-                  `Vence el ${formatDay(shop.creditDue)}`,
-                  `Due ${formatDay(shop.creditDue, "en")}`,
-                )
+                t(`Vence el ${formatDay(shop.creditDue)}`, `Due ${formatDay(shop.creditDue, "en")}`)
               )
             ) : (
               "\u00a0"
@@ -243,12 +158,7 @@ export default function AccountScreen() {
         </div>
         {mark && (
           <span className="pb-1 pr-1">
-            <Stamp
-              small
-              tone={MARK[mark].tone}
-              fresh={mark === "paid" && !landed}
-              onLanded={() => setLanded(true)}
-            >
+            <Stamp small tone={MARK[mark].tone} fresh={mark === "paid" && !landed} onLanded={() => setLanded(true)}>
               {MARK[mark][lang]}
             </Stamp>
           </span>
@@ -258,31 +168,17 @@ export default function AccountScreen() {
       {hasCredit && (
         <div className="flex flex-col gap-2 rounded-control bg-counter/50 px-4 py-3">
           <p className="flex items-baseline justify-between gap-3">
-            <span className="font-semibold">
-              {t("Crédito disponible", "Credit available")}
-            </span>
+            <span className="font-semibold">{t("Crédito disponible", "Credit available")}</span>
             {/* No sum with a late debt: the shop can't use what's left, so a dollar figure would mislead. */}
-            {shop.overdue ? (
-              <span className="font-semibold text-bad">
-                {t("En pausa", "On hold")}
-              </span>
-            ) : (
-              <Money value={available} className="font-semibold" />
-            )}
+            {shop.overdue ? <span className="font-semibold text-bad">{t("En pausa", "On hold")}</span> : <Money value={available} className="font-semibold" />}
           </p>
-          <Meter
-            used={shop.creditOwed}
-            of={shop.creditLimit}
-            label={t("Crédito usado", "Credit used")}
-          />
+          <Meter used={shop.creditOwed} of={shop.creditLimit} label={t("Crédito usado", "Credit used")} />
           <p className="flex flex-wrap items-baseline justify-between gap-x-3 text-label text-muted">
             <span>
               {t("Límite", "Limit")} <Money value={shop.creditLimit} />
             </span>
             {limitMoved !== 0 && (
-              <span
-                className={`font-semibold ${limitMoved > 0 ? "text-ok" : "text-bad"}`}
-              >
+              <span className={`font-semibold ${limitMoved > 0 ? "text-ok" : "text-bad"}`}>
                 {limitMoved > 0 ? t("Subió ", "Up ") : t("Bajó ", "Down ")}
                 {limitMoved > 0 && "+"}
                 <Money value={limitMoved} />
@@ -295,18 +191,13 @@ export default function AccountScreen() {
       <dl className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-0.5">
           <dt className="text-label text-muted">{t("Saldo", "Balance")}</dt>
-          <dd className="font-semibold">
-            {balance === null ? "—" : <Money value={balance} />}
-          </dd>
+          <dd className="font-semibold">{balance === null ? "—" : <Money value={balance} />}</dd>
         </div>
         {score && (
           <div className="flex flex-col gap-0.5">
-            <dt className="text-label text-muted">
-              {t("Puntaje Relay", "Relay score")}
-            </dt>
+            <dt className="text-label text-muted">{t("Puntaje Relay", "Relay score")}</dt>
             <dd className="font-semibold">
-              <span className="font-mono">{score.score}</span>{" "}
-              {t("de 100", "of 100")}
+              <span className="font-mono">{score.score}</span> {t("de 100", "of 100")}
             </dd>
           </div>
         )}
@@ -330,25 +221,13 @@ export default function AccountScreen() {
             </DetailLink>
           )
         ) : shop.overdue ? (
-          <p className="font-semibold text-ink text-balance">
-            {t(
-              "Pague su deuda para reactivarlo.",
-              "Pay your debt to turn it back on.",
-            )}
-          </p>
+          <p className="font-semibold text-ink text-balance">{t("Pague su deuda para reactivarlo.", "Pay your debt to turn it back on.")}</p>
         ) : owes ? (
           <p>{t("Sin intereses", "No interest")}</p>
         ) : hasCredit ? (
-          <p className="font-semibold text-ok">
-            {t("No tiene deudas pendientes.", "You have no debts to pay.")}
-          </p>
+          <p className="font-semibold text-ok">{t("No tiene deudas pendientes.", "You have no debts to pay.")}</p>
         ) : (
-          <p className="text-pretty">
-            {t(
-              "Su tienda no tiene crédito por ahora.",
-              "Your shop doesn't have credit for now.",
-            )}
-          </p>
+          <p className="text-pretty">{t("Su tienda no tiene crédito por ahora.", "Your shop doesn't have credit for now.")}</p>
         )}
       </div>
     </Card>
@@ -370,11 +249,7 @@ export default function AccountScreen() {
   );
 
   return (
-    <div
-      className="contents"
-      onPointerDownCapture={watch}
-      onInputCapture={typed}
-    >
+    <div className="contents" onPointerDownCapture={watch} onInputCapture={typed}>
       <p role="status" className="sr-only">
         {busy ? t("Procesando...", "Processing...") : ""}
       </p>
@@ -385,14 +260,8 @@ export default function AccountScreen() {
           <TopNav back="/" backLabel={t("Inicio", "Home")}>
             {failed && (
               // In the row that is always there, so a patchy connection never pushes the button down.
-              <p
-                role="alert"
-                className="max-w-[60%] text-right text-label leading-tight font-semibold text-bad text-balance"
-              >
-                {t(
-                  "No se pudo cargar. Reintentando...",
-                  "Couldn't load. Trying again...",
-                )}
+              <p role="alert" className="max-w-[60%] text-right text-label leading-tight font-semibold text-bad text-balance">
+                {t("No se pudo cargar. Reintentando...", "Couldn't load. Trying again...")}
               </p>
             )}
           </TopNav>
@@ -416,10 +285,7 @@ export default function AccountScreen() {
                   arriving={arriving}
                   hint={
                     <>
-                      <Money
-                        value={owes ? shop.creditOwed : (paid?.amount ?? 0)}
-                      />{" "}
-                      {inDollars}
+                      <Money value={owes ? shop.creditOwed : (paid?.amount ?? 0)} /> {inDollars}
                     </>
                   }
                 >
@@ -441,12 +307,7 @@ export default function AccountScreen() {
               )}
             </div>
             <InvoicesToPay unpaid={unpaid} now={now} />
-            <AccountSections
-              shop={shop}
-              suppliers={suppliers}
-              score={score}
-              now={now}
-            />
+            <AccountSections shop={shop} suppliers={suppliers} score={score} now={now} />
           </>
         }
       />

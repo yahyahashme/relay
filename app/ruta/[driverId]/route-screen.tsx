@@ -268,8 +268,8 @@ export default function RouteScreen() {
     <div ref={sheet} className={`flex-col gap-3 ${openId === null ? "flex" : "hidden @min-[40rem]/split:flex"}`}>
       <Paper className="flex flex-col gap-2 px-4 py-3">
         <header className="flex flex-wrap items-baseline justify-between gap-x-3">
-          <h1 className="text-lead font-bold uppercase tracking-[0.06em]">{t("Hoja de ruta", "Route sheet")}</h1>
-          <p className="font-mono text-label font-medium uppercase tracking-[0.04em] text-muted">
+          <h1 className="text-lead font-bold">{t("Hoja de ruta", "Route sheet")}</h1>
+          <p className="text-label text-muted">
             {driver.name} · {formatDay(new Date(now).toISOString(), lang)}
           </p>
         </header>
@@ -299,7 +299,7 @@ export default function RouteScreen() {
 
       {done.length > 0 && (
         <>
-          <h2 className="mt-1 border-b border-counter-rule pb-1 text-label font-semibold uppercase tracking-[0.1em] text-muted">
+          <h2 className="mt-1 border-b border-counter-rule pb-1 text-label font-semibold text-muted">
             {t("Completadas", "Completed")} ({done.length})
           </h2>
           <Manifest label={t("Paradas completadas", "Completed stops")}>{done.map((stop) => row(stop, false))}</Manifest>
@@ -371,7 +371,7 @@ export default function RouteScreen() {
                 <MoneyText>{failure}</MoneyText>
               </p>
             ) : shown.paid ? (
-              <p className="font-mono font-medium uppercase tracking-[0.04em] text-muted">
+              <p className="text-muted">
                 {t("Pagada", "Paid")}
                 {invoice.method ? ` · ${methodLabel(invoice.method, lang)}` : ""}
               </p>
@@ -458,7 +458,7 @@ export default function RouteScreen() {
 
         {noteLines.length > 0 && (
           <Paper className="flex flex-col gap-1.5 px-4 py-3">
-            <h3 className="text-label font-bold uppercase tracking-[0.12em]">{t("En esta factura", "On this invoice")}</h3>
+            <h3 className="text-label font-bold">{t("En esta factura", "On this invoice")}</h3>
             <ul className="flex flex-col gap-1 font-mono text-base font-medium">
               {noteLines.map((line, index) => (
                 <li key={index} className="wrap-anywhere">

@@ -5,29 +5,15 @@ import { Chevron } from "./icons";
 // The account look (Nov 14): what a shop or distributor reads about its own account sits on white cards with
 // soft corners, in plain type, with no dotted leaders. Amounts stay in mono. A list of places to go is one
 // card of rows, each with a small round icon, a title, a line under it and a chevron, split by hairlines.
-// Paper slips (the invoice, the route sheet) keep the receipt look; an account is not a receipt.
+// Paper slips (the invoice, the route sheet) use the same calm look: plain rules, sentence-case labels, status pills.
 
 /** A white card with soft corners. */
-export function Card({
-  children,
-  className = "",
-  as: Tag = "div",
-}: {
-  children: ReactNode;
-  className?: string;
-  as?: "div" | "section";
-}) {
+export function Card({ children, className = "", as: Tag = "div" }: { children: ReactNode; className?: string; as?: "div" | "section" }) {
   return <Tag className={`rounded-card bg-paper ${className}`}>{children}</Tag>;
 }
 
 /** A heading over a card: plain words, not capitals. */
-export function CardHeading({
-  children,
-  id,
-}: {
-  children: ReactNode;
-  id?: string;
-}) {
+export function CardHeading({ children, id }: { children: ReactNode; id?: string }) {
   return (
     <h2 id={id} className="px-1 text-lead font-bold">
       {children}
@@ -37,21 +23,11 @@ export function CardHeading({
 
 /** Several rows in one card, split by hairlines. */
 export function RowGroup({ children }: { children: ReactNode }) {
-  return (
-    <Card className="flex flex-col divide-y divide-paper-rule overflow-hidden">
-      {children}
-    </Card>
-  );
+  return <Card className="flex flex-col divide-y divide-paper-rule overflow-hidden">{children}</Card>;
 }
 
 /** A small round mark at the start of a row: an icon, or a name's initials. */
-export function RowMark({
-  children,
-  tone = "brand",
-}: {
-  children: ReactNode;
-  tone?: "brand" | "ink";
-}) {
+export function RowMark({ children, tone = "brand" }: { children: ReactNode; tone?: "brand" | "ink" }) {
   return (
     <span
       aria-hidden
@@ -62,41 +38,22 @@ export function RowMark({
   );
 }
 
-function RowBody({
-  mark,
-  title,
-  hint,
-  figure,
-  chevron,
-}: {
-  mark?: ReactNode;
-  title: ReactNode;
-  hint?: ReactNode;
-  figure?: ReactNode;
-  chevron: boolean;
-}) {
+function RowBody({ mark, title, hint, figure, chevron }: { mark?: ReactNode; title: ReactNode; hint?: ReactNode; figure?: ReactNode; chevron: boolean }) {
   return (
     <>
       {mark && <RowMark>{mark}</RowMark>}
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="text-[1.0625rem] font-semibold text-ink">{title}</span>
-        {hint && (
-          <span className="text-label text-muted text-pretty">{hint}</span>
-        )}
+        {hint && <span className="text-label text-muted text-pretty">{hint}</span>}
       </span>
-      {figure && (
-        <span className="shrink-0 font-mono text-[1.0625rem] font-semibold text-ink">
-          {figure}
-        </span>
-      )}
+      {figure && <span className="shrink-0 font-mono text-[1.0625rem] font-semibold text-ink">{figure}</span>}
       {chevron && <Chevron className="size-5 text-brand" />}
     </>
   );
 }
 
 const ROW = "flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left";
-const TAPPABLE =
-  "transition-colors duration-[120ms] hover:bg-brand/6 active:bg-brand/10 focus-visible:-outline-offset-3";
+const TAPPABLE = "transition-colors duration-[120ms] hover:bg-brand/6 active:bg-brand/10 focus-visible:-outline-offset-3";
 
 /** A row that opens another screen. `external` opens a new tab (WhatsApp). */
 export function RowLink({
@@ -114,16 +71,9 @@ export function RowLink({
   mark?: ReactNode;
   external?: boolean;
 }) {
-  const body = (
-    <RowBody mark={mark} title={title} hint={hint} figure={figure} chevron />
-  );
+  const body = <RowBody mark={mark} title={title} hint={hint} figure={figure} chevron />;
   return external ? (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      className={`${ROW} ${TAPPABLE}`}
-    >
+    <a href={href} target="_blank" rel="noreferrer" className={`${ROW} ${TAPPABLE}`}>
       {body}
     </a>
   ) : (
@@ -134,17 +84,7 @@ export function RowLink({
 }
 
 /** A row you only read. `end` sits at the right (a figure, a button). */
-export function RowInfo({
-  title,
-  hint,
-  mark,
-  end,
-}: {
-  title: ReactNode;
-  hint?: ReactNode;
-  mark?: ReactNode;
-  end?: ReactNode;
-}) {
+export function RowInfo({ title, hint, mark, end }: { title: ReactNode; hint?: ReactNode; mark?: ReactNode; end?: ReactNode }) {
   return (
     <div className={`${ROW} flex-wrap`}>
       <RowBody mark={mark} title={title} hint={hint} chevron={false} />
@@ -154,70 +94,29 @@ export function RowInfo({
 }
 
 /** A label and its value on one line, in plain type: "Límite      $ 200.00". */
-export function Fact({
-  label,
-  children,
-  strong = false,
-}: {
-  label: ReactNode;
-  children: ReactNode;
-  strong?: boolean;
-}) {
+export function Fact({ label, children, strong = false }: { label: ReactNode; children: ReactNode; strong?: boolean }) {
   return (
     <div className="flex items-baseline justify-between gap-3 py-1.5">
-      <dt className={strong ? "font-semibold text-ink" : "text-muted"}>
-        {label}
-      </dt>
-      <dd className={`text-right ${strong ? "font-semibold" : ""}`}>
-        {children}
-      </dd>
+      <dt className={strong ? "font-semibold text-ink" : "text-muted"}>{label}</dt>
+      <dd className={`text-right ${strong ? "font-semibold" : ""}`}>{children}</dd>
     </div>
   );
 }
 
 /** How much of a limit is free: a bar that fills with what is owed. */
-export function Meter({
-  used,
-  of,
-  label,
-}: {
-  used: number;
-  of: number;
-  label: string;
-}) {
+export function Meter({ used, of, label }: { used: number; of: number; label: string }) {
   const share = of > 0 ? Math.min(1, Math.max(0, used / of)) : 0;
   return (
-    <div
-      role="meter"
-      aria-label={label}
-      aria-valuemin={0}
-      aria-valuemax={of}
-      aria-valuenow={used}
-      className="h-2.5 w-full overflow-hidden rounded-full bg-brand-tint"
-    >
-      <div
-        className="h-full rounded-full bg-brand"
-        style={{ width: `${share * 100}%` }}
-      />
+    <div role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={of} aria-valuenow={used} className="h-2.5 w-full overflow-hidden rounded-full bg-brand-tint">
+      <div className="h-full rounded-full bg-brand" style={{ width: `${share * 100}%` }} />
     </div>
   );
 }
 
 /** A round shortcut under the account card (Agregar, Retirar, Historial): an icon over one word. */
-export function Shortcut({
-  href,
-  icon,
-  children,
-}: {
-  href: string;
-  icon: ReactNode;
-  children: ReactNode;
-}) {
+export function Shortcut({ href, icon, children }: { href: string; icon: ReactNode; children: ReactNode }) {
   return (
-    <Link
-      href={href}
-      className="group flex min-h-11 min-w-0 flex-1 flex-col items-center gap-1.5 rounded-control py-1 text-center"
-    >
+    <Link href={href} className="group flex min-h-11 min-w-0 flex-1 flex-col items-center gap-1.5 rounded-control py-1 text-center">
       <span
         aria-hidden
         className="flex size-13 items-center justify-center rounded-full bg-brand text-white transition-[scale,background-color] duration-[120ms] group-hover:bg-brand-press group-active:scale-[0.95] motion-reduce:group-active:scale-100"
@@ -231,9 +130,7 @@ export function Shortcut({
 
 /** Two letters for a round mark: "Mini Súper La Esquina" → "ML". */
 export function initials(name: string): string {
-  const words = name
-    .split(/\s+/)
-    .filter((w) => /^\p{L}/u.test(w) && w.length > 2);
+  const words = name.split(/\s+/).filter((w) => /^\p{L}/u.test(w) && w.length > 2);
   const picked = (words.length > 0 ? words : name.split(/\s+/)).slice(0, 2);
   return picked.map((w) => w[0]?.toUpperCase() ?? "").join("");
 }
@@ -241,16 +138,7 @@ export function initials(name: string): string {
 // Line icons, one stroke weight, drawn on a 24 px grid. Decorative: every row also says what it is.
 function Icon({ children }: { children: ReactNode }) {
   return (
-    <svg
-      aria-hidden
-      viewBox="0 0 24 24"
-      className="size-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
+    <svg aria-hidden viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       {children}
     </svg>
   );

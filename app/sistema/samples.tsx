@@ -16,7 +16,7 @@ import { useT } from "@/lib/i18n";
 export function Section({ title, children, wide = false }: { title: string; children: ReactNode; wide?: boolean }) {
   return (
     <section className={`flex flex-col gap-3 ${wide ? "@min-[60rem]:col-span-2" : ""}`}>
-      <h2 className="border-b border-counter-rule pb-1 text-label font-semibold uppercase tracking-[0.1em] text-muted">{title}</h2>
+      <h2 className="border-b border-counter-rule pb-1 text-label font-semibold text-muted">{title}</h2>
       {children}
     </section>
   );

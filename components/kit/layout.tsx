@@ -143,7 +143,7 @@ export function Shell({
     <div className="flex flex-1 flex-col lg:flex-row">
       <aside className="hidden w-60 shrink-0 flex-col gap-5 border-r border-counter-rule py-5 pl-[max(1.25rem,env(safe-area-inset-left))] lg:sticky lg:top-(--band-h) lg:flex lg:h-[calc(100dvh-var(--band-h))]">
         <div className="pr-5">{brand}</div>
-        {name !== undefined && <p className="min-h-[1lh] pr-5 text-label font-semibold uppercase tracking-[0.1em] text-muted text-balance">{name}</p>}
+        {name !== undefined && <p className="min-h-[1lh] pr-5 text-label font-semibold text-muted text-balance">{name}</p>}
         <nav aria-label={t("Secciones", "Sections")} className="flex flex-col gap-1">
           {nav.map((item) => (
             <Link
@@ -165,7 +165,7 @@ export function Shell({
       <header className="flex min-h-14 items-center justify-between gap-3 border-b border-counter-rule py-2 pl-[max(var(--gutter),env(safe-area-inset-left))] pr-[max(var(--gutter),env(safe-area-inset-right))] lg:hidden">
         <div className="flex min-w-0 shrink-0 items-center gap-3 sm:shrink">
           {brand}
-          {name && <p className="hidden min-w-0 truncate text-label font-semibold uppercase tracking-[0.1em] text-muted sm:block">{name}</p>}
+          {name && <p className="hidden min-w-0 truncate text-label font-semibold text-muted sm:block">{name}</p>}
         </div>
         {action && <div className="min-w-0 sm:shrink-0">{action("bar")}</div>}
       </header>

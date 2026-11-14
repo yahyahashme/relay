@@ -40,7 +40,7 @@ function takeFocus(element: HTMLElement | null) {
 }
 
 const HEADING = "text-title font-bold";
-const LABEL = "text-label font-semibold uppercase tracking-[0.08em] text-muted";
+const LABEL = "text-label font-semibold text-muted";
 /** A choice in a list of choices: a blue-ruled row. */
 const CHOICE = "flex min-h-13 w-full flex-col justify-center px-3.5 py-1.5 text-left text-brand -outline-offset-3 hover:bg-brand/6 active:bg-brand/10";
 
