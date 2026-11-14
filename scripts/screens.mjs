@@ -555,7 +555,7 @@ mkdirSync(outDir, { recursive: true });
 
 /** Mock reads answer after a second each, one after another: wait until "Cargando..." has gone. */
 const loaded = (page) =>
-  page.waitForFunction(() => ![...document.querySelectorAll("[role=status]")].some((el) => /Cargando|Loading/.test(el.textContent)), null, { timeout: 10_000 }).catch(() => {});
+  page.waitForFunction(() => ![...document.querySelectorAll("[role=status]")].some((el) => el.checkVisibility() && /Cargando|Loading/.test(el.textContent)), null, { timeout: 10_000 }).catch(() => {});
 
 for (const [screen, path, { inView = {}, minTarget = MIN_TARGET, prepare } = {}] of GROUPS[group]) {
   if (only && only !== screen) continue;
