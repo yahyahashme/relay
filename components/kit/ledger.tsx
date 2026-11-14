@@ -35,10 +35,12 @@ export type LedgerColumn<Row> = {
   className?: string;
 };
 
-// Row actions come up over the end of the row on hover or focus, when there is a mouse and room for every
-// column. Everywhere else (touch, or a narrower table) each row has a fold button instead, and the actions
-// sit inside the fold with the columns that didn't fit.
+// Row actions come up on hover or focus, when there is a mouse and room for every column. They sit at the end
+// of the `grow` cell, over the room a name leaves, so they never cover an amount, a stamp or a date (a ledger
+// without a `grow` column shows them over the end of the row). Everywhere else (touch, or a narrower table)
+// each row has a fold button instead, and the actions sit inside the fold with the columns that didn't fit.
 const HOVER_ONLY = "hidden pointer-fine:@min-[60rem]:table-cell";
+const HOVER_ACTIONS = "items-center gap-1 bg-paper pl-3 whitespace-nowrap opacity-0 group-focus-within:opacity-100 group-hover:opacity-100";
 
 export function Ledger<Row>({
   label,
@@ -78,6 +80,8 @@ export function Ledger<Row>({
   const folded = columns.filter((column) => column.secondary);
   const cardFolded = columns.filter((column) => column.secondary || column.foldOnCard);
   const hasFold = folded.length > 0 || actions !== undefined;
+  const hasGrow = columns.some((column) => column.grow);
+  const endActions = actions !== undefined && !hasGrow;
   const hasCardFold = cardFolded.length > 0 || actions !== undefined;
   const foldOnly = actions ? "pointer-fine:@min-[60rem]:hidden" : "@min-[60rem]:hidden";
   const place = (column: LedgerColumn<Row>) =>
@@ -113,7 +117,7 @@ export function Ledger<Row>({
                 {column.header}
               </th>
             ))}
-            {actions && (
+            {endActions && (
               <th scope="col" className={`w-0 p-0 ${HOVER_ONLY}`}>
                 <span className="sr-only">{t("Acciones", "Actions")}</span>
               </th>
@@ -133,16 +137,15 @@ export function Ledger<Row>({
               <Fragment key={key}>
                 <tr className={`group border-b border-paper-rule ${rowClassName?.(row) ?? ""}`}>
                   {columns.map((column) => (
-                    <td key={column.id} title={column.title?.(row)} className={`h-11 px-3 py-1 text-base ${place(column)} ${column.className ?? ""}`}>
+                    <td key={column.id} title={column.title?.(row)} className={`h-11 px-3 py-1 text-base ${place(column)} ${column.grow && actions ? "relative" : ""} ${column.className ?? ""}`}>
                       {column.cell(row)}
+                      {column.grow && actions && <div className={`absolute inset-y-0 right-0 hidden pr-1 pointer-fine:@min-[60rem]:flex ${HOVER_ACTIONS}`}>{actions(row)}</div>}
                     </td>
                   ))}
-                  {actions && (
+                  {endActions && (
                     <td className={`w-0 p-0 ${HOVER_ONLY}`}>
                       <div className="relative">
-                        <div className="absolute top-1/2 right-0 flex h-10.5 -translate-y-1/2 items-center gap-1 bg-paper pr-1 pl-3 whitespace-nowrap opacity-0 group-focus-within:opacity-100 group-hover:opacity-100">
-                          {actions(row)}
-                        </div>
+                        <div className={`absolute top-1/2 right-0 flex h-10.5 -translate-y-1/2 pr-1 ${HOVER_ACTIONS}`}>{actions(row)}</div>
                       </div>
                     </td>
                   )}
@@ -173,7 +176,7 @@ export function Ledger<Row>({
                   {column.total}
                 </td>
               ))}
-              {actions && <td className={`p-0 ${HOVER_ONLY}`} />}
+              {endActions && <td className={`p-0 ${HOVER_ONLY}`} />}
               {hasFold && <td className={`p-0 ${foldOnly}`} />}
             </tr>
           </tfoot>
@@ -210,10 +213,12 @@ export function LedgerCard({ title, amount, stamp, note, actions }: { title: Rea
         <span className="min-w-0 text-[1.0625rem] font-bold">{title}</span>
         <span className="shrink-0 font-mono text-[1.0625rem] font-semibold">{amount}</span>
       </p>
-      <p className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-        <span className="flex flex-wrap items-center gap-1.5">{stamp}</span>
-        {note && <span className="font-mono text-label font-medium text-muted">{note}</span>}
-      </p>
+      {(stamp || note) && (
+        <p className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+          <span className="flex flex-wrap items-center gap-1.5">{stamp}</span>
+          {note && <span className="font-mono text-label font-medium text-muted">{note}</span>}
+        </p>
+      )}
       {actions && <div className="flex flex-col gap-2 pt-1">{actions}</div>}
     </div>
   );

@@ -9,7 +9,7 @@ import { Ledger, LedgerCard, type LedgerColumn, LedgerFigure, LedgerFigures, Row
 import { Money } from "@/components/kit/money";
 import { Stamp } from "@/components/kit/stamp";
 import { Answer, Empty, Failure, Loading } from "@/components/kit/states";
-import { TapShield, useTapShield } from "@/components/tap-shield";
+import { TapShield, useMovedGuard, useTapShield } from "@/components/tap-shield";
 import { createDemoInvoice, getDistributorView, handInCash } from "@/lib/api";
 import { DEMO_PHONES } from "@/lib/demo-contacts";
 import { formatDay, plural } from "@/lib/format";
@@ -145,10 +145,12 @@ export default function DashboardScreen() {
   const running = useRef(false);
   const [cashReceipt, setCashReceipt] = useState<Receipt | null>(null);
   const { noteTap, settle } = useTapShield();
+  // A refresh can add a row above the drivers (a shop takes credit), and one driver's button moves to where the other's was.
+  const { ref: driversBlock, justMoved } = useMovedGuard<HTMLElement>();
   const { lang, t } = useT();
 
   async function cashHandedIn(driverId: string, amount: number) {
-    if (running.current) return;
+    if (running.current || justMoved()) return;
     running.current = true;
     setHandingIn(driverId);
     setCashReceipt(null);
@@ -279,7 +281,8 @@ export default function DashboardScreen() {
         {t("Marcar efectivo entregado", "Mark cash handed in")}
       </RowButton>
     ) : (
-      <span className="font-sans text-label text-muted">{t("Nada por entregar", "Nothing to hand in")}</span>
+      // As tall as the button it replaces: when cash is handed in, the next driver's button stays where it was.
+      <span className="inline-flex min-h-11 items-center justify-end font-sans text-label text-muted">{t("Nada por entregar", "Nothing to hand in")}</span>
     );
   const driverColumns: LedgerColumn<Driver>[] = [
     { id: "driver", header: t("Motorista", "Driver"), grow: true, cell: (d) => d.name, title: (d) => d.name, total: "Total" },
@@ -433,26 +436,33 @@ export default function DashboardScreen() {
               empty={
                 <div className="flex flex-col items-start gap-1">
                   <p className="text-lead">{t("No hay facturas con este filtro.", "No invoices match this filter.")}</p>
-                  <TextButton
-                    onClick={() => {
-                      setStatusFilter("all");
-                      setDriverFilter("all");
-                      setDueFilter("all");
-                    }}
-                  >
-                    {t("Quitar filtros", "Clear filters")}
-                  </TextButton>
+                  {/* Its own line, so the words start under the sentence. */}
+                  <div className="-ml-4">
+                    <TextButton
+                      onClick={() => {
+                        setStatusFilter("all");
+                        setDriverFilter("all");
+                        setDueFilter("all");
+                      }}
+                    >
+                      {t("Quitar filtros", "Clear filters")}
+                    </TextButton>
+                  </div>
                 </div>
               }
             />
             <div className="flex flex-wrap items-center justify-between gap-x-4">
               <p className="text-label text-muted">
                 {filtered
-                  ? t(
-                      `${plural(rows.length, "factura", "facturas")} con este filtro, de las ${invoices.length} más recientes de ${total}.`,
-                      `${plural(rows.length, "invoice", "invoices")} with this filter, of the ${invoices.length} most recent of ${total}.`,
-                    )
-                  : t(`Mostrando las ${rows.length} facturas más recientes de ${total}.`, `Showing the ${rows.length} most recent invoices of ${total}.`)}
+                  ? invoices.length >= total
+                    ? t(`${plural(rows.length, "factura", "facturas")} con este filtro, de ${total} en total.`, `${plural(rows.length, "invoice", "invoices")} with this filter, of ${total} in all.`)
+                    : t(
+                        `${plural(rows.length, "factura", "facturas")} con este filtro, entre las ${invoices.length} más recientes de ${total}.`,
+                        `${plural(rows.length, "invoice", "invoices")} with this filter, among the ${invoices.length} most recent of ${total}.`,
+                      )
+                  : rows.length >= total
+                    ? t(`${plural(total, "factura", "facturas")} en total.`, `${plural(total, "invoice", "invoices")} in all.`)
+                    : t(`Mostrando las ${rows.length} facturas más recientes de ${total}.`, `Showing the ${rows.length} most recent invoices of ${total}.`)}
               </p>
               {(moreLoaded || invoices.length < total) && (
                 <TextButton
@@ -504,18 +514,18 @@ export default function DashboardScreen() {
         )}
       </section>
 
-      <section id="motoristas" className={`${SECTION} max-w-[44rem]`}>
+      <section id="motoristas" ref={driversBlock} className={`${SECTION} max-w-[44rem]`}>
         <h2 className={HEADING}>{t("Efectivo con motoristas", "Cash with drivers")}</h2>
         <Ledger
           label={t("Efectivo con motoristas", "Cash with drivers")}
           columns={driverColumns}
           rows={drivers}
           rowKey={(d) => d.id}
-          card={(d) => <LedgerCard title={d.name} amount={<Money value={d.cashHeld} />} actions={d.cashHeld > 0 ? handIn(d) : undefined} note={d.cashHeld > 0 ? undefined : t("Nada por entregar", "Nothing to hand in")} />}
+          card={(d) => <LedgerCard title={d.name} amount={<Money value={d.cashHeld} />} actions={handIn(d)} />}
           empty={<p className="text-lead">{t("Todavía no tiene motoristas.", "You don't have drivers yet.")}</p>}
         />
         {/* Its line is always there, so the news of a hand-in never moves the buttons. */}
-        <div className="min-h-11">{cashReceipt && <Answer receipt={cashReceipt} />}</div>
+        <div className="min-h-6">{cashReceipt && <Answer receipt={cashReceipt} />}</div>
       </section>
 
       <section id="importar" className={`${SECTION} max-w-[44rem]`}>

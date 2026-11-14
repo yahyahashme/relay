@@ -60,12 +60,12 @@ export function Notice({ tone = "ok", children }: { tone?: "ok" | "bad"; childre
 /**
  * The answer to an action that isn't a payment on a slip (cash handed in, invoices imported): the server's
  * words, with "Ver detalles" when there is a public record. Give it a line of its own that is always there
- * (min-h-11), so the answer never moves what is under it.
+ * (min-h-6), so the answer never moves the buttons above or beside it.
  */
 export function Answer({ receipt }: { receipt: { ok: boolean; message: string; explorerUrl?: string } }) {
   const { t, msg } = useT();
   return (
-    <p role="status" className={`flex min-h-11 flex-wrap items-center gap-x-3 font-semibold ${receipt.ok ? "text-ok" : "text-bad"}`}>
+    <p role="status" className={`flex min-h-6 flex-wrap items-center gap-x-3 font-semibold ${receipt.ok ? "text-ok" : "text-bad"}`}>
       <span>
         <MoneyText>{msg(receipt.message)}</MoneyText>
       </span>
