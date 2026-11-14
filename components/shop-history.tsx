@@ -157,7 +157,7 @@ export function ShopHistory({ shopId, backHref, backLabel }: { shopId: string; b
     { id: "how", header: t("Cómo pagó", "How it was paid"), secondary: 54, cell: (row) => (row.kind === "payment" ? methodText(row, lang) : "—") },
     { id: "distributor", header: t("Distribuidor", "Distributor"), secondary: true, cell: (row) => row.distributor },
     { id: "driver", header: t("Motorista", "Driver"), secondary: true, cell: (row) => driverName(row.driverId) ?? "—" },
-    { id: "due", header: t("Vencía", "Due"), mono: true, secondary: true, cell: (row) => (row.dueDate ? formatDay(row.dueDate, lang) : "—") },
+    { id: "due", header: t("Vencimiento", "Due date"), mono: true, secondary: true, cell: (row) => (row.dueDate ? formatDay(row.dueDate, lang) : "—") },
     { id: "amount", header: t("Monto", "Amount"), figure: true, cell: (row) => <Money value={row.amount} /> },
     { id: "status", header: t("Estado", "Status"), cell: (row) => <StatusMark row={row} /> },
   ];

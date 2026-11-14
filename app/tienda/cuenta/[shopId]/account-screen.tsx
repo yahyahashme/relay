@@ -172,9 +172,9 @@ export default function AccountScreen() {
             </DetailLink>
           )
         ) : shop.overdue ? (
-          <p className="font-semibold text-ink text-pretty">{t("Pague su deuda para reactivar su crédito.", "Pay your debt to turn your credit back on.")}</p>
+          <p className="font-semibold text-ink text-balance">{t("Pague su deuda para reactivarlo.", "Pay your debt to turn it back on.")}</p>
         ) : owes ? (
-          <p className="text-pretty">{t("Sin intereses: paga lo mismo que compró.", "No interest: you pay the same as you bought.")}</p>
+          <p>{t("Sin intereses", "No interest")}</p>
         ) : hasCredit ? (
           <p className="font-semibold text-ok">{t("No tiene deudas pendientes.", "You have no debts to pay.")}</p>
         ) : (
@@ -202,7 +202,7 @@ export default function AccountScreen() {
             )}
           </TopNav>
         }
-        facts={slip}
+        facts={<div id="estado-de-cuenta">{slip}</div>}
         actions={
           <>
             {owes || busy ? (

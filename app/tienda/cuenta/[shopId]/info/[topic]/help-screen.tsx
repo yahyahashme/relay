@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { ActionLink } from "@/components/kit/button";
-import { Receipt, ReceiptFoot, ReceiptHeader, ReceiptRule } from "@/components/kit/paper";
+import { Receipt, ReceiptHeader, ReceiptRule } from "@/components/kit/paper";
 import { Stamp } from "@/components/kit/stamp";
 import { Empty } from "@/components/kit/states";
 import { HELP, isHelpTopic } from "@/lib/account-help";
@@ -27,7 +27,12 @@ export default function HelpScreen() {
   return (
     <AccountPage shopId={shopId}>
       <Receipt>
-        <ReceiptHeader as="h1" from={help.title} number={t("Así funcionará", "How it will work")} />
+        {/* The stamp comes first, under the title: nobody should read the steps thinking they can do them today. */}
+        <ReceiptHeader as="h1" from={help.title} number={t("Así funcionará", "How it will work")}>
+          <span className="pt-2 pb-1">
+            <Stamp tone="warn">{t("Aún no activo", "Not live yet")}</Stamp>
+          </span>
+        </ReceiptHeader>
         <ReceiptRule />
         <p className="text-lead text-pretty">{help.intro}</p>
         <ol className="flex flex-col border-t border-paper-rule">
@@ -40,14 +45,12 @@ export default function HelpScreen() {
             </li>
           ))}
         </ol>
-        <ReceiptFoot stamp={<Stamp tone="warn">{t("Aún no activo", "Not live yet")}</Stamp>}>
-          <p className="text-label text-pretty">
-            {t(
-              "Un socio autorizado revisa la identidad de cada tienda y mueve el efectivo. Relay no lo hace por su cuenta.",
-              "A licensed partner checks each shop's identity and handles the cash. Relay doesn't do that on its own.",
-            )}
-          </p>
-        </ReceiptFoot>
+        <p className="text-label text-muted text-pretty">
+          {t(
+            "Un socio autorizado revisa la identidad de cada tienda y mueve el efectivo. Relay no lo hace por su cuenta.",
+            "A licensed partner checks each shop's identity and handles the cash. Relay doesn't do that on its own.",
+          )}
+        </p>
       </Receipt>
       {back}
     </AccountPage>

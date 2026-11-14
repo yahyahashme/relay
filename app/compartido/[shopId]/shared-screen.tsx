@@ -27,7 +27,7 @@ export function SharedFrame({ children, aside = null }: { children: ReactNode; a
 export default function SharedScreen() {
   const { shopId } = useParams<{ shopId: string }>();
   const until = useSearchParams().get("hasta") ?? "";
-  const { lang, t } = useT();
+  const { t } = useT();
   const { data, failed, reload } = usePolling(
     `shared-${shopId}`,
     async () => {
@@ -51,8 +51,13 @@ export default function SharedScreen() {
 
   const payments = history.rows.filter((r) => r.kind === "payment");
   const score = creditScore(shop, history.rows, suppliers.length, data.now);
-  const today = formatDay(new Date(data.now).toISOString(), lang);
-  const lastDay = formatDay(`${until}T12:00:00Z`, lang);
+  // A record a stranger reads carries its year: "14 nov 2026" ("Nov 14, 2026").
+  const fullDay = (iso: string) => {
+    const year = new Date(Date.parse(iso) - 6 * 60 * 60 * 1000).getUTCFullYear(); // El Salvador time, like formatDay
+    return t(`${formatDay(iso)} ${year}`, `${formatDay(iso, "en")}, ${year}`);
+  };
+  const today = fullDay(new Date(data.now).toISOString());
+  const lastDay = fullDay(`${until}T18:00:00Z`);
 
   return (
     <SharedFrame
