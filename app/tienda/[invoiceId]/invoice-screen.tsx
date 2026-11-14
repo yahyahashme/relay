@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { QUIET_MS, TapShield, useQuietOnArrival, useTapShield } from "@/components/tap-shield";
 import { Option, OptionList, Stamp, ThumbBar, Ticket, TicketRow, TicketRule } from "@/components/ticket";
 import { BackLink, Button, ButtonLink, Chip, LoadError, Loading, NotFound, ReceiptView, Screen } from "@/components/ui";
-import { confirmCash, getDrivers, getInvoice, getShop, payLater, payNow } from "@/lib/api";
+import { confirmCash, getDrivers, getInvoice, getInvoiceSource, getShop, payLater, payNow } from "@/lib/api";
 import { dueOn, formatMoney } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { invoiceStatus, leftToPay, methodLabel, parseAmount, partPayError } from "@/lib/labels";
@@ -49,6 +49,14 @@ export default function InvoiceScreen() {
     const shop = invoice ? await getShop(invoice.shopId) : null;
     return { invoice, shop, drivers, now: Date.now() };
   });
+  const [source, setSource] = useState<{ distributorName: string; note: string | null } | null>(null);
+  useEffect(() => {
+    let live = true;
+    void getInvoiceSource(id).then((found) => live && setSource(found), () => {});
+    return () => {
+      live = false;
+    };
+  }, [id]);
   const [busy, setBusy] = useState<Action | null>(null);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   // Which option is unfolded (one at a time). undefined = the shop hasn't picked yet,
@@ -137,8 +145,10 @@ export default function InvoiceScreen() {
         <header>
           <h1 className="text-2xl font-bold text-balance">{shop?.name ?? t("Tienda", "Shop")}</h1>
           <p className="text-muted">
-            {t("Factura", "Invoice")} {invoice.id} · Distribuidora El Sol
+            {t("Factura", "Invoice")} {invoice.id}
+            {source?.distributorName ? ` · ${source.distributorName}` : ""}
           </p>
+          {source?.note && <p className="mt-2 text-base whitespace-pre-line">{source.note}</p>}
         </header>
         <TicketRule />
         {invoice.status === "part_paid" && (
@@ -199,6 +209,12 @@ export default function InvoiceScreen() {
                 {t("¿Cuánto paga ahora?", "How much are you paying now?")}{" "}
                 <span className="text-base text-muted">
                   {t("Falta", "Left to pay:")} {formatMoney(left)}
+                </span>
+                <span className="text-base text-muted">
+                  {t(
+                    "Si paga la mitad o más ahora, la comisión baja y su límite puede subir con solo $10 a crédito.",
+                    "If you pay half or more now, the fee is lower and your limit can grow with just $10 on credit.",
+                  )}
                 </span>
                 <input
                   inputMode="decimal"

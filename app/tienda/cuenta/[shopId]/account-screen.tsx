@@ -1,16 +1,18 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { getShopSuppliers, removeSupplierAction, type ShopSuppliers } from "@/app/shop-actions";
 import { TapShield, useQuietOnArrival } from "@/components/tap-shield";
 import { OptionLink, OptionList, Stamp, ThumbBar, Ticket, TicketRow, TicketRule, reveal } from "@/components/ticket";
 import { BackLink, Button, Chip, LoadError, Loading, NotFound, ReceiptView, Screen } from "@/components/ui";
-import { getInvoices, getShop, repay } from "@/lib/api";
+import { getBalance, getInvoices, getShop, getShopHistory, getSuppliers, repay } from "@/lib/api";
 import { dueOn, formatDay, formatMoney, plural } from "@/lib/format";
 import { type Lang, useT } from "@/lib/i18n";
 import { leftToPay } from "@/lib/labels";
 import type { Invoice, Receipt } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
+import { AccountSections } from "./account-sections";
 
 /** The line under an unpaid invoice: what the shop most needs to know about it. */
 function invoiceNote(invoice: Invoice, now: number, lang: Lang): string {
@@ -24,11 +26,81 @@ function invoiceNote(invoice: Invoice, now: number, lang: Lang): string {
   return dueOn(invoice.dueDate, now, lang);
 }
 
+/** "Distribuidora El Sol lo agregó" (#132): who sells to this shop on Relay; the owner can remove one. */
+function Suppliers({ shopId }: { shopId: string }) {
+  const { lang, t, msg } = useT();
+  const [data, setData] = useState<ShopSuppliers | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const load = useCallback(async () => setData(await getShopSuppliers(shopId)), [shopId]);
+  useEffect(() => {
+    let live = true;
+    void getShopSuppliers(shopId).then((found) => {
+      if (live) setData(found);
+    });
+    return () => {
+      live = false;
+    };
+  }, [shopId]);
+
+  if (!data || data.suppliers.length === 0) return null;
+
+  async function remove(distributorId: string) {
+    setBusy(distributorId);
+    setError(null);
+    const reply = await removeSupplierAction(shopId, distributorId);
+    if (reply.ok) await load();
+    else setError(reply.message);
+    setBusy(null);
+  }
+
+  return (
+    <section className="flex flex-col gap-2 px-1">
+      <h2 className="text-lg font-semibold">{t("Proveedores", "Suppliers")}</h2>
+      <ul className="flex flex-col divide-y divide-line rounded-2xl border border-line bg-card">
+        {data.suppliers.map((s) => (
+          <li key={s.distributorId} className="flex items-center justify-between gap-3 px-4 py-3">
+            <span className="flex min-w-0 flex-col">
+              <span className="text-lg font-semibold">{t(`${s.name} lo agregó`, `${s.name} added you`)}</span>
+              <span className="text-sm text-muted">{formatDay(s.addedAt, lang)}</span>
+            </span>
+            {data.isOwner && (
+              <button
+                type="button"
+                onClick={() => remove(s.distributorId)}
+                disabled={busy !== null}
+                className="min-h-12 shrink-0 rounded-xl border-2 border-line px-4 text-base font-semibold text-bad active:bg-paper disabled:text-muted"
+              >
+                {busy === s.distributorId ? t("Quitando...", "Removing...") : t("Quitar", "Remove")}
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+      {data.isOwner && (
+        <p className="text-sm text-muted">
+          {t(
+            "Si quita una distribuidora, sus facturas anteriores siguen en su historial.",
+            "If you remove a distributor, its past invoices stay in your history.",
+          )}
+        </p>
+      )}
+      {error && <p className="text-bad">{msg(error)}</p>}
+    </section>
+  );
+}
+
 export default function AccountScreen() {
   const { shopId } = useParams<{ shopId: string }>();
   const { data, failed, stale, reload } = usePolling(`account-${shopId}`, async () => {
-    const [shop, invoices] = await Promise.all([getShop(shopId), getInvoices()]);
-    return { shop, unpaid: invoices.filter((i) => i.shopId === shopId && i.status !== "paid"), now: Date.now() };
+    const [shop, invoices, balance, suppliers, history] = await Promise.all([
+      getShop(shopId),
+      getInvoices(),
+      getBalance(shopId).catch(() => null), // a missing balance shouldn't hide the debt
+      getSuppliers(shopId),
+      getShopHistory(shopId).catch(() => null), // the score can wait; the debt can't
+    ]);
+    return { shop, balance, suppliers, history, unpaid: invoices.filter((i) => i.shopId === shopId && i.status !== "paid"), now: Date.now() };
   });
   const [busy, setBusy] = useState(false);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
@@ -55,7 +127,7 @@ export default function AccountScreen() {
     );
   }
 
-  const { shop, unpaid, now } = data;
+  const { shop, balance, suppliers, history, unpaid, now } = data;
   if (!shop) {
     return (
       <Screen>
@@ -189,23 +261,31 @@ export default function AccountScreen() {
         </section>
       )}
 
-      <section className="flex flex-col gap-1 px-1">
+      <AccountSections shop={shop} balance={balance} suppliers={suppliers} history={history} now={now} />
+
+      <section id="credito" className="flex scroll-mt-4 flex-col gap-1 px-1">
         <h2 className="text-lg font-semibold">{t("Cómo sube su límite", "How your limit grows")}</h2>
         {hasCredit ? (
           <>
             <TicketRow label={t("Si paga su deuda a tiempo", "If you pay your debt on time")}>
               <span className="font-semibold text-ok">+$25</span>
             </TicketRow>
-            <TicketRow label={t("Si paga su deuda tarde", "If you pay your debt late")}>
+            <TicketRow label={t("Si paga de 2 a 7 días tarde", "If you pay 2 to 7 days late")}>
               <span className="font-semibold text-bad">−$25</span>
+            </TicketRow>
+            <TicketRow label={t("Si paga 8 días tarde o más", "If you pay 8 or more days late")}>
+              <span className="font-semibold text-bad">−$50</span>
             </TicketRow>
             <p className="text-muted">
               {t(
-                "Sube como máximo una vez por período de crédito, y solo si compró $40 o más con ",
-                "It goes up at most once per credit period, and only if you bought $40 or more with ",
+                "Un día tarde todavía cuenta a tiempo. Sube como máximo una vez por período de crédito, y solo si compró $40 o más con ",
+                "One day late still counts as on time. It goes up at most once per credit period, and only if you bought $40 or more with ",
               )}
               <span className="whitespace-nowrap">{t("«Pagar en 7 días»", "“Pay in 7 days”")}</span>
-              {t(". El límite máximo es $500.", ". The highest limit is $500.")}
+              {t(
+                " ($10 si pagó la mitad al recibir). Si paga 8 días tarde o más, no sube durante 4 períodos. El límite máximo es $500.",
+                " ($10 if you paid half on delivery). If you pay 8 or more days late, it doesn't grow for 4 periods. The highest limit is $500.",
+              )}
             </p>
             <p className="text-muted">{t("Sin intereses: paga lo mismo que compró.", "No interest: you pay the same as you bought.")}</p>
           </>
@@ -221,6 +301,8 @@ export default function AccountScreen() {
           </p>
         )}
       </section>
+
+      <Suppliers shopId={shop.id} />
 
       {(owes || busy) && (
         <ThumbBar>
