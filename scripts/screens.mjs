@@ -71,7 +71,9 @@ async function workingDay(page) {
   await move(page, "/ruta/motorista-1");
   await page.waitForSelector("main [data-next]", { timeout: 20_000 });
   await page.locator("main a", { hasText: "1004" }).first().click();
-  await page.waitForTimeout(900); // the button is quiet for a beat after a stop opens
+  // On a small phone at a large text size the button can open right where the row was tapped, and a tap on the
+  // same spot within 2.5 s is ignored on purpose (lib/taps.ts).
+  await page.waitForTimeout(2700);
   await press(page, /Recibí efectivo|I received cash/);
   await page.waitForTimeout(2500);
   await open("/tienda/1004");
@@ -236,8 +238,73 @@ const GROUPS = {
     ];
   })(),
   account: [
-    ["cuenta", "/tienda/cuenta/tienda-1"],
-    ["historial", "/tienda/cuenta/tienda-1/historial"],
+    // The longest shop name, with nothing owed.
+    ["cuenta", "/tienda/cuenta/tienda-3"],
+    // Right after a "Pagar en 7 días" (the photo for the printed trifold is this screen at 360x640): the whole
+    // account slip (Debe, the due date, the limit) and "Pagar deuda" are in view without scrolling.
+    [
+      "cuenta-deuda",
+      "/tienda/1007",
+      {
+        inView: { "360x640": "#estado-de-cuenta, main button" },
+        prepare: async (page) => {
+          await page.waitForSelector("main button:not([disabled])", { timeout: 20_000 });
+          await page.waitForTimeout(800); // a pay button ignores taps for its first 0.6 s
+          await press(page, /Pagar en 7 días|Pay in 7 days/);
+          await page.waitForTimeout(2700); // a tap on the same spot within 2.5 s is ignored on purpose (lib/taps.ts)
+          await press(page, /^Confirmo|^Confirm/);
+          await page.getByText(/Pagada · Crédito|Paid · Credit/).first().waitFor({ timeout: 20_000 });
+          await page.waitForTimeout(2500); // the hold after a payment
+          await move(page, "/tienda/cuenta/tienda-1");
+          await page.getByRole("button", { name: /Pagar deuda|Pay debt/ }).waitFor({ timeout: 20_000 });
+        },
+      },
+    ],
+    // The same debt, just paid: the stamp has landed and "Deuda pagada" holds the button's place.
+    [
+      "cuenta-pagada",
+      "/tienda/1007",
+      {
+        prepare: async (page) => {
+          await page.waitForSelector("main button:not([disabled])", { timeout: 20_000 });
+          await page.waitForTimeout(800);
+          await press(page, /Pagar en 7 días|Pay in 7 days/);
+          await page.waitForTimeout(2700);
+          await press(page, /^Confirmo|^Confirm/);
+          await page.getByText(/Pagada · Crédito|Paid · Credit/).first().waitFor({ timeout: 20_000 });
+          await page.waitForTimeout(2500);
+          await move(page, "/tienda/cuenta/tienda-1");
+          await page.getByRole("button", { name: /Pagar deuda|Pay debt/ }).waitFor({ timeout: 20_000 });
+          await page.waitForTimeout(800);
+          await press(page, /Pagar deuda|Pay debt/);
+          await page.getByText(/Deuda pagada$|Debt paid$/).first().waitFor({ timeout: 20_000 });
+          await page.waitForTimeout(2500);
+        },
+      },
+    ],
+    ["datos", "/tienda/cuenta/tienda-1/datos"],
+    // With a payment on credit in it, and its first row unfolded (the receipt links are checked too).
+    [
+      "historial",
+      "/tienda/1007",
+      {
+        prepare: async (page) => {
+          await page.waitForSelector("main button:not([disabled])", { timeout: 20_000 });
+          await page.waitForTimeout(800);
+          await press(page, /Pagar en 7 días|Pay in 7 days/);
+          await page.waitForTimeout(2700);
+          await press(page, /^Confirmo|^Confirm/);
+          await page.getByText(/Pagada · Crédito|Paid · Credit/).first().waitFor({ timeout: 20_000 });
+          await page.waitForTimeout(2500);
+          await move(page, "/tienda/cuenta/tienda-1/historial");
+          await page.locator("main button[aria-expanded]:visible").first().waitFor({ timeout: 20_000 });
+          await page.locator("main button[aria-expanded]:visible").first().click();
+        },
+      },
+    ],
+    ["info", "/tienda/cuenta/tienda-1/info/retirar"],
+    // What a lender sees from the shop's link (the link carries its last day).
+    ["compartido", "/compartido/tienda-1?hasta=2099-12-31"],
   ],
   // The distributor's other screens and the admin's. Without a database these screens only say "Solo la distribuidora
   // aprobada puede hacer esto.", so each one is opened, the answers of its server actions are swapped for sample

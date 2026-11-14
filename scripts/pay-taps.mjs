@@ -140,7 +140,15 @@ const SCENARIOS = [
       await page.goBack();
       await page.waitForSelector("main [data-next]", { timeout: 20_000 });
       await page.waitForTimeout(3000); // longer than the same-spot guard remembers the taps above
-      const row = await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.closest("main a")?.innerText ?? null, point);
+      // The point can fall in the 8 px between two rows. A person's thumb would be on a row: nudge the sheet until one is there.
+      const under = () => page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.closest("main a")?.innerText ?? null, point);
+      let row = await under();
+      for (const by of [16, -32, 48, -64]) {
+        if (row !== null) break;
+        await page.evaluate((y) => window.scrollBy(0, y), by);
+        await page.waitForTimeout(300);
+        row = await under();
+      }
       if (row === null) throw new Error("no stop lies where Recibí efectivo will be: pick another row for this scenario");
       return point;
     },
@@ -172,6 +180,29 @@ const SCENARIOS = [
       (text.match(/Marcar efectivo entregado/g) ?? []).length === 1 && (text.match(/Nada por entregar/g) ?? []).length === 1 && /\$\s?0\.00/.test(text) && /\$\s?220\.00/.test(text),
   },
 ];
+
+// ---------- Mi cuenta: "Pagar deuda" ----------
+// The shop takes $ 40 on credit (invoice 1007), then opens Mi cuenta in the same tab and pays the debt.
+// One repayment and no more: the balance goes from $ 1,000 to $ 960 once, the slip is stamped, and every
+// later tap lands on the inert "Deuda pagada" block or on paper, never on an invoice row under it.
+SCENARIOS.push({
+  name: "Pagar deuda (Mi cuenta)",
+  start: "/tienda/1007",
+  end: "/tienda/cuenta/tienda-1",
+  setup: async (page) => {
+    await button(page, "Pagar en 7 días").tap();
+    await page.waitForTimeout(2700); // a tap on the same spot within 2.5 s is ignored on purpose
+    await button(page, "Confirmo").tap();
+    await page.getByText("Pagada · Crédito").first().waitFor({ timeout: 20_000 });
+    await page.waitForTimeout(3000); // the hold after a payment
+    await move(page, "/tienda/cuenta/tienda-1");
+    await button(page, "Pagar deuda").waitFor({ timeout: 20_000 });
+    await page.waitForTimeout(1500);
+  },
+  target: (page) => button(page, "Pagar deuda"),
+  after: (text) => /Pagada hoy/.test(text) && /Saldo\s*\$960\.00/.test(text) && /PAGADA/i.test(text),
+});
+// ---------- end of Mi cuenta ----------
 
 // ---------- redesign PR 7: the distributor's Nueva factura and the admin's Aprobar ----------
 // Neither moves money, but each writes to the contract and can't be taken back, and each changes what is under the
