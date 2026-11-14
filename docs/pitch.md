@@ -127,7 +127,7 @@ Source check, Nov 12: the crew line is entry 40 in `docs/facts.md` (cash is entr
 > **One $100 delivery, paid in 7 days**
 > The lender pool pays the distributor now: **$98.50**
 > The shop repays in 7 days: **$100**, no interest
-> The 1.5% fee: $0.75 buffer, $0.50 lenders, $0.25 us
+> The fee, up to 1.5%: $0.75 buffer, $0.50 lenders, $0.25 us
 > The distributor pays because it is paid at the door and carries no risk of the shop not paying.
 >
 > **Our plan**
@@ -241,9 +241,9 @@ The eight questions from #39, each with an answer that fits **20 seconds (46 wor
 
 ### 1. How do you make money? (30 seconds)
 
-> Distributors pay us; shops never do. On a pay-in-seven-days sale the distributor pays a 1.5% fee to be paid at the door: 25 cents of each $100 is ours, the rest goes to lenders and a loss buffer. On invoices paid now or in cash we take 0.1%. Both fees are written into a public contract anyone can check.
+> Distributors pay us; shops never do. On a pay-in-seven-days sale the distributor pays up to 1.5% to be paid at the door, less when the shop pays part up front. At most 25 cents of each $100 is ours; the rest goes to lenders and a loss buffer. Invoices paid now or in cash: 0.1%. Both fees are in a public contract anyone can check.
 
-59 words, 25.3 s.
+65 words, 27.9 s (at the old answer's pace).
 - **Facts:** `docs/facts.md` entries 29 and 30, and the contract: `CREDIT_FEE_BPS` 150, split `BUFFER_BPS` 75, `LENDER_BPS` 50, `OUR_BPS` 25; `USAGE_FEE_BPS` 10. Credit sales pay no usage fee (context §16, Nov 10). For cash the 0.1% is recorded and billed later, not collected yet (`docs/security.md` limit 6).
 - **Must include:** the distributor pays, the shop never does; both fee rates; the contract is public.
 - **Never:** MoneyGram's 5%, or "we charge shops".

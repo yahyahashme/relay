@@ -21,7 +21,7 @@ All of these:
 
 ## 4. Levelling up
 - **+$25 per on-time repayment, up to $500** (built in #58).
-- **Built in #58 (Nov 10):** a repayment only counts if the shop borrowed **$40 or more** in that cycle, and the limit rises **at most once per credit period** (once a week for real). This stops a shop from borrowing $1 and repaying it over and over to reach $500 in minutes.
+- **Built in #58 (Nov 10), widened in #139:** a repayment only counts if the shop borrowed **$40 or more** in that cycle (or **$10 or more** when it paid half of every credited invoice up front), and the limit rises **at most once per credit period** (once a week for real). This stops a shop from borrowing $1 and repaying it over and over to reach $500 in minutes.
 - Later, only with real data: the cap rises to $750 after 6 months with no late payments **(guess)**.
 
 ## 5. Late-payment ladder
@@ -29,7 +29,9 @@ All of these:
 | Days late | What happens |
 |---|---|
 | Day 8 | Overdue: no new credit (**built**) |
-| Paid late (any time before default) | Unfrozen, but the limit drops one level (−$25) (**built**) |
+| Paid 1 day late | Still on time: a grace day (**built**, #137) |
+| Paid 2–7 days late | Unfrozen, but the limit drops $25 (**built**, #137) |
+| Paid 8+ days late | The limit drops $50 and can't grow for 4 credit periods (**built**, #137) |
 | 4–14 days late | Limit resets to the start (pitch only) |
 | 15–28 days late | Credit off; every distributor sees it (pitch only) |
 | 28+ days (4 credit periods) | Default: the admin calls `cover_default`. The buffer pays the lenders back what it can, credit goes to $0, and the debt stays on the shop's record. Any later payment goes back into the buffer (**built**) |
@@ -41,7 +43,7 @@ All of these:
 - Alarm: a burst of new shops on one route in one week gets reviewed.
 - Only distributors the admin approves can create invoices (**built**, `approve_distributor`). Without this, a shop could invoice itself from a fake "distributor" address and take pool money as cash.
 - With that in place, credit pays for stock delivered by a known distributor, not cash, so there is less to steal.
-- No cheap levelling up: $40+ per cycle and one raise per week (§4).
+- No cheap levelling up: $40+ per cycle (or $10+ with half up front) and one raise per week (§4).
 
 ## 7. Exposure caps
 - One distributor's shops: at most **25%** of the pool **(guess)**.
@@ -68,7 +70,7 @@ Normal weeks are fine; a big shock needs **about $10–15K of seed money** at la
 On-time rate; roll rates (how many 1–7 days late slide to 8–30); loss rate vs. the 0.75% buffer; how much of a default is eventually recovered; how much of the pool is actually lent out.
 
 ## 11. Demo vs. real
-- **Built in the contract (#58, merged Nov 10):** $200 start; +$25 per on-time repayment, only after a $40+ cycle and once per credit period; $500 cap; frozen while overdue; a late repayment drops the limit by one level; `cover_default` after 4 credit periods late (the buffer repays lenders, credit off, debt kept on record); `fund_buffer`; approved distributors only.
+- **Built in the contract (#58, merged Nov 10):** $200 start; +$25 per on-time repayment, only after a $40+ cycle (or $10+ with half up front, #139) and once per credit period; $500 cap; frozen while overdue; a late repayment drops the limit $25 (2–7 days late) or $50 with no raises for 4 periods (8+ days late, #137); `cover_default` after 4 credit periods late (the buffer repays lenders, credit off, debt kept on record); `fund_buffer`; approved distributors only.
 - **Pitch only, not built:** eligibility checks, the 4–28 day steps of the ladder, exposure caps, the buffer dial, the stress test.
 
 ## 12. Questions for interviews (#7)
