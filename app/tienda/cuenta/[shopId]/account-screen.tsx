@@ -270,16 +270,22 @@ export default function AccountScreen() {
             <TicketRow label={t("Si paga su deuda a tiempo", "If you pay your debt on time")}>
               <span className="font-semibold text-ok">+$25</span>
             </TicketRow>
-            <TicketRow label={t("Si paga su deuda tarde", "If you pay your debt late")}>
+            <TicketRow label={t("Si paga de 2 a 7 días tarde", "If you pay 2 to 7 days late")}>
               <span className="font-semibold text-bad">−$25</span>
+            </TicketRow>
+            <TicketRow label={t("Si paga 8 días tarde o más", "If you pay 8 or more days late")}>
+              <span className="font-semibold text-bad">−$50</span>
             </TicketRow>
             <p className="text-muted">
               {t(
-                "Sube como máximo una vez por período de crédito, y solo si compró $40 o más con ",
-                "It goes up at most once per credit period, and only if you bought $40 or more with ",
+                "Un día tarde todavía cuenta a tiempo. Sube como máximo una vez por período de crédito, y solo si compró $40 o más con ",
+                "One day late still counts as on time. It goes up at most once per credit period, and only if you bought $40 or more with ",
               )}
               <span className="whitespace-nowrap">{t("«Pagar en 7 días»", "“Pay in 7 days”")}</span>
-              {t(". El límite máximo es $500.", ". The highest limit is $500.")}
+              {t(
+                " ($10 si pagó la mitad al recibir). Si paga 8 días tarde o más, no sube durante 4 períodos. El límite máximo es $500.",
+                " ($10 if you paid half on delivery). If you pay 8 or more days late, it doesn't grow for 4 periods. The highest limit is $500.",
+              )}
             </p>
             <p className="text-muted">{t("Sin intereses: paga lo mismo que compró.", "No interest: you pay the same as you bought.")}</p>
           </>

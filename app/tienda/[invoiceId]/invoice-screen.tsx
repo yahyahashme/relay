@@ -405,6 +405,13 @@ export default function InvoiceScreen() {
           )}
         </ActionRow>
         <ActionRow title={t("Pagar otro monto", "Pay another amount")} open={panel === "part"} onClick={() => toggle("part")} disabled={locked}>
+          {/* Above the blank, so the blank and its button stay together when the keyboard comes up. */}
+          <p className="text-label text-muted text-pretty">
+            {t(
+              "Si paga la mitad o más ahora, la comisión baja y su límite puede subir con solo $10 a crédito.",
+              "If you pay half or more now, the fee is lower and your limit can grow with just $10 on credit.",
+            )}
+          </p>
           <MoneyField
             label={t("¿Cuánto paga ahora?", "How much are you paying now?")}
             hint={
