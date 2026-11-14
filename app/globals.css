@@ -78,6 +78,20 @@
 @custom-variant short (@media (max-height: 45.99rem));
 @custom-variant tall (@media (min-height: 46rem));
 
+/* A phone held sideways or in a truck mount: a short screen with room for two things side by side.
+   The driver's stop puts the code beside its facts there, so the code and the button stay in view. */
+@custom-variant sideways {
+  @media (max-height: 45.99rem) {
+    @container split (min-width: 30rem) {
+      @slot;
+    }
+  }
+}
+
+/* The driver's screens (gloves, wet hands): a screen that carries data-gloves makes the shared
+   controls around it, such as the language switch, 56 px targets too. */
+@custom-variant gloves (:root:has([data-gloves]) &);
+
 /* Hover styles only where there is a real pointer; a thumb never leaves a button looking pressed. */
 @custom-variant hover {
   @media (hover: hover) and (pointer: fine) {

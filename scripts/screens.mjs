@@ -48,7 +48,53 @@ const GROUPS = {
     ["demo", "/demo", { inView: { "360x640": "main button" } }],
   ],
   distributor: [["panel", "/distribuidor"]],
-  driver: [["ruta", "/ruta/motorista-1"]],
+  driver: [
+    // Gloves and wet hands: every target on the driver's screens is at least 56 px.
+    // The sheet: the next stop is pinned in view. From 40 rem of width (a phone held sideways, a tablet, a laptop)
+    // the open stop lies beside it, so its code and "Recibí efectivo" are in view too, with nothing to tap first.
+    [
+      "ruta",
+      "/ruta/motorista-1",
+      {
+        minTarget: 56,
+        inView: {
+          ...Object.fromEntries(["280x653", "320x568", "360x640", "375x667", "390x844", "393x852", "412x915", "360x800", "384x854", "412x919"].map((size) => [size, "[data-next]"])),
+          ...Object.fromEntries(
+            ["640x360", "667x375", "800x360", "844x390", "852x393", "854x384", "915x412", "919x412", "673x841", "768x1024", "820x1180", "800x1280", "841x673", "1024x768", "1180x820", "1280x800", "1366x768", "1440x900", "1920x1080"].map((size) => [
+              size,
+              "[data-next], [data-code], [data-cash]",
+            ]),
+          ),
+        },
+      },
+    ],
+    // A stop opened from the sheet (on a phone it takes the whole screen): the code and "Recibí efectivo" are in view at every size.
+    [
+      "parada",
+      "/ruta/motorista-1?parada=1001",
+      {
+        minTarget: 56,
+        inView: Object.fromEntries(
+          ["280x653", "320x568", "360x640", "375x667", "390x844", "393x852", "412x915", "360x800", "384x854", "412x919", "568x320", "640x360", "667x375", "800x360", "844x390", "852x393", "854x384", "915x412", "919x412", "673x841", "768x1024", "820x1180", "800x1280", "841x673", "1024x768", "1180x820", "1280x800", "1366x768", "1440x900", "1920x1080"].map(
+            (size) => [size, "[data-code], [data-cash]"],
+          ),
+        ),
+      },
+    ],
+    // The same after "Recibí efectivo": the words that hold the button's place, and the stamp on the sheet.
+    [
+      "efectivo",
+      "/ruta/motorista-1?parada=1002",
+      {
+        minTarget: 56,
+        prepare: async (page) => {
+          await page.locator("[data-cash] button:not([disabled])").click();
+          await page.locator("[data-cash] button").waitFor({ state: "detached", timeout: 15_000 });
+          await page.waitForTimeout(2600); // the hold after the last tap
+        },
+      },
+    ],
+  ],
   auth: [
     ["inicio", "/"],
     ["registro", "/registro"],

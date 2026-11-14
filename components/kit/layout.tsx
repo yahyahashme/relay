@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { ChevronBack } from "./icons";
 
 // The three page layouts. All of them leave room for the notch and the home bar (safe areas),
@@ -41,12 +41,29 @@ export function Split({ nav, facts, actions, className = "" }: { nav?: ReactNode
   );
 }
 
-/** The row above a screen: where you came from on the left, one other place on the right. Blue words, full-size targets. */
-export function TopNav({ back, backLabel, children }: { back?: string; backLabel?: ReactNode; children?: ReactNode }) {
+/**
+ * The row above a screen: where you came from on the left, one other place on the right. Blue words, full-size targets.
+ * `size="lg"` is the driver's row (56 px). `onBack` lets a screen that keeps two views in one page (the driver's
+ * route and its open stop) go back itself: call `event.preventDefault()` in it.
+ */
+export function TopNav({
+  back,
+  backLabel,
+  onBack,
+  size = "md",
+  children,
+}: {
+  back?: string;
+  backLabel?: ReactNode;
+  onBack?: (event: MouseEvent<HTMLAnchorElement>) => void;
+  size?: "md" | "lg";
+  children?: ReactNode;
+}) {
+  const height = size === "lg" ? "min-h-14" : "min-h-12";
   return (
-    <nav className="flex min-h-12 items-center justify-between gap-3">
+    <nav className={`flex items-center justify-between gap-3 ${height}`}>
       {back ? (
-        <Link href={back} className="-ml-1.5 inline-flex min-h-12 items-center gap-0.5 pr-2 text-[1.0625rem] font-bold text-brand">
+        <Link href={back} onClick={onBack} prefetch={onBack ? false : undefined} className={`-ml-1.5 inline-flex items-center gap-0.5 pr-2 text-[1.0625rem] font-bold text-brand ${height}`}>
           <ChevronBack />
           {backLabel}
         </Link>
