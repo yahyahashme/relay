@@ -424,7 +424,7 @@ _Entries 29 to 35 come from this repo, not from a web page. Claude first read th
 **Pitch highlights from these entries** (strongest first; each is safe to say out loud, the entry has the source). Move them into the main Pitch highlights list at the top once #73 has merged. Entries 30 and 33 have no line on purpose: a revenue scenario and demo data are not things to say as results.
 
 1. Money leaves our contract in exactly one function, and every function that changes state needs the right person's signature (34).
-2. Distributors pay us, shops never do: 0.1% of a cash or digital invoice, or one 1.5% fee when the lender pool pays them at delivery, so they get $98.50 per $100 (29).
+2. Distributors pay us, shops never do: 0.1% of a cash or digital invoice, or one credit fee of at most 1.5% when the lender pool pays them at delivery, so they get at least $98.50 per $100 (29). The fee drops toward 1% when the shop pays part up front.
 3. A shop's credit limit starts at $200 and grows $25 for each on-time repayment, but only after a loan of $40 or more and once per credit period, so nobody can farm it with tiny loans (31). Say "once a week" only after Yahya confirms the deployed credit period is 7 days.
 4. Our own safety review found and fixed three bugs, and we publish the 10 limits that are still open (35).
 5. If a shop never pays, the loss buffer, filled by 0.75% of every credit sale, repays the lenders first (32).
@@ -434,6 +434,7 @@ _Entries 29 to 35 come from this repo, not from a web page. Claude first read th
 - **Number:**
   - Usage fee 0.10% (10 basis points) on cash and digital invoices. Per $100: the distributor receives $99.90 and we get $0.10.
   - Credit fee 1.50% (150 basis points), only on credit sales. Per $100: the distributor receives $98.50 at delivery. The $1.50 splits into $0.75 for the loss buffer, $0.50 for the lenders and $0.25 for us.
+  - Update Nov 13 (#135, after the next redeploy): 1.50% is now the top rate, when the whole invoice goes on credit. It slides to 1.00% the more the shop paid up front: half paid first gives 1.22%, so $0.61 on the $50 left of a $100 invoice. "$98.50 per $100" stays true for a fully credited invoice. Lenders always get 0.50%.
   - No usage fee on top of the credit fee.
 - **Source:** `contracts/route_ledger/src/lib.rs` on `origin/main` at 044f987: lines 17 to 29 (`USAGE_FEE_BPS = 10` at line 20, `CREDIT_FEE_BPS = 150` at 22, `BUFFER_BPS = 75` at 24, `LENDER_BPS = 50` at 26, `OUR_BPS = 25` at 28, and the compile-time check that 75 + 50 + 25 = 150 at 29). The usage fee is taken in `pay` (line 385) and recorded for cash in `cash_confirm` (line 492). The credit fee split is in `pay_with_credit` (lines 578 to 584). The app uses the same credit-fee numbers (`lib/labels.ts:25`; `lib/mock.ts:18` to 20). Also `docs/security.md` section 1 and `docs/context.md` section 5.
 - **Exact quote:** "Credit sales don't pay it: our cut there is inside the 1.50% credit fee, so the distributor sees one number ($98.50 for every $100)." (code comment, line breaks removed)
@@ -476,8 +477,9 @@ _Entries 29 to 35 come from this repo, not from a web page. Claude first read th
 - **Use in:** pitch / deck / Q&A ("how do you stop fraud?")
 - **Caveat:**
   - Demo parameters; they are guesses to test in interviews (#7), not real repayment data.
-  - The contract has no default start limit; the $200 is set shop by shop at deploy. A limit the admin sets above $500 is left alone. `docs/credit-model.md` section 3 says the start should be the lower of $200 and one average delivery. That is a proposal, not built.
+  - The contract has no default start limit; the $200 is set shop by shop at deploy. A limit the admin sets above $500 is left alone. Since #134, a shop that signs up gets $200 from the server (`set_terms`). Starting at the lower of $200 and one average delivery is a later step, not built (`docs/credit-model.md` section 3).
   - The limit is our own credit record. It is not a bureau score (entry 15).
+  - Update Nov 13 (#137): the app now also shows a Relay score (0-100, `lib/credit.ts`) with a label and its top reasons: 50% on-time record weighted by amount and recency, 20% use of the limit, 20% length of history, 10% suppliers on Relay. The weights follow the shape of FICO (payment history 35%, amounts owed 30%) and D&B PAYDEX (days past terms); they are our design, not a sourced fact. Still not a bureau score: the shop shares it only through its own link.
 - **Checked:** Claude, 11 Nov 2026 (`repay` and the constants read at dfdc33c). Re-checked Claude, 13 Nov 2026, against `origin/main` at 044f987: opened lines 32, 34, 37, 120, 542, 568 to 571, 635, 668 to 689 of `lib.rs` and lines 7, 17, 18, 113 and 115 of `deploy.sh`; each shows what is written above. $25 = 250,000,000 units, $500 = 5,000,000,000, $40 = 400,000,000 (7 decimals).
 
 ## 32. When a shop never pays
