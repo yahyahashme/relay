@@ -1,7 +1,8 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { getShopSuppliers, removeSupplierAction, type ShopSuppliers } from "@/app/shop-actions";
 import { TapShield, useQuietOnArrival } from "@/components/tap-shield";
 import { OptionLink, OptionList, Stamp, ThumbBar, Ticket, TicketRow, TicketRule, reveal } from "@/components/ticket";
 import { BackLink, Button, Chip, LoadError, Loading, NotFound, ReceiptView, Screen } from "@/components/ui";
@@ -23,6 +24,70 @@ function invoiceNote(invoice: Invoice, now: number, lang: Lang): string {
       : `Pagado ${formatMoney(invoice.paid)} de ${formatMoney(invoice.amount)}`;
   }
   return dueOn(invoice.dueDate, now, lang);
+}
+
+/** "Distribuidora El Sol lo agregó" (#132): who sells to this shop on Relay; the owner can remove one. */
+function Suppliers({ shopId }: { shopId: string }) {
+  const { lang, t, msg } = useT();
+  const [data, setData] = useState<ShopSuppliers | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const load = useCallback(async () => setData(await getShopSuppliers(shopId)), [shopId]);
+  useEffect(() => {
+    let live = true;
+    void getShopSuppliers(shopId).then((found) => {
+      if (live) setData(found);
+    });
+    return () => {
+      live = false;
+    };
+  }, [shopId]);
+
+  if (!data || data.suppliers.length === 0) return null;
+
+  async function remove(distributorId: string) {
+    setBusy(distributorId);
+    setError(null);
+    const reply = await removeSupplierAction(shopId, distributorId);
+    if (reply.ok) await load();
+    else setError(reply.message);
+    setBusy(null);
+  }
+
+  return (
+    <section className="flex flex-col gap-2 px-1">
+      <h2 className="text-lg font-semibold">{t("Proveedores", "Suppliers")}</h2>
+      <ul className="flex flex-col divide-y divide-line rounded-2xl border border-line bg-card">
+        {data.suppliers.map((s) => (
+          <li key={s.distributorId} className="flex items-center justify-between gap-3 px-4 py-3">
+            <span className="flex min-w-0 flex-col">
+              <span className="text-lg font-semibold">{t(`${s.name} lo agregó`, `${s.name} added you`)}</span>
+              <span className="text-sm text-muted">{formatDay(s.addedAt, lang)}</span>
+            </span>
+            {data.isOwner && (
+              <button
+                type="button"
+                onClick={() => remove(s.distributorId)}
+                disabled={busy !== null}
+                className="min-h-12 shrink-0 rounded-xl border-2 border-line px-4 text-base font-semibold text-bad active:bg-paper disabled:text-muted"
+              >
+                {busy === s.distributorId ? t("Quitando...", "Removing...") : t("Quitar", "Remove")}
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+      {data.isOwner && (
+        <p className="text-sm text-muted">
+          {t(
+            "Si quita una distribuidora, sus facturas anteriores siguen en su historial.",
+            "If you remove a distributor, its past invoices stay in your history.",
+          )}
+        </p>
+      )}
+      {error && <p className="text-bad">{msg(error)}</p>}
+    </section>
+  );
 }
 
 export default function AccountScreen() {
@@ -230,6 +295,8 @@ export default function AccountScreen() {
           </p>
         )}
       </section>
+
+      <Suppliers shopId={shop.id} />
 
       {(owes || busy) && (
         <ThumbBar>

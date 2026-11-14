@@ -38,3 +38,9 @@ export function dueOn(iso: string, now: number, lang: "es" | "en" = "es"): strin
 export function plural(count: number, one: string, many: string): string {
   return `${count} ${count === 1 ? one : many}`;
 }
+
+/** "+50370000132" -> "7000-0132" (how numbers are written in El Salvador); anything else as it is. */
+export function formatPhone(phone: string): string {
+  const match = /^\+503(\d{4})(\d{4})$/.exec(phone);
+  return match ? `${match[1]}-${match[2]}` : phone;
+}

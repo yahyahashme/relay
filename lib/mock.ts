@@ -168,6 +168,20 @@ export function getInvoices(): Invoice[] {
   return [...db().invoices].sort((a, b) => a.id - b.id).map(toInvoice);
 }
 
+/** The dashboard in demo mode: always Distribuidora El Sol. */
+export function getDistributorView(pages: number) {
+  const { invoices, total } = getInvoiceHistory(pages);
+  const shops = db().shops.map((s) => getShop(s.id)).filter((s): s is Shop => s !== null);
+  return {
+    scope: { id: "distributor", name: "Distribuidora El Sol", isDemo: true },
+    invoices,
+    total,
+    totals: getTotals(),
+    drivers: getDrivers(),
+    shops,
+  };
+}
+
 export function getInvoiceHistory(pages: number): InvoiceHistory {
   const all = getInvoices().reverse();
   return { invoices: all.slice(0, Math.max(1, pages) * HISTORY_PAGE), total: all.length };

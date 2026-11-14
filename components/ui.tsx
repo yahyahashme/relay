@@ -48,6 +48,7 @@ export function Button({
   children,
   hint,
   onClick,
+  type = "button",
   disabled = false,
   busy = false,
   arriving = false,
@@ -55,7 +56,9 @@ export function Button({
 }: {
   children: ReactNode;
   hint?: ReactNode;
-  onClick: () => void;
+  /** Leave out for a form's submit button (type="submit"). */
+  onClick?: () => void;
+  type?: "button" | "submit";
   disabled?: boolean;
   busy?: boolean;
   /** Just came on screen: fades in and can't be tapped yet (see useQuietOnArrival). */
@@ -65,7 +68,7 @@ export function Button({
   const { t } = useT();
   return (
     <button
-      type="button"
+      type={type}
       onClick={onClick}
       disabled={disabled || busy || arriving}
       aria-busy={busy}
