@@ -22,6 +22,8 @@ export type Party = {
   address: string;
   /** Drivers: who they drive for. */
   distributorId?: string;
+  /** Drivers: false once the distributor removed them (their old invoices still name them). */
+  active?: boolean;
   /** Distributors: pendiente / aprobado / rechazado. */
   status?: string;
 };
@@ -78,6 +80,7 @@ export function seedParties(): Party[] {
     owner: names[id] ?? id,
     address,
     distributorId: "distributor",
+    active: true,
   }));
   const distributor = {
     id: "distributor",
@@ -100,7 +103,7 @@ async function partiesFromDb(): Promise<Party[] | null> {
       `SELECT s.id, s.name, s.stellar_address, COALESCE(u.name, s.owner_name, '') AS owner
          FROM shops s LEFT JOIN users u ON u.id = s.owner_user_id`,
     ),
-    db.query<Row>(`SELECT id, name, stellar_address, distributor_id FROM drivers`),
+    db.query<Row & { active: boolean }>(`SELECT id, name, stellar_address, distributor_id, active FROM drivers`),
     db.query<Row>(`SELECT id, business_name, stellar_address, status FROM distributors`),
   ]);
   return [
@@ -112,6 +115,7 @@ async function partiesFromDb(): Promise<Party[] | null> {
       owner: r.name!,
       address: r.stellar_address!,
       distributorId: r.distributor_id!,
+      active: (r as { active?: boolean }).active !== false,
     })),
     ...distributors.map((r) => ({
       id: r.id!,

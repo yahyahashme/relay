@@ -10,7 +10,7 @@ const source = (path: string) => readFileSync(join(root, path), "utf8");
 const SPANISH = /\b(factura|facturas|tienda|motorista|monto|pago|pagar|pagada|deuda|efectivo|crédito|límite|listo|fila|falta|tiene|está|intente|inválid[oa]|encontramos|dólares|vencido|recibido)\b/i;
 
 // Accounts and the screens built on them (#129 on): their messages come back from the server too.
-const SERVER_FILES = ["app/auth-actions.ts", "lib/server/accounts.ts", "lib/server/authz.ts", "lib/server/rate-limit.ts"];
+const SERVER_FILES = ["app/auth-actions.ts", "lib/server/accounts.ts", "app/distributor-actions.ts", "lib/server/distributors.ts", "app/registro/distributor-form.tsx", "app/driver-actions.ts", "lib/server/drivers.ts", "app/shop-actions.ts", "lib/server/shops.ts", "app/invoice-actions.ts", "lib/server/invoices.ts", "app/shop-signup-actions.ts", "components/shop-signup.tsx", "lib/server/authz.ts", "lib/server/rate-limit.ts"];
 
 describe("translateMessage", () => {
   // One example of every message the server, the mock, the contract and the CSV parser send.
@@ -51,6 +51,11 @@ describe("translateMessage", () => {
     ["Motorista desconocido: motorista-7", "Unknown driver: motorista-7"],
     ["Monto inválido: 12,5", "Invalid amount: 12,5"],
     ["Fecha inválida (use AAAA-MM-DD)", "Invalid date (use YYYY-MM-DD)"],
+    ["Factura 1042 creada.", "Invoice 1042 created."],
+    ["El número 1042 ya está usado. Use otro.", "Number 1042 is already used. Use another one."],
+    ["Escriba un monto mayor que $0 y hasta $10,000.", "Enter an amount over $0 and up to $10,000."],
+    ["La nota puede tener hasta 300 letras.", "The note can have up to 300 characters."],
+    ["Hay dos tiendas con ese nombre: Tienda Marta", "Two shops have that name: Tienda Marta"],
   ];
 
   it.each(examples)("%s", (spanish, english) => {

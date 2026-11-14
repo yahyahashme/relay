@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { BackLink, Card, Chip, Label, LoadError, Loading, ReceiptView, Screen } from "@/components/ui";
 import { CsvImport } from "@/components/csv-import";
-import { createDemoInvoice, getDrivers, getInvoiceHistory, getShop, getTotals, handInCash } from "@/lib/api";
-import { DEMO_PHONES, DEMO_SHOP_IDS } from "@/lib/demo-contacts";
+import { createDemoInvoice, getDistributorView, handInCash } from "@/lib/api";
+import { DEMO_PHONES } from "@/lib/demo-contacts";
 import { formatDay, formatMoney } from "@/lib/format";
 import { toUnits } from "@/lib/money";
 import { reminderLink } from "@/lib/whatsapp";
@@ -21,15 +22,49 @@ const STATUS_FILTERS: { key: string; tone?: StatusTone }[] = [
   { key: "credit", tone: "credit" },
 ];
 
-/** `pages` pages of history (newest first): every refresh re-reads all of them, so nothing goes stale. */
-async function loadDashboard(pages: number) {
-  const [history, drivers, totals] = await Promise.all([getInvoiceHistory(pages), getDrivers(), getTotals()]);
-  const { invoices, total } = history;
-  // Every demo shop, not only those with an invoice on the loaded page: a shop's
-  // debt must count in "En crédito" even when its invoices are older.
-  const shopIds = [...new Set([...DEMO_SHOP_IDS, ...invoices.map((i) => i.shopId)])];
-  const shops = (await Promise.all(shopIds.map(getShop))).filter((s): s is Shop => s !== null);
-  return { invoices, total, totals, drivers, shops };
+/**
+ * `pages` pages of history (newest first): every refresh re-reads all of them, so nothing goes stale.
+ * A signed-in, approved distributor sees their own business (#130); anyone else, the demo.
+ * Shops include every shop the distributor works with, so a debt counts even when its invoices are older.
+ */
+const loadDashboard = (pages: number) => getDistributorView(pages);
+
+/** "Primeros pasos" for a new distributor (#130): done when there is at least one of each. */
+function FirstSteps({ drivers, shops, invoices }: { drivers: number; shops: number; invoices: number }) {
+  const { t } = useT();
+  const steps: { label: string; done: boolean; href?: string }[] = [
+    { label: t("Agregar sus motoristas", "Add your drivers"), done: drivers > 0, href: "/distribuidor/motoristas" },
+    { label: t("Agregar sus tiendas", "Add your shops"), done: shops > 0, href: "/distribuidor/tiendas" },
+    { label: t("Crear su primera factura", "Create your first invoice"), done: invoices > 0, href: "/distribuidor/factura" },
+  ];
+  if (steps.every((s) => s.done)) return null;
+  return (
+    <Card className="flex flex-col gap-3">
+      <h2 className="text-xl font-semibold">{t("Primeros pasos", "First steps")}</h2>
+      <ol className="flex flex-col gap-2">
+        {steps.map((step, index) => (
+          <li key={step.label} className="flex items-center gap-3 text-lg">
+            <span
+              aria-hidden
+              className={`flex size-8 shrink-0 items-center justify-center rounded-full text-base font-bold ${
+                step.done ? "bg-ok text-white" : "bg-brand-soft text-brand"
+              }`}
+            >
+              {step.done ? "✓" : index + 1}
+            </span>
+            {step.href && !step.done ? (
+              <Link href={step.href} className="font-semibold text-brand underline">
+                {step.label}
+              </Link>
+            ) : (
+              <span className={step.done ? "text-muted line-through" : ""}>{step.label}</span>
+            )}
+            <span className="sr-only">{step.done ? t("Hecho", "Done") : t("Por hacer", "To do")}</span>
+          </li>
+        ))}
+      </ol>
+    </Card>
+  );
 }
 
 const HIGHLIGHT_MS = 4000;
@@ -157,17 +192,41 @@ export default function Dashboard() {
   const header = (
     <header className="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 className="text-3xl font-bold">Distribuidora El Sol</h1>
+        <h1 className="min-h-9 text-3xl font-bold">{data?.scope.name ?? ""}</h1>
         <p className="text-muted">{t("Se actualiza cada 5 segundos.", "Updates every 5 seconds.")}</p>
       </div>
-      <button
-        type="button"
-        onClick={newDemoInvoice}
-        disabled={creating || !data}
-        className="min-h-12 rounded-xl bg-brand px-5 text-lg font-semibold text-white active:bg-brand-dark disabled:bg-line disabled:text-muted"
-      >
-        {creating ? t("Creando...", "Creating...") : t("Nueva factura de demo", "New demo invoice")}
-      </button>
+      {data && !data.scope.isDemo && (
+        <nav className="flex flex-wrap gap-2">
+          <Link
+            href="/distribuidor/factura"
+            className="flex min-h-12 items-center rounded-xl bg-brand px-5 text-lg font-semibold text-white active:bg-brand-dark"
+          >
+            {t("Nueva factura", "New invoice")}
+          </Link>
+          <Link
+            href="/distribuidor/tiendas"
+            className="flex min-h-12 items-center rounded-xl border-2 border-brand px-4 text-base font-semibold text-brand active:bg-brand-soft"
+          >
+            {t("Tiendas", "Shops")}
+          </Link>
+          <Link
+            href="/distribuidor/motoristas"
+            className="flex min-h-12 items-center rounded-xl border-2 border-brand px-4 text-base font-semibold text-brand active:bg-brand-soft"
+          >
+            {t("Motoristas", "Drivers")}
+          </Link>
+        </nav>
+      )}
+      {data?.scope.isDemo && (
+        <button
+          type="button"
+          onClick={newDemoInvoice}
+          disabled={creating}
+          className="min-h-12 rounded-xl bg-brand px-5 text-lg font-semibold text-white active:bg-brand-dark disabled:bg-line disabled:text-muted"
+        >
+          {creating ? t("Creando...", "Creating...") : t("Nueva factura de demo", "New demo invoice")}
+        </button>
+      )}
     </header>
   );
 
@@ -181,7 +240,7 @@ export default function Dashboard() {
     );
   }
 
-  const { invoices, total, totals, drivers, shops } = data;
+  const { invoices, total, totals, drivers, shops, scope } = data;
   const shopName = (id: string) => shops.find((s) => s.id === id)?.name ?? id;
   const driverName = (id: string) => drivers.find((d) => d.id === id)?.name ?? id;
 
@@ -201,11 +260,15 @@ export default function Dashboard() {
       <BackLink />
       {header}
       {failed && <LoadError />}
+      {!scope.isDemo && <FirstSteps drivers={drivers.length} shops={shops.length} invoices={total} />}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Total label={t("Cobrado digital", "Collected digitally")}>{formatMoney(collected)}</Total>
         <Total label={t("Efectivo por motorista", "Cash by driver")}>
           <span className="flex flex-col gap-2 text-lg">
+            {drivers.length === 0 && (
+              <span className="text-base font-normal text-muted">{t("Todavía no tiene motoristas.", "You don't have drivers yet.")}</span>
+            )}
             {drivers.map((d) => (
               <span key={d.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                 <span className="whitespace-nowrap">
@@ -279,110 +342,141 @@ export default function Dashboard() {
         </section>
       )}
 
-      <CsvImport shopName={shopName} driverName={driverName} onCreated={reload} />
-
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <Label>{t("Estado", "Status")}</Label>
-          {STATUS_FILTERS.map((f) => (
-            <Filter key={f.key} active={statusFilter === (f.tone ?? "all")} onClick={() => setStatusFilter(f.tone ?? "all")}>
-              {f.tone ? STATUS_LABEL[f.tone][lang] : t("Todas", "All")}
-            </Filter>
-          ))}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Label>{t("Motorista", "Driver")}</Label>
-          <Filter active={driverFilter === "all"} onClick={() => setDriverFilter("all")}>
-            {t("Todos", "All")}
-          </Filter>
-          {drivers.map((d) => (
-            <Filter key={d.id} active={driverFilter === d.id} onClick={() => setDriverFilter(d.id)}>
-              {d.name}
-            </Filter>
-          ))}
-        </div>
+      <div id="importar">
+        <CsvImport
+          shopName={shopName}
+          driverName={driverName}
+          onCreated={reload}
+          known={scope.isDemo ? undefined : { shops: shops.map((s) => ({ id: s.id, name: s.name })), drivers: drivers.map((d) => ({ id: d.id, name: d.name })) }}
+        />
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-line bg-card">
-        <table className="w-full min-w-[760px] text-left">
-          <thead className="border-b border-line text-sm text-muted">
-            <tr>
-              {[
-                [t("Factura", "Invoice"), false],
-                [t("Tienda", "Shop"), false],
-                [t("Motorista", "Driver"), false],
-                [t("Monto", "Amount"), true],
-                [t("Pagado", "Paid"), true],
-                [t("Estado", "Status"), false],
-                [t("Método", "Method"), false],
-                [t("Vence", "Due"), false],
-              ].map(([h, right]) => (
-                <th key={String(h)} scope="col" className={`px-4 py-3 font-semibold ${right ? "text-right" : ""}`}>
-                  {h}
-                </th>
+      {total === 0 ? (
+        <Card className="flex flex-col gap-1 text-center">
+          <p className="text-lg font-semibold">{t("Todavía no hay facturas.", "No invoices yet.")}</p>
+          <p className="text-muted">{t("Aquí verá cada factura, quién la pagó y cómo.", "Here you'll see every invoice, who paid it and how.")}</p>
+        </Card>
+      ) : (
+        <>
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <Label>{t("Estado", "Status")}</Label>
+              {STATUS_FILTERS.map((f) => (
+                <Filter key={f.key} active={statusFilter === (f.tone ?? "all")} onClick={() => setStatusFilter(f.tone ?? "all")}>
+                  {f.tone ? STATUS_LABEL[f.tone][lang] : t("Todas", "All")}
+                </Filter>
               ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-line">
-            {rows.map((invoice) => {
-              const status = invoiceStatus(invoice, lang);
-              return (
-                <tr
-                  key={invoice.id}
-                  className={`transition-colors duration-700 lg:text-lg ${invoice.id === newest || changed.has(invoice.id) ? "bg-brand-soft" : ""}`}
-                >
-                  <td className="px-4 py-3 font-medium tabular-nums">{invoice.id}</td>
-                  <td className="px-4 py-3">{shopName(invoice.shopId)}</td>
-                  <td className="px-4 py-3">{driverName(invoice.driverId)}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{formatMoney(invoice.amount)}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">
-                    {formatMoney(invoice.paid)}
-                    {invoice.method === "credit" && (
-                      <span className="block text-sm text-muted">
-                        {t(`recibió ${formatMoney(creditPayout(invoice.paid))}`, `received ${formatMoney(creditPayout(invoice.paid))}`)}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="flex flex-wrap gap-1">
-                      <Chip tone={status.tone}>{status.label}</Chip>
-                      {invoice.cashClaim !== undefined && <Chip tone="cash">{t("Efectivo por confirmar", "Cash to confirm")}</Chip>}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">{invoice.method ? methodLabel(invoice.method, lang) : "—"}</td>
-                  <td className="px-4 py-3 whitespace-nowrap">{formatDay(invoice.dueDate, lang)}</td>
-                </tr>
-              );
-            })}
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={8} className="px-4 py-6 text-center text-muted">
-                  {t("No hay facturas con este filtro.", "No invoices match this filter.")}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Label>{t("Motorista", "Driver")}</Label>
+              <Filter active={driverFilter === "all"} onClick={() => setDriverFilter("all")}>
+                {t("Todos", "All")}
+              </Filter>
+              {drivers.map((d) => (
+                <Filter key={d.id} active={driverFilter === d.id} onClick={() => setDriverFilter(d.id)}>
+                  {d.name}
+                </Filter>
+              ))}
+            </div>
+          </div>
 
-      <div className="flex flex-col items-center gap-3">
-        <p className="text-muted">
-          {t(
-            `Mostrando las ${invoices.length} facturas más recientes de ${total}.`,
-            `Showing the ${invoices.length} most recent invoices of ${total}.`,
+          {rows.length === 0 ? (
+            <Card>
+              <p className="text-center text-lg text-muted">{t("No hay facturas con este filtro.", "No invoices match this filter.")}</p>
+            </Card>
+          ) : (
+            <div className="overflow-x-auto rounded-2xl border border-line bg-card">
+              <table className="w-full min-w-[760px] text-left">
+                <thead className="border-b border-line text-sm text-muted">
+                  <tr>
+                    {[
+                      [t("Factura", "Invoice"), false],
+                      [t("Tienda", "Shop"), false],
+                      [t("Motorista", "Driver"), false],
+                      [t("Monto", "Amount"), true],
+                      [t("Pagado", "Paid"), true],
+                      [t("Estado", "Status"), false],
+                      [t("Método", "Method"), false],
+                      [t("Vence", "Due"), false],
+                    ].map(([h, right]) => (
+                      <th key={String(h)} scope="col" className={`px-4 py-3 font-semibold ${right ? "text-right" : ""}`}>
+                        {h}
+                      </th>
+                    ))}
+                    {!scope.isDemo && (
+                      <th scope="col" className="px-4 py-3">
+                        <span className="sr-only">{t("Repetir", "Repeat")}</span>
+                      </th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line">
+                  {rows.map((invoice) => {
+                    const status = invoiceStatus(invoice, lang);
+                    return (
+                      <tr
+                        key={invoice.id}
+                        className={`transition-colors duration-700 lg:text-lg ${invoice.id === newest || changed.has(invoice.id) ? "bg-brand-soft" : ""}`}
+                      >
+                        <td className="px-4 py-3 font-medium tabular-nums">{invoice.id}</td>
+                        <td className="px-4 py-3">{shopName(invoice.shopId)}</td>
+                        <td className="px-4 py-3">{driverName(invoice.driverId)}</td>
+                        <td className="px-4 py-3 text-right tabular-nums">{formatMoney(invoice.amount)}</td>
+                        <td className="px-4 py-3 text-right tabular-nums">
+                          {formatMoney(invoice.paid)}
+                          {invoice.method === "credit" && (
+                            <span className="block text-sm text-muted">
+                              {t(`recibió ${formatMoney(creditPayout(invoice.paid))}`, `received ${formatMoney(creditPayout(invoice.paid))}`)}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="flex flex-wrap gap-1">
+                            <Chip tone={status.tone}>{status.label}</Chip>
+                            {invoice.cashClaim !== undefined && <Chip tone="cash">{t("Efectivo por confirmar", "Cash to confirm")}</Chip>}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">{invoice.method ? methodLabel(invoice.method, lang) : "—"}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">{formatDay(invoice.dueDate, lang)}</td>
+                        {!scope.isDemo && (
+                          <td className="px-2 py-1 text-right">
+                            <Link
+                              href={`/distribuidor/factura?tienda=${encodeURIComponent(invoice.shopId)}&motorista=${encodeURIComponent(invoice.driverId)}`}
+                              aria-label={t(`Repetir factura ${invoice.id}`, `Repeat invoice ${invoice.id}`)}
+                              className="inline-flex min-h-12 items-center rounded-xl px-3 text-base font-semibold text-brand underline active:bg-brand-soft"
+                            >
+                              {t("Repetir", "Repeat")}
+                            </Link>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
-        </p>
-        {invoices.length < total && (
-          <button
-            type="button"
-            onClick={() => setPages((p) => p + 1)}
-            disabled={loadingMore}
-            className="min-h-12 rounded-xl border border-brand px-5 text-lg font-semibold text-brand active:bg-brand-soft disabled:border-line disabled:text-muted"
-          >
-            {loadingMore ? t("Cargando...", "Loading...") : t("Ver más", "Show more")}
-          </button>
-        )}
-      </div>
+
+          <div className="flex flex-col items-center gap-3">
+            <p className="text-muted">
+              {t(
+                `Mostrando las ${invoices.length} facturas más recientes de ${total}.`,
+                `Showing the ${invoices.length} most recent invoices of ${total}.`,
+              )}
+            </p>
+            {invoices.length < total && (
+              <button
+                type="button"
+                onClick={() => setPages((p) => p + 1)}
+                disabled={loadingMore}
+                className="min-h-12 rounded-xl border border-brand px-5 text-lg font-semibold text-brand active:bg-brand-soft disabled:border-line disabled:text-muted"
+              >
+                {loadingMore ? t("Cargando...", "Loading...") : t("Ver más", "Show more")}
+              </button>
+            )}
+          </div>
+        </>
+      )}
     </Screen>
   );
 }

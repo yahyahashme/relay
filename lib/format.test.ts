@@ -45,3 +45,11 @@ describe("plural", () => {
     expect(plural(3, "pago", "pagos")).toBe("3 pagos");
   });
 });
+
+describe("formatPhone", () => {
+  it("writes Salvadoran numbers the local way and leaves anything else alone", async () => {
+    const { formatPhone } = await import("./format");
+    expect(formatPhone("+50370000132")).toBe("7000-0132");
+    expect(formatPhone("ana@example.com")).toBe("ana@example.com");
+  });
+});

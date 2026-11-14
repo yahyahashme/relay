@@ -72,7 +72,7 @@ export default function Home() {
           <section className="flex flex-col gap-2">
             <Label>{t("Motorista", "Driver")}</Label>
             <div className="grid grid-cols-2 gap-3">
-              {data.drivers.map((driver) => (
+              {data.drivers.filter((driver) => (driver.distributorId ?? "distributor") === "distributor").map((driver) => (
                 <ButtonLink key={driver.id} href={`/ruta/${driver.id}`} variant="secondary">
                   {driver.name}
                 </ButtonLink>

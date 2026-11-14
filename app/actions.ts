@@ -5,7 +5,7 @@
 // everything under lib/stellar starts with `import "server-only"`.
 
 import { formatDay, formatMoney } from "@/lib/format";
-import { mayActAs, NOT_YOURS } from "@/lib/server/authz";
+import { isDemoParty, mayActAs, NOT_YOURS } from "@/lib/server/authz";
 import { getDirectory, type Directory } from "@/lib/server/directory";
 import { explorerTx } from "@/lib/stellar/config";
 import { readClient } from "@/lib/stellar/client";
@@ -15,6 +15,8 @@ import { read, run } from "@/lib/stellar/send";
 import { toDollars, toUnits } from "@/lib/stellar/units";
 import type { Invoice as ChainInvoice } from "@/packages/route_ledger/src/index";
 import { toUnixSeconds } from "@/lib/dates";
+import { getDb } from "@/lib/server/db";
+import { checkInvoice, choices, cleanAmount, dueAt, myApprovedDistributor } from "@/lib/server/invoices";
 import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type InvoiceRow, type Pool, type Receipt, type Shop, type Totals } from "@/lib/types";
 
 // ---------- reads ----------
@@ -70,11 +72,12 @@ export async function getShop(shopId: string): Promise<Shop | null> {
 }
 
 export async function getDrivers(): Promise<Driver[]> {
-  const drivers = (await getDirectory()).ofKind("driver");
+  const drivers = (await getDirectory()).ofKind("driver").filter((driver) => driver.active !== false);
   return Promise.all(
     drivers.map(async (driver) => ({
       id: driver.id,
       name: driver.name,
+      distributorId: driver.distributorId,
       cashHeld: toDollars(await read(readClient().get_driver_cash({ driver: driver.address }))),
     })),
   );
@@ -274,6 +277,8 @@ const AMOUNT = /^\d+(\.\d{1,7})?$/;
  * CSV import (#32): checks every row first (shop and driver known, id not on
  * the contract yet), then creates them one at a time, signed by the
  * distributor. If one fails midway, says how many were created.
+ * A signed-in, approved distributor (#133) imports for their own shops and
+ * drivers; everyone else imports for the demo distributor.
  */
 export async function createInvoices(rows: InvoiceRow[]): Promise<Receipt> {
   if (rows.length === 0) return fail("No hay facturas para crear.");
@@ -281,15 +286,22 @@ export async function createInvoices(rows: InvoiceRow[]): Promise<Receipt> {
   let created = 0;
   let lastHash = "";
   try {
-    const directory = await getDirectory();
-    const distributor = directory.find("distributor", "distributor");
+    const own = getDb() ? await myApprovedDistributor() : null;
+    const mine = own ? await choices(own) : null;
+    const directory = mine?.directory ?? (await getDirectory());
+    const distributor = own ? { id: own.id, address: own.stellarAddress } : directory.find("distributor", "distributor");
     if (!distributor) return fail(FALLBACK_MESSAGE);
+    // Who the rows may name: a signed-in distributor's own shops and drivers, or,
+    // for everyone else, only the demo's (never a real shop billed by the demo distributor).
+    const demo = (kind: "shop" | "driver") => new Set(directory.ofKind(kind).filter((p) => isDemoParty(p.id)).map((p) => p.id));
+    const allowedShops = mine ? new Set(mine.shops.map((s) => s.id)) : demo("shop");
+    const allowedDrivers = mine ? new Set(mine.drivers.map((d) => d.id)) : demo("driver");
     // Check everything before sending anything: the rows come from the browser.
     const ids = new Set<number>();
     for (const [index, row] of rows.entries()) {
       const line = `Fila ${index + 1}`;
-      if (!directory.find(row.shopId, "shop")) return fail(`${line}: tienda desconocida.`);
-      if (!directory.find(row.driverId, "driver")) return fail(`${line}: motorista desconocido.`);
+      if (!directory.find(row.shopId, "shop") || !allowedShops.has(row.shopId)) return fail(`${line}: tienda desconocida.`);
+      if (!directory.find(row.driverId, "driver") || !allowedDrivers.has(row.driverId)) return fail(`${line}: motorista desconocido.`);
       if (!Number.isSafeInteger(row.invoiceId) || row.invoiceId <= 0) return fail(`${line}: número de factura inválido.`);
       if (ids.has(row.invoiceId)) return fail(`${line}: la factura ${row.invoiceId} está repetida.`);
       ids.add(row.invoiceId);
@@ -297,9 +309,13 @@ export async function createInvoices(rows: InvoiceRow[]): Promise<Receipt> {
       if (!AMOUNT.test(amount) || toUnits(amount) <= 0n) return fail(`${line}: monto inválido.`);
       try {
         toUnixSeconds(row.dueDate);
+        if (own && dueAt(row.dueDate) === null) throw new Error("fecha");
       } catch {
         return fail(`${line}: fecha inválida.`);
       }
+      // Every row follows the form's rules: cents only, up to $10,000, not due in the past.
+      const problem = checkInvoice({ ...row, amount }, allowedShops, allowedDrivers);
+      if (problem) return fail(`${line}: ${problem}`);
     }
     for (const [index, row] of rows.entries()) {
       if (await chainInvoice(row.invoiceId)) return fail(`Fila ${index + 1}: la factura ${row.invoiceId} ya existe.`);
@@ -311,8 +327,8 @@ export async function createInvoices(rows: InvoiceRow[]): Promise<Receipt> {
           id: BigInt(row.invoiceId),
           shop: directory.find(row.shopId, "shop")!.address,
           driver: directory.find(row.driverId, "driver")!.address,
-          amount: toUnits(String(row.amount).trim()),
-          due: BigInt(toUnixSeconds(row.dueDate)),
+          amount: toUnits(cleanAmount(String(row.amount))!),
+          due: BigInt(own ? dueAt(row.dueDate)! : toUnixSeconds(row.dueDate)),
         }),
       );
       created += 1;
@@ -328,10 +344,11 @@ export async function createInvoices(rows: InvoiceRow[]): Promise<Receipt> {
 }
 
 /** A new invoice from the approved distributor. Throws a Spanish message if it can't. */
-export async function createDemoInvoice(shopId?: string): Promise<Invoice> {
+/** A demo invoice for one of the demo shops (the trifold's /demo and the demo dashboard). */
+export async function createDemoInvoice(): Promise<Invoice> {
   const directory = await getDirectory();
   const distributor = directory.find("distributor", "distributor");
-  if (!distributor || (shopId !== undefined && !directory.find(shopId, "shop"))) throw new Error("Tienda desconocida.");
+  if (!distributor) throw new Error("Tienda desconocida.");
   let skip = 0n; // ids found taken by someone else (code 1, AlreadyExists)
   for (let attempt = 0; attempt < DEMO_TRIES; attempt++) {
     let id = 0n;
@@ -340,7 +357,7 @@ export async function createDemoInvoice(shopId?: string): Promise<Invoice> {
         // Picked inside the distributor's queue so two taps never pick the same id.
         const list = await read(readClient().list_invoices());
         id = list.reduce((max, i) => (i.id > max ? i.id : max), 1000n) + 1n + skip;
-        const shop = shopId ?? DEMO_SHOPS[Number(id % 3n)];
+        const shop = DEMO_SHOPS[Number(id % 3n)];
         // A few random seconds so two server instances never build the very same
         // transaction: identical ones share a hash, and both judges would get one invoice.
         const jitter = BigInt(Math.floor(Math.random() * 600));
