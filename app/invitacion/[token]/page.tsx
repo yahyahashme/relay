@@ -1,5 +1,7 @@
 import { Suspense } from "react";
-import { Loading, Screen } from "@/components/ui";
+import { Brand } from "@/components/auth";
+import { Slip } from "@/components/kit/layout";
+import { Loading } from "@/components/kit/states";
 import InviteScreen from "./invite-screen";
 
 // The token is only known when the page is opened, so the screen waits inside
@@ -8,9 +10,10 @@ export default function Page() {
   return (
     <Suspense
       fallback={
-        <Screen>
+        <Slip>
+          <Brand />
           <Loading />
-        </Screen>
+        </Slip>
       }
     >
       <InviteScreen />
