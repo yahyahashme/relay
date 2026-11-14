@@ -6,7 +6,7 @@ import { type MouseEvent, type ReactNode, useEffect, useRef, useState } from "re
 import { ActionLink, ActionList, ActionRow, Button, Held } from "@/components/kit/button";
 import { Split, TopNav } from "@/components/kit/layout";
 import { Manifest, ManifestRow, StopSlip } from "@/components/kit/manifest";
-import { Money, MoneyText } from "@/components/kit/money";
+import { Money, MoneyText, moneyWidth } from "@/components/kit/money";
 import { Paper, ReceiptLine, ReceiptLines, ReceiptRule } from "@/components/kit/paper";
 import { Stamp, type StampTone } from "@/components/kit/stamp";
 import { Empty, Failure, Loading } from "@/components/kit/states";
@@ -243,6 +243,7 @@ export default function RouteScreen() {
         name={stop.name}
         detail={`${invoiceWord} ${invoice.id}`}
         amount={<Money value={amount} />}
+        amountChars={moneyWidth(amount)}
         stamp={
           mark && (
             <Stamp small tone={mark.tone}>
@@ -253,7 +254,7 @@ export default function RouteScreen() {
         label={pinned ? t("Siguiente parada", "Next stop") : undefined}
         href={hrefFor(invoice.id)}
         onOpen={(event) => openStop(event, invoice.id)}
-        openLabel={`${t("Abrir parada", "Open stop")} ${stop.number}: ${stop.name}, ${formatAmount(amount)}, ${invoiceWord.toLowerCase()} ${invoice.id}${mark ? `, ${mark.text.toLowerCase()}` : ""}`}
+        openLabel={`${pinned ? `${t("Siguiente parada", "Next stop")}. ` : ""}${t("Abrir parada", "Open stop")} ${stop.number}: ${stop.name}, ${formatAmount(amount)}, ${invoiceWord.toLowerCase()} ${invoice.id}${mark ? `, ${mark.text.toLowerCase()}` : ""}`}
         next={pinned}
         done={stop.paid}
         current={shownId === invoice.id}
@@ -288,9 +289,9 @@ export default function RouteScreen() {
       ) : next ? (
         <Manifest label={t("Paradas por cobrar", "Stops to collect")}>{pending.map((stop, index) => row(stop, index === 0))}</Manifest>
       ) : (
-        <Paper className="flex min-h-24 items-center justify-between gap-3 px-4 py-4">
-          <p className="text-lead text-balance">{t("No queda nada por cobrar.", "Nothing left to collect.")}</p>
-          <Stamp tone="ok" className="mr-1 shrink-0">
+        <Paper className="flex min-h-24 flex-wrap items-center justify-between gap-x-4 gap-y-3 px-4 py-4">
+          <p className="text-lead">{t("No queda nada por cobrar.", "Nothing left to collect.")}</p>
+          <Stamp tone="ok" className="mr-2 ml-auto">
             {t("Ruta completa", "Route complete")}
           </Stamp>
         </Paper>
@@ -332,17 +333,13 @@ export default function RouteScreen() {
             name={shown.name}
             headRef={head}
             value={shown.paid ? invoice.amount : shown.left}
-            detail={
-              <>
-                <p className="uppercase tracking-[0.04em]">
-                  {invoiceWord} {invoice.id}
-                </p>
-                {invoice.status === "part_paid" && (
-                  <p>
-                    {t("Pagado", "Paid")} <Money value={invoice.paid} /> {t("de", "of")} <Money value={invoice.amount} />
-                  </p>
-                )}
-              </>
+            detail={`${invoiceWord} ${invoice.id}`}
+            valueNote={
+              invoice.status === "part_paid" && (
+                <>
+                  {t("resto de", "rest of")} <Money value={invoice.amount} />
+                </>
+              )
             }
             code={
               <QRCodeSVG
@@ -392,7 +389,7 @@ export default function RouteScreen() {
         <div data-cash className="flex flex-col">
           {shown.paid ? (
             <Held size="lg" hint={t("No queda nada por cobrar", "Nothing left to collect")}>
-              {t("Parada pagada", "Stop paid")}
+              {t("Parada completa", "Stop complete")}
             </Held>
           ) : claim !== undefined ? (
             <Held
@@ -476,18 +473,21 @@ export default function RouteScreen() {
   }
 
   // In the row that is always there, so news never pushes a button down. Sideways the slip has no line
-  // under its code, so what went wrong with "Recibí efectivo" is said here too.
-  const NEWS = "max-w-[60%] text-right text-label leading-tight font-semibold text-bad text-balance";
-  const news = failed ? (
-    <p role="alert" className={NEWS}>
-      {t("No se pudo cargar. Reintentando...", "Couldn't load. Trying again...")}
-    </p>
-  ) : (
-    failure && (
-      <p role="alert" className={`hidden sideways:block ${NEWS}`}>
-        <MoneyText>{failure}</MoneyText>
-      </p>
-    )
+  // under its code, so what went wrong with "Recibí efectivo" is said here, ahead of a refresh that failed.
+  const NEWS = "min-w-0 flex-1 text-right text-label leading-tight font-semibold text-bad text-balance";
+  const news = (
+    <>
+      {failed && (
+        <p role="alert" className={`${NEWS} ${failure ? "sideways:hidden" : ""}`}>
+          {t("No se pudo cargar. Reintentando...", "Couldn't load. Trying again...")}
+        </p>
+      )}
+      {failure && (
+        <p role="alert" className={`hidden sideways:block ${NEWS}`}>
+          <MoneyText>{failure}</MoneyText>
+        </p>
+      )}
+    </>
   );
   const home = (
     <TopNav size="lg" back="/" backLabel={t("Inicio", "Home")}>

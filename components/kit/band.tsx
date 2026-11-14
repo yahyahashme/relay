@@ -12,7 +12,7 @@ export function LangSwitch() {
       aria-pressed={lang === value}
       aria-label={name}
       lang={value}
-      className={`relative min-h-(--band-h) min-w-11 px-2 text-label font-bold tracking-[0.08em] before:absolute before:inset-x-0 before:-bottom-2 before:top-0 gloves:min-w-14 gloves:before:-bottom-5 ${
+      className={`relative min-h-(--band-h) min-w-11 px-2 text-label font-bold tracking-[0.08em] before:absolute before:inset-x-0 before:-bottom-2 before:top-0 gloves:min-w-[56px] gloves:before:-bottom-5 ${
         lang === value ? "text-ink" : "text-brand underline decoration-2 underline-offset-4"
       }`}
     >

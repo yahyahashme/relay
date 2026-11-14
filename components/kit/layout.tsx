@@ -63,7 +63,7 @@ export function TopNav({
   return (
     <nav className={`flex items-center justify-between gap-3 ${height}`}>
       {back ? (
-        <Link href={back} onClick={onBack} prefetch={onBack ? false : undefined} className={`-ml-1.5 inline-flex items-center gap-0.5 pr-2 text-[1.0625rem] font-bold text-brand ${height}`}>
+        <Link href={back} onClick={onBack} prefetch={onBack ? false : undefined} className={`-ml-1.5 inline-flex shrink-0 items-center gap-0.5 pr-2 text-[1.0625rem] font-bold text-brand ${height}`}>
           <ChevronBack />
           {backLabel}
         </Link>
