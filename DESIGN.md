@@ -14,7 +14,7 @@ Shop owners in El Salvador already run credit on paper: the cuaderno de fiado, t
 
 - Anything you read (amounts, dates, names, history, status) sits on paper: warm off-white, hairline rules, near-square corners, no shadow. Depth comes from paper lying on the darker counter.
 - Anything you tap is a filled blue control (the main action) or a clear outlined row (everything else). Nothing on paper responds to a tap except a "Ver detalles" text link and the "Ver productos" fold.
-- Status is a rubber stamp, never a pill: PAGADA, CONFIRMADO, EN CRÉDITO, VENCE PRONTO, VENCIDA (and, off the invoice, a few of the same kind: CREADA on a new invoice, APROBADA, HECHO). Uppercase, tilted 4° to 6°, double border, worn ink. In a dense table it is a small upright mark. Always words plus colour.
+- Status is a calm pill (Nov 14, replaced the tilted rubber stamp, which read as a sticker on someone's money): Pagada, Confirmado, En crédito, Vence pronto, Vencida (and a few of the same kind: Creada, Aprobada, Hecho). A rounded tint, a small dot and the word in its status colour, upright, normal case. The component is still called `Stamp`. Always words plus colour.
 - If it looks like paper, it isn't a button.
 
 ## Type
@@ -33,7 +33,7 @@ Light theme only. Tokens live in `@theme` in `app/globals.css`.
 |---|---|---|
 | `counter` | `#e6e1d4` | page background |
 | `paper` | `#fffdf8` | receipts, ledger, manifest (never pure white) |
-| `paper-rule` | `#d9d3c4` | hairlines and dotted rules on paper |
+| `paper-rule` | `#d9d3c4` | hairlines on paper |
 | `counter-rule` | `#c4c2ba` | hairlines on the counter |
 | `ink` | `#14202e` | amounts and main text (16.2:1 on paper) |
 | `muted` | `#4f5a68` | secondary text (6.9:1 on paper, 5.4:1 on counter) |
@@ -44,7 +44,17 @@ Each status colour has a `-tint` for stamp fills only. No gradients, glass, blur
 
 ## Shape
 
-2 px corners on paper, 10 px on controls. A receipt is torn top and bottom (zig-zag drawn in CSS), its lines use dotted leaders, and its total sits under a double rule. A ledger has 1 px row rules, vertical rules beside its money columns, and a double rule above totals. No illustrations, emoji or decorative icons; the only drawn marks are chevrons.
+12 px corners on paper, 14 px on account cards, 10 px on controls. Since Nov 14 nothing looks like a torn till receipt: no zig-zag edges, no dotted leaders, no double rules, no capital letter-spaced labels. Labels are sentence case in sans; only amounts, dates in figures and codes are mono. A ledger has 1 px row rules and vertical rules beside its money columns. No illustrations, emoji or decorative icons; the only drawn marks are chevrons.
+
+## Account screens (Nov 14)
+
+Yahya asked for Mi cuenta to look like a real account (clean, like a bank app), not a receipt. Account screens use `components/kit/account.tsx`:
+
+- One white **card** (14 px corners) holds the account: initials, name, what is owed in large mono figures, available credit with a bar, balance and score. No dotted leaders, no torn edge.
+- Round blue **shortcuts** under it (Agregar, Retirar, Historial).
+- A list of places to go is **one card of rows** split by hairlines: a small round icon, a title, a line under it, a blue chevron. Here a white row with a chevron is tappable; that is the one exception to "if it looks like paper, it isn't a button".
+- Small line icons are allowed on these rows and shortcuts only. Amounts stay in mono; status stays a stamp (the small upright one on the card).
+- The invoice slip, the route sheet and the ledger keep the receipt and ledger look.
 
 ## Components (`components/kit/`)
 

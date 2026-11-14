@@ -63,7 +63,7 @@ export default function SharedScreen() {
     <SharedFrame
       aside={
         <>
-          <h2 className="text-label font-bold uppercase tracking-[0.12em]">{t("Sobre este historial", "About this record")}</h2>
+          <h2 className="text-label font-bold">{t("Sobre este historial", "About this record")}</h2>
           <p className="text-pretty">{t(`${shop.name} lo compartió con usted. Nadie más lo recibe sin su permiso.`, `${shop.name} shared it with you. No one else gets it without the shop's permission.`)}</p>
           <p className="text-muted text-pretty">
             {t(
@@ -85,7 +85,7 @@ export default function SharedScreen() {
           <ReceiptLine label={t("Válido hasta", "Valid until")}>{lastDay}</ReceiptLine>
         </ReceiptLines>
         <ReceiptRule />
-        <h2 className="text-label font-bold uppercase tracking-[0.12em]">{t("Puntaje Relay", "Relay score")}</h2>
+        <h2 className="text-label font-bold">{t("Puntaje Relay", "Relay score")}</h2>
         <ScoreFacts score={score} tips={false} />
         <ReceiptRule />
         <ReceiptLines>
@@ -101,7 +101,7 @@ export default function SharedScreen() {
           <ReceiptLine label={t("Pagos registrados", "Payments on record")}>{payments.length}</ReceiptLine>
         </ReceiptLines>
         <ReceiptRule double />
-        <p className="text-center font-mono text-label font-medium uppercase tracking-[0.04em] text-muted">{t("Solo lectura · fin del historial", "Read only · end of record")}</p>
+        <p className="text-center text-label text-muted">{t("Solo lectura · fin del historial", "Read only · end of record")}</p>
       </Receipt>
     </SharedFrame>
   );

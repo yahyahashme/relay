@@ -211,7 +211,7 @@ export function ShopSignUp({
       <Form onSubmit={security} error={error}>
         <FormHead step={stepOf} at={step} title={t("Seguridad", "Security")} />
         <Paper className="flex flex-col gap-1.5 px-4 py-4">
-          <p className="text-label font-semibold uppercase tracking-[0.1em] text-muted">{t("Así funcionará · todavía no está activo", "How it will work · not active yet")}</p>
+          <p className="text-label font-semibold text-muted">{t("Así funcionará · todavía no está activo", "How it will work · not active yet")}</p>
           <p className="text-lead font-bold">{t("Usar huella", "Use your fingerprint")}</p>
           <p className="text-muted text-pretty">
             {t(

@@ -14,14 +14,13 @@ const TONE: Record<StampTone, string> = {
 };
 
 /**
- * Status is a rubber stamp, never a pill: PAGADA, CONFIRMADO, EN CRÉDITO, VENCE PRONTO, VENCIDA.
- * Always words plus colour. The large form is tilted and worn; `small` is the upright mark for dense tables.
+ * A status label: Pagada, Confirmado, En crédito, Vence pronto, Vencida. A soft tinted pill with a dot,
+ * always words plus colour (globals.css, .stamp). It was a tilted rubber stamp until Nov 14; the name stayed.
+ * `small` is for dense tables.
  *
- * `fresh` plays the landing once (and a short buzz where the phone allows it): the product's one moment
- * of delight, for a payment that just completed. `onLanded` lets the screen make sure it never replays.
- *
- * `fit` is for a long word on a narrow slip ("NO APROBADA" on a folded phone with large text): give it
- * the number of letters and the large stamp shrinks to its paper instead of running off the screen.
+ * `fresh` plays a short fade once (and a short buzz where the phone allows it), for a payment that just
+ * completed. `onLanded` lets the screen make sure it never replays. `tilt` and `fit` are kept so old
+ * callers still compile; they no longer change anything.
  */
 export function Stamp({
   children,
@@ -52,14 +51,10 @@ export function Stamp({
       // no vibration on this phone
     }
   }, [fresh]);
-  // A wide letter with its spacing takes 0.78em; the frame, its padding and the tilt add 2.2em.
-  const size = fit === undefined || small ? undefined : `min(1.375rem, calc(100cqi / ${(fit * 0.78 + 2.2).toFixed(1)}))`;
+  void tilt;
+  void fit;
   return (
-    <span
-      onAnimationEnd={onLanded}
-      style={{ ...(tilt === undefined ? null : { "--stamp-tilt": `${tilt}deg` }), ...(size ? { fontSize: size } : null) } as React.CSSProperties}
-      className={`stamp ${TONE[tone]} ${small ? "stamp-small text-label" : "text-[1.375rem]"} ${fresh ? "stamp-land" : ""} ${className}`}
-    >
+    <span onAnimationEnd={onLanded} className={`stamp ${TONE[tone]} ${small ? "stamp-small text-label" : "text-base"} ${fresh ? "stamp-land" : ""} ${className}`}>
       {children}
     </span>
   );

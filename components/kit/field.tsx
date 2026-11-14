@@ -97,7 +97,7 @@ export function FilterSelect({ label, children, ...select }: { label: ReactNode 
   const id = useId();
   return (
     <div className="flex min-w-30 flex-1 flex-col gap-1 @min-[40rem]:flex-none @min-[40rem]:flex-row @min-[40rem]:items-center @min-[40rem]:gap-2">
-      <label htmlFor={id} className="text-label font-semibold uppercase tracking-[0.08em] text-muted">
+      <label htmlFor={id} className="text-label font-semibold text-muted">
         {label}
       </label>
       <select

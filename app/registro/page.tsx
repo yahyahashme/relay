@@ -31,7 +31,7 @@ export default function SignUp() {
       </section>
 
       <Paper className="flex flex-col gap-1.5 px-4 py-4">
-        <h2 className="text-label font-bold uppercase tracking-[0.12em]">
+        <h2 className="text-label font-bold">
           <T es="Motorista" en="Driver" />
         </h2>
         <p>
