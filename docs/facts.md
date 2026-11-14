@@ -478,6 +478,7 @@ _Entries 29 to 35 come from this repo, not from a web page. Claude first read th
   - Demo parameters; they are guesses to test in interviews (#7), not real repayment data.
   - The contract has no default start limit; the $200 is set shop by shop at deploy. A limit the admin sets above $500 is left alone. Since #134, a shop that signs up gets $200 from the server (`set_terms`). Starting at the lower of $200 and one average delivery is a later step, not built (`docs/credit-model.md` section 3).
   - The limit is our own credit record. It is not a bureau score (entry 15).
+  - Update Nov 13 (#137): the app now also shows a Relay score (0-100, `lib/credit.ts`) with a label and its top reasons: 50% on-time record weighted by amount and recency, 20% use of the limit, 20% length of history, 10% suppliers on Relay. The weights follow the shape of FICO (payment history 35%, amounts owed 30%) and D&B PAYDEX (days past terms); they are our design, not a sourced fact. Still not a bureau score: the shop shares it only through its own link.
 - **Checked:** Claude, 11 Nov 2026 (`repay` and the constants read at dfdc33c). Re-checked Claude, 13 Nov 2026, against `origin/main` at 044f987: opened lines 32, 34, 37, 120, 542, 568 to 571, 635, 668 to 689 of `lib.rs` and lines 7, 17, 18, 113 and 115 of `deploy.sh`; each shows what is written above. $25 = 250,000,000 units, $500 = 5,000,000,000, $40 = 400,000,000 (7 decimals).
 
 ## 32. When a shop never pays
@@ -856,6 +857,7 @@ Opened by Rohan on 12 Nov to fill gaps in context §5, §6, §9 and §11: what c
   - 0.25% (option 2): 0.25% per week; 13.1% simple; 13.9% compounded
   - 2/10 net 30 (entry 52): 37.2% on a 365-day year
   - Lenders' $0.50 per $100 per week (context §5): about 26% simple, if always lent out
+  - Option 2 (0.25%) is a plan idea, not in the contract (one fee, `CREDIT_FEE_BPS = 150`); its numbers are here only for Q&A
 - **Source:** our maths. Rate per week = fee ÷ (100 − fee). Simple = weekly rate × 365 ÷ 7. Compounded = (1 + weekly rate) ^ (365 ÷ 7) − 1. Run with Python on 12 Nov 2026.
 - **Exact quote:** n/a
 - **Translation:** n/a

@@ -164,6 +164,12 @@ const RULES: Rule[] = [
 
   // A CSV row with one of the form's messages (#149): the specific "Fila N: ..." rules above win.
   pattern(String.raw`Fila ${NUM}: (.+)`, (_, row, rest) => `Row ${row}: ${translateMessage(rest)}`),
+
+  // Mi cuenta → Datos (#127)
+  exact("Datos guardados.", "Details saved."),
+  exact("Escriba el nombre de la tienda.", "Type the shop's name."),
+  exact("Revise el teléfono.", "Check the phone number."),
+  exact("Revise el DUI (9 números).", "Check the DUI (9 digits)."),
 ];
 
 /**

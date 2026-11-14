@@ -12,7 +12,7 @@ import * as shops from "@/app/shop-actions";
 import * as invoices from "@/app/invoice-actions";
 import type { DistributorView } from "@/app/distributor-actions";
 import * as mock from "./mock";
-import type { Driver, Invoice, InvoiceHistory, InvoiceRow, Pool, Receipt, Shop, Totals } from "./types";
+import type { Driver, Invoice, InvoiceHistory, InvoiceRow, Pool, Profile, Receipt, Shop, ShopHistory, Supplier, Totals } from "./types";
 
 export const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS !== "false";
 
@@ -65,6 +65,18 @@ export const getRouteInvites = (driverId: string, shopIds: string[]) =>
   read(() => ({ distributorName: "", codes: {} as Record<string, string> }), () => shops.getRouteInvites(driverId, shopIds));
 /** Everything ever paid, by method, for the dashboard's totals. */
 export const getTotals = (): Promise<Totals> => read(mock.getTotals, live.getTotals);
+/** Every payment the shop made, and what it still owes, newest first (#136). */
+export const getShopHistory = (shopId: string): Promise<ShopHistory | null> =>
+  read(() => mock.getShopHistory(shopId), () => live.getShopHistory(shopId));
+/** The shop's dollars digitales on hand. */
+export const getBalance = (shopId: string): Promise<number | null> =>
+  read(() => mock.getBalance(shopId), () => live.getBalance(shopId));
+export const getSuppliers = (shopId: string): Promise<Supplier[]> =>
+  read(() => mock.getSuppliers(shopId), () => live.getSuppliers(shopId));
+// The shop's details aren't on chain. Until accounts (#129) they stay with the demo data in both modes.
+export const getProfile = (shopId: string): Promise<Profile | null> => read(() => mock.getProfile(shopId), async () => mock.getProfile(shopId));
+export const saveProfile = (shopId: string, profile: Profile) =>
+  write(() => mock.saveProfile(shopId, profile), async () => mock.saveProfile(shopId, profile));
 export const createDemoInvoice = (shopId?: string): Promise<Invoice> =>
   read(() => mock.createDemoInvoice(shopId), () => live.createDemoInvoice());
 

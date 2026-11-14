@@ -46,5 +46,6 @@ export function toShop(party: Party, v: ShopView): Shop {
     late: v.late,
   };
   if (v.owed > 0n && v.due_at > 0n) shop.creditDue = iso(v.due_at);
+  if (v.written_off > 0n) shop.writtenOff = toDollars(v.written_off);
   return shop;
 }
