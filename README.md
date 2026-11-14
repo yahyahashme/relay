@@ -1,4 +1,9 @@
-# Relay
+<h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="public/brand/relay-logo-white.svg">
+    <img src="public/brand/relay-logo.svg" alt="Relay" height="56">
+  </picture>
+</h1>
 
 *Paga tu ruta*
 

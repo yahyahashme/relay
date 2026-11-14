@@ -35,7 +35,8 @@ type Variant = "primary" | "secondary";
 const BUTTON =
   "flex min-h-14 w-full flex-col items-center justify-center rounded-xl px-5 py-2 text-center text-lg font-semibold transition-[background-color,scale] duration-150 ease-snap active:scale-[0.97] disabled:cursor-not-allowed disabled:active:scale-100";
 const VARIANT: Record<Variant, string> = {
-  primary: "bg-brand text-white active:bg-brand-dark disabled:bg-line disabled:text-muted aria-busy:disabled:bg-brand-dark aria-busy:disabled:text-white",
+  primary:
+    "bg-brand text-white active:bg-brand-dark disabled:bg-line disabled:text-muted aria-busy:disabled:bg-brand-dark aria-busy:disabled:text-white data-arriving:disabled:bg-brand data-arriving:disabled:text-white",
   secondary: "border-2 border-brand bg-card text-brand active:bg-brand-soft disabled:border-line disabled:text-muted aria-busy:disabled:border-brand aria-busy:disabled:text-brand",
 };
 
@@ -45,6 +46,7 @@ export function Button({
   onClick,
   disabled = false,
   busy = false,
+  arriving = false,
   variant = "primary",
 }: {
   children: ReactNode;
@@ -52,10 +54,19 @@ export function Button({
   onClick: () => void;
   disabled?: boolean;
   busy?: boolean;
+  /** Just came on screen: fades in and can't be tapped yet (see useQuietOnArrival). */
+  arriving?: boolean;
   variant?: Variant;
 }) {
   return (
-    <button type="button" onClick={onClick} disabled={disabled || busy} aria-busy={busy} className={`${BUTTON} ${VARIANT[variant]}`}>
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled || busy || arriving}
+      aria-busy={busy}
+      data-arriving={arriving || undefined}
+      className={`${BUTTON} ${VARIANT[variant]} ${arriving ? "arrive" : ""}`}
+    >
       <span className={busy ? "animate-pulse" : undefined}>{busy ? "Procesando..." : children}</span>
       {hint && <span className="text-sm font-normal opacity-85">{hint}</span>}
     </button>
