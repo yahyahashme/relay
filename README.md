@@ -17,8 +17,8 @@ Three screens (a website that works like a phone app): the **shop** pays an invo
 
 - **Pagar ahora:** the shop pays in digital dollars (USDC on Stellar) through our contract, straight to the distributor.
 - **Cash in two taps:** the driver taps "Recibí efectivo", the shop taps "Confirmo". It's recorded on-chain as cash the driver holds for the distributor; no tokens move.
-- **Pagar en 7 días:** a lender pool pays the distributor now, minus a 1.5% fee the distributor pays (0.75% safety buffer, 0.50% lenders, 0.25% us). The shop repays within 7 days, with no interest.
-- **Credit record:** a shop's limit starts at $200 and grows $25 per on-time repayment (cycles of $40+, at most once a week) up to $500; late repayments are recorded and lower it.
+- **Pagar en 7 días:** a lender pool pays the distributor now, minus a fee the distributor pays: 1.5% when the whole invoice goes on credit, sliding down to 1.0% the more the shop paid up front (half paid first: 1.22%). Lenders always get 0.50%; the rest splits 3:1 between a safety buffer and us (0.75% / 0.25% at 1.5%). The shop repays within 7 days, with no interest.
+- **Credit record:** a shop's limit starts at $200 and grows $25 per on-time repayment (cycles of $40+, or any size if the shop paid at least half of each credited invoice up front; at most once a week) up to $500. Lateness is graded by days past due: 1 day is a grace day, 2-7 days late lowers the limit $25, 8+ days lowers it $50 and stops raises for 4 weeks, and about 4 weeks late is a default. The record keeps on-time and late counts by band, the most days late, and the date of first credit.
 - **Fees:** distributors pay a 0.1% usage fee on digital and cash payments (for cash it's recorded and billed later). Shops never pay fees.
 - **Network fee sponsorship:** every transaction goes out inside a fee bump paid by our sponsor account (`lib/stellar/sponsor.ts`, used by `lib/stellar/send.ts`), so shops, drivers and the distributor never hold or spend XLM for fees.
 
@@ -27,11 +27,11 @@ Three screens (a website that works like a phone app): the **shop** pays an invo
 <!-- contract-ids:start -->
 ## Contract IDs
 
-Stellar testnet, deployed 2026-11-12 by `scripts/deploy.sh`.
+Stellar testnet, deployed 2026-11-13 by `scripts/deploy.sh`.
 
 | What | ID | Explorer |
 |---|---|---|
-| `route_ledger` contract | `CDHDZX7VVOPY7TNKA744EQP24BPO5MJIZQOGJGYNGA7N7ZIZWQBQMYUR` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CDHDZX7VVOPY7TNKA744EQP24BPO5MJIZQOGJGYNGA7N7ZIZWQBQMYUR) |
+| `route_ledger` contract | `CAGCZ3I7CQHZDELPV5OB2W4D4LHA7MPSOBP4NO2AV4JO2G6HED7HV4ML` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CAGCZ3I7CQHZDELPV5OB2W4D4LHA7MPSOBP4NO2AV4JO2G6HED7HV4ML) |
 | Test USDC token | `CANWPJKTWATAQKWD4VNDRMPHHWONWJ5IMCIJ2OTJNYFZ5IDQWX2E2NUP` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CANWPJKTWATAQKWD4VNDRMPHHWONWJ5IMCIJ2OTJNYFZ5IDQWX2E2NUP) |
 
 Test USDC is our own, issued by `tiendas-issuer`, not Circle's.

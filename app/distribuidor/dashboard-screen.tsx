@@ -14,7 +14,7 @@ import { createDemoInvoice, getDistributorView, handInCash } from "@/lib/api";
 import { DEMO_PHONES } from "@/lib/demo-contacts";
 import { formatDay, plural } from "@/lib/format";
 import { useT } from "@/lib/i18n";
-import { creditPayout, invoiceStatus, leftToPay, methodLabel, STATUS_LABEL, type StatusTone } from "@/lib/labels";
+import { invoiceStatus, leftToPay, methodLabel, STATUS_LABEL, type StatusTone } from "@/lib/labels";
 import { toUnits } from "@/lib/money";
 import { dueWindow, invoiceMark, MARK } from "@/lib/stamps";
 import type { Driver, Invoice, Receipt, Shop } from "@/lib/types";
@@ -249,12 +249,14 @@ export default function DashboardScreen() {
       </Stamp>
     );
   };
+  // What the distributor paid for the part that went on credit (#135). Two tight lines, so the row keeps its height.
   const paidCell = (i: Invoice) =>
-    i.method === "credit" ? (
-      <span className="inline-flex flex-col items-end leading-[1.1]">
+    i.creditFee !== undefined ? (
+      <span className="inline-flex flex-col items-end leading-[1.1]" title={t("Comisión de crédito", "Credit fee")}>
         <Money value={i.paid} />
         <span className="font-sans text-[0.875rem]/[1.1] font-normal text-muted">
-          {t("recibió", "received")} <Money value={creditPayout(i.paid)} />
+          <span className="sr-only">{t("comisión de crédito", "credit fee")}</span>
+          <span aria-hidden>{t("comisión", "fee")}</span> <Money value={i.creditFee} />
         </span>
       </span>
     ) : (

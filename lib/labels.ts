@@ -41,15 +41,26 @@ export function leftToPay(invoice: Invoice): number {
   return Math.round((invoice.amount - invoice.paid) * 100) / 100;
 }
 
-const CREDIT_FEE_BPS = 150; // paid by the distributor: 0.75% buffer, 0.50% lenders, 0.25% us
+// The credit fee the distributor pays, the same math as the contract's credit_fee_bps (#135):
+// 1.50% when the whole invoice goes on credit, sliding to 1.00% when 10% or less does.
+export const CREDIT_FEE_BPS = 150;
+export const MIN_CREDIT_FEE_BPS = 100;
+
+/** The rate in bps when `credited` of an invoice of `total` goes on credit (any unit, integers). */
+export function creditFeeBps(credited: number, total: number): number {
+  if (total <= 0 || credited >= total) return CREDIT_FEE_BPS;
+  const tenfold = Math.min(Math.max(credited * 10, total), total * 10);
+  return MIN_CREDIT_FEE_BPS + Math.floor(((tenfold - total) * (CREDIT_FEE_BPS - MIN_CREDIT_FEE_BPS)) / (total * 9));
+}
 
 /**
- * What the distributor received for a credit payment of `amount` dollars:
- * amount - 1.5%, rounded down in 7-decimal units like the contract ($100 -> $98.50).
+ * The credit fee in dollars when `credited` dollars of an invoice of `total` go on credit,
+ * rounded down in 7-decimal units like the contract ($100 of $100 -> $1.50, $50 of $100 -> $0.61).
  */
-export function creditPayout(amount: number): number {
-  const units = Math.round(amount * 100) * 100_000;
-  return (units - Math.floor((units * CREDIT_FEE_BPS) / 10_000)) / 10_000_000;
+export function creditFee(credited: number, total: number): number {
+  const units = Math.round(credited * 100) * 100_000;
+  const rate = creditFeeBps(Math.round(credited * 100), Math.round(total * 100));
+  return Math.floor((units * rate) / 10_000) / 10_000_000;
 }
 
 /** "12,50" or "12.5" -> 12.5; null if it isn't a positive amount with at most 2 decimals. */
