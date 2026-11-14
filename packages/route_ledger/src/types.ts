@@ -329,6 +329,16 @@ export interface CashConfirmedEvent {
 }
 
 /**
+ * Event: LenderRevoked
+ */
+export interface LenderRevokedEvent {
+  name: "LenderRevoked";
+  data: {
+    lender: string;
+  };
+}
+
+/**
  * Event: DefaultCovered
  */
 export interface DefaultCoveredEvent {
@@ -439,6 +449,16 @@ export interface RecourseWithdrawnEvent {
 }
 
 /**
+ * Event: DistributorRevoked
+ */
+export interface DistributorRevokedEvent {
+  name: "DistributorRevoked";
+  data: {
+    distributor: string;
+  };
+}
+
+/**
  * Event: DistributorApproved
  */
 export interface DistributorApprovedEvent {
@@ -447,5 +467,5 @@ export interface DistributorApprovedEvent {
     distributor: string;
   };
 }
-    export type ContractEvent = RepaidEvent | VouchedEvent | TermsSetEvent | DepositedEvent | PaidLaterEvent | WithdrawnEvent | CashClaimedEvent | InvoicePaidEvent | BufferFundedEvent | CashHandedInEvent | CashConfirmedEvent | DefaultCoveredEvent | InvoiceCreatedEvent | LenderApprovedEvent | PaidWithCreditEvent | RecourseCalledEvent | OwnCreditOfferedEvent | RecourseDepositedEvent | RecourseWithdrawnEvent | DistributorApprovedEvent;
+    export type ContractEvent = RepaidEvent | VouchedEvent | TermsSetEvent | DepositedEvent | PaidLaterEvent | WithdrawnEvent | CashClaimedEvent | InvoicePaidEvent | BufferFundedEvent | CashHandedInEvent | CashConfirmedEvent | LenderRevokedEvent | DefaultCoveredEvent | InvoiceCreatedEvent | LenderApprovedEvent | PaidWithCreditEvent | RecourseCalledEvent | OwnCreditOfferedEvent | RecourseDepositedEvent | RecourseWithdrawnEvent | DistributorRevokedEvent | DistributorApprovedEvent;
     

@@ -198,6 +198,8 @@ pub struct Lender {
     pub shares: i128,
     /// Money put in minus money taken out, so earnings = value - net_deposited.
     pub net_deposited: i128,
+    /// Set by `revoke_lender` (#195): no new deposits, but it can always withdraw.
+    pub revoked: bool,
 }
 
 /// What a lender sees: its shares, what they are worth now, and what it put in.
@@ -402,6 +404,18 @@ pub struct LenderApproved {
 }
 
 #[contractevent]
+pub struct LenderRevoked {
+    #[topic]
+    pub lender: Address,
+}
+
+#[contractevent]
+pub struct DistributorRevoked {
+    #[topic]
+    pub distributor: Address,
+}
+
+#[contractevent]
 pub struct TermsSet {
     #[topic]
     pub shop: Address,
@@ -539,6 +553,19 @@ impl RouteLedger {
 
     pub fn is_distributor(env: Env, distributor: Address) -> bool {
         is_approved(&env, &distributor)
+    }
+
+    /// Admin only (#195): a distributor that lost its licence, invoiced fake
+    /// shops or lost its key can't create invoices, vouch, offer its own
+    /// credit, add to its deposit, or be paid from the pool any more. Shops
+    /// still pay and repay as before, and its recourse deposit stays behind
+    /// the shops it vouched for until they are settled.
+    pub fn revoke_distributor(env: Env, distributor: Address) {
+        load_config(&env).admin.require_auth();
+        env.storage()
+            .persistent()
+            .remove(&DataKey::Distributor(distributor.clone()));
+        DistributorRevoked { distributor }.publish(&env);
     }
 
     pub fn create_invoice(
@@ -781,13 +808,26 @@ impl RouteLedger {
     /// be anywhere, as long as they hold the pool's dollars on Stellar.
     pub fn approve_lender(env: Env, lender: Address) {
         load_config(&env).admin.require_auth();
-        let entry = load_lender(&env, &lender).unwrap_or_default();
+        let mut entry = load_lender(&env, &lender).unwrap_or_default();
+        entry.revoked = false;
         save_lender(&env, &lender, &entry);
         LenderApproved { lender }.publish(&env);
     }
 
+    /// Admin only (#195): a lender that lost its licence or failed a KYB
+    /// re-check can't put new money in. It keeps its shares and can always
+    /// withdraw them: we stop money coming in, never lock money out.
+    pub fn revoke_lender(env: Env, lender: Address) -> Result<(), Error> {
+        load_config(&env).admin.require_auth();
+        let mut entry = load_lender(&env, &lender).ok_or(Error::NotLender)?;
+        entry.revoked = true;
+        save_lender(&env, &lender, &entry);
+        LenderRevoked { lender }.publish(&env);
+        Ok(())
+    }
+
     pub fn is_lender(env: Env, lender: Address) -> bool {
-        load_lender(&env, &lender).is_some()
+        load_lender(&env, &lender).is_some_and(|entry| !entry.revoked)
     }
 
     /// An approved lender adds money to the pool that pays invoices on credit,
@@ -798,6 +838,9 @@ impl RouteLedger {
             return Err(Error::InvalidAmount);
         }
         let mut entry = load_lender(&env, &lender).ok_or(Error::NotLender)?;
+        if entry.revoked {
+            return Err(Error::NotLender);
+        }
         let mut pool = load_pool(&env);
         let value = pool.available + pool.lent;
         let shares = if pool.shares == 0 || value <= 0 {
@@ -872,7 +915,7 @@ impl RouteLedger {
             Some(entry) => {
                 let pool = load_pool(&env);
                 LenderView {
-                    approved: true,
+                    approved: !entry.revoked,
                     shares: entry.shares,
                     value: share_value(&pool, entry.shares).unwrap_or(0),
                     net_deposited: entry.net_deposited,
@@ -909,6 +952,10 @@ impl RouteLedger {
         // when it is most likely to be late (#194).
         if invoice.later {
             return Err(Error::OnPayLater);
+        }
+        // Pool money never goes to a distributor that was revoked (#195).
+        if !is_approved(&env, &invoice.distributor) {
+            return Err(Error::NotApproved);
         }
         let mut terms = load_shop(&env, &shop).ok_or(Error::NoCreditTerms)?;
         let now = env.ledger().timestamp();

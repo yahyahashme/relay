@@ -2658,3 +2658,82 @@ fn pay_later_checks_shop_and_pool_lateness() {
         Err(Ok(Error::AlreadyPaid))
     );
 }
+
+// ---------- #195: revoke a distributor or a lender ----------
+
+#[test]
+fn a_revoked_distributor_gets_no_new_invoices_or_pool_money() {
+    let t = setup();
+    t.with_credit();
+    t.invoice(1, 100 * USD);
+    t.invoice(2, 50 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    t.client.revoke_distributor(&t.distributor);
+    assert!(!t.client.is_distributor(&t.distributor));
+
+    let shop2 = Address::generate(&t.env);
+    assert_eq!(
+        t.client
+            .try_create_invoice(&t.distributor, &3, &shop2, &t.driver, &(10 * USD), &START),
+        Err(Ok(Error::NotApproved))
+    );
+    // An open invoice can't be paid from the pool any more...
+    assert_eq!(
+        t.client.try_pay_with_credit(&t.shop, &2),
+        Err(Ok(Error::NotApproved))
+    );
+    assert_eq!(
+        t.client
+            .try_offer_own_credit(&t.distributor, &t.shop, &true),
+        Err(Ok(Error::NotApproved))
+    );
+    // ...but the shop can still pay it, and repay what it owes the pool.
+    t.client.pay(&t.shop, &2, &(50 * USD));
+    t.client.repay(&t.shop, &(100 * USD));
+    assert_eq!(t.client.get_shop(&t.shop).owed, 0);
+    t.assert_pool_matches_balance();
+}
+
+#[test]
+fn a_revoked_lender_cannot_deposit_but_can_withdraw_everything() {
+    let t = setup();
+    t.client.deposit(&t.lender, &(1_000 * USD));
+    t.client.revoke_lender(&t.lender);
+    assert!(!t.client.is_lender(&t.lender));
+    let view = t.client.get_lender(&t.lender);
+    assert!(!view.approved);
+    assert_eq!(
+        t.client.try_deposit(&t.lender, &(10 * USD)),
+        Err(Ok(Error::NotLender))
+    );
+    let got = t.client.withdraw(&t.lender, &view.shares);
+    assert_eq!(got, 1_000 * USD);
+    assert_eq!(t.balance(&t.lender), 50_000 * USD);
+    // Approving it again lets it deposit again.
+    t.client.approve_lender(&t.lender);
+    assert!(t.client.is_lender(&t.lender));
+    t.client.deposit(&t.lender, &(10 * USD));
+    let stranger = Address::generate(&t.env);
+    assert_eq!(
+        t.client.try_revoke_lender(&stranger),
+        Err(Ok(Error::NotLender))
+    );
+}
+
+#[test]
+fn only_the_admin_can_revoke() {
+    let t = setup();
+    let stranger = Address::generate(&t.env);
+    t.only(
+        &stranger,
+        "revoke_distributor",
+        (t.distributor.clone(),).into_val(&t.env),
+    );
+    assert_not_signed!(t.client.try_revoke_distributor(&t.distributor));
+    t.only(
+        &stranger,
+        "revoke_lender",
+        (t.lender.clone(),).into_val(&t.env),
+    );
+    assert_not_signed!(t.client.try_revoke_lender(&t.lender));
+}

@@ -154,6 +154,7 @@ const RULES: Rule[] = [
   pattern(String.raw`Factura ${NUM} creada\.`, "Invoice $1 created."),
   pattern(String.raw`El número ${NUM} ya está usado\. Use otro\.`, "Number $1 is already used. Use another one."),
   exact("Su distribuidora todavía no está aprobada para crear facturas.", "Your distributor isn't approved to create invoices yet."),
+  exact("Esta distribuidora no está aprobada en Relay.", "This distributor isn't approved on Relay."),
   exact("Escriba un número de factura (solo números).", "Enter an invoice number (numbers only)."),
   exact("Elija una de sus tiendas.", "Choose one of your shops."),
   exact("Elija uno de sus motoristas.", "Choose one of your drivers."),

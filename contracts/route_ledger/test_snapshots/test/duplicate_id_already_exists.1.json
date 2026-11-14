@@ -487,6 +487,14 @@
                   },
                   {
                     "key": {
+                      "symbol": "revoked"
+                    },
+                    "val": {
+                      "bool": false
+                    }
+                  },
+                  {
+                    "key": {
                       "symbol": "shares"
                     },
                     "val": {
