@@ -373,7 +373,7 @@ A shop buys $100 of stock and picks "pay in 7 days".
 
 | Option | Who covers a shop that doesn't pay | Fee per $100, paid by the distributor | Split |
 |---|---|---|---|
-| 1. Pool covers | The lender pool | $1.50 | $0.75 buffer, $0.50 lenders, $0.25 us |
+| 1. Pool covers | The lender pool | $1.00 to $1.50 (less when the shop pays part up front, #135) | $0.50 lenders; the rest 3:1 buffer : us ($0.75 / $0.25 at $1.50) |
 | 2. Distributor covers ("with recourse") | The distributor | about $0.25 | $0.15 lenders (about 8% a year, close to the 7.6% average for loans under a year, facts 51), $0.10 us |
 | 3. Distributor's own money | The distributor | $0 | No credit fee; we earn only the usage fee |
 
@@ -535,6 +535,8 @@ The target is still a mid-size distributor with a few routes (§9). The big grou
 ### 8.2 Contract functions (spec for Jack)
 
 > Nov 9: Yahya now writes the contract and Jack reviews and tests it. The exact v1 to v3 spec (constructor, fee constants and math, error codes, tests) is in the contract issues and wins over this table. Changes: `init` became `__constructor(admin, token, treasury, credit_period_secs)`; fees are a 0.1% usage fee on every invoice plus 1.5% for credit (0.75 buffer, 0.50 lenders, 0.25 us); `set_terms(shop, limit)` has no option (options 2 and 3 are pitch-only); limits start at $200 and grow $25 per on-time repayment, up to $500.
+
+> Nov 13 (#135, #137, one redeploy): the credit fee slides with the share of the invoice on credit, f clamped to 0.10..1.00: rate = 100 + 50 × (f − 0.10) / 0.90 bps, rounded down (all on credit 1.50%, half 1.22%, a tenth or less 1.00%). Lenders always get 0.50%; the rest splits 3:1 buffer : us, the odd bps to the buffer (75/25 at 1.50%, 38/12 at 1.00%). Each invoice stores its `credit_fee`. If every invoice credited in a cycle had half or more paid up front, the $40 minimum to grow is waived (once a week and the $500 cap stay). `repay` grades lateness in days past `due_at` (a day = credit period / 7): ≤1 on time (grace day), 2-7 `late_minor` and −$25, 8+ `late_major`, −$50 and no raise for 4 periods; `cover_default` unchanged. `ShopView` adds `late_minor`, `late_major`, `max_days_late`, `first_credit_at`.
 
 > Nov 10 (review of #58): no usage fee on credit sales (payout $98.50 per $100). A limit only grows if the shop borrowed $40+ in that cycle, and at most once per credit period. A late repayment drops the limit $25. New functions: `approve_distributor(distributor)` and `is_distributor` (only approved distributors can create invoices, so pool money can't go to a fake one); `cover_default(shop)` (admin, once a shop is 4 credit periods late: the buffer repays the lenders what it can, the shop's limit goes to 0, the debt stays as `written_off`, and later repayments refill the buffer); `fund_buffer(from, amount)` (seeds the buffer; `deploy.sh` adds $50).
 

@@ -210,6 +210,12 @@ export default function InvoiceScreen() {
                 <span className="text-base text-muted">
                   {t("Falta", "Left to pay:")} {formatMoney(left)}
                 </span>
+                <span className="text-base text-muted">
+                  {t(
+                    "Si paga la mitad o más ahora, la comisión baja y su límite puede subir con solo $10 a crédito.",
+                    "If you pay half or more now, the fee is lower and your limit can grow with just $10 on credit.",
+                  )}
+                </span>
                 <input
                   inputMode="decimal"
                   autoComplete="off"
