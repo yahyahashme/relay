@@ -8,6 +8,8 @@ Written Wed Nov 11 from `docs/deck-outline.md`, `docs/pitch.md` (PR #83) and `do
 
 **Still open on Thu Nov 12:** PR #82 (the code-slide image), who pitches (the repo doesn't record it), "what users told us", and our ask. The name is decided: **Relay**, with *Paga tu ruta* under it (PR #100). The live app is https://relay-sv.vercel.app (the old tiendas-stellar.vercel.app redirects there, so show the new one). Everything else below is on `main`.
 
+**Update Fri Nov 13 night:** PR #82 is merged and #139 (the sliding fee) is merged with the new contract ID, so `docs/img/code-slide.png` was re-rendered after #139 and slide 5 is ready (see slide 5). Slide 6 now says "up to 1.5%" (line 2 is now about 21 words, over the limit of 12: the .pptx draft sets the bracket sentence small, and it can be cut if the slide reads as too much). Slide 3's phone screenshots (PR #119) predate #125 and #126 and need a retake before the deck is final (steps in `docs/deck-outline.md`).
+
 ## 1. Name and one-line pitch (10 s)
 
 **Headline:** Relay (tagline under it: *Paga tu ruta*)
@@ -64,15 +66,15 @@ Written Wed Nov 11 from `docs/deck-outline.md`, `docs/pitch.md` (PR #83) and `do
 2. Late payment, over the limit, empty pool: all refused.
 
 **Small print:** Abridged from `pay_with_credit` in `contracts/route_ledger/src/lib.rs`. The contract ID and its stellar.expert link are on the image.
-**Visual:** `docs/img/code-slide.png`. **Not ready on `main`:** it shows the old, stale contract ID (CAPQ6ZDD...), and its limit check (`terms.owed + amount > terms.limit`) is no longer the code in `lib.rs` after #66. PR #82 (open, not merged) re-renders it with the new ID (CDHDZX7V...) and the current code. The ID on the image must equal `contracts.routeLedger` in `config/testnet.json`. Re-render at the print size too if the slide is printed.
-**Waiting on:** PR #82 merged, then Yahya confirming this is the deployed code (the open line of #56).
+**Visual:** `docs/img/code-slide.png`. Ready on `main`: re-rendered Fri Nov 13 after #139 merged, so it shows the current contract ID (CAGCZ3I7...), equal to `contracts.routeLedger` in `config/testnet.json`, and the three blocks as they are now in `pay_with_credit`. `node docs/slides/render.mjs` reads both the ID and the code, so the script can't drift, but the PNG can: re-render it after any redeploy or any change to `pay_with_credit`. The old IDs (CAPQ6ZDD..., CDHDZX7V...) are gone from it. It shows no fee code, and its first callout ("No new credit while a payment is late") is still true: #139 changed what `repay` does about lateness, not the overdue check. Re-render at the print size too if the slide is printed (`SCALE=3 node docs/slides/render.mjs`).
+**Waiting on:** Yahya confirming the deployed contract is this code (the open line of #56).
 
 ## 6. Money in 30 seconds, and go-to-market (30 s)
 
 **Headline:** Distributors pay. Shops never do.
 
 1. Pay in 7 days: shop repays $100, distributor gets $98.50 now
-2. The distributor's 1.5% fee: $0.75 loss buffer, $0.50 lenders, $0.25 us.
+2. The distributor's fee, up to 1.5%: $0.75 loss buffer, $0.50 lenders, $0.25 us. (Less when the shop pays part up front.)
 3. Start with one distributor's routes, then Ecuador and Panama.
 
 **Small print:** Fees are the numbers in our testnet contract. Cash or digital invoices pay 0.1% (for cash it is recorded, but nothing collects it yet). Credit sales pay no usage fee. Ecuador and Panama also use the US dollar. A plan, not a deal: no distributor, bank or lender has agreed to anything. Entries 29, 25 and 26.
