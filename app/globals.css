@@ -73,6 +73,11 @@
   --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
+/* A short screen (a 360x640 phone, any phone held sideways): the slip tightens and folds its lines, so the
+   total and every way to pay stay in view without scrolling. `tall:` is everything else. */
+@custom-variant short (@media (max-height: 45.99rem));
+@custom-variant tall (@media (min-height: 46rem));
+
 /* Hover styles only where there is a real pointer; a thumb never leaves a button looking pressed. */
 @custom-variant hover {
   @media (hover: hover) and (pointer: fine) {

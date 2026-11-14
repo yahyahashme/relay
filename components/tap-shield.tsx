@@ -1,25 +1,33 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { type MouseEvent, type PointerEvent, useEffect, useRef, useState } from "react";
+import { isStrayTap, type Tap } from "@/lib/taps";
 
 /** How long a screen stays held after a payment lands. */
 export const QUIET_MS = 900;
 
 /**
+ * The longer hold, for a screen that looks different once the payment lands (buttons gone, others moved up,
+ * a link where a button was). Longer than two seconds, so taps repeated every second or two all stop on the shield.
+ */
+export const HOLD_MS = 2200;
+
+/**
  * A payment changes what sits under the thumb: one button goes away and something else takes its place.
  * While the payment runs, <TapShield> covers the screen and notes every tap. `settle()` then waits one
- * beat, and longer while the taps keep coming, so a repeat tap can't land on whatever comes next.
+ * beat (or `settle(HOLD_MS)`, a longer one), and longer while the taps keep coming, so a repeat tap can't
+ * land on whatever comes next.
  */
 export function useTapShield() {
   const lastTap = useRef(0);
   const noteTap = () => {
     lastTap.current = Date.now();
   };
-  const settle = async () => {
-    let wait = QUIET_MS;
+  const settle = async (quiet = QUIET_MS) => {
+    let wait = quiet;
     while (wait > 0) {
       await new Promise((resolve) => setTimeout(resolve, wait));
-      wait = lastTap.current + QUIET_MS - Date.now();
+      wait = lastTap.current + quiet - Date.now();
     }
   };
   return { noteTap, settle };
@@ -46,4 +54,32 @@ export function useQuietOnArrival(shown: boolean): boolean {
     return () => clearTimeout(timer);
   }, [state]);
   return state.quiet;
+}
+
+type Seen = Tap & { target: EventTarget | null };
+
+/**
+ * The screen can move under a thumb without any payment: a panel opens, a row slides up, the page scrolls.
+ * A tap that lands on a pay button exactly where the tap before it landed on something else was aimed at
+ * what used to be there, so it must not pay (lib/taps.ts has the rule).
+ *
+ * Put `watch` and `typed` on the screen's wrapper (onPointerDownCapture, onInputCapture) and ask
+ * `stray(event)` first in every pay button's onClick. Two taps on the same button are not stray (the shield
+ * takes the second), and neither is a tap after typing (an amount was entered on purpose) or the keyboard.
+ */
+export function useSameSpotGuard() {
+  const taps = useRef<{ last: Seen | null; before: Seen | null }>({ last: null, before: null });
+  const watch = (event: PointerEvent) => {
+    taps.current = { before: taps.current.last, last: { x: event.clientX, y: event.clientY, at: Date.now(), target: event.target } };
+  };
+  const typed = () => {
+    taps.current = { before: null, last: null };
+  };
+  const stray = (event: MouseEvent<HTMLElement>): boolean => {
+    if (event.detail === 0) return false; // the keyboard
+    const { last, before } = taps.current;
+    const onSameButton = before?.target instanceof Node && event.currentTarget.contains(before.target);
+    return isStrayTap(before, last, onSameButton);
+  };
+  return { watch, typed, stray };
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, useState } from "react";
-import { ActionLink, ActionList, ActionRow, Button, ButtonLink, DetailLink, TextButton } from "@/components/kit/button";
+import { ActionLink, ActionList, ActionRow, Button, ButtonLink, DetailLink, Held, TextButton } from "@/components/kit/button";
 import { Field, FormError, MoneyField, PasswordField, SelectField } from "@/components/kit/field";
 import { Ledger, LedgerCard, type LedgerColumn, LedgerFigure, LedgerFigures, RowAction } from "@/components/kit/ledger";
 import { Manifest, ManifestRow } from "@/components/kit/manifest";
@@ -137,6 +137,7 @@ export function Buttons() {
       <Button onClick={() => {}} disabled>
         {t("Pagar deuda", "Pay debt")}
       </Button>
+      <Held hint={t("No queda nada por pagar", "Nothing left to pay")}>{t("Factura pagada", "Invoice paid")}</Held>
       <Button onClick={() => {}} size="lg">
         {t("Recibí efectivo", "I received cash")}
       </Button>

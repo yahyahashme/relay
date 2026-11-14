@@ -53,7 +53,7 @@ Each status colour has a `-tint` for stamp fills only. No gradients, glass, blur
 | `layout.tsx` | `Slip` (one column, 28 rem), `Split` (facts and actions, one column under 40 rem of room), `Shell` (sidebar from 64 rem, else top bar and bottom navigation), `TopNav` |
 | `paper.tsx` | `Receipt` and its parts: header, lines, fold, total, foot with the stamp slot |
 | `stamp.tsx` | `Stamp`, large and `small` |
-| `button.tsx` | `Button` (blue, `danger`, `busy`, `arriving`), `ActionList`, `ActionRow`, `ActionLink`, `DetailLink` |
+| `button.tsx` | `Button` (blue, `danger`, `busy`, `arriving`), `Held`, `ActionList`, `ActionRow`, `ActionLink`, `DetailLink` |
 | `ledger.tsx` | `Ledger` (table, folded columns under 60 rem, cards under 40 rem), `LedgerFigures` |
 | `manifest.tsx` | `ManifestRow`: paper with a blue end |
 | `field.tsx` | `Field`, `MoneyField`, `SelectField`, `PasswordField` |
@@ -73,8 +73,8 @@ In a payment flow, motion never delays or blurs what happened.
 
 ## Behaviour the design wraps and never breaks
 
-- A button that can move money ignores taps for 0.6 s after it appears (`arriving`, `useQuietOnArrival`).
-- When a payment removes a button, something inert holds its place. The tap shield covers the screen while a payment runs.
+- A button that can move money ignores taps for 0.6 s after it appears (`arriving`, `useQuietOnArrival`), and ignores a tap that lands where the tap before it hit something else (`useSameSpotGuard`): that tap was meant for what used to be there.
+- When a payment removes a button, something inert holds its place (`Held`). The tap shield covers the screen while a payment runs and stays until the taps have stopped for 2.2 s (`settle(HOLD_MS)`).
 - While data is stale the screen says "Cargando..." or locks its buttons.
 - "Pagar este monto" stays inside its own row, never in a bar at the bottom.
 
@@ -84,4 +84,6 @@ Every string goes through `t("español", "English")`, in usted. Screens say "dó
 
 ## Checking a screen
 
-`node scripts/screens.mjs <group>` opens each screen at 30 device sizes, from a 280 px fold to 1920 px, portrait and sideways, fails on sideways scroll, clipped text or a touch target under 44 px, and writes a contact sheet to `docs/screenshots/redesign/`. Two frames are fixed: at 360x640 the shop sees all three pay options without scrolling, and at 1280x800 the distributor sees the header strip and ten invoice rows.
+`node scripts/screens.mjs <group>` opens each screen at 30 device sizes, from a 280 px fold to 1920 px, portrait and sideways, fails on sideways scroll, clipped text or a touch target under 44 px, and writes a contact sheet to `docs/screenshots/redesign/`. Add `--lang en`, `--zoom 2` (200% zoom) or `--text 1.5` (large system text). Two frames are fixed: at 360x640 the shop sees all three pay options without scrolling (the slip tightens and folds its lines on a short screen: the `short:` and `tall:` variants), and at 1280x800 the distributor sees the header strip and ten invoice rows.
+
+`node scripts/pay-taps.mjs` taps every pay button on the shop's invoice twice quickly, then every second, then every two seconds, and fails unless each run makes one payment and no later tap reaches a button or a link.

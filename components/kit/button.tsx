@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { useT } from "@/lib/i18n";
 import { Chevron } from "./icons";
 
@@ -26,7 +26,7 @@ const TONE = {
 
 /**
  * The main action of a screen: filled blue ("danger" is filled red, for the confirm step of something that can't be undone).
- * `busy` holds the button and says "Procesando..."; nothing moves while a payment runs.
+ * `busy` holds the button and says "Procesando..."; nothing moves while a payment runs (the hint stays, so the button keeps its height).
  * `arriving` is for a button that can move money and has just come on screen: it fades in and ignores taps
  * for a beat (see useQuietOnArrival), so the second tap of a double tap can't pay.
  */
@@ -45,7 +45,7 @@ export function Button({
   /** A second, lighter line: what exactly the tap will do. */
   hint?: ReactNode;
   /** Leave out for a form's submit button (type="submit"). */
-  onClick?: () => void;
+  onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
   type?: "button" | "submit";
   disabled?: boolean;
   busy?: boolean;
@@ -64,8 +64,23 @@ export function Button({
       className={`${FILLED} ${HEIGHT[size]} ${TONE[tone]} ${arriving ? "arrive" : ""}`}
     >
       <span>{busy ? t("Procesando...", "Processing...") : children}</span>
-      {hint && !busy && <span className="text-label font-normal opacity-90">{hint}</span>}
+      {hint && <span className="text-label font-normal opacity-90">{hint}</span>}
     </button>
+  );
+}
+
+/**
+ * Holds the place of a button that a payment removed, so no other button slides under the thumb.
+ * Inert: words on the counter inside a dashed outline, the same size as the button it replaces.
+ */
+export function Held({ children, hint, size = "md" }: { children: ReactNode; hint?: ReactNode; size?: Size }) {
+  return (
+    <div
+      className={`flex w-full flex-col items-center justify-center rounded-control px-5 py-2 text-center text-[1.125rem] font-bold text-muted outline-[1.5px] -outline-offset-[1.5px] outline-counter-rule outline-dashed ${HEIGHT[size]}`}
+    >
+      <span>{children}</span>
+      {hint && <span className="text-label font-normal">{hint}</span>}
+    </div>
   );
 }
 
@@ -101,6 +116,11 @@ function RowEnd({ figure, open }: { figure?: ReactNode; open?: boolean }) {
       <Chevron open={open} />
     </span>
   );
+}
+
+/** Brings a panel that just opened into view. Stable, so it runs once each time the panel appears. */
+function reveal(panel: HTMLDivElement | null) {
+  panel?.scrollIntoView({ block: "nearest" });
 }
 
 /** Secondary actions under the main button: full-width outlined rows with 8 px between them. */
@@ -148,12 +168,16 @@ export function ActionRow({
         onClick={onClick}
         disabled={disabled}
         aria-expanded={open}
-        className={`${ROW} ${HEIGHT[size]} scroll-mb-28 rounded-[8px] -outline-offset-3 hover:bg-brand/6 active:bg-brand/10 disabled:text-muted disabled:hover:bg-transparent`}
+        className={`${ROW} ${HEIGHT[size]} rounded-[8px] -outline-offset-3 hover:bg-brand/6 active:bg-brand/10 disabled:text-muted disabled:hover:bg-transparent`}
       >
         <RowLabel title={title} hint={hint} />
         <RowEnd figure={figure} open={open} />
       </button>
-      {open && children && <div className="flex scroll-mb-28 flex-col gap-3 px-4 pb-4 pt-1">{children}</div>}
+      {open && children && (
+        <div ref={reveal} className="flex scroll-mb-4 flex-col gap-3 px-4 pb-4 pt-1">
+          {children}
+        </div>
+      )}
     </div>
   );
 }

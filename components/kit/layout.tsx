@@ -23,16 +23,16 @@ export function Slip({ children, className = "" }: { children: ReactNode; classN
 /**
  * Split: facts on paper on the left, actions on the right, like a slip laid on a counter next to a till.
  * Below 40 rem of room it becomes one column, facts first. On a phone held sideways the facts scroll
- * and the actions stay in view.
+ * and the actions stay in view. Anything inside can ask which form it is in: `@min-[40rem]/split:`.
  */
 export function Split({ nav, facts, actions, className = "" }: { nav?: ReactNode; facts: ReactNode; actions: ReactNode; className?: string }) {
   return (
-    <main className={`@container w-full flex-1 ${className}`}>
-      <div className={`mx-auto flex w-full max-w-[calc(28rem+2*var(--gutter))] flex-col pt-1 @min-[40rem]:max-w-[calc(56rem+2*var(--gutter))] ${SIDE} ${FOOT}`}>
+    <main className={`@container/split w-full flex-1 ${className}`}>
+      <div className={`mx-auto flex w-full max-w-[calc(28rem+2*var(--gutter))] flex-col pt-1 @min-[40rem]/split:max-w-[calc(56rem+2*var(--gutter))] ${SIDE} ${FOOT}`}>
         {nav}
-        <div className="flex flex-col gap-4 @min-[40rem]:grid @min-[40rem]:grid-cols-[minmax(0,28rem)_minmax(0,24rem)] @min-[40rem]:items-start @min-[40rem]:justify-between @min-[40rem]:gap-x-[clamp(1.25rem,5cqi,4rem)]">
+        <div className="flex flex-col gap-4 @min-[40rem]/split:grid @min-[40rem]/split:grid-cols-[minmax(0,28rem)_minmax(0,24rem)] @min-[40rem]/split:items-start @min-[40rem]/split:justify-between @min-[40rem]/split:gap-x-[clamp(1.25rem,5cqi,4rem)]">
           <div className="flex min-w-0 flex-col gap-4">{facts}</div>
-          <div className="flex min-w-0 flex-col gap-3 @min-[40rem]:sticky @min-[40rem]:top-[calc(var(--band-h)+0.75rem)] @min-[40rem]:max-h-[calc(100dvh-var(--band-h)-1.5rem)] @min-[40rem]:overflow-y-auto @min-[40rem]:p-1">
+          <div className="flex min-w-0 flex-col gap-3 @min-[40rem]/split:sticky @min-[40rem]/split:top-[calc(var(--band-h)+0.75rem)] @min-[40rem]/split:max-h-[calc(100dvh-var(--band-h)-1.5rem)] @min-[40rem]/split:overflow-y-auto @min-[40rem]/split:p-1">
             {actions}
           </div>
         </div>

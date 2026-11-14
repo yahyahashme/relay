@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dueOn, formatAmount, formatDay, formatMoney, plural } from "./format";
+import { dueOn, formatAmount, formatDay, formatMoney, isPastDue, plural } from "./format";
 
 describe("formatMoney", () => {
   it("shows dollars with commas and cents", () => {
@@ -59,5 +59,18 @@ describe("formatPhone", () => {
     const { formatPhone } = await import("./format");
     expect(formatPhone("+50370000132")).toBe("7000-0132");
     expect(formatPhone("ana@example.com")).toBe("ana@example.com");
+  });
+});
+
+describe("isPastDue", () => {
+  const due = "2026-11-20T18:00:00Z"; // noon on 20 nov in El Salvador
+
+  it("is false through the end of the due day in El Salvador, true from the next day", () => {
+    expect(isPastDue(due, Date.parse("2026-11-21T05:59:00Z"))).toBe(false); // 11:59 PM on the 20th
+    expect(isPastDue(due, Date.parse("2026-11-21T06:00:00Z"))).toBe(true);
+  });
+
+  it("is false for a bad date", () => {
+    expect(isPastDue("nope", Date.now())).toBe(false);
   });
 });

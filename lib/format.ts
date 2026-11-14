@@ -30,11 +30,17 @@ export function formatDay(iso: string, lang: "es" | "en" = "es"): string {
 const DAY_MS = 24 * 60 * 60 * 1000;
 const localDay = (time: number) => Math.floor((time - EL_SALVADOR_OFFSET_MS) / DAY_MS);
 
+/** True once the due day is over in El Salvador. `now` is in milliseconds. */
+export function isPastDue(iso: string, now: number): boolean {
+  const time = Date.parse(iso);
+  return !Number.isNaN(time) && localDay(time) < localDay(now);
+}
+
 /** "Vence el 17 nov", or "Venció el 17 nov" once that day is over in El Salvador. `now` is in milliseconds. */
 export function dueOn(iso: string, now: number, lang: "es" | "en" = "es"): string {
   const time = Date.parse(iso);
   if (Number.isNaN(time)) return "";
-  const past = localDay(time) < localDay(now);
+  const past = isPastDue(iso, now);
   if (lang === "en") return `${past ? "Was due" : "Due"} ${formatDay(iso, "en")}`;
   return `${past ? "Venció" : "Vence"} el ${formatDay(iso)}`;
 }

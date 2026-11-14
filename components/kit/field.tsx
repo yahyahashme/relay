@@ -6,8 +6,9 @@ import { useT } from "@/lib/i18n";
 // A form is paper you write on: each input is a blank with a clear outline, a large label above it,
 // and its error in words underneath.
 
+// scroll-mb: when the phone brings a focused input into view, the button under it comes too.
 export const INPUT =
-  "min-h-13 w-full rounded-control border-[1.5px] border-muted bg-paper px-3.5 text-[1.125rem] text-ink placeholder:text-muted/70 focus:border-brand focus:outline-3 focus:outline-brand focus:-outline-offset-1 aria-invalid:border-bad disabled:border-counter-rule disabled:text-muted";
+  "min-h-13 w-full scroll-mb-28 rounded-control border-[1.5px] border-muted bg-paper px-3.5 text-[1.125rem] text-ink placeholder:text-muted/70 focus:border-brand focus:outline-3 focus:outline-brand focus:-outline-offset-1 aria-invalid:border-bad disabled:border-counter-rule disabled:text-muted";
 
 type Common = { label: ReactNode; hint?: ReactNode; error?: ReactNode };
 
