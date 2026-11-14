@@ -19,6 +19,7 @@ import {
   registerDistributor,
 } from "@/lib/server/distributors";
 import { currentUser, startSession } from "@/lib/server/session";
+import { nicknames } from "@/lib/server/shops";
 import { readClient } from "@/lib/stellar/client";
 import { config } from "@/lib/stellar/config";
 import { FALLBACK_MESSAGE } from "@/lib/stellar/errors";
@@ -183,6 +184,12 @@ export async function getDistributorView(pages: number): Promise<DistributorView
       }),
     )
   ).filter((s): s is Shop => s !== null);
+
+  // The distributor's own name for each shop (#132) is what they see; nobody else does.
+  if (own && getDb()) {
+    const names = await nicknames(own.id);
+    for (const shop of shops) if (names[shop.id]) shop.name = names[shop.id];
+  }
 
   return { scope, invoices, total: theirs.length, totals, drivers, shops };
 }
