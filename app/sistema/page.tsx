@@ -77,14 +77,14 @@ export default function Sistema() {
         </Section>
         <Section title={t("Letra", "Type")}>
           <Paper className="flex flex-col gap-3 px-4 py-5">
-            <p className="text-title font-bold">Atkinson Hyperlegible Next 700</p>
+            <p className="text-title font-bold">Inter 800</p>
             <p className="text-lead font-semibold">¿Cuánto paga ahora? ¡Año, pingüino, señal!</p>
             <p>El papel guarda los datos: montos, fechas, nombres, historial y estado. Á É Í Ó Ú Ñ Ü á é í ó ú ñ ü ¿ ¡ $</p>
             <p className="text-label text-muted">Etiqueta de 14 px, nunca menos.</p>
             <p className="font-mono text-figure font-semibold">
               <Money value={1234.5} />
             </p>
-            <p className="font-mono font-medium">IBM Plex Mono 500 · 0123456789 · n.º 1001 · 13 nov 2026</p>
+            <p className="font-mono font-medium">Inter, cifras tabulares · 0123456789 · n.º 1001 · 13 nov 2026</p>
           </Paper>
         </Section>
         <Section title={t("Color", "Colour")}>

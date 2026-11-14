@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { type CurrentUser, getCurrentUser } from "@/app/auth-actions";
 import { ActionLink, ActionList, ActionRow } from "@/components/kit/button";
@@ -26,9 +27,14 @@ export function AccountLink() {
   if (user) return <NavLink href="/cuenta">{t("Mi cuenta", "My account")}</NavLink>;
   // Signed out: both ways in, side by side. "Crear cuenta" asks shop or distributor next (/registro).
   return (
-    <nav aria-label={t("Cuenta", "Account")} className="flex shrink-0 items-center gap-x-4">
-      <NavLink href="/registro">{t("Crear cuenta", "Create account")}</NavLink>
+    <nav aria-label={t("Cuenta", "Account")} className="flex shrink-0 items-center gap-x-2">
       <NavLink href="/entrar">{t("Entrar", "Sign in")}</NavLink>
+      <Link
+        href="/registro"
+        className="inline-flex min-h-11 items-center rounded-full bg-accent px-4 text-[1.0625rem] font-bold text-ink transition-colors duration-[120ms] hover:bg-accent-press active:bg-accent-press"
+      >
+        {t("Crear cuenta", "Create account")}
+      </Link>
     </nav>
   );
 }

@@ -31,7 +31,7 @@ export function RowMark({ children, tone = "brand" }: { children: ReactNode; ton
   return (
     <span
       aria-hidden
-      className={`flex size-10 shrink-0 items-center justify-center rounded-full text-[0.9375rem] font-bold ${tone === "brand" ? "bg-brand-tint text-brand" : "bg-ink text-white"}`}
+      className={`flex size-10 shrink-0 items-center justify-center rounded-full text-[0.9375rem] font-bold ${tone === "brand" ? "bg-white text-ink" : "bg-ink text-white"}`}
     >
       {children}
     </span>
@@ -47,13 +47,13 @@ function RowBody({ mark, title, hint, figure, chevron }: { mark?: ReactNode; tit
         {hint && <span className="text-label text-muted text-pretty">{hint}</span>}
       </span>
       {figure && <span className="shrink-0 font-mono text-[1.0625rem] font-semibold text-ink">{figure}</span>}
-      {chevron && <Chevron className="size-5 text-brand" />}
+      {chevron && <Chevron className="size-5 text-muted" />}
     </>
   );
 }
 
 const ROW = "flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left";
-const TAPPABLE = "transition-colors duration-[120ms] hover:bg-brand/6 active:bg-brand/10 focus-visible:-outline-offset-3";
+const TAPPABLE = "transition-colors duration-[120ms] hover:bg-brand-tint active:bg-brand-tint focus-visible:-outline-offset-3";
 
 /** A row that opens another screen. `external` opens a new tab (WhatsApp). */
 export function RowLink({
@@ -107,7 +107,7 @@ export function Fact({ label, children, strong = false }: { label: ReactNode; ch
 export function Meter({ used, of, label }: { used: number; of: number; label: string }) {
   const share = of > 0 ? Math.min(1, Math.max(0, used / of)) : 0;
   return (
-    <div role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={of} aria-valuenow={used} className="h-2.5 w-full overflow-hidden rounded-full bg-brand-tint">
+    <div role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={of} aria-valuenow={used} className="h-2.5 w-full overflow-hidden rounded-full bg-paper-rule">
       <div className="h-full rounded-full bg-brand" style={{ width: `${share * 100}%` }} />
     </div>
   );
@@ -119,11 +119,11 @@ export function Shortcut({ href, icon, children }: { href: string; icon: ReactNo
     <Link href={href} className="group flex min-h-11 min-w-0 flex-1 flex-col items-center gap-1.5 rounded-control py-1 text-center">
       <span
         aria-hidden
-        className="flex size-13 items-center justify-center rounded-full bg-brand text-white transition-[scale,background-color] duration-[120ms] group-hover:bg-brand-press group-active:scale-[0.95] motion-reduce:group-active:scale-100"
+        className="flex size-13 items-center justify-center rounded-full bg-accent text-ink transition-[scale,background-color] duration-[120ms] group-hover:bg-accent-press group-active:scale-[0.95] motion-reduce:group-active:scale-100"
       >
         {icon}
       </span>
-      <span className="text-label font-semibold text-brand">{children}</span>
+      <span className="text-label font-semibold text-ink">{children}</span>
     </Link>
   );
 }

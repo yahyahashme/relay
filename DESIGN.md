@@ -46,6 +46,15 @@ Each status colour has a `-tint` for stamp fills only. No gradients, glass, blur
 
 12 px corners on paper, 14 px on account cards, 10 px on controls. Since Nov 14 nothing looks like a torn till receipt: no zig-zag edges, no dotted leaders, no double rules, no capital letter-spaced labels. Labels are sentence case in sans; only amounts, dates in figures and codes are mono. A ledger has 1 px row rules and vertical rules beside its money columns. No illustrations, emoji or decorative icons; the only drawn marks are chevrons.
 
+## The Relay look after Wise (Nov 14, evening)
+
+Yahya asked for Wise's app style everywhere, in Relay's blues. This section wins over older rules below where they differ.
+- **Pages are white.** Cards are a soft grey-blue (`paper` #f1f5fa) with 20 px corners and no borders.
+- **Light blue where Wise has lime:** `accent` #a8d5ff is the main button (a full pill with dark navy words) and the home page's hero band. `ink` #0b1f3a (dark navy) is all text and the dark pill. Links and the logo keep Relay blue #0b4ea2.
+- **Secondary actions** are grey-blue rounded rows with a chevron, not outlined boxes. Choices and tabs are pills: the chosen one is navy with white words.
+- **Type:** Inter for everything. Headings are 800 to 900 weight and tight; amounts are Inter with tabular figures (`font-mono` now means that).
+- Status stays a calm pill with a dot. Inputs are white with a grey border and a light blue focus ring.
+
 ## Account screens (Nov 14)
 
 Yahya asked for Mi cuenta to look like a real account (clean, like a bank app), not a receipt. Account screens use `components/kit/account.tsx`:

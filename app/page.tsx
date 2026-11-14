@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { ActionLink } from "@/components/kit/button";
 import { Paper } from "@/components/kit/paper";
@@ -15,7 +16,8 @@ import { AccountLink, DriverLinks, ShopLinks } from "./home-links";
 // The same side margins and safe areas as the Slip and Split layouts (components/kit/layout.tsx).
 const SIDE = "pl-[max(var(--gutter),env(safe-area-inset-left))] pr-[max(var(--gutter),env(safe-area-inset-right))]";
 
-const KICKER = "text-label font-semibold uppercase tracking-[0.1em] text-muted";
+const KICKER = "text-base font-semibold text-ink/80";
+const PILL = "inline-flex min-h-13 items-center justify-center rounded-full px-6 text-[1.125rem] font-bold transition-colors duration-[120ms]";
 
 /** The problem in three figures (docs/facts.md, entries 1, 9 and 10). */
 const FIGURES: { figure: [string, string]; text: [string, string] }[] = [
@@ -82,7 +84,7 @@ const STEPS: { icon: ReactNode; title: [string, string]; text: [string, string] 
 function CurlyArrow() {
   return (
     <div className="flex h-24 w-12 items-center justify-center min-[64rem]:h-9 min-[64rem]:w-auto min-[64rem]:px-2" aria-hidden="true">
-      <svg viewBox="0 0 80 48" className="h-12 w-20 shrink-0 rotate-90 text-brand min-[64rem]:h-auto min-[64rem]:w-full min-[64rem]:rotate-0" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round">
+      <svg viewBox="0 0 80 48" className="h-12 w-20 shrink-0 rotate-90 text-ink min-[64rem]:h-auto min-[64rem]:w-full min-[64rem]:rotate-0" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round">
         <path d="M4 34C18 36 24 12 38 10C50 8 52 26 42 28C32 30 36 12 52 14C60 15 66 19 72 24" />
         <path d="M63 25.5L72.5 24.5L69 15.5" />
       </svg>
@@ -95,8 +97,8 @@ function Role({ n, id, who, children, links }: { n: number; id: string; who: Rea
   return (
     <article aria-labelledby={id} className="flex flex-col gap-3 min-[64rem]:row-span-3 min-[64rem]:grid min-[64rem]:grid-rows-subgrid">
       <header className="flex flex-col gap-1.5">
-        <h3 id={id} className="flex items-baseline gap-3 border-b border-counter-rule pb-1">
-          <span className="font-mono text-lead font-semibold text-muted" aria-hidden="true">
+        <h3 id={id} className="flex items-baseline gap-3 pb-1">
+          <span className="flex size-8 shrink-0 items-center justify-center self-center rounded-full bg-accent text-base font-bold text-ink" aria-hidden="true">
             {n}
           </span>
           <span className="text-lead font-bold">{who}</span>
@@ -118,26 +120,33 @@ export default function Home() {
           <AccountLink />
         </header>
 
-        <div className="flex max-w-[44rem] flex-col gap-3 min-[40rem]:pt-6">
+        <div className="flex flex-col gap-4 rounded-[2rem] bg-accent px-6 py-10 min-[40rem]:px-12 min-[40rem]:py-16">
           <p className={KICKER}>
             <T es="Pagos y crédito para tiendas de barrio · El Salvador" en="Payments and credit for neighbourhood shops · El Salvador" />
           </p>
-          <h1 className="text-display font-bold tracking-[-0.02em] text-balance">
+          <h1 className="max-w-[14ch] text-[clamp(2.75rem,1.6rem+5.5vw,5.5rem)] leading-[0.95] font-black tracking-[-0.035em] text-ink text-balance">
             <T es={TAGLINE} en={TAGLINE_EN} />
           </h1>
-          <p className="text-lead text-pretty">
+          <p className="max-w-[40rem] text-lead text-ink text-pretty">
             <T
               es="Relay cambia los pagos en efectivo por pagos en línea cuando una tienda compra mercadería. Nuestro sistema de crédito sube el límite de cada tienda con cada pago a tiempo."
               en="Relay replaces cash payments with online transactions when a shop buys inventory. Our credit system raises each shop's limit with every on-time payment."
             />
           </p>
+          <div className="mt-2 flex flex-wrap gap-3">
+            <Link href="/registro" className={`${PILL} bg-ink text-white hover:bg-[#162f52]`}>
+              <T es="Crear cuenta" en="Create account" />
+            </Link>
+            <a href="#demo" className={`${PILL} bg-white text-ink hover:bg-paper`}>
+              <T es="Probar la demo" en="Try the demo" />
+            </a>
+          </div>
         </div>
-
       </section>
 
       <section aria-labelledby="problema" className="flex flex-col gap-5">
         <header className="flex max-w-[44rem] flex-col gap-2">
-          <h2 id="problema" className="text-title font-bold">
+          <h2 id="problema" className="text-[clamp(1.875rem,1.3rem+2.5vw,3rem)] leading-[1.05] font-black tracking-[-0.03em]">
             <T es="El problema" en="The problem" />
           </h2>
           <p className="text-lead text-pretty">
@@ -151,7 +160,7 @@ export default function Home() {
           <dl className="grid min-[48rem]:grid-cols-3">
             {FIGURES.map(({ figure, text }, i) => (
               <div key={i} className="flex flex-col gap-1 border-paper-rule px-5 py-4 not-last:border-b min-[48rem]:not-last:border-b-0 min-[48rem]:not-last:border-r">
-                <dt className="font-mono text-[1.75rem] font-semibold leading-tight tracking-[-0.01em]">
+                <dt className="text-[2rem] leading-tight font-black tracking-[-0.03em]">
                   <T es={figure[0]} en={figure[1]} />
                 </dt>
                 <dd className="text-pretty text-muted">
@@ -168,7 +177,7 @@ export default function Home() {
 
       <section aria-labelledby="como" className="flex flex-col gap-6">
         <header className="flex flex-col gap-2">
-          <h2 id="como" className="text-title font-bold">
+          <h2 id="como" className="text-[clamp(1.875rem,1.3rem+2.5vw,3rem)] leading-[1.05] font-black tracking-[-0.03em]">
             <T es="Cómo funciona" en="How it works" />
           </h2>
         </header>
@@ -177,7 +186,7 @@ export default function Home() {
             <li key={i} className="contents">
               {i > 0 && <CurlyArrow />}
               <div className="flex flex-col gap-2">
-                <svg viewBox="0 0 24 24" className="size-9 text-brand" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <svg viewBox="0 0 24 24" className="box-content size-7 rounded-full bg-accent p-2.5 text-ink" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   {icon}
                 </svg>
                 <h3 className="text-lead font-bold text-balance">
@@ -200,7 +209,7 @@ export default function Home() {
 
       <section aria-labelledby="demo" className="flex flex-col gap-6">
         <header className="flex flex-col gap-1">
-          <h2 id="demo" className="text-title font-bold">
+          <h2 id="demo" className="text-[clamp(1.875rem,1.3rem+2.5vw,3rem)] leading-[1.05] font-black tracking-[-0.03em]">
             <T es="Probar la demo" en="Try the demo" />
           </h2>
           <p className="text-lead text-muted text-pretty">

@@ -121,7 +121,7 @@ export function ManifestRow({
         <span
           aria-hidden
           className={`flex w-14 shrink-0 items-center justify-center rounded-r-control @max-[19rem]/row:w-10 ${
-            done ? "border-[1.5px] border-l-0 border-brand text-brand" : "bg-brand text-white"
+            done ? "bg-paper text-muted" : "bg-accent text-ink"
           } ${current ? "@min-[40rem]/split:border-0 @min-[40rem]/split:bg-paper @min-[40rem]/split:text-ink" : ""}`}
         >
           <Chevron className={next ? "size-7" : "size-6"} />

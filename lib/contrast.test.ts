@@ -46,6 +46,10 @@ describe("colour contrast", () => {
     expect(contrast(token("brand"), token("counter"))).toBeGreaterThanOrEqual(AA);
   });
 
+  it("ink is AAA on the light blue main button and hero, resting and pressed", () => {
+    for (const fill of ["accent", "accent-press"]) expect(contrast(token("ink"), token(fill)), fill).toBeGreaterThanOrEqual(AAA);
+  });
+
   it("white text is AA on every filled button, resting and pressed", () => {
     for (const fill of ["brand", "brand-press", "bad"]) expect(contrast("#ffffff", token(fill)), fill).toBeGreaterThanOrEqual(AA);
   });
