@@ -140,7 +140,15 @@ const SCENARIOS = [
       await page.goBack();
       await page.waitForSelector("main [data-next]", { timeout: 20_000 });
       await page.waitForTimeout(3000); // longer than the same-spot guard remembers the taps above
-      const row = await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.closest("main a")?.innerText ?? null, point);
+      // The point can fall in the 8 px between two rows. A person's thumb would be on a row: nudge the sheet until one is there.
+      const under = () => page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.closest("main a")?.innerText ?? null, point);
+      let row = await under();
+      for (const by of [16, -32, 48, -64]) {
+        if (row !== null) break;
+        await page.evaluate((y) => window.scrollBy(0, y), by);
+        await page.waitForTimeout(300);
+        row = await under();
+      }
       if (row === null) throw new Error("no stop lies where Recibí efectivo will be: pick another row for this scenario");
       return point;
     },
