@@ -33,6 +33,7 @@ type InvoiceRecord = {
   method?: PayMethod;
   cashClaim?: number;
   creditFee?: number; // units
+  later?: boolean; // on pay later with the distributor's own money (#194)
 };
 type ShopRecord = {
   id: string;
@@ -55,6 +56,10 @@ type ShopRecord = {
   lastGoodAt: number; // 0 if never
   vouched: boolean; // the demo distributor vouches for it (recourse tier, #185)
   vouchedOwed: number; // of owed, cents the deposit backs
+  ownCredit: boolean; // the demo distributor gives it the 7 days itself (#194)
+  laterOwed: number; // cents still owed on pay-later invoices
+  laterOnTime: number;
+  laterLate: number;
   balance: number; // dollars digitales on hand, in cents
   profile: Profile;
 };
@@ -95,6 +100,7 @@ function seed(now: number): Store {
     id, name, owner, limit: 200_00, owed: 0, dueAt: 0, onTime: 0, late: 0, cycleBorrowed: 0, lastRaiseAt: 0,
     halfUpFront: false, lateMinor: 0, lateMajor: 0, maxDaysLate: 0, firstCreditAt: 0, noRaiseUntil: 0,
     goodCycles: 0, lastGoodAt: 0, vouched: false, vouchedOwed: 0,
+    ownCredit: false, laterOwed: 0, laterOnTime: 0, laterLate: 0,
     balance: 1_000_00, // setup.sh gives each testnet shop $1,000 of test dollars
     profile: { owner, shopName: name, address, phone, dui },
   });
@@ -153,6 +159,8 @@ function toInvoice(r: InvoiceRecord): Invoice {
   if (r.method) invoice.method = r.method;
   if (r.cashClaim !== undefined) invoice.cashClaim = dollars(r.cashClaim);
   if (r.creditFee) invoice.creditFee = r.creditFee / (UNITS_PER_CENT * 100);
+  if (r.later) invoice.later = true;
+  else if (r.paid < r.amount && findShop(r.shopId)?.ownCredit) invoice.ownCredit = true;
   return invoice;
 }
 
@@ -175,7 +183,22 @@ function toShop(s: ShopRecord): Shop {
   if (s.vouched) shop.voucherId = MOCK_DISTRIBUTOR;
   if (s.vouchedOwed > 0) shop.vouchedOwed = dollars(s.vouchedOwed);
   if (s.firstCreditAt > 0) shop.firstCredit = iso(s.firstCreditAt);
+  if (s.laterOwed > 0) shop.laterOwed = dollars(s.laterOwed);
+  if (s.laterOnTime > 0) shop.laterOnTime = s.laterOnTime;
+  if (s.laterLate > 0) shop.laterLate = s.laterLate;
   return shop;
+}
+
+/** A payment on a pay-later invoice (#194): lowers what's owed, and once paid in full counts it on time or late. */
+function settleLater(invoice: InvoiceRecord, cents: number) {
+  const shop = findShop(invoice.shopId);
+  if (!invoice.later || !shop) return;
+  shop.laterOwed = Math.max(0, shop.laterOwed - cents);
+  if (invoice.paid < invoice.amount) return;
+  const now = clock();
+  const daysLate = now <= invoice.dueAt ? 0 : Math.ceil((now - invoice.dueAt) / DAY_MS);
+  if (daysLate > GRACE_DAYS) shop.laterLate += 1;
+  else shop.laterOnTime += 1;
 }
 
 function nextMethod(current: PayMethod | undefined, method: PayMethod): PayMethod {
@@ -335,6 +358,7 @@ export function payNow(invoiceId: number, amount?: number): Receipt {
   invoice.paid += pay;
   invoice.method = nextMethod(invoice.method, "digital");
   logPayment(invoice.shopId, invoice.id, "digital", pay);
+  settleLater(invoice, pay);
   const payer = findShop(invoice.shopId);
   if (payer) payer.balance = Math.max(0, payer.balance - pay);
   return pay === left
@@ -346,11 +370,19 @@ export function payLater(invoiceId: number): Receipt {
   const invoice = findInvoice(invoiceId);
   if (!invoice) return fail("No encontramos esa factura.");
   if (invoice.paid >= invoice.amount) return fail("Esta factura ya está pagada.");
+  if (invoice.later) return fail("Esta factura ya está en 7 días con su distribuidora.");
   const shop = findShop(invoice.shopId);
   if (!shop) return fail("Esta tienda todavía no tiene crédito.");
   const now = clock();
   if (shop.owed > 0 && now > shop.dueAt) return fail("Tiene un pago vencido.");
   const amount = invoice.amount - invoice.paid;
+  // The distributor gives this shop the 7 days itself (#194): no pool, no limit, nothing moves today.
+  if (shop.ownCredit) {
+    invoice.later = true;
+    invoice.dueAt = now + CREDIT_DAYS * DAY_MS;
+    shop.laterOwed += amount;
+    return ok(`Listo. Tiene hasta el ${formatDay(iso(invoice.dueAt))} para pagar ${money(amount)}, sin intereses.`);
+  }
   if (shop.owed + amount > shop.limit) return fail("Supera su límite de crédito.");
 
   const units = amount * UNITS_PER_CENT;
@@ -411,6 +443,7 @@ export function confirmCash(invoiceId: number, amount: number): Receipt {
 
   invoice.paid += cash;
   logPayment(invoice.shopId, invoice.id, "cash", cash, invoice.driverId);
+  settleLater(invoice, cash);
   invoice.method = nextMethod(invoice.method, "cash");
   delete invoice.cashClaim;
   const driver = db().drivers.find((d) => d.id === invoice.driverId);
@@ -519,6 +552,18 @@ export function vouchShop(shopId: string, on: boolean): Receipt {
   if (shop.owed > 0) return fail("Solo puede cambiar el respaldo cuando la tienda no debe nada.");
   shop.vouched = on;
   return ok(on ? `Listo. Ahora respalda a ${shop.name}.` : `Listo. Ya no respalda a ${shop.name}.`);
+}
+
+/** The demo distributor gives a shop the 7 days itself, or goes back to the pool (#194). */
+export function offerOwnCredit(shopId: string, on: boolean): Receipt {
+  const shop = findShop(shopId);
+  if (!shop) return fail("No encontramos esa tienda.");
+  shop.ownCredit = on;
+  return ok(on ? `Listo. Ahora usted le da los 7 días a ${shop.name}.` : `Listo. ${shop.name} vuelve a usar el fondo para los 7 días.`);
+}
+
+export function getOwnCredit(shopId: string): boolean {
+  return findShop(shopId)?.ownCredit ?? false;
 }
 
 export function depositRecourse(amount: number): Receipt {

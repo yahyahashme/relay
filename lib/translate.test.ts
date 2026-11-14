@@ -60,6 +60,8 @@ describe("translateMessage", () => {
     ["Listo. Ya no respalda a Tienda Rosa.", "Done. You no longer back Tienda Rosa."],
     ["Listo. Su depósito de respaldo es $40.00.", "Done. Your backing deposit is $40.00."],
     ["Listo. Retiró $10.00. Su depósito de respaldo es $30.00.", "Done. You took out $10.00. Your backing deposit is $30.00."],
+    ["Listo. Ahora usted le da los 7 días a Tienda Rosa.", "Done. You now give Tienda Rosa the 7 days yourself."],
+    ["Listo. Tienda Rosa vuelve a usar el fondo para los 7 días.", "Done. Tienda Rosa goes back to the pool for the 7 days."],
   ];
 
   it.each(examples)("%s", (spanish, english) => {

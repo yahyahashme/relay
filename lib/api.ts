@@ -108,6 +108,11 @@ export const createInvoices = (rows: InvoiceRow[]) =>
 /** The distributor vouches for a shop (0.25% credit fee, its deposit covers late payers), or stops (#185). */
 export const vouchShop = (shopId: string, on: boolean) =>
   write(() => mock.vouchShop(shopId, on), () => recourse.vouchShop(shopId, on));
+/** The distributor gives a shop the 7 days itself (no credit fee, it waits and carries the risk), or goes back to the pool (#194). */
+export const offerOwnCredit = (shopId: string, on: boolean) =>
+  write(() => mock.offerOwnCredit(shopId, on), () => recourse.offerOwnCredit(shopId, on));
+export const getOwnCredit = (shopId: string): Promise<boolean> =>
+  read(() => mock.getOwnCredit(shopId), () => recourse.getOwnCredit(shopId));
 export const depositRecourse = (amount: number) =>
   write(() => mock.depositRecourse(amount), () => recourse.depositRecourse(amount));
 export const withdrawRecourse = (amount: number) =>

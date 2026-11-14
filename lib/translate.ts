@@ -102,6 +102,11 @@ const RULES: Rule[] = [
   pattern(String.raw`Listo\. Ya no respalda a (.+)\.`, "Done. You no longer back $1."),
   pattern(String.raw`Listo\. Su depósito de respaldo es ${MONEY}\.`, "Done. Your backing deposit is $1."),
   pattern(String.raw`Listo\. Retiró ${MONEY}\. Su depósito de respaldo es ${MONEY}\.`, "Done. You took out $1. Your backing deposit is $2."),
+  // The distributor gives the 7 days itself (#194)
+  exact("Su distribuidora no le da los 7 días en esta factura.", "Your distributor doesn't give you the 7 days on this invoice."),
+  exact("Esta factura ya está en 7 días con su distribuidora.", "This invoice is already on 7 days with your distributor."),
+  pattern(String.raw`Listo\. Ahora usted le da los 7 días a (.+)\.`, "Done. You now give $1 the 7 days yourself."),
+  pattern(String.raw`Listo\. (.+) vuelve a usar el fondo para los 7 días\.`, "Done. $1 goes back to the pool for the 7 days."),
   exact("Este motorista no está en la ruta.", "This driver isn't on the route."),
   exact("No encontramos esa tienda.", "We couldn't find that shop."),
   exact("No encontramos a ese motorista.", "We couldn't find that driver."),

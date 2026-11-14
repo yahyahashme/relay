@@ -1,6 +1,10 @@
 export type InvoiceStatus = "due" | "part_paid" | "paid";
 export type PayMethod = "digital" | "cash" | "credit" | "mixed";
-export type Invoice = { id: number; shopId: string; driverId: string; amount: number; paid: number; dueDate: string; status: InvoiceStatus; method?: PayMethod; cashClaim?: number; creditFee?: number };
+export type Invoice = { id: number; shopId: string; driverId: string; amount: number; paid: number; dueDate: string; status: InvoiceStatus; method?: PayMethod; cashClaim?: number; creditFee?: number;
+  /** The shop took 7 days on its distributor's own money (#194); `dueDate` is when it must pay. */
+  later?: boolean;
+  /** Its distributor gives this shop the 7 days itself, so "Pagar en 7 días" doesn't use the pool (#194). */
+  ownCredit?: boolean };
 export type Shop = {
   id: string; name: string; owner: string; creditLimit: number; creditOwed: number; creditDue?: string; overdue: boolean;
   onTime: number;
@@ -19,6 +23,8 @@ export type Shop = {
   vouchedOwed?: number;
   /** What a voucher's deposit ever paid the pool for it (it owes that to the distributor directly). */
   coveredByDistributor?: number;
+  /** Pay later on its distributors' own money (#194): what it still owes that way, and how its paid ones went. */
+  laterOwed?: number; laterOnTime?: number; laterLate?: number;
 };
 /** A distributor's recourse deposit (#185), in dollars. `required` = 20% of `vouchedOut`. */
 export type RecourseView = { distributorId: string; deposit: number; vouchedOut: number; required: number };

@@ -65,8 +65,15 @@ async function chainInvoice(id: number) {
 
 export async function getInvoice(id: number): Promise<Invoice | null> {
   const invoice = await chainInvoice(id);
-  return invoice ? withCashClaim(invoice, await getDirectory()) : null;
+  if (!invoice) return null;
+  const view = await withCashClaim(invoice, await getDirectory());
+  // Who gives the shop the 7 days on this invoice (#194): only asked while there is something left to pay.
+  if (view.status !== "paid" && !invoice.later && (await offersOwnCredit(invoice))) view.ownCredit = true;
+  return view;
 }
+
+const offersOwnCredit = (invoice: ChainInvoice) =>
+  read(readClient().offers_own_credit({ distributor: invoice.distributor, shop: invoice.shop }));
 
 export async function getShop(shopId: string): Promise<Shop | null> {
   const directory = await getDirectory();
@@ -250,6 +257,13 @@ export async function payLater(invoiceId: number): Promise<Receipt> {
     if (shop?.kind !== "shop") return fail("Esta factura no es de su tienda.");
     if (!(await mayActAs(shop))) return fail(NOT_YOURS);
 
+    // The distributor gives this shop the 7 days itself (#194): the pool isn't used, nothing moves today.
+    if (!invoice.later && (await offersOwnCredit(invoice))) {
+      const { hash } = await run(shop.id, (client) => client.pay_later({ shop: invoice.shop, id: invoice.id }));
+      const after = await chainInvoice(invoiceId);
+      const due = new Date(Number(after?.due ?? 0n) * 1000).toISOString();
+      return receipt(hash, `Listo. Tiene hasta el ${formatDay(due)} para pagar ${formatMoney(toDollars(left))}, sin intereses.`);
+    }
     const { hash } = await run(shop.id, (client) => client.pay_with_credit({ shop: invoice.shop, id: invoice.id }));
     const after = await shopView(invoice.shop);
     const due = new Date(Number(after.due_at) * 1000).toISOString();

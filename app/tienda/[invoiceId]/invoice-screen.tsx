@@ -54,6 +54,9 @@ function useQuietOnOpen(panel: Panel | null): boolean {
 
 /** Why "Pagar en 7 días" is greyed out, or null if the shop can use it. */
 function creditBlocked(shop: Shop | null, invoice: Invoice, t: (es: string, en: string) => string): string | null {
+  if (invoice.later) return t("Ya la pasó a 7 días", "Already on 7 days");
+  // The distributor gives the 7 days itself (#194): the pool's limit doesn't apply, only "nothing late".
+  if (invoice.ownCredit) return shop?.overdue ? t("Tiene un pago vencido", "You have an overdue payment") : null;
   if (!shop || shop.creditLimit <= 0) return t("Su tienda aún no tiene crédito", "Your shop doesn't have credit yet");
   if (shop.overdue) return t("Tiene un pago vencido", "You have an overdue payment");
   const owedAfter = Math.round((shop.creditOwed + leftToPay(invoice)) * 100);
@@ -358,11 +361,22 @@ export default function InvoiceScreen() {
           onClick={() => toggle("later")}
           disabled={locked || blocked !== null}
         >
-          <p className="text-lead">
-            {t("Hoy no paga nada. Paga ", "You pay nothing today. You pay ")}
-            <Money value={left} className="font-semibold" />
-            {t(" en 7 días.", " in 7 days.")}
-          </p>
+          {invoice.ownCredit ? (
+            <p className="text-lead">
+              {t("Hoy no paga nada. Le paga ", "You pay nothing today. You pay ")}
+              <Money value={left} className="font-semibold" />
+              {t(
+                ` a ${source?.distributorName || "su distribuidora"} en 7 días.`,
+                ` to ${source?.distributorName || "your distributor"} in 7 days.`,
+              )}
+            </p>
+          ) : (
+            <p className="text-lead">
+              {t("Hoy no paga nada. Paga ", "You pay nothing today. You pay ")}
+              <Money value={left} className="font-semibold" />
+              {t(" en 7 días.", " in 7 days.")}
+            </p>
+          )}
           <Button
             onClick={(event) => {
               if (!stray(event)) void run("later", () => payLater(id));

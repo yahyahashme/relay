@@ -798,6 +798,9 @@ fn shop_without_terms_shows_zeros() {
             voucher: None,
             vouched_owed: 0,
             covered_by_distributor: 0,
+            later_owed: 0,
+            later_on_time: 0,
+            later_late: 0,
         }
     );
 }
@@ -2514,4 +2517,144 @@ fn recourse_required_rounds_up() {
     assert_eq!(recourse_required(0), 0);
     assert_eq!(recourse_required(100 * USD), 20 * USD);
     assert_eq!(recourse_required(1), 1);
+}
+
+// ---------- pay later with the distributor's own money (#194) ----------
+
+#[test]
+fn pay_later_waits_for_the_shop_with_no_credit_fee() {
+    let t = setup();
+    t.with_credit();
+    t.invoice(1, 100 * USD);
+    t.client.offer_own_credit(&t.distributor, &t.shop, &true);
+    assert!(t.client.offers_own_credit(&t.distributor, &t.shop));
+    let pool_before = t.client.get_pool();
+
+    t.env.ledger().set_timestamp(START + 10);
+    t.client.pay_later(&t.shop, &1);
+
+    // Nothing moves today and the pool isn't touched.
+    assert_eq!(t.balance(&t.distributor), 0);
+    assert_eq!(t.balance(&t.shop), 500 * USD);
+    assert_eq!(t.client.get_pool(), pool_before);
+    let invoice = t.client.get_invoice(&1);
+    assert!(invoice.later);
+    assert_eq!(invoice.due, START + 10 + WEEK);
+    assert_eq!(invoice.status, InvoiceStatus::Due);
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!(shop.later_owed, 100 * USD);
+    assert_eq!(shop.owed, 0);
+
+    // The shop pays on day 6: only the 0.10% usage fee.
+    t.env.ledger().set_timestamp(START + 6 * WEEK / 7);
+    t.client.pay(&t.shop, &1, &(100 * USD));
+    assert_eq!(t.balance(&t.distributor), 999_000_000);
+    assert_eq!(t.balance(&t.treasury), 1_000_000);
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!(shop.later_owed, 0);
+    assert_eq!(shop.later_on_time, 1);
+    assert_eq!(shop.later_late, 0);
+    t.assert_pool_matches_balance();
+}
+
+#[test]
+fn pay_later_paid_late_counts_as_late() {
+    let t = setup();
+    t.invoice(1, 100 * USD);
+    t.client.offer_own_credit(&t.distributor, &t.shop, &true);
+    t.client.pay_later(&t.shop, &1);
+
+    // Part paid on time, the rest 3 days late.
+    t.client.pay(&t.shop, &1, &(40 * USD));
+    assert_eq!(t.client.get_shop(&t.shop).later_owed, 60 * USD);
+    t.env.ledger().set_timestamp(START + WEEK + 3 * WEEK / 7);
+    t.client.pay(&t.shop, &1, &(60 * USD));
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!(shop.later_owed, 0);
+    assert_eq!(shop.later_on_time, 0);
+    assert_eq!(shop.later_late, 1);
+}
+
+#[test]
+fn pay_later_in_cash_still_counts() {
+    let t = setup();
+    t.invoice(1, 100 * USD);
+    t.client.offer_own_credit(&t.distributor, &t.shop, &true);
+    t.client.pay_later(&t.shop, &1);
+    t.client.cash_claim(&t.driver, &1, &(100 * USD));
+    t.client.cash_confirm(&t.shop, &1, &(100 * USD));
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!(shop.later_owed, 0);
+    assert_eq!(shop.later_on_time, 1);
+    assert_eq!(t.client.get_usage_owed(&t.distributor), 1_000_000);
+}
+
+#[test]
+fn pay_later_needs_the_distributor_to_offer_it() {
+    let t = setup();
+    t.invoice(1, 100 * USD);
+    assert_eq!(
+        t.client.try_pay_later(&t.shop, &1),
+        Err(Ok(Error::NotOffered))
+    );
+    t.client.offer_own_credit(&t.distributor, &t.shop, &true);
+    t.client.offer_own_credit(&t.distributor, &t.shop, &false);
+    assert_eq!(
+        t.client.try_pay_later(&t.shop, &1),
+        Err(Ok(Error::NotOffered))
+    );
+    // Another distributor offering it doesn't count for this invoice.
+    let other = Address::generate(&t.env);
+    t.client.approve_distributor(&other);
+    t.client.offer_own_credit(&other, &t.shop, &true);
+    assert_eq!(
+        t.client.try_pay_later(&t.shop, &1),
+        Err(Ok(Error::NotOffered))
+    );
+    // Only approved distributors can offer it.
+    let stranger = Address::generate(&t.env);
+    assert_eq!(
+        t.client.try_offer_own_credit(&stranger, &t.shop, &true),
+        Err(Ok(Error::NotApproved))
+    );
+}
+
+#[test]
+fn pay_later_once_and_never_onto_the_pool() {
+    let t = setup();
+    t.with_credit();
+    t.invoice(1, 100 * USD);
+    t.client.offer_own_credit(&t.distributor, &t.shop, &true);
+    t.client.pay_later(&t.shop, &1);
+    assert_eq!(
+        t.client.try_pay_later(&t.shop, &1),
+        Err(Ok(Error::OnPayLater))
+    );
+    t.env.ledger().set_timestamp(START + 2 * WEEK);
+    assert_eq!(
+        t.client.try_pay_with_credit(&t.shop, &1),
+        Err(Ok(Error::OnPayLater))
+    );
+}
+
+#[test]
+fn pay_later_checks_shop_and_pool_lateness() {
+    let t = setup();
+    t.with_credit();
+    t.invoice(1, 100 * USD);
+    t.invoice(2, 50 * USD);
+    t.client.offer_own_credit(&t.distributor, &t.shop, &true);
+    let other_shop = Address::generate(&t.env);
+    assert_eq!(
+        t.client.try_pay_later(&other_shop, &2),
+        Err(Ok(Error::NotYourInvoice))
+    );
+    t.client.pay_with_credit(&t.shop, &1);
+    t.env.ledger().set_timestamp(START + WEEK + 1);
+    assert_eq!(t.client.try_pay_later(&t.shop, &2), Err(Ok(Error::Overdue)));
+    t.client.pay(&t.shop, &2, &(50 * USD));
+    assert_eq!(
+        t.client.try_pay_later(&t.shop, &2),
+        Err(Ok(Error::AlreadyPaid))
+    );
 }

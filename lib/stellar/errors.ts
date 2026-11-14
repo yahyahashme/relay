@@ -21,6 +21,8 @@ const MESSAGES: Record<number, string> = {
   17: "No tiene tantas participaciones en el fondo.",
   18: "Su depósito de respaldo debe cubrir al menos el 20% del crédito que respalda.",
   19: "Solo puede cambiar el respaldo cuando la tienda no debe nada.",
+  20: "Su distribuidora no le da los 7 días en esta factura.",
+  21: "Esta factura ya está en 7 días con su distribuidora.",
 };
 
 export const FALLBACK_MESSAGE = "No se pudo completar. Intente de nuevo.";
