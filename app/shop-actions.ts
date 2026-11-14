@@ -10,7 +10,6 @@ import { distributorForUser } from "@/lib/server/distributors";
 import { driverIdForUser } from "@/lib/server/drivers";
 import {
   addShopWithoutAccount,
-  claimShop,
   type DistributorShopRow,
   inviteByCode,
   linkShop,
@@ -22,14 +21,13 @@ import {
   shopIdForUser,
   suppliersOf,
 } from "@/lib/server/shops";
-import { currentUser, startSession } from "@/lib/server/session";
+import { currentUser } from "@/lib/server/session";
 import { readClient } from "@/lib/stellar/client";
 import { read } from "@/lib/stellar/send";
 import { toDollars } from "@/lib/stellar/units";
 
 type Reply = { ok: true } | { ok: false; message: string };
 const NOT_YOURS = "Solo la distribuidora aprobada puede hacer esto.";
-const TRY_LATER = "No pudimos crear su cuenta en este momento. Intente de nuevo en un minuto.";
 
 async function myApprovedDistributor() {
   const user = await currentUser();
@@ -133,22 +131,6 @@ export async function getShopInvite(code: string): Promise<{ distributorName: st
   if (!getDb()) return null;
   const invite = await inviteByCode(code);
   return invite ? { distributorName: invite.distributorName } : null;
-}
-
-export async function claimShopAction(
-  code: string,
-  input: { ownerName: string; phone: string; password: string; shopName: string },
-): Promise<{ ok: true; shopId: string } | { ok: false; message: string }> {
-  if (!getDb()) return { ok: false, message: "Las cuentas todavía no están activas en este servidor." };
-  try {
-    const result = await claimShop(code, input);
-    if (!result.ok) return result;
-    await startSession(result.sessionId);
-    return { ok: true, shopId: result.shopId! };
-  } catch (error) {
-    console.error("[shops] claim", error instanceof Error ? error.message : error);
-    return { ok: false, message: TRY_LATER };
-  }
 }
 
 export type ShopSuppliers = { suppliers: { distributorId: string; name: string; addedAt: string }[]; isOwner: boolean };
