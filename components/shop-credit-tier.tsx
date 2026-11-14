@@ -32,6 +32,7 @@ export function ShopCreditTier({ shopId }: { shopId: string }) {
   if (!data?.shop) return null;
   const { shop, recourse, own } = data;
   const laterPaid = (shop.laterOnTime ?? 0) + (shop.laterLate ?? 0);
+  const poolPaid = shop.onTime + shop.late;
   const good = shop.goodCycles ?? 0;
   const mine = shop.voucherId !== undefined && shop.voucherId === recourse.distributorId;
   const other = shop.voucherId !== undefined && !mine;
@@ -84,14 +85,26 @@ export function ShopCreditTier({ shopId }: { shopId: string }) {
                   "The credit pool. When the shop picks “Pay in 7 days”, you get paid at delivery and you pay the credit fee.",
                 )}
           </p>
-          {(laterPaid > 0 || (shop.laterOwed ?? 0) > 0) && (
+          <div className="mt-1 flex flex-col gap-1 border-t border-paper-rule pt-2">
+            <h3 className="font-bold">{t("Su historial en Relay, con todas las distribuidoras", "Its record on Relay, with every distributor")}</h3>
+            {poolPaid + laterPaid === 0 ? (
+              <p className="text-pretty">{t("Todavía no tiene pagos a 7 días en Relay.", "No 7-day payments on Relay yet.")}</p>
+            ) : (
+              <ul className="flex flex-col gap-0.5">
+                <li>{t(`Con el fondo: pagó a tiempo ${shop.onTime} de ${poolPaid}.`, `With the pool: paid on time ${shop.onTime} of ${poolPaid}.`)}</li>
+                <li>{t(`Con distribuidoras: pagó a tiempo ${shop.laterOnTime ?? 0} de ${laterPaid}.`, `With distributors: paid on time ${shop.laterOnTime ?? 0} of ${laterPaid}.`)}</li>
+                {(shop.laterOwed ?? 0) > 0 && (
+                  <li>{t(`Debe ${formatMoney(shop.laterOwed ?? 0)} a 7 días ahora.`, `Owes ${formatMoney(shop.laterOwed ?? 0)} on 7 days now.`)}</li>
+                )}
+              </ul>
+            )}
             <p className="text-label text-muted text-pretty">
               {t(
-                `Le debe ${formatMoney(shop.laterOwed ?? 0)} a 7 días. Pagó a tiempo ${shop.laterOnTime ?? 0} de ${laterPaid}.`,
-                `It owes ${formatMoney(shop.laterOwed ?? 0)} on 7 days. Paid on time ${shop.laterOnTime ?? 0} of ${laterPaid}.`,
+                "Cada pago a tiempo en dólares digitales, también a 7 días con usted, le sube el límite con el fondo hasta $300. Un atraso se lo baja.",
+                "Every on-time payment in digital dollars, including 7 days with you, raises its pool limit up to $300. Paying late lowers it.",
               )}
             </p>
-          )}
+          </div>
         </Paper>
         <Button
           onClick={() => act(() => offerOwnCredit(shopId, !own))}

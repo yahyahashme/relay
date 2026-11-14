@@ -2737,3 +2737,136 @@ fn only_the_admin_can_revoke() {
     );
     assert_not_signed!(t.client.try_revoke_lender(&t.lender));
 }
+
+// ---------- #200: pay later counts toward the pool limit (Rules A and B) ----------
+
+impl Setup {
+    /// A pay-later invoice `id` of `amount` in week `week`, paid digitally `days_late` days after its due date.
+    fn later_paid(&self, week: u64, id: u64, amount: i128, days_late: u64) {
+        let at = START + week * WEEK;
+        self.env.ledger().set_timestamp(at);
+        self.minter.mint(&self.shop, &amount);
+        self.client.create_invoice(&self.distributor, &id, &self.shop, &self.driver, &amount, &(at + WEEK));
+        self.client.offer_own_credit(&self.distributor, &self.shop, &true);
+        self.client.pay_later(&self.shop, &id);
+        let due = self.client.get_invoice(&id).due;
+        self.env.ledger().set_timestamp(if days_late == 0 { at + DAY } else { due + days_late * DAY });
+        self.client.pay(&self.shop, &id, &amount);
+    }
+}
+
+#[test]
+fn on_time_pay_later_raises_the_limit_and_counts_a_good_cycle() {
+    let t = setup();
+    t.with_credit();
+    t.later_paid(0, 1, 40 * USD, 0);
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!((shop.limit, shop.good_cycles, shop.later_on_time), (225 * USD, 1, 1));
+    // Under the $40 bar: counted on the record, no raise.
+    t.later_paid(1, 2, 39 * USD, 0);
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!((shop.limit, shop.good_cycles, shop.later_on_time), (225 * USD, 1, 2));
+}
+
+#[test]
+fn pool_and_pay_later_share_one_raise_a_period() {
+    let t = setup();
+    t.with_credit();
+    // Pool cycle repaid on time in week 0: +$25.
+    t.invoice(1, 50 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    t.env.ledger().set_timestamp(START + DAY);
+    t.client.repay(&t.shop, &(50 * USD));
+    assert_eq!(t.client.get_shop(&t.shop).limit, 225 * USD);
+    // A pay-later invoice paid on time two days later, same period: no second raise.
+    t.env.ledger().set_timestamp(START + 2 * DAY);
+    t.client.create_invoice(&t.distributor, &2, &t.shop, &t.driver, &(50 * USD), &(START + WEEK));
+    t.client.offer_own_credit(&t.distributor, &t.shop, &true);
+    t.client.pay_later(&t.shop, &2);
+    t.env.ledger().set_timestamp(START + 3 * DAY);
+    t.client.pay(&t.shop, &2, &(50 * USD));
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!((shop.limit, shop.good_cycles), (225 * USD, 1));
+}
+
+#[test]
+fn late_pay_later_lowers_the_limit() {
+    let t = setup();
+    t.with_credit();
+    t.later_paid(0, 1, 40 * USD, 3);
+    assert_eq!(t.client.get_shop(&t.shop).limit, 175 * USD);
+    t.later_paid(2, 2, 40 * USD, 9);
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!((shop.limit, shop.later_late, shop.good_cycles), (125 * USD, 2, 0));
+    // 8+ days late freezes raises: an on-time one next week doesn't raise.
+    t.later_paid(4, 3, 40 * USD, 0);
+    assert_eq!(t.client.get_shop(&t.shop).limit, 125 * USD);
+}
+
+#[test]
+fn pay_later_without_pool_terms_only_builds_the_record() {
+    let t = setup();
+    t.later_paid(0, 1, 100 * USD, 0);
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!((shop.limit, shop.good_cycles, shop.later_on_time), (0, 0, 1));
+}
+
+#[test]
+fn cash_pay_later_never_raises_but_late_still_costs() {
+    let t = setup();
+    t.with_credit();
+    // On time, in cash: on the record, no raise (Rule A).
+    t.invoice(1, 50 * USD);
+    t.client.offer_own_credit(&t.distributor, &t.shop, &true);
+    t.client.pay_later(&t.shop, &1);
+    t.client.cash_claim(&t.driver, &1, &(50 * USD));
+    t.client.cash_confirm(&t.shop, &1, &(50 * USD));
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!((shop.limit, shop.good_cycles, shop.later_on_time), (200 * USD, 0, 1));
+    // Mixed (part cash, part digital) on time: no raise either.
+    t.env.ledger().set_timestamp(START + WEEK);
+    t.client.create_invoice(&t.distributor, &2, &t.shop, &t.driver, &(50 * USD), &(START + 2 * WEEK));
+    t.client.pay_later(&t.shop, &2);
+    t.client.cash_claim(&t.driver, &2, &(20 * USD));
+    t.client.cash_confirm(&t.shop, &2, &(20 * USD));
+    t.client.pay(&t.shop, &2, &(30 * USD));
+    assert_eq!(t.client.get_shop(&t.shop).limit, 200 * USD);
+    // Late, in cash: the penalty still applies.
+    t.env.ledger().set_timestamp(START + 2 * WEEK);
+    t.client.create_invoice(&t.distributor, &3, &t.shop, &t.driver, &(50 * USD), &(START + 3 * WEEK));
+    t.client.pay_later(&t.shop, &3);
+    let due = t.client.get_invoice(&3).due;
+    t.env.ledger().set_timestamp(due + 3 * DAY);
+    t.client.cash_claim(&t.driver, &3, &(50 * USD));
+    t.client.cash_confirm(&t.shop, &3, &(50 * USD));
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!((shop.limit, shop.later_late), (175 * USD, 1));
+}
+
+#[test]
+fn pay_later_raises_stop_at_300_then_the_pool_takes_over() {
+    let t = setup();
+    t.with_credit();
+    for week in 0..6 {
+        t.later_paid(week, 10 + week, 40 * USD, 0);
+    }
+    assert_eq!(t.client.get_shop(&t.shop).limit, LATER_RAISE_CAP);
+    // A pool repayment can still raise it past $300.
+    t.env.ledger().set_timestamp(START + 6 * WEEK);
+    t.minter.mint(&t.shop, &(50 * USD));
+    t.client.create_invoice(&t.distributor, &99, &t.shop, &t.driver, &(50 * USD), &(START + 7 * WEEK));
+    t.client.pay_with_credit(&t.shop, &99);
+    t.env.ledger().set_timestamp(START + 6 * WEEK + DAY);
+    t.client.repay(&t.shop, &(50 * USD));
+    assert_eq!(t.client.get_shop(&t.shop).limit, 325 * USD);
+}
+
+#[test]
+fn a_shop_above_300_is_not_lowered_by_the_cap() {
+    let t = setup();
+    t.client.deposit(&t.lender, &(5_000 * USD));
+    t.client.set_terms(&t.shop, &(400 * USD));
+    t.later_paid(0, 1, 40 * USD, 0);
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!((shop.limit, shop.good_cycles), (400 * USD, 1));
+}

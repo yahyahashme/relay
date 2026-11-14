@@ -79,6 +79,11 @@ pub const NO_RAISE_PERIODS: u64 = 4;
 /// 4 x 7 days = 28 days late for real, 8 minutes with the 2-minute demo period.
 pub const DEFAULT_AFTER_PERIODS: u64 = 4;
 
+/// Pay later counts toward the pool limit (#200), but only up to $300: from
+/// there to $500 only real pool repayments raise it. A shop already above
+/// $300 is never lowered by this.
+pub const LATER_RAISE_CAP: i128 = 3_000_000_000;
+
 /// `list_invoices` returns only the newest 60, so one call never reads too much.
 /// Older invoices are read a page at a time with `list_invoices_page`.
 pub const MAX_LIST: u32 = 60;
@@ -164,6 +169,8 @@ pub struct Invoice {
     /// The shop chose "pay in 7 days" and the distributor carries it itself (#194).
     /// `due` is then the date the shop must pay the distributor by.
     pub later: bool,
+    /// What was left to pay when the shop put it on pay later; 0 if never (#200).
+    pub later_amount: i128,
 }
 
 #[contracttype]
@@ -599,6 +606,7 @@ impl RouteLedger {
             method: PayMethod::None,
             credit_fee: 0,
             later: false,
+            later_amount: 0,
         };
         put(&env, &DataKey::Invoice(id), &invoice);
         let mut totals = load_totals(&env);
@@ -1255,6 +1263,7 @@ impl RouteLedger {
         let config = load_config(&env);
         let amount = invoice.amount - invoice.paid;
         invoice.later = true;
+        invoice.later_amount = amount;
         invoice.due = now + config.credit_period_secs;
         put(&env, &DataKey::Invoice(id), &invoice);
         let mut record = load_later(&env, &shop);
@@ -1671,14 +1680,60 @@ fn record_payment(env: &Env, invoice: &mut Invoice, method: PayMethod, amount: i
         record.owed = (record.owed - amount).max(0);
         if invoice.status == InvoiceStatus::Paid {
             let period = load_config(env).credit_period_secs;
-            if days_late(env.ledger().timestamp(), invoice.due, period) <= GRACE_DAYS {
+            let days = days_late(env.ledger().timestamp(), invoice.due, period);
+            if days <= GRACE_DAYS {
                 record.on_time += 1;
             } else {
                 record.late += 1;
             }
+            grade_later(env, invoice, days, period);
         }
         put(env, &DataKey::Later(invoice.shop.clone()), &record);
     }
+}
+
+/// A pay-later invoice was just paid in full, `days` late (#200). For a shop
+/// with pool terms it counts like a pool cycle: on time past the growth bar
+/// gives +$25 (up to `LATER_RAISE_CAP`) and a good cycle, sharing the
+/// once-per-period rule with pool repayments; late takes $25 (2-7 days) or
+/// $50 and a 4-period freeze (8+). Good news counts only if every payment on
+/// the invoice was digital, because a cash confirmation needs no money to
+/// move (Rule A); bad news counts whatever the method.
+fn grade_later(env: &Env, invoice: &Invoice, days: u64, period: u64) {
+    let mut terms = match load_shop(env, &invoice.shop) {
+        Some(terms) => terms,
+        None => return, // no pool terms: only the pay-later record
+    };
+    let now = env.ledger().timestamp();
+    if days <= GRACE_DAYS {
+        if invoice.method != PayMethod::Digital {
+            return;
+        }
+        let up_front = invoice.amount - invoice.later_amount;
+        let big_enough = invoice.later_amount >= MIN_BORROW_TO_GROW
+            || (up_front.saturating_mul(2) >= invoice.amount
+                && invoice.later_amount >= MIN_BORROW_WITH_HALF);
+        if !big_enough {
+            return;
+        }
+        let waited = terms.last_raise_at == 0 || now >= terms.last_raise_at + period;
+        if waited && now >= terms.no_raise_until && terms.limit < LATER_RAISE_CAP {
+            terms.limit = (terms.limit + LIMIT_STEP).min(LATER_RAISE_CAP);
+            terms.last_raise_at = now;
+        }
+        if terms.last_good_at == 0 || now >= terms.last_good_at + period {
+            terms.good_cycles = terms.good_cycles.saturating_add(1);
+            terms.last_good_at = now;
+        }
+    } else if days <= MINOR_LATE_DAYS {
+        terms.good_cycles = 0;
+        terms.limit = (terms.limit - LIMIT_STEP).max(0);
+    } else {
+        terms.good_cycles = 0;
+        terms.limit = (terms.limit - MAJOR_LATE_STEP).max(0);
+        terms.no_raise_until = now.saturating_add(period.saturating_mul(NO_RAISE_PERIODS));
+    }
+    save_shop(env, &invoice.shop, &terms);
 }
 
 fn load_later(env: &Env, shop: &Address) -> LaterRecord {

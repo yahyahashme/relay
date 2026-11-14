@@ -282,7 +282,7 @@ describe("trusted shops and the recourse tier (#185)", () => {
 
 describe("the distributor gives the 7 days itself (#194)", () => {
   it("pay later uses no pool and no limit, and counts on the shop's record", () => {
-        const poolBefore = mock.getPool();
+    const poolBefore = mock.getPool();
     expect(mock.offerOwnCredit("tienda-3", true).ok).toBe(true);
     // 1003 is $220, over the $200 pool limit on purpose: the distributor's own money has no pool limit.
     expect(mock.getInvoice(1003)?.ownCredit).toBe(true);
@@ -314,10 +314,30 @@ describe("the distributor gives the 7 days itself (#194)", () => {
   });
 
   it("back on the pool, pay in 7 days is pool credit again", () => {
-        mock.offerOwnCredit("tienda-1", true);
+    mock.offerOwnCredit("tienda-1", true);
     mock.offerOwnCredit("tienda-1", false);
     expect(mock.getInvoice(1001)?.ownCredit).toBeUndefined();
     expect(mock.payLater(1001).ok).toBe(true);
     expect(mock.getInvoice(1001)?.method).toBe("credit");
+  });
+});
+
+describe("pay later counts toward the pool limit (#200)", () => {
+  it("raises the limit when paid on time digitally, not in cash, and lowers it when late", () => {
+    mock.offerOwnCredit("tienda-3", true);
+    mock.payLater(1003);
+    mock.payNow(1003);
+    expect(mock.getShop("tienda-3")).toMatchObject({ creditLimit: 225, goodCycles: 1 });
+
+    mock.offerOwnCredit("tienda-1", true);
+    mock.payLater(1001);
+    mock.claimCash(1001, 150);
+    mock.confirmCash(1001, 150);
+    expect(mock.getShop("tienda-1")).toMatchObject({ creditLimit: 200, laterOnTime: 1 }); // cash: no raise (Rule A)
+
+    mock.payLater(1004);
+    now = NOW + 10 * DAY; // 3 days past due
+    mock.payNow(1004);
+    expect(mock.getShop("tienda-1")?.creditLimit).toBe(175);
   });
 });
