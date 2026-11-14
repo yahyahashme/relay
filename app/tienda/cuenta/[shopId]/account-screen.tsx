@@ -8,6 +8,7 @@ import { Money, MoneyText } from "@/components/kit/money";
 import { Card, icons, initials, Meter, Shortcut } from "@/components/kit/account";
 import { Stamp } from "@/components/kit/stamp";
 import { Empty, Failure, Loading } from "@/components/kit/states";
+import { usePayConfirm } from "@/components/pay-confirm";
 import { HOLD_MS, TapShield, useMovedGuard, useQuietOnArrival, useSameSpotGuard, useTapShield } from "@/components/tap-shield";
 import { getBalance, getInvoices, getShop, getShopHistory, getSuppliers, repay } from "@/lib/api";
 import { creditScore } from "@/lib/credit";
@@ -63,6 +64,7 @@ export default function AccountScreen() {
   // right under the slip: for a beat after it has changed place, it ignores taps.
   const { ref: payPlace, justMoved } = useMovedGuard<HTMLDivElement>();
   const { lang, t, msg } = useT();
+  const { ask, sheet } = usePayConfirm();
   // "Pagar deuda" pays with one tap, so it waits a beat after it comes on screen: a double tap on the screen before can't pay.
   const arriving = useQuietOnArrival(Boolean(data?.shop && !stale && data.shop.creditOwed > 0));
 
@@ -92,9 +94,16 @@ export default function AccountScreen() {
       limit: shop.creditLimit,
       due: shop.creditDue,
     };
-    setBusy(true);
     setOutcome(null);
-    const result = await repay(shop.id, before.amount);
+    // Face ID, fingerprint or PIN first (#199): nothing moves until the shop confirms this amount.
+    const answer = await ask({ action: "repay", shopId: shop.id, amount: before.amount });
+    if (!answer.ok) {
+      if (answer.message) setOutcome({ ok: false, message: answer.message });
+      running.current = false;
+      return;
+    }
+    setBusy(true);
+    const result = await repay(shop.id, before.amount, answer.id);
     if (result.ok) {
       setPaid(before);
       setLanded(false);
@@ -254,6 +263,7 @@ export default function AccountScreen() {
         {busy ? t("Procesando...", "Processing...") : ""}
       </p>
       {(busy || held) && <TapShield onTap={noteTap} />}
+      {sheet}
       <Split
         pin="facts"
         nav={

@@ -140,3 +140,36 @@ CREATE TABLE IF NOT EXISTS rate_events (
   at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS rate_events_key_at ON rate_events (key, at);
+
+-- Payment confirmation (#199): after a shop taps pay, Face ID / fingerprint (a passkey) or a 6-digit PIN.
+-- `owner` is "user:<id>" for a real account, "device:<id>" for a phone paying as a demo shop.
+-- lib/server/pay-confirm.ts also creates these on first use, so the live database needs no setup step.
+CREATE TABLE IF NOT EXISTS pay_passkeys (
+  id         TEXT PRIMARY KEY,   -- the credential id, base64url
+  owner      TEXT NOT NULL,
+  public_key TEXT NOT NULL,      -- COSE key, base64url
+  counter    BIGINT NOT NULL DEFAULT 0,
+  transports TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS pay_passkeys_owner ON pay_passkeys (owner);
+CREATE TABLE IF NOT EXISTS pay_pins (
+  owner      TEXT PRIMARY KEY,
+  pin_hash   TEXT NOT NULL,      -- scrypt, like passwords
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+-- One per tap on a pay button: bound to what will move, single use, two minutes.
+CREATE TABLE IF NOT EXISTS pay_challenges (
+  id          TEXT PRIMARY KEY,
+  owner       TEXT NOT NULL,
+  action      TEXT NOT NULL,     -- pay | later | cash | repay
+  party_id    TEXT NOT NULL,     -- the shop
+  invoice_id  BIGINT,            -- null for repay
+  cents       BIGINT NOT NULL,
+  challenge   TEXT NOT NULL,     -- base64url, what the passkey signs
+  expires_at  TIMESTAMPTZ NOT NULL,
+  verified_at TIMESTAMPTZ,
+  method      TEXT,              -- passkey | pin
+  used_at     TIMESTAMPTZ,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);

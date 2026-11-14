@@ -9,6 +9,7 @@ import { Money, MoneyText } from "@/components/kit/money";
 import { Paper, Receipt, ReceiptFold, ReceiptFoot, ReceiptHeader, ReceiptLine, ReceiptLines, ReceiptRule, ReceiptTotal } from "@/components/kit/paper";
 import { Stamp } from "@/components/kit/stamp";
 import { Empty, Failure, Loading } from "@/components/kit/states";
+import { type ConfirmAsk, usePayConfirm } from "@/components/pay-confirm";
 import { ARRIVE_MS, HOLD_MS, QUIET_MS, TapShield, useQuietOnArrival, useSameSpotGuard, useTapShield } from "@/components/tap-shield";
 import { confirmCash, getDrivers, getInvoice, getInvoiceSource, getShop, payLater, payNow } from "@/lib/api";
 import { dueOn, formatDay, isPastDue, pricedLine } from "@/lib/format";
@@ -165,6 +166,7 @@ export default function InvoiceScreen() {
   const { noteTap, settle } = useTapShield();
   const { watch, typed, stray } = useSameSpotGuard();
   const { lang, t, msg } = useT();
+  const { ask, sheet } = usePayConfirm();
 
   const invoice = data?.invoice ?? null;
   const shop = data?.shop ?? null;
@@ -185,12 +187,19 @@ export default function InvoiceScreen() {
   const payNowArriving = useQuietOnArrival(invoice !== null && !stale && !panelHasButton);
   const panelArriving = useQuietOnOpen(panelHasButton ? panel : null);
 
-  async function run(action: Action, write: () => Promise<Outcome>) {
+  /** Face ID, fingerprint or PIN first (#199): nothing moves until the shop confirms this amount. */
+  async function run(action: Action, confirm: Omit<ConfirmAsk, "invoiceId" | "to">, write: (confirmId: string) => Promise<Outcome>) {
     if (running.current) return; // two taps in the same instant, before the screen has redrawn: one payment
     running.current = true;
-    setBusy(action);
     setOutcome(null);
-    const result = await write();
+    const answer = await ask({ ...confirm, invoiceId: id, to: data?.source?.distributorName || undefined });
+    if (!answer.ok) {
+      if (answer.message) setOutcome({ ok: false, message: answer.message });
+      running.current = false;
+      return;
+    }
+    setBusy(action);
+    const result = await write(answer.id);
     if (result.ok) {
       await reload(); // show the stamp and the new numbers together
       setChoice(undefined);
@@ -337,7 +346,7 @@ export default function InvoiceScreen() {
       )}
       <Button
         onClick={(event) => {
-          if (!stray(event)) void run("now", () => payNow(id));
+          if (!stray(event)) void run("now", { action: "pay", amount: left }, (confirmId) => payNow(id, undefined, confirmId));
         }}
         busy={busy === "now"}
         disabled={locked || stale || panelHasButton}
@@ -365,7 +374,7 @@ export default function InvoiceScreen() {
           </p>
           <Button
             onClick={(event) => {
-              if (!stray(event)) void run("later", () => payLater(id));
+              if (!stray(event)) void run("later", { action: "later", amount: left }, (confirmId) => payLater(id, confirmId));
             }}
             busy={busy === "later"}
             disabled={locked || unready}
@@ -390,7 +399,7 @@ export default function InvoiceScreen() {
               </p>
               <Button
                 onClick={(event) => {
-                  if (!stray(event)) void run("cash", () => confirmCash(id, invoice.cashClaim ?? 0));
+                  if (!stray(event)) void run("cash", { action: "cash", amount: invoice.cashClaim ?? 0 }, (confirmId) => confirmCash(id, invoice.cashClaim ?? 0, confirmId));
                 }}
                 busy={busy === "cash"}
                 disabled={locked || unready}
@@ -432,7 +441,7 @@ export default function InvoiceScreen() {
               if (stray(event)) return;
               const error = partPayError(partText, left, invoice.cashClaim);
               if (error || partAmount === null) return setPartError(error ?? "Monto inválido.");
-              void run("part", () => payNow(id, partAmount));
+              void run("part", { action: "pay", amount: partAmount }, (confirmId) => payNow(id, partAmount, confirmId));
             }}
             busy={busy === "part"}
             disabled={locked || unready || panelArriving || partText.trim() === ""}
@@ -459,6 +468,7 @@ export default function InvoiceScreen() {
         {busy !== null ? t("Procesando...", "Processing...") : ""}
       </p>
       {(busy !== null || held) && <TapShield onTap={noteTap} />}
+      {sheet}
       <Split
         nav={
           <TopNav back="/" backLabel={t("Inicio", "Home")}>

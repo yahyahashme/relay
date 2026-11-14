@@ -20,6 +20,9 @@ import { toUnixSeconds } from "@/lib/dates";
 import { firstFreeId, nextDemoId } from "@/lib/demo-ids";
 import { getDb } from "@/lib/server/db";
 import { checkInvoice, choices, cleanAmount, dueAt, myApprovedDistributor } from "@/lib/server/invoices";
+import { redeemConfirm, unitsToCents, type ConfirmTarget } from "@/lib/server/pay-confirm";
+import { confirmOwner } from "@/lib/server/pay-owner";
+import type { Party } from "@/lib/server/directory";
 import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type InvoiceRow, type LenderView, type Pool, type Receipt, type Payment, type Shop, type ShopHistory, type Supplier, type Totals } from "@/lib/types";
 
 // ---------- reads ----------
@@ -187,6 +190,16 @@ export async function getLender(): Promise<LenderView> {
 
 const fail = (message: string): Receipt => ({ ok: false, message });
 
+/**
+ * Face ID, fingerprint or PIN (#199): the server signs for the shop, so it first uses up the
+ * confirmation the owner gave for exactly this action, invoice and amount. Null = go ahead.
+ */
+async function confirmed(confirmId: string | undefined, shop: Party, target: Omit<ConfirmTarget, "partyId" | "cents">, units: bigint): Promise<string | null> {
+  const db = getDb();
+  if (!db) return "No se puede confirmar pagos en este servidor.";
+  return redeemConfirm(db, await confirmOwner(shop, false), confirmId, { ...target, partyId: shop.id, cents: unitsToCents(units) });
+}
+
 function failure(error: unknown): Receipt {
   if (error instanceof ContractError) return fail(error.message);
   console.error("[actions]", error);
@@ -194,7 +207,7 @@ function failure(error: unknown): Receipt {
 }
 
 /** The shop pays (part of) an invoice in dollars digitales. No amount = what's left. */
-export async function payNow(invoiceId: number, amount?: number): Promise<Receipt> {
+export async function payNow(invoiceId: number, amount?: number, confirmId?: string): Promise<Receipt> {
   try {
     const invoice = await chainInvoice(invoiceId);
     if (!invoice) return fail("No encontramos esa factura.");
@@ -220,6 +233,8 @@ export async function payNow(invoiceId: number, amount?: number): Promise<Receip
     const shop = (await getDirectory()).byAddress(invoice.shop);
     if (shop?.kind !== "shop") return fail("Esta factura no es de su tienda.");
     if (!(await mayActAs(shop))) return fail(NOT_YOURS);
+    const unconfirmed = await confirmed(confirmId, shop, { action: "pay", invoiceId }, units);
+    if (unconfirmed) return fail(unconfirmed);
 
     const { hash } = await run(shop.id, (client) =>
       client.pay({ shop: invoice.shop, id: invoice.id, amount: units }),
@@ -240,7 +255,7 @@ const receipt = (hash: string, message: string): Receipt => ({ ok: true, message
 const shopView = (address: string) => read(readClient().get_shop({ shop: address }));
 
 /** The pool pays what's left now; the shop owes it within the credit period. */
-export async function payLater(invoiceId: number): Promise<Receipt> {
+export async function payLater(invoiceId: number, confirmId?: string): Promise<Receipt> {
   try {
     const invoice = await chainInvoice(invoiceId);
     if (!invoice) return fail("No encontramos esa factura.");
@@ -249,6 +264,8 @@ export async function payLater(invoiceId: number): Promise<Receipt> {
     const shop = (await getDirectory()).byAddress(invoice.shop);
     if (shop?.kind !== "shop") return fail("Esta factura no es de su tienda.");
     if (!(await mayActAs(shop))) return fail(NOT_YOURS);
+    const unconfirmed = await confirmed(confirmId, shop, { action: "later", invoiceId }, left);
+    if (unconfirmed) return fail(unconfirmed);
 
     const { hash } = await run(shop.id, (client) => client.pay_with_credit({ shop: invoice.shop, id: invoice.id }));
     const after = await shopView(invoice.shop);
@@ -282,7 +299,7 @@ export async function claimCash(invoiceId: number, amount: number): Promise<Rece
 
 /** Cash, step 2: the shop confirms the driver's claim. */
 /** `amount` is the cash claim the shop was shown; the contract refuses if the driver changed it since. */
-export async function confirmCash(invoiceId: number, amount: number): Promise<Receipt> {
+export async function confirmCash(invoiceId: number, amount: number, confirmId?: string): Promise<Receipt> {
   try {
     const invoice = await chainInvoice(invoiceId);
     if (!invoice) return fail("No encontramos esa factura.");
@@ -291,6 +308,8 @@ export async function confirmCash(invoiceId: number, amount: number): Promise<Re
     if (!(await mayActAs(shop))) return fail(NOT_YOURS);
     if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
     const units = toUnits(amount.toFixed(2));
+    const unconfirmed = await confirmed(confirmId, shop, { action: "cash", invoiceId }, units);
+    if (unconfirmed) return fail(unconfirmed);
 
     const { hash } = await run(shop.id, (client) =>
       client.cash_confirm({ shop: invoice.shop, id: invoice.id, amount: units }),
@@ -302,7 +321,7 @@ export async function confirmCash(invoiceId: number, amount: number): Promise<Re
 }
 
 /** The shop pays back credit. Paying the whole debt on time can raise the limit. */
-export async function repay(shopId: string, amount: number): Promise<Receipt> {
+export async function repay(shopId: string, amount: number, confirmId?: string): Promise<Receipt> {
   try {
     const shop = (await getDirectory()).find(shopId, "shop");
     if (!shop) return fail("No encontramos esa tienda.");
@@ -314,6 +333,8 @@ export async function repay(shopId: string, amount: number): Promise<Receipt> {
     // The screen sends dollars; "pay everything" must send the exact units owed.
     const asked = toUnits(amount.toFixed(2));
     const units = asked >= before.owed || toDollars(before.owed) === amount ? before.owed : asked;
+    const unconfirmed = await confirmed(confirmId, shop, { action: "repay", invoiceId: null }, units);
+    if (unconfirmed) return fail(unconfirmed);
 
     const { hash } = await run(shop.id, (client) => client.repay({ shop: address, amount: units }));
     const after = await shopView(address);

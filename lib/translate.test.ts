@@ -10,7 +10,7 @@ const source = (path: string) => readFileSync(join(root, path), "utf8");
 const SPANISH = /\b(factura|facturas|tienda|motorista|monto|pago|pagar|pagada|deuda|efectivo|crédito|límite|listo|fila|falta|tiene|está|intente|inválid[oa]|encontramos|dólares|vencido|recibido)\b/i;
 
 // Accounts and the screens built on them (#129 on): their messages come back from the server too.
-const SERVER_FILES = ["app/auth-actions.ts", "lib/server/accounts.ts", "app/distributor-actions.ts", "lib/server/distributors.ts", "app/registro/distributor-form.tsx", "app/driver-actions.ts", "lib/server/drivers.ts", "app/shop-actions.ts", "lib/server/shops.ts", "app/invoice-actions.ts", "app/recourse-actions.ts", "lib/server/invoices.ts", "app/shop-signup-actions.ts", "components/shop-signup.tsx", "lib/server/authz.ts", "lib/server/rate-limit.ts"];
+const SERVER_FILES = ["app/auth-actions.ts", "lib/server/accounts.ts", "app/distributor-actions.ts", "lib/server/distributors.ts", "app/registro/distributor-form.tsx", "app/driver-actions.ts", "lib/server/drivers.ts", "app/shop-actions.ts", "lib/server/shops.ts", "app/invoice-actions.ts", "app/recourse-actions.ts", "lib/server/invoices.ts", "app/shop-signup-actions.ts", "components/shop-signup.tsx", "lib/server/authz.ts", "lib/server/rate-limit.ts", "lib/server/pay-confirm.ts", "app/confirm-actions.ts", "lib/pay-confirm.ts"];
 
 describe("translateMessage", () => {
   // One example of every message the server, the mock, the contract and the CSV parser send.
@@ -26,6 +26,9 @@ describe("translateMessage", () => {
     ["Deuda pagada con atraso.", "Debt paid late."],
     ["Deuda pagada a tiempo. Su límite subió a $225.00.", "Debt paid on time. Your limit went up to $225.00."],
     ["Deuda pagada a tiempo. Gracias.", "Debt paid on time. Thank you."],
+    ["PIN incorrecto. Le quedan 3 intentos.", "Wrong PIN. 3 tries left."],
+    ["PIN incorrecto. Le queda 1 intento.", "Wrong PIN. 1 try left."],
+    ["El monto cambió. Confirme el pago otra vez.", "The amount changed. Confirm the payment again."],
     ["El monto es mayor que lo que falta pagar ($12.00).", "The amount is more than what's left to pay ($12.00)."],
     ["El monto es mayor que lo que falta pagar.", "The amount is more than what's left to pay."],
     ["Hay $30.00 en efectivo por confirmar. Puede pagar hasta $15.00.", "$30.00 in cash is waiting to be confirmed. You can pay up to $15.00."],
