@@ -5,7 +5,7 @@ import { checkOwnerAction, saveTrustedContactsAction, signUpShopAction } from "@
 import { getShopSuppliers } from "@/app/shop-actions";
 import { ActionLink, ActionList, ActionRow, ButtonLink, TextButton } from "@/components/kit/button";
 import { Field, PasswordField } from "@/components/kit/field";
-import { Choice, Choices, FORM, FormHead, FormSubmit } from "@/components/kit/form";
+import { Choice, Choices, Form, FormHead, FormSubmit } from "@/components/kit/form";
 import { Money } from "@/components/kit/money";
 import { Paper, Receipt, ReceiptFoot, ReceiptHeader, ReceiptRule, ReceiptTotal } from "@/components/kit/paper";
 import { Stamp } from "@/components/kit/stamp";
@@ -129,8 +129,8 @@ export function ShopSignUp({
 
   if (step === 1) {
     return (
-      <form onSubmit={owner} className={FORM}>
-        <FormHead step={stepOf} title={t("Sus datos", "About you")}>
+      <Form onSubmit={owner} error={error}>
+        <FormHead step={stepOf} at={step} title={t("Sus datos", "About you")}>
           {intro}
         </FormHead>
         <Field label={t("Su nombre", "Your name")} autoComplete="name" autoCapitalize="words" required value={name} onChange={(e) => setName(e.target.value)} error={under("name")} />
@@ -158,14 +158,14 @@ export function ShopSignUp({
         <FormSubmit error={aboveButton} busy={busy}>
           {t("Siguiente", "Next")}
         </FormSubmit>
-      </form>
+      </Form>
     );
   }
 
   if (step === 2) {
     return (
-      <form onSubmit={shop} className={FORM}>
-        <FormHead step={stepOf} title={t("Su tienda", "Your shop")} />
+      <Form onSubmit={shop} error={error}>
+        <FormHead step={stepOf} at={step} title={t("Su tienda", "Your shop")} />
         <Field
           label={t("Nombre de su tienda", "Your shop's name")}
           hint={code ? t("El nombre que usted quiera. Su distribuidora puede seguir usando el suyo.", "Any name you like. Your distributor can keep using theirs.") : undefined}
@@ -202,14 +202,14 @@ export function ShopSignUp({
         >
           {t("Atrás", "Back")}
         </TextButton>
-      </form>
+      </Form>
     );
   }
 
   if (step === 3) {
     return (
-      <form onSubmit={security} className={FORM}>
-        <FormHead step={stepOf} title={t("Seguridad", "Security")} />
+      <Form onSubmit={security} error={error}>
+        <FormHead step={stepOf} at={step} title={t("Seguridad", "Security")} />
         <Paper className="flex flex-col gap-1.5 px-4 py-4">
           <p className="text-label font-semibold uppercase tracking-[0.1em] text-muted">{t("Así funcionará · todavía no está activo", "How it will work · not active yet")}</p>
           <p className="text-lead font-bold">{t("Usar huella", "Use your fingerprint")}</p>
@@ -242,7 +242,7 @@ export function ShopSignUp({
         <TextButton onClick={() => setStep(4)} disabled={busy}>
           {t("Más tarde", "Later")}
         </TextButton>
-      </form>
+      </Form>
     );
   }
 
@@ -251,11 +251,11 @@ export function ShopSignUp({
   const hasCredit = done !== null && done.creditLimit > 0;
   return (
     <div className="flex flex-col gap-4">
-      <FormHead step={stepOf} title={t("Su cuenta está lista", "Your account is ready")} />
+      <FormHead step={stepOf} at={step} title={t("Su cuenta está lista", "Your account is ready")} />
       <Receipt>
         <ReceiptHeader from={shopName} number={t("Cuenta de tienda", "Shop account")} />
         {hasCredit ? (
-          <ReceiptTotal label={t("Límite de crédito", "Credit limit")} value={done.creditLimit} note={t("Sin intereses", "No interest")}>
+          <ReceiptTotal label={t("Límite de crédito", "Credit limit")} value={done.creditLimit}>
             <p className="pt-1.5 text-muted text-pretty">{t("Ya puede usar «Pagar en 7 días», sin intereses.", "You can use “Pay in 7 days” now, with no interest.")}</p>
           </ReceiptTotal>
         ) : (

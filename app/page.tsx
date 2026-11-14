@@ -30,13 +30,21 @@ const invoiceNo = (id: number) => (
   </>
 );
 
+// A phone in the hand that is under 576 px tall (one column, so narrower than 640 px).
+const TINY = "max-[39.99rem]:[@media(max-height:35.99rem)]:hidden";
+
 /** The hero: a real receipt, paid. It prints in once and its stamp lands (no buzz: nothing was paid here). */
 function PaidReceipt() {
   return (
     <Receipt printIn>
-      <ReceiptHeader from="Distribuidora El Sol" number={invoiceNo(1001)} />
-      {/* On a short screen the lines step aside, so the total, the stamp and both ways in stay in view. */}
-      <div className="contents max-[39.99rem]:short:hidden [@media(max-height:35.99rem)]:hidden">
+      {/* On the smallest phones (under 576 px tall) the slip is only its total and its stamp, so both ways in still fit under it. */}
+      <div className={`contents ${TINY}`}>
+        <ReceiptHeader from="Distribuidora El Sol" number={invoiceNo(1001)} />
+      </div>
+      {/* On a phone under 816 px tall (and on a laptop under 576) the lines step aside, so the total, the stamp and
+          both ways in stay in view. So do they on paper too narrow for a name beside its label (a printed line
+          never breaks its figure). */}
+      <div className="contents max-[39.99rem]:[@media(max-height:50.99rem)]:hidden @max-[13.5rem]:hidden [@media(max-height:35.99rem)]:hidden">
         <ReceiptRule />
         <ReceiptLines>
           <ReceiptLine label={<T es="Cliente" en="Customer" />}>Tienda Rosa</ReceiptLine>
@@ -44,7 +52,7 @@ function PaidReceipt() {
           <ReceiptLine label="Arroz 5 lb × 12">
             <Money value={54} />
           </ReceiptLine>
-          <ReceiptLine label="Frijol rojo 2 lb × 20">
+          <ReceiptLine label="Frijol 2 lb × 20">
             <Money value={46} />
           </ReceiptLine>
           <ReceiptLine label="Aceite 750 ml × 10">
@@ -53,15 +61,17 @@ function PaidReceipt() {
         </ReceiptLines>
       </div>
       <ReceiptTotal label="Total" value={150} note={<T es="Pagada · Dólares digitales" en="Paid · Digital dollars" />} />
-      <ReceiptFoot
-        stamp={
-          <Stamp tone="ok" className="stamp-land [animation-delay:300ms]">
+      {/* The foot of a slip (ReceiptFoot), except that on a very narrow slip the stamp goes under the words instead of squeezing them. */}
+      <div className="flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <p className={`min-w-[7.5rem] flex-1 text-base text-muted text-pretty ${TINY}`}>
+          <T es="Sin comisiones para la tienda." en="No fees for the shop." />
+        </p>
+        <div className="-mt-2 ml-auto shrink-0 pr-1">
+          <Stamp tone="ok" fit={6} className="stamp-land [animation-delay:300ms]">
             <T es="Pagada" en="Paid" />
           </Stamp>
-        }
-      >
-        <T es="Sin comisiones para la tienda." en="No fees for the shop." />
-      </ReceiptFoot>
+        </div>
+      </div>
     </Receipt>
   );
 }
@@ -72,14 +82,17 @@ function CreditReceipt() {
   return (
     <Receipt>
       <ReceiptHeader from="Distribuidora El Sol" number={invoiceNo(invoice.id)} />
-      <ReceiptRule />
-      <ReceiptLines>
-        <ReceiptLine label={<T es="Cliente" en="Customer" />}>{invoice.shop}</ReceiptLine>
-      </ReceiptLines>
+      {/* A printed line never breaks its figure, so the customer's name is left out where it would not fit (a folded phone with large text). */}
+      <div className="contents @max-[15.9rem]:hidden">
+        <ReceiptRule />
+        <ReceiptLines>
+          <ReceiptLine label={<T es="Cliente" en="Customer" />}>{invoice.shop}</ReceiptLine>
+        </ReceiptLines>
+      </div>
       <ReceiptTotal label="Total" value={invoice.amount} note={<T es="Paga en 7 días" en="Pays in 7 days" />} />
       <ReceiptFoot
         stamp={
-          <Stamp tone={invoice.tone} tilt={-4}>
+          <Stamp tone={invoice.tone} tilt={-4} fit={10}>
             <T es={invoice.status[0]} en={invoice.status[1]} />
           </Stamp>
         }
@@ -88,11 +101,14 @@ function CreditReceipt() {
   );
 }
 
+/** A small stamp on a sample: on the narrowest paper with the largest text it may break between its words. */
+const MARK = "whitespace-normal text-center";
+
 /** The driver's paper: la hoja de ruta. Numbered stops, each with its amount and its stamp. */
 function RouteSheet() {
   return (
-    <Paper as="div">
-      <p className="flex items-baseline justify-between gap-3 border-b border-ink px-3 py-2 font-mono text-label font-medium uppercase tracking-[0.04em] text-muted">
+    <Paper as="div" className="@container">
+      <p className="flex flex-wrap items-baseline justify-between gap-x-3 border-b border-ink px-3 py-2 font-mono text-label font-medium uppercase tracking-[0.04em] text-muted">
         <T es="Ruta de Carlos" en="Carlos's route" />
         <span>
           {INVOICES.length} <T es="paradas" en="stops" />
@@ -101,17 +117,22 @@ function RouteSheet() {
       <ol>
         {INVOICES.map((invoice, i) => (
           <li key={invoice.id} className="flex items-stretch border-paper-rule not-last:border-b">
-            <span className="flex w-12 shrink-0 items-center justify-center border-r-2 border-dotted border-paper-rule font-mono text-[1.75rem] font-semibold">{i + 1}</span>
-            <span className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-1 px-3 py-2.5">
-              <span className="text-[1.0625rem] font-bold text-balance">{invoice.shop}</span>
-              <Money value={invoice.amount} className="text-right text-[1.0625rem] font-semibold" />
-              <span className="font-mono text-label font-medium text-muted">
-                <T es="Factura" en="Invoice" /> {invoice.id}
+            <span className="flex w-[clamp(2.25rem,14cqi,3rem)] shrink-0 items-center justify-center border-r-2 border-dotted border-paper-rule font-mono text-[1.75rem] font-semibold">{i + 1}</span>
+            {/* Two lines: name and amount, invoice and stamp. Where a pair has no room on one line, its second half goes under, at the right. */}
+            <span className="flex min-w-0 flex-1 flex-col gap-1 px-3 py-2.5">
+              <span className="flex flex-wrap items-baseline justify-between gap-x-3">
+                <span className="min-w-0 flex-[1_1_6rem] text-[1.0625rem] font-bold text-balance">{invoice.shop}</span>
+                <Money value={invoice.amount} className="ml-auto text-[1.0625rem] font-semibold" />
               </span>
-              <span className="justify-self-end">
-                <Stamp small tone={invoice.tone}>
-                  <T es={invoice.status[0]} en={invoice.status[1]} />
-                </Stamp>
+              <span className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                <span className="font-mono text-label font-medium text-muted">
+                  <T es="Factura" en="Invoice" /> {invoice.id}
+                </span>
+                <span className="ml-auto min-w-0">
+                  <Stamp small tone={invoice.tone} className={MARK}>
+                    <T es={invoice.status[0]} en={invoice.status[1]} />
+                  </Stamp>
+                </span>
               </span>
             </span>
           </li>
@@ -121,51 +142,46 @@ function RouteSheet() {
   );
 }
 
-/** The distributor's paper: el libro mayor. Ruled columns, figures to the right, the total under a double rule. */
+/**
+ * The distributor's paper: el libro mayor. Ruled columns, figures to the right, the total under a double rule.
+ * On paper too narrow for a stamp beside the column of figures, the rule between the columns goes and the stamp
+ * takes the whole width under the name.
+ */
 function LedgerPage() {
-  const heading = "h-10 px-3 text-label font-semibold uppercase tracking-[0.08em] text-muted";
+  const heading = "flex min-h-10 items-center px-3 text-label font-semibold uppercase tracking-[0.08em] text-muted";
+  const line = "col-span-2 grid grid-cols-subgrid";
+  const ruled = "@min-[17rem]:border-l @min-[17rem]:border-paper-rule";
   return (
-    <Paper as="div">
-      <table className="w-full border-collapse">
-        <caption className="sr-only">
-          <T es="Facturas de hoy" en="Today's invoices" />
-        </caption>
-        <thead>
-          <tr className="border-b border-ink">
-            <th scope="col" className={`${heading} text-left`}>
-              <T es="Tienda" en="Shop" />
-            </th>
-            <th scope="col" className={`${heading} border-l border-paper-rule text-right`}>
-              <T es="Monto" en="Amount" />
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {INVOICES.map((invoice) => (
-            <tr key={invoice.id} className="border-b border-paper-rule">
-              <td className="px-3 py-2">
-                <span className="flex flex-col items-start gap-1">
-                  {invoice.shop}
-                  <Stamp small tone={invoice.tone}>
-                    <T es={invoice.status[0]} en={invoice.status[1]} />
-                  </Stamp>
-                </span>
-              </td>
-              <td className="border-l border-paper-rule px-3 py-2 text-right align-top font-mono font-medium">
-                <Money value={invoice.amount} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-        <tfoot>
-          <tr className="border-t-[3px] border-double border-ink">
-            <td className="h-12 px-3 font-semibold">Total</td>
-            <td className="h-12 border-l border-paper-rule px-3 text-right font-mono font-semibold">
-              <Money value={TOTAL} />
-            </td>
-          </tr>
-        </tfoot>
-      </table>
+    <Paper as="div" className="@container">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto]">
+        <p className={`${line} border-b border-ink`}>
+          <span className={heading}>
+            <T es="Tienda" en="Shop" />
+          </span>
+          <span className={`${heading} justify-end ${ruled}`}>
+            <T es="Monto" en="Amount" />
+          </span>
+        </p>
+        {INVOICES.map((invoice) => (
+          <p key={invoice.id} className={`${line} border-b border-paper-rule`}>
+            <span className="px-3 pt-2">{invoice.shop}</span>
+            <span className={`px-3 py-2 text-right font-mono font-medium @min-[17rem]:row-span-2 ${ruled}`}>
+              <Money value={invoice.amount} />
+            </span>
+            <span className="col-span-2 px-3 pb-2 pt-1 @min-[17rem]:col-span-1">
+              <Stamp small tone={invoice.tone} className={MARK}>
+                <T es={invoice.status[0]} en={invoice.status[1]} />
+              </Stamp>
+            </span>
+          </p>
+        ))}
+        <p className={`${line} border-t-[3px] border-double border-ink`}>
+          <span className="flex min-h-12 items-center px-3 font-semibold">Total</span>
+          <span className={`flex min-h-12 items-center justify-end px-3 font-mono font-semibold ${ruled}`}>
+            <Money value={TOTAL} />
+          </span>
+        </p>
+      </div>
     </Paper>
   );
 }
@@ -178,10 +194,10 @@ function Role({ id, who, paper, children, sample, links }: { id: string; who: Re
   return (
     <article
       aria-labelledby={id}
-      className="grid gap-y-3 min-[40rem]:max-[63.99rem]:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] min-[40rem]:max-[63.99rem]:grid-rows-[auto_1fr] min-[40rem]:max-[63.99rem]:gap-x-8 min-[64rem]:row-span-3 min-[64rem]:grid-rows-subgrid"
+      className="grid gap-y-3 min-[40rem]:max-[63.99rem]:grid-cols-2 min-[40rem]:max-[63.99rem]:grid-rows-[auto_1fr] min-[40rem]:max-[63.99rem]:gap-x-8 min-[64rem]:row-span-3 min-[64rem]:grid-rows-subgrid"
     >
       <header className="flex flex-col gap-1.5 min-[40rem]:max-[63.99rem]:col-start-2">
-        <h3 id={id} className="flex items-baseline justify-between gap-3 border-b border-counter-rule pb-1">
+        <h3 id={id} className="flex flex-wrap items-baseline justify-between gap-x-3 border-b border-counter-rule pb-1">
           <span className="text-lead font-bold">{who}</span>
           <span className="text-label font-semibold uppercase tracking-[0.1em] text-muted">{paper}</span>
         </h3>
@@ -196,13 +212,14 @@ function Role({ id, who, paper, children, sample, links }: { id: string; who: Re
 export default function Home() {
   return (
     <main className={`mx-auto flex w-full max-w-[calc(28rem+2*var(--gutter))] flex-1 flex-col gap-10 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-1 min-[40rem]:max-w-[calc(64rem+2*var(--gutter))] min-[40rem]:gap-14 ${SIDE}`}>
-      <section className="grid gap-y-3 min-[40rem]:grid-cols-[minmax(0,28rem)_minmax(0,26rem)] min-[40rem]:grid-rows-[auto_auto_1fr] min-[40rem]:justify-between min-[40rem]:gap-x-[clamp(1.5rem,5vw,4rem)]">
+      <section className="grid gap-y-3 min-[40rem]:grid-cols-[minmax(0,28rem)_minmax(0,26rem)] min-[40rem]:grid-rows-[auto_1fr_1fr] min-[40rem]:justify-between min-[40rem]:gap-x-[clamp(1.5rem,5vw,4rem)]">
         <header className="flex min-h-12 items-center justify-between gap-3 min-[40rem]:col-span-2">
-          <Logo className="h-9 w-auto" />
+          {/* 36 px tall; on the narrowest phone with the largest text it gives way to the link beside it. */}
+          <Logo className="h-auto max-w-[7.5rem] min-w-0 flex-1" />
           <AccountLink />
         </header>
 
-        <div className="flex flex-col gap-2 min-[40rem]:col-start-2 min-[40rem]:row-start-2 min-[40rem]:gap-3">
+        <div className="flex flex-col gap-2 min-[40rem]:col-start-2 min-[40rem]:row-start-2 min-[40rem]:gap-3 min-[40rem]:self-end">
           <h1 className="text-display font-bold tracking-[-0.02em] text-balance">{TAGLINE}</h1>
           <p className="text-lead text-pretty">
             <T

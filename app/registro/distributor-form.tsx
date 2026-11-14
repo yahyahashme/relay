@@ -5,7 +5,7 @@ import { type FormEvent, type ReactNode, useEffect, useState } from "react";
 import { signUpDistributorAction } from "@/app/distributor-actions";
 import { TextButton } from "@/components/kit/button";
 import { Field, PasswordField } from "@/components/kit/field";
-import { Choice, Choices, FORM, FormHead, FormSubmit } from "@/components/kit/form";
+import { Choice, Choices, Form, FormHead, FormSubmit } from "@/components/kit/form";
 import { type Blank, blankOf } from "@/lib/form-errors";
 import { useT } from "@/lib/i18n";
 import { SELLS, sellLabel } from "@/lib/sells";
@@ -88,8 +88,8 @@ export function DistributorForm({ intro }: { intro?: ReactNode }) {
 
   return (
     // The first step runs its own checks, in its own words ("El NIT debe tener 14 dígitos.").
-    <form onSubmit={submit} noValidate={step === 1} className={FORM}>
-      <FormHead step={t(`Crear cuenta · Paso ${step} de 2`, `Create account · Step ${step} of 2`)} title={step === 1 ? t("Su empresa", "Your business") : t("Su cuenta", "Your account")}>
+    <Form onSubmit={submit} noValidate={step === 1} error={error}>
+      <FormHead step={t(`Crear cuenta · Paso ${step} de 2`, `Create account · Step ${step} of 2`)} at={step} title={step === 1 ? t("Su empresa", "Your business") : t("Su cuenta", "Your account")}>
         {step === 1 && intro}
       </FormHead>
 
@@ -190,6 +190,6 @@ export function DistributorForm({ intro }: { intro?: ReactNode }) {
           </TextButton>
         </div>
       )}
-    </form>
+    </Form>
   );
 }

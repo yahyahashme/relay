@@ -6,7 +6,7 @@ import { acceptInviteAction, getInvite, type InvitePreview } from "@/app/driver-
 import { Brand, HomeNav, StatusSlip } from "@/components/auth";
 import { ButtonLink } from "@/components/kit/button";
 import { Field, PasswordField } from "@/components/kit/field";
-import { FORM, FormHead, FormSubmit } from "@/components/kit/form";
+import { Form, FormHead, FormSubmit } from "@/components/kit/form";
 import { Slip } from "@/components/kit/layout";
 import { Receipt, ReceiptHeader, ReceiptRule } from "@/components/kit/paper";
 import { Loading } from "@/components/kit/states";
@@ -83,7 +83,7 @@ export default function InviteScreen() {
         <ReceiptRule />
         <p className="text-pretty">{t(`Su usuario será su teléfono que termina en ${invite.phoneEnd}.`, `You'll sign in with your phone number ending in ${invite.phoneEnd}.`)}</p>
       </Receipt>
-      <form onSubmit={submit} className={FORM}>
+      <Form onSubmit={submit} error={error}>
         <FormHead title={t("Su cuenta", "Your account")}>{t("Cree su cuenta para ver su ruta y registrar el efectivo.", "Create your account to see your route and record cash.")}</FormHead>
         <Field label={t("Su nombre", "Your name")} autoComplete="name" autoCapitalize="words" required value={name} onChange={(e) => setName(e.target.value)} error={under("name")} />
         <PasswordField
@@ -103,7 +103,7 @@ export default function InviteScreen() {
         >
           {t("Crear mi cuenta", "Create my account")}
         </FormSubmit>
-      </form>
+      </Form>
     </Slip>
   );
 }

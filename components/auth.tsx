@@ -60,7 +60,8 @@ export function StatusSlip({
   title: ReactNode;
   /** One sentence on what happens next. */
   children: ReactNode;
-  stamp: ReactNode;
+  /** The word on the stamp. A long one shrinks to the slip on a narrow phone. */
+  stamp: string;
   tone?: StampTone;
 }) {
   return (
@@ -75,7 +76,13 @@ export function StatusSlip({
         <h1 className="text-title font-bold text-balance">{title}</h1>
         <p className="text-lead text-pretty">{children}</p>
       </div>
-      <ReceiptFoot stamp={<Stamp tone={tone}>{stamp}</Stamp>} />
+      <ReceiptFoot
+        stamp={
+          <Stamp tone={tone} fit={stamp.length}>
+            {stamp}
+          </Stamp>
+        }
+      />
     </Receipt>
   );
 }

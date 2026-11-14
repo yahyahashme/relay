@@ -5,7 +5,7 @@ import { type FormEvent, useState } from "react";
 import { signInAction } from "@/app/auth-actions";
 import { AltLink, HomeNav } from "@/components/auth";
 import { Field, PasswordField } from "@/components/kit/field";
-import { FORM, FormHead, FormSubmit } from "@/components/kit/form";
+import { Form, FormHead, FormSubmit } from "@/components/kit/form";
 import { Slip } from "@/components/kit/layout";
 import { useT } from "@/lib/i18n";
 
@@ -33,7 +33,7 @@ export default function SignIn() {
   return (
     <Slip>
       <HomeNav />
-      <form onSubmit={submit} className={FORM}>
+      <Form onSubmit={submit} error={error}>
         <FormHead title={t("Entrar", "Sign in")} />
         <Field
           label={t("Teléfono o correo", "Phone or email")}
@@ -56,7 +56,7 @@ export default function SignIn() {
         <FormSubmit error={error ? msg(error) : undefined} busy={busy}>
           {t("Entrar", "Sign in")}
         </FormSubmit>
-      </form>
+      </Form>
       <AltLink question={t("¿No tiene cuenta?", "Don't have an account?")} href="/registro">
         {t("Crear cuenta", "Create account")}
       </AltLink>
