@@ -183,7 +183,84 @@ export async function inviteByCode(codeText: string): Promise<ShopInvite | null>
   return rows[0] ? { code: rows[0].code, shopId: rows[0].shop_id, distributorName: rows[0].business_name } : null;
 }
 
-export type ClaimInput = { ownerName: string; phone: string; password: string; shopName: string };
+export type ClaimInput = { ownerName: string; phone: string; password: string; shopName: string; address?: string; kind?: string };
+
+// ---------- the shop's own sign-up (#134) ----------
+
+/** What kind of shop: the choices on the sign-up's second step. */
+export const SHOP_KINDS = ["Tienda", "Mini súper", "Abarrotería", "Farmacia", "Otro"] as const;
+
+export type ShopDetails = { shopName: string; address: string; kind: string };
+
+/** Step 2 of the sign-up: what's wrong with the shop's details, or null. */
+export function checkShopDetails(details: ShopDetails): string | null {
+  const name = clean(details.shopName);
+  if (name.length < 2 || name.length > 80) return "Escriba el nombre de su tienda.";
+  if (clean(details.address).length > 160) return "La dirección es muy larga.";
+  if (!(SHOP_KINDS as readonly string[]).includes(details.kind)) return "Elija qué tipo de tienda es.";
+  return null;
+}
+
+/** Step 1, before anything is created: the owner's name, a Salvadoran phone nobody uses yet, and a password. */
+export async function checkOwner(input: { name: string; phone: string; password: string }): Promise<string | null> {
+  const name = clean(input.name);
+  if (name.length < 2 || name.length > 80) return "Escriba su nombre.";
+  const phone = normalizePhone(input.phone);
+  if (!phone) return "Escriba un teléfono de El Salvador (8 dígitos).";
+  if (input.password.length < 8) return "La contraseña debe tener al menos 8 caracteres.";
+  const taken = await requireDb().query(`SELECT 1 FROM users WHERE phone = $1`, [phone]);
+  return taken.length > 0 ? "Ya hay una cuenta con ese teléfono o correo. Entre con su contraseña." : null;
+}
+
+/**
+ * A shop owner signing up alone: their user, and a shop that uses their own
+ * Stellar account. The $200 starting limit comes after (set_terms, in the action).
+ */
+export async function signUpShop(
+  input: { name: string; phone: string; password: string } & ShopDetails,
+  network?: WalletNetwork,
+): Promise<AuthResult & { shopId?: string; stellarAddress?: string }> {
+  const problem = checkShopDetails(input);
+  if (problem) return { ok: false, message: problem };
+  if (!normalizePhone(input.phone)) return { ok: false, message: "Escriba un teléfono de El Salvador (8 dígitos)." };
+  const result = await signUp({ role: "tienda", name: input.name, contact: input.phone, password: input.password }, network);
+  if (!result.ok) return result;
+  const shopId = newId("t");
+  await requireDb().query(
+    `INSERT INTO shops (id, name, address, kind, owner_user_id, stellar_address) VALUES ($1, $2, $3, $4, $5, $6)`,
+    [shopId, clean(input.shopName), clean(input.address) || null, input.kind, result.user.id, result.user.stellarAddress],
+  );
+  invalidateDirectory();
+  return { ...result, shopId, stellarAddress: result.user.stellarAddress };
+}
+
+/** Trusted contacts (#127's recovery plan): up to 3, each a name and a Salvadoran phone. Replaces the list. */
+export async function saveTrustedContacts(user: User, contacts: { name: string; phone: string }[]): Promise<string | null> {
+  const list = contacts.filter((c) => c.name.trim() || c.phone.trim());
+  if (list.length > 3) return "Puede agregar hasta 3 contactos.";
+  const rows: [string, string][] = [];
+  for (const c of list) {
+    const name = clean(c.name);
+    const phone = normalizePhone(c.phone);
+    if (name.length < 2 || name.length > 80) return "Escriba el nombre de cada contacto.";
+    if (!phone) return "Escriba un teléfono de El Salvador (8 dígitos) para cada contacto.";
+    if (phone === user.phone) return "Un contacto de confianza no puede ser su propio teléfono.";
+    rows.push([name, phone]);
+  }
+  const db = requireDb();
+  await db.query(`DELETE FROM trusted_contacts WHERE user_id = $1`, [user.id]);
+  for (const [name, phone] of rows) {
+    await db.query(`INSERT INTO trusted_contacts (id, user_id, name, phone) VALUES ($1, $2, $3, $4)`, [newId("c"), user.id, name, phone]);
+  }
+  return null;
+}
+
+export async function trustedContacts(user: User): Promise<{ name: string; phone: string }[]> {
+  return requireDb().query<{ name: string; phone: string }>(
+    `SELECT name, phone FROM trusted_contacts WHERE user_id = $1 ORDER BY created_at`,
+    [user.id],
+  );
+}
 
 /**
  * The owner claims the shop record from an invite (basic version; #134 adds the
@@ -195,12 +272,18 @@ export async function claimShop(codeText: string, input: ClaimInput, network?: W
   if (!invite) return { ok: false, message: "Este código ya no es válido. Pida otro a su distribuidora." };
   const shopName = clean(input.shopName);
   if (shopName.length < 2 || shopName.length > 80) return { ok: false, message: "Escriba el nombre de su tienda." };
+  if (clean(input.address ?? "").length > 160) return { ok: false, message: "La dirección es muy larga." };
+  if (input.kind !== undefined) {
+    const problem = checkShopDetails({ shopName, address: input.address ?? "", kind: input.kind });
+    if (problem) return { ok: false, message: problem };
+  }
   const result = await signUp({ role: "tienda", name: input.ownerName, contact: input.phone, password: input.password }, network);
   if (!result.ok) return result;
   const db = requireDb();
   const claimed = await db.query(
-    `UPDATE shops SET owner_user_id = $2, name = $3 WHERE id = $1 AND owner_user_id IS NULL RETURNING id`,
-    [invite.shopId, result.user.id, shopName],
+    `UPDATE shops SET owner_user_id = $2, name = $3, address = COALESCE($4, address), kind = COALESCE($5, kind)
+      WHERE id = $1 AND owner_user_id IS NULL RETURNING id`,
+    [invite.shopId, result.user.id, shopName, clean(input.address ?? "") || null, input.kind ?? null],
   );
   if (claimed.length === 0) return { ok: false, message: "Este código ya no es válido. Pida otro a su distribuidora." };
   await db.query(`UPDATE shop_invites SET claimed_at = now() WHERE shop_id = $1 AND claimed_at IS NULL`, [invite.shopId]);

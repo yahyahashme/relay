@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
 import { BackLink, Button, Card, Chip, Label, LoadError, Loading, NotFound, ReceiptView, Screen } from "@/components/ui";
-import { claimCash, getDrivers, getInvoices, getRouteInvites, getShop } from "@/lib/api";
+import { claimCash, getDrivers, getInvoices, getInvoiceNotes, getRouteInvites, getShop } from "@/lib/api";
 import { ShopInvite } from "@/components/shop-invite";
 import { formatMoney } from "@/lib/format";
 import { useT } from "@/lib/i18n";
@@ -24,11 +24,12 @@ export default function RouteScreen() {
     const [drivers, invoices] = await Promise.all([getDrivers(), getInvoices()]);
     const stops = invoices.filter((i) => i.driverId === driverId);
     const shopIds = [...new Set(stops.map((i) => i.shopId))];
-    const [shops, invites] = await Promise.all([
+    const [shops, invites, notes] = await Promise.all([
       Promise.all(shopIds.map(getShop)).then((list) => list.filter((s): s is Shop => s !== null)),
       getRouteInvites(driverId, shopIds),
+      getInvoiceNotes(stops.filter((i) => i.status !== "paid").map((i) => i.id)),
     ]);
-    return { driver: drivers.find((d) => d.id === driverId) ?? null, stops, shops, invites };
+    return { driver: drivers.find((d) => d.id === driverId) ?? null, stops, shops, invites, notes };
   });
   const [open, setOpen] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
@@ -118,6 +119,9 @@ export default function RouteScreen() {
 
                 {isOpen && (
                   <div className="flex flex-col items-center gap-3 px-4 pb-4">
+                    {data.notes[invoice.id] && (
+                      <p className="w-full rounded-xl bg-paper px-3 py-2 text-base whitespace-pre-line">{data.notes[invoice.id]}</p>
+                    )}
                     <div className="rounded-xl bg-white p-2">
                       <QRCodeSVG value={invoiceUrl(invoice.id)} size={280} level="M" title={`${t("Factura", "Invoice")} ${invoice.id}`} />
                     </div>

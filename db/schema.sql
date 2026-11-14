@@ -111,6 +111,29 @@ CREATE TABLE IF NOT EXISTS shop_invites (
 );
 CREATE INDEX IF NOT EXISTS shop_invites_shop ON shop_invites (shop_id);
 
+-- Invoice notes / products (#133). The contract keeps the money; the note lives here.
+CREATE TABLE IF NOT EXISTS invoice_notes (
+  invoice_id BIGINT PRIMARY KEY,
+  distributor_id TEXT NOT NULL REFERENCES distributors(id),
+  note TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Shop sign-up (#134): what kind of shop, and up to 3 trusted contacts per person.
+ALTER TABLE shops ADD COLUMN IF NOT EXISTS kind TEXT;
+CREATE TABLE IF NOT EXISTS trusted_contacts (
+  id         TEXT PRIMARY KEY,
+  user_id    TEXT NOT NULL REFERENCES users(id),
+  name       TEXT NOT NULL,
+  phone      TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS trusted_contacts_user ON trusted_contacts (user_id);
+
+-- Who may read a note (Jack's review of #149): the invoice's shop and driver.
+ALTER TABLE invoice_notes ADD COLUMN IF NOT EXISTS shop_id TEXT;
+ALTER TABLE invoice_notes ADD COLUMN IF NOT EXISTS driver_id TEXT;
+
 -- Rate limits (sign-ups per IP, wrong passwords per phone/email and IP), shared by every server instance.
 CREATE TABLE IF NOT EXISTS rate_events (
   key TEXT NOT NULL,
