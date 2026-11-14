@@ -448,6 +448,7 @@ _Entries 29 to 35 come from this repo, not from a web page. Claude first read th
 
 ## 30. Revenue scenarios with the fees as built (our maths)
 - **Claim:** If every dollar of the $2 billion moved through us by cash or digital payment, we would earn $2 million a year. If 10% of it used "pay in 7 days" instead, we would earn $2.3 million, not $2.5 million.
+- **Update Nov 13 (#139):** the credit fee is now **up to** 1.50%; our share is at most 0.25% (0.125% at the 1.00% floor). The $500,000 credit line below is therefore the most we would earn on that volume, at full credit.
 - **Number:**
   - All cash or digital: 0.1% × $2,000,000,000 = **$2,000,000**.
   - 10% on credit: credit volume $200,000,000 × 0.25% (our share of the 1.50%) = **$500,000**, plus usage fee on the other $1,800,000,000 × 0.1% = **$1,800,000**. Total **$2,300,000**.
@@ -463,6 +464,7 @@ _Entries 29 to 35 come from this repo, not from a web page. Claude first read th
 
 ## 31. How a shop's credit limit grows and drops
 - **Claim:** A shop's credit limit grows $25 each time it repays on time, up to $500. It drops $25 when it pays late, and a shop can't grow its limit by borrowing tiny amounts.
+- **Update Nov 13 (#137, #139, redeployed as `CAGCZ3I7…`):** it also grows after only **$10** borrowed when the shop paid half of every credited invoice up front. One day late still counts as on time. **2–7 days late:** the limit drops $25. **8+ days late:** it drops $50 and can't grow for 4 credit periods. Constants: `MIN_BORROW_WITH_HALF`, `GRACE_DAYS`, `MINOR_LATE_DAYS`, `MAJOR_LATE_STEP`, `NO_RAISE_PERIODS`.
 - **Number:**
   - Start: $200 in the demo (the admin sets it with `set_terms`).
   - +$25 (`LIMIT_STEP`) per on-time repayment, cap $500 (`LIMIT_CAP`).
@@ -851,6 +853,7 @@ Opened by Rohan on 12 Nov to fill gaps in context §5, §6, §9 and §11: what c
 
 ## 56. What the credit fee is per year (our maths)
 - **Claim:** Paying 1.5% to be paid 7 days early equals about 79% a year (simple) or about 120% (compounded). Option 2's 0.25% equals about 13% to 14% a year.
+- **Update Nov 13 (#139):** 1.5% is now the top rate (the whole invoice on credit). With part paid up front the rate is lower (1.22% at half, 1.00% at the floor), so these yearly numbers are the most it costs the distributor.
 - **Number:**
   - 1.5% (option 1): 1.52% per week; 79.4% a year simple; 119.9% compounded
   - 0.25% (option 2): 0.25% per week; 13.1% simple; 13.9% compounded
