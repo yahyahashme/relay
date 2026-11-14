@@ -7,15 +7,21 @@ import { OptionLink, OptionList, Stamp, ThumbBar, Ticket, TicketRow, TicketRule,
 import { BackLink, Button, Chip, LoadError, Loading, NotFound, ReceiptView, Screen } from "@/components/ui";
 import { getInvoices, getShop, repay } from "@/lib/api";
 import { dueOn, formatDay, formatMoney, plural } from "@/lib/format";
+import { type Lang, useT } from "@/lib/i18n";
 import { leftToPay } from "@/lib/labels";
 import type { Invoice, Receipt } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
 
 /** The line under an unpaid invoice: what the shop most needs to know about it. */
-function invoiceNote(invoice: Invoice, now: number): string {
-  if (invoice.cashClaim !== undefined) return `Efectivo por confirmar: ${formatMoney(invoice.cashClaim)}`;
-  if (invoice.status === "part_paid") return `Pagado ${formatMoney(invoice.paid)} de ${formatMoney(invoice.amount)}`;
-  return dueOn(invoice.dueDate, now);
+function invoiceNote(invoice: Invoice, now: number, lang: Lang): string {
+  const en = lang === "en";
+  if (invoice.cashClaim !== undefined) return `${en ? "Cash to confirm" : "Efectivo por confirmar"}: ${formatMoney(invoice.cashClaim)}`;
+  if (invoice.status === "part_paid") {
+    return en
+      ? `Paid ${formatMoney(invoice.paid)} of ${formatMoney(invoice.amount)}`
+      : `Pagado ${formatMoney(invoice.paid)} de ${formatMoney(invoice.amount)}`;
+  }
+  return dueOn(invoice.dueDate, now, lang);
 }
 
 export default function AccountScreen() {
@@ -30,6 +36,7 @@ export default function AccountScreen() {
   const [paid, setPaid] = useState<{ amount: number; limit: number; due?: string } | null>(null);
   const [landed, setLanded] = useState(false);
   // "Pagar deuda" pays with one tap, so it waits a beat after it comes on screen: a double tap on the screen before can't pay.
+  const { lang, t } = useT();
   const arriving = useQuietOnArrival(Boolean(data?.shop && !stale && data.shop.creditOwed > 0));
 
   // Coming back to this screen is a new visit: the last visit's stamp and message don't carry over.
@@ -53,7 +60,7 @@ export default function AccountScreen() {
     return (
       <Screen>
         <BackLink />
-        <NotFound>No encontramos esa tienda.</NotFound>
+        <NotFound>{t("No encontramos esa tienda.", "We couldn't find that shop.")}</NotFound>
       </Screen>
     );
   }
@@ -89,23 +96,27 @@ export default function AccountScreen() {
 
       {failed && <LoadError />}
       <p role="status" className="sr-only">
-        {busy ? "Procesando..." : ""}
+        {busy ? t("Procesando...", "Processing...") : ""}
       </p>
       {busy && <TapShield />}
 
       <Ticket>
         <header>
           <h1 className="text-2xl font-bold text-balance">{shop.name}</h1>
-          <p className="text-muted">Mi cuenta · {shop.owner}</p>
+          <p className="text-muted">
+            {t("Mi cuenta", "My account")} · {shop.owner}
+          </p>
         </header>
         <TicketRule />
         <div className="flex flex-col gap-1">
           <p className="flex items-baseline justify-between gap-3 text-muted">
-            <span>{justPaid ? "Deuda" : "Debe"}</span>
-            {justPaid && <span>Pagada hoy</span>}
+            <span>{justPaid ? t("Deuda", "Debt") : t("Debe", "You owe")}</span>
+            {justPaid && <span>{t("Pagada hoy", "Paid today")}</span>}
             {owes && shop.creditDue && (
               <span className={shop.overdue ? "font-medium text-bad" : undefined}>
-                {shop.overdue ? "Venció" : "Vence"} el {formatDay(shop.creditDue)}
+                {shop.overdue
+                  ? t(`Venció el ${formatDay(shop.creditDue)}`, `Was due ${formatDay(shop.creditDue, "en")}`)
+                  : t(`Vence el ${formatDay(shop.creditDue)}`, `Due ${formatDay(shop.creditDue, "en")}`)}
               </span>
             )}
           </p>
@@ -115,42 +126,42 @@ export default function AccountScreen() {
             </p>
             {justPaid && (
               <Stamp tone="paid" fresh={!landed} onLanded={() => setLanded(true)}>
-                Pagada
+                {t("Pagada", "Paid")}
               </Stamp>
             )}
-            {shop.overdue && <Chip tone="overdue">Vencido</Chip>}
+            {shop.overdue && <Chip tone="overdue">{t("Vencido", "Overdue")}</Chip>}
           </div>
-          {!owes && !justPaid && <p className="font-medium text-ok">No tiene deudas pendientes.</p>}
+          {!owes && !justPaid && <p className="font-medium text-ok">{t("No tiene deudas pendientes.", "You have no debts to pay.")}</p>}
         </div>
         <TicketRule />
         <div className="flex flex-col gap-1 text-lg">
-          <TicketRow label="Límite de crédito" strong>
+          <TicketRow label={t("Límite de crédito", "Credit limit")} strong>
             {formatMoney(shop.creditLimit)}
           </TicketRow>
           {limitMoved !== 0 && (
             <p className={`unfold -mt-1 text-right text-base font-medium ${limitMoved > 0 ? "text-ok" : "text-bad"}`}>
-              {limitMoved > 0 ? "Subió" : "Bajó"} {formatMoney(Math.abs(limitMoved))}
+              {limitMoved > 0 ? t("Subió", "Up") : t("Bajó", "Down")} {formatMoney(Math.abs(limitMoved))}
             </p>
           )}
           {shop.overdue ? (
             <>
               {/* No sum here: with a late debt the shop can't use what's left, so a dollar figure would mislead. */}
               <p className="flex items-baseline justify-between gap-3">
-                <span className="font-semibold">Disponible</span>
-                <span className="text-2xl font-bold text-bad">En pausa</span>
+                <span className="font-semibold">{t("Disponible", "Available")}</span>
+                <span className="text-2xl font-bold text-bad">{t("En pausa", "On hold")}</span>
               </p>
-              <p className="text-base">Pague su deuda para reactivarlo.</p>
+              <p className="text-base">{t("Pague su deuda para reactivarlo.", "Pay your debt to turn it back on.")}</p>
             </>
           ) : (
             <>
               {owes && (
                 <>
-                  <TicketRow label="Menos lo que debe">{formatMoney(shop.creditOwed)}</TicketRow>
+                  <TicketRow label={t("Menos lo que debe", "Minus what you owe")}>{formatMoney(shop.creditOwed)}</TicketRow>
                   <hr className="ml-auto w-28 border-0 border-t-2 border-ink" />
                 </>
               )}
               <p className="flex items-baseline justify-between gap-3">
-                <span className="font-semibold">Disponible</span>
+                <span className="font-semibold">{t("Disponible", "Available")}</span>
                 <span className="text-2xl font-bold tabular-nums">{formatMoney(available)}</span>
               </p>
             </>
@@ -166,11 +177,11 @@ export default function AccountScreen() {
 
       {unpaid.length > 0 && (
         <section className="flex flex-col gap-2">
-          <h2 className="px-1 text-lg font-semibold">Facturas por pagar</h2>
+          <h2 className="px-1 text-lg font-semibold">{t("Facturas por pagar", "Invoices to pay")}</h2>
           <OptionList>
             {unpaid.map((invoice) => (
-              <OptionLink key={invoice.id} href={`/tienda/${invoice.id}`} title={`Factura ${invoice.id}`} hint={invoiceNote(invoice, now)}>
-                <span className="sr-only">Falta </span>
+              <OptionLink key={invoice.id} href={`/tienda/${invoice.id}`} title={`${t("Factura", "Invoice")} ${invoice.id}`} hint={invoiceNote(invoice, now, lang)}>
+                <span className="sr-only">{t("Falta ", "Left to pay: ")}</span>
                 {formatMoney(leftToPay(invoice))}
               </OptionLink>
             ))}
@@ -179,26 +190,34 @@ export default function AccountScreen() {
       )}
 
       <section className="flex flex-col gap-1 px-1">
-        <h2 className="text-lg font-semibold">Cómo sube su límite</h2>
+        <h2 className="text-lg font-semibold">{t("Cómo sube su límite", "How your limit grows")}</h2>
         {hasCredit ? (
           <>
-            <TicketRow label="Si paga su deuda a tiempo">
+            <TicketRow label={t("Si paga su deuda a tiempo", "If you pay your debt on time")}>
               <span className="font-semibold text-ok">+$25</span>
             </TicketRow>
-            <TicketRow label="Si paga su deuda tarde">
+            <TicketRow label={t("Si paga su deuda tarde", "If you pay your debt late")}>
               <span className="font-semibold text-bad">−$25</span>
             </TicketRow>
             <p className="text-muted">
-              Sube como máximo una vez por período de crédito, y solo si compró $40 o más con <span className="whitespace-nowrap">«Pagar en 7 días»</span>. El límite máximo es $500.
+              {t(
+                "Sube como máximo una vez por período de crédito, y solo si compró $40 o más con ",
+                "It goes up at most once per credit period, and only if you bought $40 or more with ",
+              )}
+              <span className="whitespace-nowrap">{t("«Pagar en 7 días»", "“Pay in 7 days”")}</span>
+              {t(". El límite máximo es $500.", ". The highest limit is $500.")}
             </p>
-            <p className="text-muted">Sin intereses: paga lo mismo que compró.</p>
+            <p className="text-muted">{t("Sin intereses: paga lo mismo que compró.", "No interest: you pay the same as you bought.")}</p>
           </>
         ) : (
-          <p className="text-muted">Su tienda no tiene crédito por ahora.</p>
+          <p className="text-muted">{t("Su tienda no tiene crédito por ahora.", "Your shop doesn't have credit for now.")}</p>
         )}
         {payments > 0 && (
           <p className="mt-2">
-            Lleva {plural(shop.onTime, "pago", "pagos")} a tiempo y {shop.late} tarde.
+            {t(
+              `Lleva ${plural(shop.onTime, "pago", "pagos")} a tiempo y ${shop.late} tarde.`,
+              `${plural(shop.onTime, "payment", "payments")} on time and ${shop.late} late so far.`,
+            )}
           </p>
         )}
       </section>
@@ -209,9 +228,12 @@ export default function AccountScreen() {
             onClick={payDebt}
             busy={busy}
             arriving={arriving}
-            hint={`${formatMoney(owes ? shop.creditOwed : (paid?.amount ?? 0))} con dólares digitales`}
+            hint={t(
+              `${formatMoney(owes ? shop.creditOwed : (paid?.amount ?? 0))} con dólares digitales`,
+              `${formatMoney(owes ? shop.creditOwed : (paid?.amount ?? 0))} in digital dollars`,
+            )}
           >
-            Pagar deuda
+            {t("Pagar deuda", "Pay debt")}
           </Button>
         </ThumbBar>
       )}
@@ -219,8 +241,10 @@ export default function AccountScreen() {
         <ThumbBar>
           {/* Stays where the button was, so a repeat tap lands on nothing instead of on an invoice row. */}
           <p className="flex min-h-14 flex-col items-center justify-center rounded-xl bg-line px-5 py-2 text-center text-lg font-semibold text-muted">
-            Deuda pagada
-            <span className="text-sm font-normal">{formatMoney(paid.amount)} con dólares digitales</span>
+            {t("Deuda pagada", "Debt paid")}
+            <span className="text-sm font-normal">
+              {t(`${formatMoney(paid.amount)} con dólares digitales`, `${formatMoney(paid.amount)} in digital dollars`)}
+            </span>
           </p>
         </ThumbBar>
       )}

@@ -785,6 +785,7 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 | Nov 6 | Domestic only, El Salvador first. No cross-border or diaspora money. Other countries only on a "future" slide. |
 | Nov 6 | "RUTA" was a placeholder name; we won't use it. |
 | Nov 12 | Name: **Relay**, tagline *Paga tu ruta* under it (Yahya). Repo renamed to `yahyahashme/relay`; URLs say "relay" only. |
+| Nov 13 | English version of every screen, with an ES / EN switch in the top banner (Yahya). Spanish stays the default; the choice is saved per phone, and `?lang=en` opens a link in English. Write new screen text as `t("español", "English")` (`lib/i18n.tsx`); server and contract messages stay Spanish and are translated on screen by `lib/translate.ts`, whose test fails if a message has no English. The WhatsApp reminder stays in Spanish, because it goes to the shop. |
 | Nov 6 | Design: invoices with due dates; pay now, cash recorded with two taps, or pay in 7 days; the contract tracks paid, part-paid and due, and blocks double payment. |
 | Nov 6 | Cash allowed at delivery only, always recorded, doesn't build credit. No discount for paying digitally. |
 | Nov 6 | Credit: full price, no interest, due by the next delivery (7 days at most), limits that grow, nothing new while overdue. |
