@@ -238,7 +238,7 @@ export function LedgerCard({ title, amount, stamp, note, actions }: { title: Rea
   return (
     <div className="flex flex-col gap-2">
       <p className="flex items-baseline justify-between gap-3">
-        <span className="min-w-0 text-[1.0625rem] font-bold">{title}</span>
+        <span className="min-w-0 text-[1.0625rem] font-bold wrap-anywhere">{title}</span>
         <span className="shrink-0 font-mono text-[1.0625rem] font-semibold">{amount}</span>
       </p>
       {(stamp || note) && (
@@ -321,7 +321,7 @@ export function LedgerFigure({ label, value, note }: { label: ReactNode; value: 
   return (
     <div className="flex flex-col gap-0.5 border-paper-rule px-4 pt-2.5 pb-2.5 not-first:border-l @max-[43.99rem]/figures:nth-[3]:border-l-0 @max-[43.99rem]/figures:nth-[n+3]:border-t @max-[43.99rem]/figures:[&:nth-child(n+3)>dt]:min-h-[2lh]">
       {/* A long label takes two lines (four across on a tablet, the second pair on a phone): its row of labels keeps room for two, so the figures stay in line. */}
-      <dt className="flex items-end text-label font-semibold uppercase tracking-[0.08em] text-muted @min-[44rem]/figures:@max-[57.99rem]/figures:min-h-[2lh]">{label}</dt>
+      <dt className="flex items-end text-label font-semibold uppercase tracking-[0.08em] text-muted wrap-anywhere @min-[44rem]/figures:@max-[57.99rem]/figures:min-h-[2lh]">{label}</dt>
       <dd
         className="font-mono leading-tight font-semibold tracking-[-0.02em]"
         style={{ fontSize: "min(var(--text-figure), calc((100cqi / var(--fit-cols) - 2rem) / (var(--fit-chars) * 0.62)))" }}

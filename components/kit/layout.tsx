@@ -131,7 +131,7 @@ export function Shell({
 
       <nav
         aria-label={t("Secciones", "Sections")}
-        className="fixed inset-x-0 bottom-0 z-4 flex justify-between border-t border-counter-rule bg-counter px-[max(0.25rem,env(safe-area-inset-left))] pb-[env(safe-area-inset-bottom)] lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-4 flex justify-between overflow-hidden border-t border-counter-rule bg-counter px-[max(0.25rem,env(safe-area-inset-left))] pb-[env(safe-area-inset-bottom)] lg:hidden"
       >
         {nav
           .filter((item) => !item.sidebarOnly)
@@ -140,7 +140,10 @@ export function Shell({
               key={item.href}
               href={item.href}
               aria-current={item.current ? "page" : undefined}
-              className={`flex min-h-14 flex-auto items-center justify-center px-1.5 text-center text-label leading-tight font-bold -outline-offset-3 ${
+              // 5vw is 14 px on the narrowest phone, so the labels keep their size; it only holds back a large system text size, which would push
+              // the last place off a small screen (the side padding is in px for the same reason). The bar never grows wider than
+              // the screen: a bar that did would widen the page, and then keep it wide.
+              className={`flex min-h-14 min-w-0 flex-auto items-center justify-center px-[6px] text-center text-[length:min(var(--text-label),5vw)] leading-tight font-bold -outline-offset-3 ${
                 item.current ? "rounded-b-paper bg-paper text-ink" : "text-brand"
               }`}
             >

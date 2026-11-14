@@ -8,7 +8,7 @@ import { Field, SelectField } from "@/components/kit/field";
 import { Ledger, LedgerCard, type LedgerColumn, RowButton, RowLink } from "@/components/kit/ledger";
 import { Money } from "@/components/kit/money";
 import { Stamp, type StampTone } from "@/components/kit/stamp";
-import { Empty, Loading } from "@/components/kit/states";
+import { Empty, Failure, Loading } from "@/components/kit/states";
 import { ShopInvite } from "@/components/shop-invite";
 import { TapShield, useMovedGuard, useTapShield } from "@/components/tap-shield";
 import { formatPhone } from "@/lib/format";
@@ -57,16 +57,30 @@ export default function ShopsScreen() {
   // An invitation opening or closing above the list moves every row.
   const { ref: listBlock, justMoved } = useMovedGuard<HTMLElement>();
 
+  const [failed, setFailed] = useState(false);
+  const [retrying, setRetrying] = useState(false);
+
   const load = useCallback(async () => setData(await getMyShops()), []);
   useEffect(() => {
     let live = true;
-    void getMyShops().then((found) => {
-      if (live) setData(found);
-    });
+    getMyShops().then(
+      (found) => live && setData(found),
+      () => live && setFailed(true),
+    );
     return () => {
       live = false;
     };
   }, []);
+  async function retry() {
+    setRetrying(true);
+    try {
+      await load();
+      setFailed(false);
+    } catch {
+      setFailed(true);
+    }
+    setRetrying(false);
+  }
 
   async function search(event: FormEvent) {
     event.preventDefault();
@@ -138,7 +152,7 @@ export default function ShopsScreen() {
     </DistributorShell>
   );
 
-  if (data === undefined) return shell(<Loading lines={6} torn={false} />);
+  if (data === undefined) return shell(failed ? <div className="max-w-[34rem]"><Failure onRetry={() => void retry()} busy={retrying} /></div> : <Loading lines={6} torn={false} />);
   if (data === null) {
     return shell(
       <div className="max-w-[34rem]">
@@ -155,10 +169,21 @@ export default function ShopsScreen() {
     <button
       type="button"
       role="tab"
+      id={`tab-${value}`}
       aria-selected={mode === value}
+      aria-controls="agregar-tienda"
+      tabIndex={mode === value ? 0 : -1}
       onClick={() => {
         setMode(value);
         setError(null);
+      }}
+      onKeyDown={(event) => {
+        // Left and right move between the two tabs, as tabs do.
+        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+        const other: Mode = value === "buscar" ? "nueva" : "buscar";
+        setMode(other);
+        setError(null);
+        document.getElementById(`tab-${other}`)?.focus();
       }}
       className={`min-h-12 flex-1 rounded-t-paper px-3 py-1 text-center leading-tight font-bold text-balance -outline-offset-3 ${mode === value ? "bg-paper text-ink" : "text-brand hover:bg-brand/6"}`}
     >
@@ -197,7 +222,7 @@ export default function ShopsScreen() {
       </RowButton>
     ) : (
       // As tall as the button, so every row of the table has one height.
-      <span aria-hidden className="hidden min-h-11 @min-[40rem]:inline-block" />
+      <span aria-hidden className="hidden h-11 @min-[40rem]:block" />
     );
   const columns: LedgerColumn<MyShop>[] = [
     {
@@ -233,94 +258,96 @@ export default function ShopsScreen() {
           {tab("nueva", t("Agregar sin cuenta", "Add without an account"))}
         </div>
 
-        {mode === "buscar" ? (
-          <>
-            <form onSubmit={search} className="grid gap-x-4 gap-y-3 pt-1 @min-[40rem]:grid-cols-2">
-              {driverSelect}
+        <div id="agregar-tienda" role="tabpanel" aria-labelledby={`tab-${mode}`} className="flex flex-col gap-2">
+          {mode === "buscar" ? (
+            <>
+              <form onSubmit={search} className="grid grid-cols-1 gap-x-4 gap-y-3 pt-1 @min-[40rem]:grid-cols-2">
+                {driverSelect}
+                <Field
+                  label={t("Nombre de la tienda o teléfono", "Shop name or phone")}
+                  autoComplete="off"
+                  enterKeyHint="search"
+                  required
+                  minLength={2}
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setMatches(null);
+                  }}
+                />
+                <div className={ROW}>
+                  <p role={error ? "alert" : "status"} className={`${NEWS} ${error ? "font-semibold text-bad" : "text-muted"}`}>
+                    {error ? msg(error) : t("Si la tienda ya usa Relay, la encuentra aquí.", "If the shop already uses Relay, you'll find it here.")}
+                  </p>
+                  <div className="@min-[40rem]:w-60 @min-[40rem]:shrink-0">
+                    <Button type="submit" busy={searching}>
+                      {t("Buscar", "Search")}
+                    </Button>
+                  </div>
+                </div>
+              </form>
+              {matches !== null &&
+                (matches.length === 0 ? (
+                  <p className="rounded-paper bg-paper px-4 py-4 text-pretty">
+                    {t("No encontramos esa tienda en Relay. Agréguela sin cuenta y la invitamos.", "We didn't find that shop on Relay. Add it without an account and we'll invite it.")}
+                  </p>
+                ) : (
+                  <ul aria-label={t("Tiendas encontradas", "Shops found")} className="flex flex-col divide-y divide-paper-rule rounded-paper bg-paper">
+                    {matches.map((m) => (
+                      <li key={m.id} className="flex items-center justify-between gap-3 py-2 pr-2 pl-4">
+                        <span className="flex min-w-0 flex-col leading-snug">
+                          <span className="text-[1.0625rem] font-bold">{m.name}</span>
+                          <span className="text-label text-muted">{[m.ownerName, m.address].filter(Boolean).join(" · ")}</span>
+                        </span>
+                        <span className="shrink-0">
+                          <RowButton onClick={() => void link(m.id)} disabled={busy !== null || held} busy={busy === m.id} label={t(`Agregar ${m.name}`, `Add ${m.name}`)}>
+                            {t("Agregar", "Add")}
+                          </RowButton>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ))}
+            </>
+          ) : (
+            <form onSubmit={add} className="grid grid-cols-1 gap-x-4 gap-y-3 pt-1 @min-[40rem]:grid-cols-2">
+              <div className="@min-[40rem]:col-span-2">
+                <Field
+                  label={t("Cómo la llama usted", "What you call it")}
+                  hint={t("Cualquier nombre que le sirva, por ejemplo «Tienda de Doña Marta, frente a la iglesia». Solo usted lo ve.", "Any name that works for you, for example “Marta's shop, across from the church”. Only you see it.")}
+                  autoComplete="off"
+                  required
+                  value={nickname}
+                  onChange={(e) => setNickname(e.target.value)}
+                />
+              </div>
+              <Field label={t("Dirección (si la sabe)", "Address (if you know it)")} autoComplete="off" value={address} onChange={(e) => setAddress(e.target.value)} />
               <Field
-                label={t("Nombre de la tienda o teléfono", "Shop name or phone")}
+                label={t("Teléfono (si lo sabe)", "Phone (if you know it)")}
+                hint={t("Para enviarle la invitación por WhatsApp.", "To send the invitation on WhatsApp.")}
+                inputMode="tel"
                 autoComplete="off"
-                enterKeyHint="search"
-                required
-                minLength={2}
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setMatches(null);
-                }}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
               />
+              {driverSelect}
               <div className={ROW}>
                 <p role={error ? "alert" : "status"} className={`${NEWS} ${error ? "font-semibold text-bad" : "text-muted"}`}>
-                  {error ? msg(error) : t("Si la tienda ya usa Relay, la encuentra aquí.", "If the shop already uses Relay, you'll find it here.")}
+                  {error
+                    ? msg(error)
+                    : busy === "add"
+                      ? t("Estamos creando su cuenta de dólares digitales. Toma unos segundos.", "We're creating your digital dollar account. It takes a few seconds.")
+                      : t("Le damos un código para que la tienda cree su cuenta.", "You get a code for the shop to make its account.")}
                 </p>
                 <div className="@min-[40rem]:w-60 @min-[40rem]:shrink-0">
-                  <Button type="submit" busy={searching}>
-                    {t("Buscar", "Search")}
+                  <Button type="submit" busy={busy === "add"}>
+                    {t("Agregar tienda", "Add shop")}
                   </Button>
                 </div>
               </div>
             </form>
-            {matches !== null &&
-              (matches.length === 0 ? (
-                <p className="rounded-paper bg-paper px-4 py-4 text-pretty">
-                  {t("No encontramos esa tienda en Relay. Agréguela sin cuenta y la invitamos.", "We didn't find that shop on Relay. Add it without an account and we'll invite it.")}
-                </p>
-              ) : (
-                <ul aria-label={t("Tiendas encontradas", "Shops found")} className="flex flex-col divide-y divide-paper-rule rounded-paper bg-paper">
-                  {matches.map((m) => (
-                    <li key={m.id} className="flex items-center justify-between gap-3 py-2 pr-2 pl-4">
-                      <span className="flex min-w-0 flex-col leading-snug">
-                        <span className="text-[1.0625rem] font-bold">{m.name}</span>
-                        <span className="text-label text-muted">{[m.ownerName, m.address].filter(Boolean).join(" · ")}</span>
-                      </span>
-                      <span className="shrink-0">
-                        <RowButton onClick={() => void link(m.id)} disabled={busy !== null || held} busy={busy === m.id} label={t(`Agregar ${m.name}`, `Add ${m.name}`)}>
-                          {t("Agregar", "Add")}
-                        </RowButton>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ))}
-          </>
-        ) : (
-          <form onSubmit={add} className="grid gap-x-4 gap-y-3 pt-1 @min-[40rem]:grid-cols-2">
-            <div className="@min-[40rem]:col-span-2">
-              <Field
-                label={t("Cómo la llama usted", "What you call it")}
-                hint={t("Cualquier nombre que le sirva, por ejemplo «Tienda de Doña Marta, frente a la iglesia». Solo usted lo ve.", "Any name that works for you, for example “Marta's shop, across from the church”. Only you see it.")}
-                autoComplete="off"
-                required
-                value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
-              />
-            </div>
-            <Field label={t("Dirección (si la sabe)", "Address (if you know it)")} autoComplete="off" value={address} onChange={(e) => setAddress(e.target.value)} />
-            <Field
-              label={t("Teléfono (si lo sabe)", "Phone (if you know it)")}
-              hint={t("Para enviarle la invitación por WhatsApp.", "To send the invitation on WhatsApp.")}
-              inputMode="tel"
-              autoComplete="off"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-            {driverSelect}
-            <div className={ROW}>
-              <p role={error ? "alert" : "status"} className={`${NEWS} ${error ? "font-semibold text-bad" : "text-muted"}`}>
-                {error
-                  ? msg(error)
-                  : busy === "add"
-                    ? t("Estamos creando su cuenta de dólares digitales. Toma unos segundos.", "We're creating your digital dollar account. It takes a few seconds.")
-                    : t("Le damos un código para que la tienda cree su cuenta.", "You get a code for the shop to make its account.")}
-              </p>
-              <div className="@min-[40rem]:w-60 @min-[40rem]:shrink-0">
-                <Button type="submit" busy={busy === "add"}>
-                  {t("Agregar tienda", "Add shop")}
-                </Button>
-              </div>
-            </div>
-          </form>
-        )}
+          )}
+        </div>
 
         {shown && (
           <div ref={reveal} className="flex max-w-[28rem] scroll-mb-20 flex-col gap-2 pt-2">

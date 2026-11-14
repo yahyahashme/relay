@@ -105,8 +105,9 @@ function FirstSteps({ steps }: { steps: { label: string; done: boolean; href: st
         {steps.map((step, index) => (
           <li key={step.label}>
             {step.done ? (
-              <p className="flex min-h-13 items-center justify-between gap-3 rounded-paper bg-paper px-4 py-2">
-                <span>
+              // On the narrowest phone at a large text size the stamp goes under the words instead of off the paper.
+              <p className="flex min-h-13 flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-paper bg-paper px-4 py-2">
+                <span className="min-w-0 wrap-anywhere">
                   {index + 1}. {step.label}
                 </span>
                 <Stamp small tone="ok">

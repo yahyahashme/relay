@@ -6,7 +6,7 @@ import { ActionLink, DetailLink } from "@/components/kit/button";
 import { Slip, TopNav } from "@/components/kit/layout";
 import { Ledger, LedgerCard, type LedgerColumn, RowAction, RowButton } from "@/components/kit/ledger";
 import { Stamp } from "@/components/kit/stamp";
-import { Empty, Loading } from "@/components/kit/states";
+import { Empty, Failure, Loading } from "@/components/kit/states";
 import { HOLD_MS, TapShield, useMovedGuard, useTapShield } from "@/components/tap-shield";
 import { formatDay } from "@/lib/format";
 import { useT } from "@/lib/i18n";
@@ -43,16 +43,30 @@ export default function AdminScreen() {
   const { noteTap, settle } = useTapShield();
   const { ref: pendingBlock, justMoved } = useMovedGuard<HTMLElement>();
 
+  const [failed, setFailed] = useState(false);
+  const [retrying, setRetrying] = useState(false);
+
   const load = useCallback(async () => setList(await getAdminList()), []);
   useEffect(() => {
     let live = true;
-    void getAdminList().then((found) => {
-      if (live) setList(found);
-    });
+    getAdminList().then(
+      (found) => live && setList(found),
+      () => live && setFailed(true),
+    );
     return () => {
       live = false;
     };
   }, []);
+  async function retry() {
+    setRetrying(true);
+    try {
+      await load();
+      setFailed(false);
+    } catch {
+      setFailed(true);
+    }
+    setRetrying(false);
+  }
 
   async function decide(id: string, status: "aprobado" | "rechazado") {
     if (running.current || justMoved()) return;
@@ -85,7 +99,13 @@ export default function AdminScreen() {
     return (
       <Frame>
         <h1 className="text-title font-bold">{t("Distribuidoras por aprobar", "Distributors to approve")}</h1>
-        <Loading lines={6} torn={false} />
+        {failed ? (
+          <div className="max-w-[34rem]">
+            <Failure onRetry={() => void retry()} busy={retrying} />
+          </div>
+        ) : (
+          <Loading lines={6} torn={false} />
+        )}
       </Frame>
     );
   }

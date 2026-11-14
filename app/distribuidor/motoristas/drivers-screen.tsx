@@ -8,7 +8,7 @@ import { Field } from "@/components/kit/field";
 import { Ledger, LedgerCard, type LedgerColumn, RowAction, RowButton } from "@/components/kit/ledger";
 import { Money } from "@/components/kit/money";
 import { Stamp } from "@/components/kit/stamp";
-import { Empty, Loading } from "@/components/kit/states";
+import { Empty, Failure, Loading } from "@/components/kit/states";
 import { TapShield, useMovedGuard, useTapShield } from "@/components/tap-shield";
 import { formatPhone } from "@/lib/format";
 import { useT } from "@/lib/i18n";
@@ -88,16 +88,30 @@ export default function DriversScreen() {
   // An invite opening or closing above the list moves every row: a tap on its way to one row must not land on the next.
   const { ref: listBlock, justMoved } = useMovedGuard<HTMLElement>();
 
+  const [failed, setFailed] = useState(false);
+  const [retrying, setRetrying] = useState(false);
+
   const load = useCallback(async () => setData(await getMyDrivers()), []);
   useEffect(() => {
     let live = true;
-    void getMyDrivers().then((found) => {
-      if (live) setData(found);
-    });
+    getMyDrivers().then(
+      (found) => live && setData(found),
+      () => live && setFailed(true),
+    );
     return () => {
       live = false;
     };
   }, []);
+  async function retry() {
+    setRetrying(true);
+    try {
+      await load();
+      setFailed(false);
+    } catch {
+      setFailed(true);
+    }
+    setRetrying(false);
+  }
 
   async function invite(event: FormEvent) {
     event.preventDefault();
@@ -158,7 +172,7 @@ export default function DriversScreen() {
     </DistributorShell>
   );
 
-  if (data === undefined) return shell(<Loading lines={6} torn={false} />);
+  if (data === undefined) return shell(failed ? <div className="max-w-[34rem]"><Failure onRetry={() => void retry()} busy={retrying} /></div> : <Loading lines={6} torn={false} />);
   if (data === null) {
     return shell(
       <div className="max-w-[34rem]">
@@ -177,7 +191,7 @@ export default function DriversScreen() {
       </Stamp>
     ) : (
       <Stamp small tone="confirm">
-        {t("Invitación enviada", "Invite sent")}
+        {t("Invitado", "Invited")}
       </Stamp>
     );
   const invited = (driver: MyDriver) => driver.status === "invitado" && driver.inviteToken !== null && driver.phone !== null;
@@ -192,7 +206,7 @@ export default function DriversScreen() {
       </RowButton>
     ) : (
       // As tall as the button, so every row of the table has one height.
-      <span aria-hidden className="hidden min-h-11 @min-[40rem]:inline-block" />
+      <span aria-hidden className="hidden h-11 @min-[40rem]:block" />
     );
   const cash = (driver: MyDriver) =>
     driver.status === "activo" ? (
@@ -218,7 +232,7 @@ export default function DriversScreen() {
 
       <section className={SECTION}>
         <h2 className={HEADING}>{t("Agregar motorista", "Add a driver")}</h2>
-        <form onSubmit={invite} className="grid max-w-[48rem] gap-x-4 gap-y-3 @min-[44rem]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+        <form onSubmit={invite} className="grid max-w-[48rem] grid-cols-1 gap-x-4 gap-y-3 @min-[44rem]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
           <Field label={t("Nombre", "Name")} autoComplete="off" required value={name} onChange={(e) => setName(e.target.value)} />
           <Field label={t("Teléfono", "Phone")} inputMode="tel" autoComplete="off" required value={phone} onChange={(e) => setPhone(e.target.value)} />
           {/* One place for the news, always there: above the button on a phone, under the row of blanks with more room. */}

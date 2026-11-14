@@ -10,7 +10,7 @@ import { AreaField, Field, INPUT, MoneyField, SelectField } from "@/components/k
 import { Money } from "@/components/kit/money";
 import { Receipt, ReceiptFoot, ReceiptHeader, ReceiptLine, ReceiptLines, ReceiptRule, ReceiptTotal } from "@/components/kit/paper";
 import { Stamp } from "@/components/kit/stamp";
-import { Answer, Empty, Loading } from "@/components/kit/states";
+import { Answer, Empty, Failure, Loading } from "@/components/kit/states";
 import { HOLD_MS, TapShield, useQuietOnArrival, useSameSpotGuard, useTapShield } from "@/components/tap-shield";
 import { getDistributorView } from "@/lib/api";
 import { formatDay } from "@/lib/format";
@@ -33,6 +33,11 @@ function addDays(date: string, days: number): string {
 }
 
 type Shop = InvoiceForm["shops"][number];
+
+/** Stable, so it runs once, when the element appears. */
+function takeFocus(element: HTMLElement | null) {
+  element?.focus();
+}
 
 const HEADING = "text-title font-bold";
 const LABEL = "text-label font-semibold uppercase tracking-[0.08em] text-muted";
@@ -68,6 +73,12 @@ function ShopPicker({ shops, value, onChange }: { shops: Shop[]; value: Shop | n
   const [query, setQuery] = useState("");
   // "Cambiar" puts the search box where the button was: it takes the focus, so the keyboard carries on from there.
   const [changing, setChanging] = useState(false);
+  // And picking a shop takes the search box away: the focus goes to "Cambiar", the next thing in its place.
+  const [picked, setPicked] = useState(false);
+  const pick = (shop: Shop) => {
+    setPicked(true);
+    onChange(shop);
+  };
   const matches = useMemo(() => {
     const q = fold(query.trim());
     return shops.filter((s) => !q || fold(`${s.name} ${s.owner}`).includes(q)).slice(0, 6);
@@ -86,9 +97,11 @@ function ShopPicker({ shops, value, onChange }: { shops: Shop[]; value: Shop | n
           </span>
           <button
             type="button"
+            autoFocus={picked}
             onClick={() => {
               setQuery("");
               setChanging(true);
+              setPicked(false);
               onChange(null);
             }}
             className="min-h-12 shrink-0 rounded-control px-3.5 font-bold text-brand underline decoration-2 underline-offset-4 -outline-offset-3"
@@ -103,7 +116,7 @@ function ShopPicker({ shops, value, onChange }: { shops: Shop[]; value: Shop | n
   const pickFirst = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key !== "Enter") return;
     event.preventDefault();
-    if (matches.length > 0) onChange(matches[0]);
+    if (matches.length > 0) pick(matches[0]);
   };
   return (
     <div className="flex flex-col gap-1.5">
@@ -127,7 +140,7 @@ function ShopPicker({ shops, value, onChange }: { shops: Shop[]; value: Shop | n
         <ul aria-label={t("Tiendas encontradas", "Shops found")} className="flex flex-col divide-y divide-brand/25 rounded-control border-[1.5px] border-brand">
           {matches.map((shop) => (
             <li key={shop.id}>
-              <button type="button" onClick={() => onChange(shop)} className={`${CHOICE} rounded-[8px]`}>
+              <button type="button" onClick={() => pick(shop)} className={`${CHOICE} rounded-[8px]`}>
                 <span className="text-[1.0625rem] font-bold">{shop.name}</span>
                 {shop.owner && <span className="text-label text-muted">{shop.owner}</span>}
               </button>
@@ -278,23 +291,29 @@ export default function NewInvoice() {
     setDueDate(addDays(found.today, 7));
   }
 
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const repeatShop = params.get("tienda");
   const repeatDriver = params.get("motorista");
   useEffect(() => {
     let live = true;
-    void getInvoiceForm().then((found) => {
-      if (!live) return;
-      if (!found) return setForm(null);
-      fill(found);
-      const picked = found.shops.find((s) => s.id === repeatShop) ?? (found.shops.length === 1 ? found.shops[0] : null);
-      setShop(picked);
-      const driver = found.drivers.find((d) => d.id === repeatDriver)?.id ?? picked?.driverId ?? (found.drivers.length === 1 ? found.drivers[0].id : "");
-      setDriverId(driver);
-    });
+    getInvoiceForm().then(
+      (found) => {
+        if (!live) return;
+        setFailed(false);
+        if (!found) return setForm(null);
+        fill(found);
+        const picked = found.shops.find((s) => s.id === repeatShop) ?? (found.shops.length === 1 ? found.shops[0] : null);
+        setShop(picked);
+        const driver = found.drivers.find((d) => d.id === repeatDriver)?.id ?? picked?.driverId ?? (found.drivers.length === 1 ? found.drivers[0].id : "");
+        setDriverId(driver);
+      },
+      () => live && setFailed(true),
+    );
     return () => {
       live = false;
     };
-  }, [repeatShop, repeatDriver]);
+  }, [repeatShop, repeatDriver, attempt]);
 
   function pickShop(next: Shop | null) {
     setShop(next);
@@ -331,19 +350,38 @@ export default function NewInvoice() {
     setAmount("");
     setNote("");
     setForm(undefined);
-    const found = await getInvoiceForm();
-    if (found) fill(found);
-    else setForm(null);
+    try {
+      const found = await getInvoiceForm();
+      if (found) fill(found);
+      else setForm(null);
+    } catch {
+      setFailed(true);
+    }
   }
 
   /** After a file of invoices is created, the next free number has moved on. */
   async function numbersMoved() {
-    const found = await getInvoiceForm();
+    const found = await getInvoiceForm().catch(() => null);
     if (!found) return;
     setForm(found);
     setInvoiceId(String(found.suggestedId));
   }
 
+  if (form === undefined && failed) {
+    return (
+      <Frame>
+        <div className="flex max-w-[34rem] flex-col gap-4">
+          <h1 className={HEADING}>{t("Nueva factura", "New invoice")}</h1>
+          <Failure
+            onRetry={() => {
+              setFailed(false);
+              setAttempt((n) => n + 1);
+            }}
+          />
+        </div>
+      </Frame>
+    );
+  }
   if (form === undefined) return <NewInvoiceLoading />;
   if (form === null) {
     return (
@@ -372,7 +410,10 @@ export default function NewInvoice() {
           slip={slip}
           left={
             <>
-              <h1 className={HEADING}>{t("Factura creada", "Invoice created")}</h1>
+              {/* The form is gone: the keyboard and the screen reader carry on from the news. */}
+              <h1 ref={takeFocus} tabIndex={-1} className={`${HEADING} outline-none`}>
+                {t("Factura creada", "Invoice created")}
+              </h1>
               <div className="rounded-paper bg-paper px-4 py-3">
                 <Answer receipt={done} />
                 <p className="text-pretty">
@@ -474,7 +515,7 @@ export default function NewInvoice() {
             </ActionList>
 
             <form onSubmit={submit} onPointerDownCapture={watch} onInputCapture={typed} className="flex flex-col gap-4">
-              <div className="grid gap-4 @min-[30rem]/form:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 @min-[30rem]/form:grid-cols-2">
                 <div className="@min-[30rem]/form:col-span-2">
                   <ShopPicker shops={form.shops} value={shop} onChange={pickShop} />
                 </div>
