@@ -301,13 +301,13 @@ export function RowButton({ children, onClick, label, disabled = false, busy = f
  * Four across with room; two by two on a phone. Every figure is set at one size: the size at which the
  * longest of them fits the narrowest column, so one amount passing $1,000 never looks smaller than its neighbours.
  */
-export function LedgerFigures({ children }: { children: ReactNode }) {
+export function LedgerFigures({ children, pair = false }: { children: ReactNode; /** Two figures only: they stay two across at every width. */ pair?: boolean }) {
   const longest = Math.max(1, ...Children.toArray(children).map((child) => (isValidElement<{ value?: number }>(child) && typeof child.props.value === "number" ? moneyWidth(child.props.value) : 0)));
   return (
     <div className="@container/figures">
       <dl
         style={{ "--fit-chars": longest } as CSSProperties}
-        className="grid grid-cols-2 rounded-t-paper bg-paper [--fit-cols:2] @min-[44rem]:grid-cols-4 @min-[44rem]:[--fit-cols:4] @min-[58rem]:grid-cols-[1fr_1fr_1fr_1.3fr] @min-[58rem]:[--fit-cols:4.3]"
+        className={`grid grid-cols-2 rounded-t-paper bg-paper [--fit-cols:2] ${pair ? "" : "@min-[44rem]:grid-cols-4 @min-[44rem]:[--fit-cols:4] @min-[58rem]:grid-cols-[1fr_1fr_1fr_1.3fr] @min-[58rem]:[--fit-cols:4.3]"}`}
       >
         {children}
       </dl>

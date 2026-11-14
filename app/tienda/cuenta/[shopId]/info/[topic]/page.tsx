@@ -1,14 +1,15 @@
 import { Suspense } from "react";
-import { Loading, Screen } from "@/components/ui";
+import { Loading } from "@/components/kit/states";
+import { AccountPage } from "../../account-page";
 import HelpScreen from "./help-screen";
 
 export default function Page() {
   return (
     <Suspense
       fallback={
-        <Screen>
+        <AccountPage>
           <Loading />
-        </Screen>
+        </AccountPage>
       }
     >
       <HelpScreen />

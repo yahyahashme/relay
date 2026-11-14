@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { Loading, Screen } from "@/components/ui";
-import AccountScreen from "./account-screen";
+import { Loading } from "@/components/kit/states";
+import AccountScreen, { AccountFrame } from "./account-screen";
 
 // The id in the URL is only known when the page is opened, so the screen
 // waits inside Suspense (Next.js Cache Components).
@@ -8,9 +8,9 @@ export default function Page() {
   return (
     <Suspense
       fallback={
-        <Screen>
-          <Loading />
-        </Screen>
+        <AccountFrame>
+          <Loading lines={6} />
+        </AccountFrame>
       }
     >
       <AccountScreen />

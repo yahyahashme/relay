@@ -1,14 +1,14 @@
 import { Suspense } from "react";
-import { Loading, Screen } from "@/components/ui";
-import SharedScreen from "./shared-screen";
+import { Loading } from "@/components/kit/states";
+import SharedScreen, { SharedFrame } from "./shared-screen";
 
 export default function Page() {
   return (
     <Suspense
       fallback={
-        <Screen>
-          <Loading />
-        </Screen>
+        <SharedFrame>
+          <Loading lines={6} />
+        </SharedFrame>
       }
     >
       <SharedScreen />
