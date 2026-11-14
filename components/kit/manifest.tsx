@@ -172,7 +172,7 @@ export function StopSlip({
 }) {
   return (
     <section aria-label={label} className="@container/stop">
-      <div className="grid gap-2 rounded-paper bg-paper p-3 short:py-2.5 sideways:grid-cols-[auto_minmax(0,1fr)] sideways:items-start sideways:gap-x-2.5 sideways:p-2.5">
+      <div className="grid gap-2 rounded-paper bg-paper p-3 short:gap-1.5 short:py-2 sideways:grid-cols-[auto_minmax(0,1fr)] sideways:items-start sideways:gap-x-2.5 sideways:p-2.5">
         {/* The amount keeps the name company while both fit; on a narrow slip, or with large text, it takes the line below. */}
         <header className="@container flex flex-wrap items-center gap-x-3 gap-y-0.5 border-b-2 border-dotted border-paper-rule pb-2 sideways:col-start-2 sideways:row-start-1 sideways:flex-col sideways:flex-nowrap sideways:items-start sideways:border-b-0 sideways:pb-0">
           <span className="flex items-center self-stretch border-r-2 border-dotted border-paper-rule pr-3 font-mono text-[2.5rem] leading-none font-semibold sideways:self-auto sideways:border-r-0 sideways:pr-0 sideways:text-[1.75rem]">
