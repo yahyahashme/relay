@@ -11,6 +11,8 @@ import * as distributors from "@/app/distributor-actions";
 import * as shops from "@/app/shop-actions";
 import * as invoices from "@/app/invoice-actions";
 import * as recourse from "@/app/recourse-actions";
+import * as confirm from "@/app/confirm-actions";
+import { type ConfirmFinish, type ConfirmProof, type ConfirmRequest, type ConfirmStart, DEMO_PIN } from "./pay-confirm";
 import type { DistributorView } from "@/app/distributor-actions";
 import * as mock from "./mock";
 import type { Driver, Invoice, LenderView, InvoiceHistory, InvoiceRow, Pool, Profile, Receipt, RecourseView, Shop, ShopHistory, Supplier, Totals } from "./types";
@@ -87,18 +89,31 @@ export const createDemoInvoice = (shopId?: string): Promise<Invoice> =>
 
 // ---------- writes ----------
 
+// Every write that moves the shop's money takes `confirmId`: the confirmation the owner just gave
+// with Face ID, fingerprint or PIN (components/pay-confirm.tsx). The server refuses without it.
+
+/** A tap on a pay button: what the confirm sheet needs. Mock mode has no server, so it asks for the demo PIN. */
+export async function startPayConfirm(request: ConfirmRequest): Promise<ConfirmStart> {
+  if (!USE_MOCKS) return confirm.startPayConfirm(request).catch(() => ({ ok: false as const, message: "Algo salió mal. Intente de nuevo." }));
+  return { ok: true, id: "demo", shopId: request.shopId ?? "", mode: "demo", hasPin: true };
+}
+export async function finishPayConfirm(id: string, shopId: string, proof: ConfirmProof): Promise<ConfirmFinish> {
+  if (!USE_MOCKS) return confirm.finishPayConfirm(id, shopId, proof).catch(() => ({ ok: false as const, message: "Algo salió mal. Intente de nuevo." }));
+  return proof.kind === "pin" && proof.pin === DEMO_PIN ? { ok: true } : { ok: false, message: "PIN incorrecto.", again: true };
+}
+
 /** No amount = pay what's left. */
-export const payNow = (invoiceId: number, amount?: number) =>
-  write(() => mock.payNow(invoiceId, amount), () => live.payNow(invoiceId, amount));
-export const payLater = (invoiceId: number) =>
-  write(() => mock.payLater(invoiceId), () => live.payLater(invoiceId));
+export const payNow = (invoiceId: number, amount?: number, confirmId?: string) =>
+  write(() => mock.payNow(invoiceId, amount), () => live.payNow(invoiceId, amount, confirmId));
+export const payLater = (invoiceId: number, confirmId?: string) =>
+  write(() => mock.payLater(invoiceId), () => live.payLater(invoiceId, confirmId));
 export const claimCash = (invoiceId: number, amount: number) =>
   write(() => mock.claimCash(invoiceId, amount), () => live.claimCash(invoiceId, amount));
 /** `amount` is the claim the shop saw: if the driver changed it since, nothing happens. */
-export const confirmCash = (invoiceId: number, amount: number) =>
-  write(() => mock.confirmCash(invoiceId, amount), () => live.confirmCash(invoiceId, amount));
-export const repay = (shopId: string, amount: number) =>
-  write(() => mock.repay(shopId, amount), () => live.repay(shopId, amount));
+export const confirmCash = (invoiceId: number, amount: number, confirmId?: string) =>
+  write(() => mock.confirmCash(invoiceId, amount), () => live.confirmCash(invoiceId, amount, confirmId));
+export const repay = (shopId: string, amount: number, confirmId?: string) =>
+  write(() => mock.repay(shopId, amount), () => live.repay(shopId, amount, confirmId));
 /** The distributor got a driver's cash at the warehouse (only lowers the driver's cash count). */
 export const handInCash = (driverId: string, amount: number) =>
   write(() => mock.handInCash(driverId, amount), () => live.handInCash(driverId, amount));
