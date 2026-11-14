@@ -106,7 +106,7 @@ export function Ledger<Row>({
       {(inCard ? cardFolded : folded).length > 0 && (
         <dl className={`flex flex-wrap gap-x-8 gap-y-1 ${inCard ? "" : "@min-[60rem]:hidden"}`}>
           {(inCard ? cardFolded : folded).map((column) => (
-            <div key={column.id} className={`flex items-baseline gap-2 ${inCard || !column.secondary ? "" : RETURNS[returnsAt(column)!].fold}`}>
+            <div key={column.id} className={`flex flex-wrap items-baseline gap-x-2 ${inCard || !column.secondary ? "" : RETURNS[returnsAt(column)!].fold}`}>
               <dt className="text-label font-semibold uppercase tracking-[0.08em] text-muted">{column.header}</dt>
               <dd className={column.figure || column.mono ? "font-mono font-medium" : ""}>{column.cell(row)}</dd>
             </div>

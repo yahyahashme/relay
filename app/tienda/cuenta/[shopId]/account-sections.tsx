@@ -19,7 +19,7 @@ import type { Invoice, Shop, Supplier } from "@/lib/types";
 
 function Section({ title, id, children }: { title: string; id?: string; children: ReactNode }) {
   return (
-    <section id={id} className="flex scroll-mt-[calc(var(--band-h)+0.75rem)] flex-col gap-2 pt-3 first:pt-0">
+    <section id={id} className="flex scroll-mt-[calc(var(--band-h)+0.75rem)] flex-col gap-2 pt-3 first:pt-0 [div:empty+&]:pt-0">
       <h2 className="text-label font-bold uppercase tracking-[0.12em]">{title}</h2>
       {children}
     </section>

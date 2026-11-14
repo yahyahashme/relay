@@ -8,7 +8,7 @@ import { Money, MoneyText } from "@/components/kit/money";
 import { Receipt, ReceiptFoot, ReceiptHeader, ReceiptLine, ReceiptLines, ReceiptTotal } from "@/components/kit/paper";
 import { Stamp } from "@/components/kit/stamp";
 import { Empty, Failure, Loading } from "@/components/kit/states";
-import { HOLD_MS, TapShield, useQuietOnArrival, useSameSpotGuard, useTapShield } from "@/components/tap-shield";
+import { HOLD_MS, TapShield, useMovedGuard, useQuietOnArrival, useSameSpotGuard, useTapShield } from "@/components/tap-shield";
 import { getBalance, getInvoices, getShop, getShopHistory, getSuppliers, repay } from "@/lib/api";
 import { creditScore } from "@/lib/credit";
 import { formatDay } from "@/lib/format";
@@ -48,6 +48,9 @@ export default function AccountScreen() {
   const [landed, setLanded] = useState(false); // the stamp has played; don't replay it
   const { noteTap, settle } = useTapShield();
   const { watch, typed, stray } = useSameSpotGuard();
+  // A refresh can add a line to the slip (the score arrives, the limit moves), and on a phone the button sits
+  // right under the slip: for a beat after it has changed place, it ignores taps.
+  const { ref: payPlace, justMoved } = useMovedGuard<HTMLDivElement>();
   const { lang, t, msg } = useT();
   // "Pagar deuda" pays with one tap, so it waits a beat after it comes on screen: a double tap on the screen before can't pay.
   const arriving = useQuietOnArrival(Boolean(data?.shop && !stale && data.shop.creditOwed > 0));
@@ -139,12 +142,12 @@ export default function AccountScreen() {
           {/* No sum with a late debt: the shop can't use what's left, so a dollar figure would mislead. */}
           {shop.overdue ? <span className="text-bad">{t("En pausa", "On hold")}</span> : <Money value={available} />}
         </ReceiptLine>
-        <ReceiptLine label={t("Saldo", "Balance")}>{balance === null ? "—" : <Money value={balance} />}</ReceiptLine>
         {score && (
           <ReceiptLine label={t("Puntaje Relay", "Relay score")}>
             {score.score} {t("de 100", "of 100")}
           </ReceiptLine>
         )}
+        <ReceiptLine label={t("Saldo", "Balance")}>{balance === null ? "—" : <Money value={balance} />}</ReceiptLine>
       </ReceiptLines>
       {result?.ok && (
         <p role="status" className="font-semibold text-pretty">
@@ -205,36 +208,38 @@ export default function AccountScreen() {
         facts={<div id="estado-de-cuenta">{slip}</div>}
         actions={
           <>
-            {owes || busy ? (
-              <Button
-                onClick={(event) => {
-                  if (!stray(event)) void payDebt();
-                }}
-                busy={busy}
-                disabled={held}
-                arriving={arriving}
-                hint={
-                  <>
-                    <Money value={owes ? shop.creditOwed : (paid?.amount ?? 0)} /> {inDollars}
-                  </>
-                }
-              >
-                {t("Pagar deuda", "Pay debt")}
-              </Button>
-            ) : (
-              justPaid && (
-                // Stays where the button was, the same size, so a repeat tap lands on nothing instead of on an invoice row.
-                <Held
+            <div ref={payPlace} className="empty:hidden">
+              {owes || busy ? (
+                <Button
+                  onClick={(event) => {
+                    if (!stray(event) && !justMoved()) void payDebt();
+                  }}
+                  busy={busy}
+                  disabled={held}
+                  arriving={arriving}
                   hint={
                     <>
-                      <Money value={paid.amount} /> {inDollars}
+                      <Money value={owes ? shop.creditOwed : (paid?.amount ?? 0)} /> {inDollars}
                     </>
                   }
                 >
-                  {t("Deuda pagada", "Debt paid")}
-                </Held>
-              )
-            )}
+                  {t("Pagar deuda", "Pay debt")}
+                </Button>
+              ) : (
+                justPaid && (
+                  // Stays where the button was, the same size, so a repeat tap lands on nothing instead of on an invoice row.
+                  <Held
+                    hint={
+                      <>
+                        <Money value={paid.amount} /> {inDollars}
+                      </>
+                    }
+                  >
+                    {t("Deuda pagada", "Debt paid")}
+                  </Held>
+                )
+              )}
+            </div>
             <InvoicesToPay unpaid={unpaid} now={now} />
             <AccountSections shop={shop} suppliers={suppliers} score={score} now={now} />
           </>
