@@ -126,6 +126,10 @@ export interface Invoice {
    * `due` is then the date the shop must pay the distributor by.
    */
   later: boolean;
+  /**
+   * What was left to pay when the shop put it on pay later; 0 if never (#200).
+   */
+  later_amount: bigint;
   method: PayMethod;
   paid: bigint;
   shop: string;

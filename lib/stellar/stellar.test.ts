@@ -71,6 +71,7 @@ describe("map", () => {
     method: { tag: "Digital", values: undefined },
     credit_fee: 0n,
     later: false,
+    later_amount: 0n,
   } as const;
 
   it("turns a contract invoice into the screens' invoice", () => {
