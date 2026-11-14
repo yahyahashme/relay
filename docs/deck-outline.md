@@ -45,7 +45,7 @@ The words for each slide are in `docs/deck-slides.md`, under the same number.
 ### 3. The product
 - **Message:** one shop screen, three ways to pay.
 - **Visual:** 3 phone screenshots of the live app, captured at 360 px wide with the testnet banner in frame: the shop's pay screen, the shop's "Debe ... vence ..." screen after a credit payment, the driver's "Recibí efectivo" screen. Steps are in "Capturing the three phone screenshots" below. `docs/screenshots/mock-screens-nov10.png` is a mock, so don't use it.
-- **Needs:** nothing now. PR #119 (Fri Nov 13) put the three captures in `docs/trifold/img/` (`shop-pay.png`, `shop-credit.png`, `driver-cash.png`), taken from https://relay-sv.vercel.app (the old tiendas-stellar.vercel.app answers 307 and redirects there, so the deck shows the new one). Recapture with the steps below if #125 or #126 (both open) merge before the deck is final, and check the page header reads "Relay" with "Paga tu ruta" under it. The URL goes in the slide's small print.
+- **Needs:** a check, and probably a recapture. PR #119 (Fri Nov 13) put the three captures in `docs/trifold/img/` (`shop-pay.png`, `shop-credit.png`, `driver-cash.png`), taken from https://relay-sv.vercel.app (the old tiendas-stellar.vercel.app answers 307 and redirects there, so the deck shows the new one). #126 and #125 merged after that (7:26 and 7:27 PM ET) and changed the shop's pay screen (#125 also the driver's route screen). Compare the three images with the live app; if they differ, recapture with the steps below and check the page header reads "Relay" with "Paga tu ruta" under it. We have not compared them. The URL goes in the slide's small print.
 
 ### 4. How it works on Stellar
 - **Message:** the rules live in a public contract, and names stay off it.
@@ -53,8 +53,8 @@ The words for each slide are in `docs/deck-slides.md`, under the same number.
 
 ### 5. The code
 - **Message:** the credit rules are real contract code, not a mock-up.
-- **Visual:** `docs/img/code-slide.png` (from #56). Ready on `main` since PR #82 merged: it shows the new contract ID (CDHDZX7V..., equal to `contracts.routeLedger` in `config/testnet.json`) and the current `match` block. A fresh `node docs/slides/render.mjs` on Fri Nov 13 produced the same file byte for byte. `SCALE=3 node docs/slides/render.mjs` makes print-size images.
-- **Needs:** Yahya's confirmation that the code on the slide is what's deployed. `git log` shows nothing under `contracts/` since #80 (Thu Nov 12, 4:33 PM ET), which came before the redeploy (#90, 6:22 PM ET). If #139 (open, changes the contract) merges and is redeployed, re-render with the new ID.
+- **Visual:** `docs/img/code-slide.png` (from #56). **Not ready on `main` until PR #163 merges.** PR #82 gave it the ID from the #90 redeploy (`CDHDZX7V...`), but #139 (merged Fri Nov 13, 7:36 PM ET) redeployed again: `contracts.routeLedger` in `config/testnet.json` is now `CAGCZ3I7...`, and the image on `main` still shows the old one. PR #163 re-renders it with `CAGCZ3I7...` (read by eye). The three code blocks on it are still in `lib.rs`. `SCALE=3 node docs/slides/render.mjs` makes print-size images.
+- **Needs:** PR #163 merged, then a character-by-character check of the ID on the image against `config/testnet.json`, then Yahya's confirmation that the code on the slide is what's deployed. `git log` shows #139 as the last change under `contracts/`; its PR says Yahya redeployed from it, and that ID is the one in `config/testnet.json`.
 
 ### 6. Money in 30 seconds, and go-to-market
 - **Message:** distributors pay, shops never do.
@@ -109,8 +109,8 @@ For slide 3 and the trifold's middle panel. They have to come from the live app 
 | Our fees, limits, safety numbers | facts entries 29 to 35, #84 | merged |
 | "What we heard from N people" | #30; `docs/research.md` (#72) | open; no shop-owner or distributor conversation is logged (outreach only: #89 merged, #152 open) |
 | Slide text for the 8 slides | `docs/deck-slides.md` | refreshed Nov 12 (brackets still open) |
-| Real phone screenshots | live app; steps above | done: three captures in `docs/trifold/img/` (PR #119); recapture if #125 or #126 merge |
-| Code slide with the real contract ID | #56 follow-up, PR #82 | merged; `docs/img/code-slide.png` on `main` shows the new ID |
+| Real phone screenshots | live app; steps above | captured in PR #119 (`docs/trifold/img/`); #125 and #126 merged after, so compare with the live app and recapture if they differ |
+| Code slide with the real contract ID | #56 follow-up, PR #82, PR #163 | PR #82 merged, but #139 changed the ID again (`CAGCZ3I7...`); the image on `main` shows the previous one until #163 (re-render) merges |
 | Print-size slide images | `SCALE=3 node docs/slides/render.mjs` (PR #82) | merged; the option is in `docs/slides/render.mjs` |
 | Architecture picture with the fee-sponsorship line | #119 put it back after #113 turned sponsorship on | done, on `main` |
 | Our ask | team decision | open |
