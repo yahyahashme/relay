@@ -7,9 +7,10 @@
 //   node scripts/screens.mjs shop --base http://localhost:3000 --out docs/screenshots/redesign
 //   node scripts/screens.mjs shop --zoom 2          the browser zoomed to 200%
 //   node scripts/screens.mjs shop --text 1.5        the phone's text size raised by half
+//   node scripts/screens.mjs shop --only factura --size 360x640 --full     one screen at one size, the whole page: while building
 //
 // Checked at each size: no sideways scroll, no clipped text, every touch target at least 44 px
-// (the pay buttons are 52 px, the driver's 60 px; the script prints the smallest ones it finds).
+// (56 px on the driver's screens; the pay buttons are 52 px, the driver's 60 px; the script prints the smallest it finds).
 // Needs Playwright where Node can find it (npm i -g playwright, or NODE_PATH). It is not a dependency
 // of the app. Exits 1 if any check fails.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -29,7 +30,62 @@ async function shrink(file) {
   } catch {}
 }
 
-/** name, path, and (optionally) what must be in view without scrolling at one size: { "360x640": selector }. */
+/**
+ * name, path, and (optionally) more about the screen:
+ *   inView     what must be in view without scrolling at one size: { "360x640": selector }, or
+ *              { "1280x800": { selector, count } } when at least `count` things must match
+ *   minTarget  the smallest touch target this screen allows (44 unless given; the driver's screens use 56)
+ *   prepare    async (page) => {}: steps to take in the page before it is checked (pay an invoice, open a row)
+ */
+const press = (page, name) => page.getByRole("button", { name }).first().click();
+const move = (page, path) => page.evaluate((to) => window.next.router.push(to), path);
+
+/**
+ * The panel on a working day. The demo starts with eight unpaid invoices and nothing else, so before the
+ * panel is checked one shop pays digitally, one on credit, one a part, one in cash, and two more invoices
+ * arrive. The demo's data lives in the tab, so every step is a move inside the app, never a reload.
+ */
+async function workingDay(page) {
+  const paid = (words) => page.getByText(words).first().waitFor({ timeout: 20_000 });
+  const open = async (path) => {
+    await move(page, path);
+    await page.waitForSelector("main button:not([disabled])", { timeout: 20_000 });
+    await page.waitForTimeout(800); // a pay button ignores taps for its first 0.6 s
+  };
+  await open("/tienda/1008");
+  await press(page, /Pagar ahora|Pay now/);
+  await paid(/Pagada · Digital|Paid · Digital/);
+  await open("/tienda/1007");
+  await press(page, /Pagar en 7 días|Pay in 7 days/);
+  // On a short screen the panel can open with "Confirmo" right where the row was tapped, and a tap on the
+  // same spot within 2.5 s is ignored on purpose (lib/taps.ts). A person reads the terms first; so does this.
+  await page.waitForTimeout(2700);
+  await press(page, /^Confirmo|^Confirm/);
+  await paid(/Pagada · Crédito|Paid · Credit/);
+  await open("/tienda/1006");
+  await press(page, /Pagar otro monto|Pay another amount/);
+  await page.locator("main input[inputmode=decimal]:visible").fill("45");
+  await page.waitForTimeout(800);
+  await press(page, /Pagar este monto|Pay this amount/);
+  await paid(/^(Pagado|Paid)$/);
+  await open("/ruta/motorista-1");
+  await page.locator("button", { hasText: "1004" }).first().click();
+  await press(page, /Recibí efectivo|I received cash/);
+  await page.waitForTimeout(2500);
+  await open("/tienda/1004");
+  await press(page, /^Confirmo|^Confirm/);
+  await paid(/Pagada · Efectivo|Paid · Cash/);
+  await move(page, "/distribuidor");
+  await page.locator("#facturas tbody tr:visible, #facturas ul > li:visible").first().waitFor({ timeout: 20_000 });
+  for (let made = 0; made < 2; made++) {
+    const before = await page.locator("#facturas tbody tr, #facturas ul > li").count();
+    await page.locator("button:visible", { hasText: /Nueva factura de demo|New demo invoice/ }).first().click();
+    await page.waitForFunction((count) => document.querySelectorAll("#facturas tbody tr, #facturas ul > li").length > count, before, { timeout: 20_000 });
+  }
+  await page.mouse.move(0, 0);
+  await page.waitForTimeout(4500); // the rows that just changed stop being lit
+}
+
 const GROUPS = {
   system: [
     ["sistema", "/sistema"],
@@ -38,10 +94,14 @@ const GROUPS = {
   ],
   shop: [
     // The floor: on a 360x640 phone "Pagar ahora" and the three other ways to pay are all in view.
-    ["factura", "/tienda/1001", { "360x640": "main button" }],
-    ["demo", "/demo", { "360x640": "main button" }],
+    ["factura", "/tienda/1001", { inView: { "360x640": "main button" } }],
+    ["demo", "/demo", { inView: { "360x640": "main button" } }],
   ],
-  distributor: [["panel", "/distribuidor"]],
+  distributor: [
+    // The booth laptop: the four figures and the first ten invoices are in view without scrolling.
+    ["panel", "/distribuidor", { prepare: workingDay, inView: { "1280x800": { selector: "#resumen, #facturas tbody tr", count: 11 } } }],
+    ["panel-nuevo", "/distribuidor"], // as the demo starts: eight invoices, nothing paid
+  ],
   driver: [["ruta", "/ruta/motorista-1"]],
   auth: [
     ["inicio", "/"],
@@ -95,9 +155,11 @@ const base = flag("--base", "http://localhost:3000");
 const lang = flag("--lang", "es");
 const outDir = resolve(root, flag("--out", "docs/screenshots/redesign"));
 const only = flag("--only"); // one screen name
+const fullPage = args.at(-1) === "--full"; // last on the line: the whole page in each shot, not only the first screenful
+const oneSize = flag("--size"); // one size, as 1280x800: a quick look while building (its sheet gets its own name)
 const zoom = Number(flag("--zoom", "1")); // 2 = the browser zoomed to 200%: the same window, half as many CSS pixels
 const text = Number(flag("--text", "1")); // 1.5 = the phone's text size raised by half
-const variant = `${lang === "es" ? "" : `-${lang}`}${zoom === 1 ? "" : `-zoom${zoom}`}${text === 1 ? "" : `-text${text}`}`;
+const variant = `${lang === "es" ? "" : `-${lang}`}${zoom === 1 ? "" : `-zoom${zoom}`}${text === 1 ? "" : `-text${text}`}${oneSize ? `-${oneSize}` : ""}`;
 const MIN_TARGET = 44;
 
 if (!GROUPS[group]) {
@@ -114,10 +176,12 @@ try {
 }
 
 /** Runs in the page: what's wrong at this size? */
-function inspect(minTarget) {
+function inspect([minTarget, width]) {
   const problems = [];
   const doc = document.documentElement;
   if (doc.scrollWidth > doc.clientWidth + 1) problems.push(`scrolls sideways by ${doc.scrollWidth - doc.clientWidth}px`);
+  // A phone browser widens the page to fit what sticks out, so nothing "scrolls": the page is just wider than the screen.
+  if (window.innerWidth > width + 1) problems.push(`${window.innerWidth - width}px wider than the screen (a phone would zoom out or scroll sideways)`);
   const shown = (el) => {
     const style = getComputedStyle(el);
     const box = el.getBoundingClientRect();
@@ -152,11 +216,16 @@ const browser = await chromium.launch();
 const failures = [];
 mkdirSync(outDir, { recursive: true });
 
-for (const [screen, path, inView = {}] of GROUPS[group]) {
+/** Mock reads answer after a second each, one after another: wait until "Cargando..." has gone. */
+const loaded = (page) =>
+  page.waitForFunction(() => ![...document.querySelectorAll("[role=status]")].some((el) => /Cargando|Loading/.test(el.textContent)), null, { timeout: 10_000 }).catch(() => {});
+
+for (const [screen, path, { inView = {}, minTarget = MIN_TARGET, prepare } = {}] of GROUPS[group]) {
   if (only && only !== screen) continue;
   const shots = [];
   let smallest = Infinity;
   for (const [fullWidth, fullHeight] of SIZES) {
+    if (oneSize && oneSize !== `${fullWidth}x${fullHeight}`) continue;
     const [width, height] = [Math.round(fullWidth / zoom), Math.round(fullHeight / zoom)];
     if (width < 280) continue; // nothing is narrower than the folded phone
     const touch = fullWidth < 1100;
@@ -166,24 +235,28 @@ for (const [screen, path, inView = {}] of GROUPS[group]) {
     const url = new URL(path, base);
     if (lang !== "es") url.searchParams.set("lang", lang);
     await page.goto(url.href, { waitUntil: "networkidle" });
-    // Mock reads answer after a second each, one after another: wait until "Cargando..." has gone, then for the slip to print in.
-    await page.waitForFunction(() => ![...document.querySelectorAll("[role=status]")].some((el) => /Cargando|Loading/.test(el.textContent)), null, { timeout: 10_000 }).catch(() => {});
-    await page.waitForTimeout(1200);
-    const result = await page.evaluate(inspect, MIN_TARGET);
-    const mustSee = zoom === 1 && text === 1 ? inView[`${width}x${height}`] : undefined;
-    if (mustSee) {
+    await loaded(page);
+    if (prepare) {
+      await prepare(page);
+      await loaded(page);
+    }
+    await page.waitForTimeout(1200); // the slip prints in
+    const result = await page.evaluate(inspect, [minTarget, width]);
+    const wanted = zoom === 1 && text === 1 ? inView[`${width}x${height}`] : undefined;
+    if (wanted) {
+      const { selector, count = 1 } = typeof wanted === "string" ? { selector: wanted } : wanted;
       const hidden = await page.evaluate((selector) => {
         const below = [...document.querySelectorAll(selector)].filter((el) => el.getBoundingClientRect().bottom > window.innerHeight || el.getBoundingClientRect().top < 0);
-        return { found: document.querySelectorAll(selector).length, below: below.map((el) => el.textContent.trim().slice(0, 30)) };
-      }, mustSee);
-      if (hidden.found === 0) result.problems.push(`nothing matches "${mustSee}"`);
+        return { found: document.querySelectorAll(selector).length, below: below.map((el) => el.textContent.trim().replace(/\s+/g, " ").slice(0, 30)) };
+      }, selector);
+      if (hidden.found < count) result.problems.push(`${hidden.found} of ${count} found for "${selector}"`);
       for (const text of hidden.below) result.problems.push(`not in view without scrolling: "${text}"`);
     }
     if (result.smallest !== null) smallest = Math.min(smallest, result.smallest);
     for (const problem of result.problems) failures.push(`${screen} ${width}x${height}: ${problem}`);
     const file = join(outDir, ".shots", `${group}-${screen}${variant}-${width}x${height}.png`);
     mkdirSync(dirname(file), { recursive: true });
-    await page.screenshot({ path: file });
+    await page.screenshot({ path: file, fullPage });
     shots.push({ file, width, height, bad: result.problems.length });
     await context.close();
   }
@@ -204,7 +277,7 @@ for (const [screen, path, inView = {}] of GROUPS[group]) {
   await sheet.screenshot({ path: sheetFile, fullPage: true });
   await sheet.close();
   await shrink(sheetFile);
-  console.log(`${screen}: ${shots.length} sizes, smallest touch target ${Number.isFinite(smallest) ? smallest : "-"}px, sheet ${sheetFile.replace(`${root}/`, "")}`);
+  console.log(`${screen}: ${shots.length} sizes, smallest touch target ${Number.isFinite(smallest) ? smallest : "-"}px (${minTarget} allowed), sheet ${sheetFile.replace(`${root}/`, "")}`);
 }
 
 await browser.close();
@@ -214,4 +287,4 @@ if (failures.length) {
   for (const failure of failures) console.log(`  ${failure}`);
   process.exit(1);
 }
-console.log("\nEvery size passed: no sideways scroll, no clipped text, no touch target under 44 px.");
+console.log("\nEvery size passed: no sideways scroll, no clipped text, no touch target under its minimum.");

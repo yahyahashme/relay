@@ -1,6 +1,6 @@
 "use client";
 
-import { type MouseEvent, type PointerEvent, useEffect, useRef, useState } from "react";
+import { type MouseEvent, type PointerEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { isStrayTap, type Tap } from "@/lib/taps";
 
 /** How long a screen stays held after a payment lands. */
@@ -82,4 +82,24 @@ export function useSameSpotGuard() {
     return isStrayTap(before, last, onSameButton);
   };
   return { watch, typed, stray };
+}
+
+/**
+ * A refresh can add or take away rows above a button, so the button moves while a thumb is already on its way
+ * and the tap lands on its neighbour. Put `ref` on the block that holds the buttons and ask `justMoved()` first
+ * in their onClick: it is true for a beat after the block changed place on the page (scrolling doesn't count).
+ */
+export function useMovedGuard<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const place = useRef<{ top: number | null; movedAt: number }>({ top: null, movedAt: 0 });
+  // After every render, before the browser paints it: where does the block sit on the page now?
+  useLayoutEffect(() => {
+    let top = 0;
+    for (let node: HTMLElement | null = ref.current; node; node = node.offsetParent as HTMLElement | null) top += node.offsetTop;
+    if (!ref.current) return;
+    if (place.current.top !== null && place.current.top !== top) place.current.movedAt = Date.now();
+    place.current.top = top;
+  });
+  const justMoved = () => Date.now() - place.current.movedAt < ARRIVE_MS;
+  return { ref, justMoved };
 }
