@@ -79,6 +79,28 @@ export function SelectField({ label, hint, error, children, ...select }: Common 
   );
 }
 
+/**
+ * One choice in the row of filters above a ledger. Compact (44 px) and outlined in blue: it is a control, not paper.
+ * With room the label sits beside it; on a phone it sits above, and the filters share the row.
+ */
+export function FilterSelect({ label, children, ...select }: { label: ReactNode } & SelectHTMLAttributes<HTMLSelectElement>) {
+  const id = useId();
+  return (
+    <div className="flex min-w-30 flex-1 flex-col gap-1 @min-[40rem]:flex-none @min-[40rem]:flex-row @min-[40rem]:items-center @min-[40rem]:gap-2">
+      <label htmlFor={id} className="text-label font-semibold uppercase tracking-[0.08em] text-muted">
+        {label}
+      </label>
+      <select
+        id={id}
+        className="select-chevron min-h-11 w-full appearance-none rounded-control border-[1.5px] border-brand bg-transparent py-1 pr-9 pl-3 text-base font-bold text-brand hover:bg-brand/6 focus:outline-3 focus:outline-brand @min-[40rem]:w-auto"
+        {...select}
+      >
+        {children}
+      </select>
+    </div>
+  );
+}
+
 /** A password input with "Mostrar / Ocultar". */
 export function PasswordField({ label, hint, error, ...input }: Common & InputHTMLAttributes<HTMLInputElement>) {
   const id = useId();

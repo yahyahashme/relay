@@ -26,7 +26,11 @@ export default function ShellSample() {
         { href: "/sistema/shell#tiendas", label: t("Tiendas", "Shops") },
         { href: "/sistema/shell#pasos", label: t("Primeros pasos", "First steps"), sidebarOnly: true },
       ]}
-      action={<ButtonLink href="/sistema/shell">{t("Nueva factura", "New invoice")}</ButtonLink>}
+      action={(place) => (
+        <ButtonLink href="/sistema/shell" size={place === "bar" ? "sm" : "md"}>
+          {t("Nueva factura", "New invoice")}
+        </ButtonLink>
+      )}
     >
       <div className="flex flex-col gap-4">
         <h1 className="text-title font-bold">Panel</h1>

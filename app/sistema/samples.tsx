@@ -206,13 +206,13 @@ export function SampleLedger({ rows = ROWS }: { rows?: Row[] }) {
     </Stamp>
   );
   const columns: LedgerColumn<Row>[] = [
-    { id: "id", header: t("Factura", "Invoice"), mono: true, secondary: true, cell: (row) => row.id },
-    { id: "shop", header: t("Tienda", "Shop"), cell: (row) => row.shop, total: "Total" },
+    { id: "id", header: t("N.º", "No."), mono: true, foldOnCard: true, cell: (row) => row.id },
+    { id: "shop", header: t("Tienda", "Shop"), grow: true, cell: (row) => row.shop, title: (row) => row.shop, total: "Total" },
     { id: "driver", header: t("Motorista", "Driver"), secondary: true, cell: (row) => row.driver },
     { id: "amount", header: t("Monto", "Amount"), figure: true, cell: (row) => <Money value={row.amount} />, total: <Money value={sum((row) => row.amount)} /> },
     { id: "paid", header: t("Pagado", "Paid"), figure: true, secondary: true, cell: (row) => <Money value={row.paid} />, total: <Money value={sum((row) => row.paid)} /> },
     { id: "status", header: t("Estado", "Status"), cell: stamp },
-    { id: "due", header: t("Vence", "Due"), mono: true, end: true, className: "whitespace-nowrap", cell: (row) => (lang === "en" ? row.dueEn : row.due) },
+    { id: "due", header: t("Vence", "Due"), mono: true, end: true, cell: (row) => (lang === "en" ? row.dueEn : row.due) },
   ];
   return (
     <Ledger

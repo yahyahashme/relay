@@ -16,7 +16,15 @@ const HEIGHT: Record<Size, string> = { md: "min-h-13", lg: "min-h-15" };
 const PRESS =
   "transition-[scale,background-color,border-color] duration-[120ms] ease-snap active:scale-[0.97] disabled:cursor-not-allowed disabled:active:scale-100 select-none";
 
-const FILLED = `flex w-full flex-col items-center justify-center rounded-control px-5 py-2 text-center text-[1.125rem] font-bold text-white ${PRESS}`;
+/** A filled button can also be "sm" (44 px), for a top bar. */
+type FilledSize = Size | "sm";
+const FILL: Record<FilledSize, string> = {
+  sm: "min-h-11 px-3.5 py-1 text-base leading-tight text-balance",
+  md: "min-h-13 px-5 py-2 text-[1.125rem]",
+  lg: "min-h-15 px-5 py-2 text-[1.125rem]",
+};
+
+const FILLED = `flex w-full flex-col items-center justify-center rounded-control text-center font-bold text-white ${PRESS}`;
 const TONE = {
   primary:
     "bg-brand hover:bg-brand-press active:bg-brand-press disabled:bg-counter-rule disabled:text-muted aria-busy:disabled:bg-brand-press aria-busy:disabled:text-white data-arriving:disabled:bg-brand data-arriving:disabled:text-white",
@@ -51,7 +59,7 @@ export function Button({
   busy?: boolean;
   arriving?: boolean;
   tone?: "primary" | "danger";
-  size?: Size;
+  size?: FilledSize;
 }) {
   const { t } = useT();
   return (
@@ -61,7 +69,7 @@ export function Button({
       disabled={disabled || busy || arriving}
       aria-busy={busy}
       data-arriving={arriving || undefined}
-      className={`${FILLED} ${HEIGHT[size]} ${TONE[tone]} ${arriving ? "arrive" : ""}`}
+      className={`${FILLED} ${FILL[size]} ${TONE[tone]} ${arriving ? "arrive" : ""}`}
     >
       <span>{busy ? t("Procesando...", "Processing...") : children}</span>
       {hint && <span className="text-label font-normal opacity-90">{hint}</span>}
@@ -85,9 +93,9 @@ export function Held({ children, hint, size = "md" }: { children: ReactNode; hin
 }
 
 /** The main action as a link to another screen. */
-export function ButtonLink({ href, children, hint, size = "md" }: { href: string; children: ReactNode; hint?: ReactNode; size?: Size }) {
+export function ButtonLink({ href, children, hint, size = "md" }: { href: string; children: ReactNode; hint?: ReactNode; size?: FilledSize }) {
   return (
-    <Link href={href} className={`${FILLED} ${HEIGHT[size]} ${TONE.primary}`}>
+    <Link href={href} className={`${FILLED} ${FILL[size]} ${TONE.primary}`}>
       <span>{children}</span>
       {hint && <span className="text-label font-normal opacity-90">{hint}</span>}
     </Link>

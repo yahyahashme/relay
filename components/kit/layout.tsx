@@ -91,8 +91,8 @@ export function Shell({
   /** The business the dashboard belongs to. */
   name?: ReactNode;
   nav: ShellItem[];
-  /** The one main action of the app ("Nueva factura"). */
-  action?: ReactNode;
+  /** The one main action of the app ("Nueva factura"): full size at the foot of the sidebar, compact in the top bar. */
+  action?: (place: "side" | "bar") => ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -114,15 +114,15 @@ export function Shell({
             </Link>
           ))}
         </nav>
-        {action && <div className="mt-auto pr-5">{action}</div>}
+        {action && <div className="mt-auto pr-5">{action("side")}</div>}
       </aside>
 
       <header className="flex min-h-14 items-center justify-between gap-3 border-b border-counter-rule py-2 pl-[max(var(--gutter),env(safe-area-inset-left))] pr-[max(var(--gutter),env(safe-area-inset-right))] lg:hidden">
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 shrink-0 items-center gap-3 sm:shrink">
           {brand}
           {name && <p className="hidden min-w-0 truncate text-label font-semibold uppercase tracking-[0.1em] text-muted sm:block">{name}</p>}
         </div>
-        {action && <div className="shrink-0">{action}</div>}
+        {action && <div className="min-w-0 sm:shrink-0">{action("bar")}</div>}
       </header>
 
       <main className={`@container min-w-0 max-w-[88rem] flex-1 pt-4 ${SIDE} pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-8`}>{children}</main>
