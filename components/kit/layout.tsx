@@ -150,6 +150,7 @@ export function Shell({
         aria-label={t("Secciones", "Sections")}
         className="fixed inset-x-0 bottom-0 z-4 flex justify-between border-t border-counter-rule bg-counter px-[max(0.25rem,env(safe-area-inset-left))] pb-[env(safe-area-inset-bottom)] lg:hidden"
       >
+        {/* Four places must fit a phone at any text size: a label stops growing where the row is full, and is never under 14 px. */}
         {nav
           .filter((item) => !item.sidebarOnly)
           .map((item) => (
@@ -157,7 +158,7 @@ export function Shell({
               key={item.href}
               href={item.href}
               aria-current={item.current ? "page" : undefined}
-              className={`flex min-h-14 flex-auto items-center justify-center px-1.5 text-center text-label leading-tight font-bold -outline-offset-3 ${
+              className={`flex min-h-14 min-w-0 flex-auto items-center justify-center px-1.5 text-center text-[min(var(--text-label),max(14px,4.4vw))] leading-tight font-bold -outline-offset-3 ${
                 item.current ? "rounded-b-paper bg-paper text-ink" : "text-brand"
               }`}
             >
