@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { BackLink, Card, Chip, Label, LoadError, Loading, ReceiptView, Screen } from "@/components/ui";
 import { CsvImport } from "@/components/csv-import";
@@ -31,10 +32,10 @@ const loadDashboard = (pages: number) => getDistributorView(pages);
 /** "Primeros pasos" for a new distributor (#130): done when there is at least one of each. */
 function FirstSteps({ drivers, shops, invoices }: { drivers: number; shops: number; invoices: number }) {
   const { t } = useT();
-  const steps = [
-    { label: t("Agregar sus motoristas", "Add your drivers"), done: drivers > 0 },
-    { label: t("Agregar sus tiendas", "Add your shops"), done: shops > 0 },
-    { label: t("Crear su primera factura", "Create your first invoice"), done: invoices > 0 },
+  const steps: { label: string; done: boolean; href?: string }[] = [
+    { label: t("Agregar sus motoristas", "Add your drivers"), done: drivers > 0, href: "/distribuidor/motoristas" },
+    { label: t("Agregar sus tiendas", "Add your shops"), done: shops > 0, href: "/distribuidor/tiendas" },
+    { label: t("Crear su primera factura", "Create your first invoice"), done: invoices > 0, href: "/distribuidor/factura" },
   ];
   if (steps.every((s) => s.done)) return null;
   return (
@@ -51,7 +52,13 @@ function FirstSteps({ drivers, shops, invoices }: { drivers: number; shops: numb
             >
               {step.done ? "✓" : index + 1}
             </span>
-            <span className={step.done ? "text-muted line-through" : ""}>{step.label}</span>
+            {step.href && !step.done ? (
+              <Link href={step.href} className="font-semibold text-brand underline">
+                {step.label}
+              </Link>
+            ) : (
+              <span className={step.done ? "text-muted line-through" : ""}>{step.label}</span>
+            )}
             <span className="sr-only">{step.done ? t("Hecho", "Done") : t("Por hacer", "To do")}</span>
           </li>
         ))}
@@ -188,6 +195,28 @@ export default function Dashboard() {
         <h1 className="min-h-9 text-3xl font-bold">{data?.scope.name ?? ""}</h1>
         <p className="text-muted">{t("Se actualiza cada 5 segundos.", "Updates every 5 seconds.")}</p>
       </div>
+      {data && !data.scope.isDemo && (
+        <nav className="flex flex-wrap gap-2">
+          <Link
+            href="/distribuidor/factura"
+            className="flex min-h-12 items-center rounded-xl bg-brand px-5 text-lg font-semibold text-white active:bg-brand-dark"
+          >
+            {t("Nueva factura", "New invoice")}
+          </Link>
+          <Link
+            href="/distribuidor/tiendas"
+            className="flex min-h-12 items-center rounded-xl border-2 border-brand px-4 text-base font-semibold text-brand active:bg-brand-soft"
+          >
+            {t("Tiendas", "Shops")}
+          </Link>
+          <Link
+            href="/distribuidor/motoristas"
+            className="flex min-h-12 items-center rounded-xl border-2 border-brand px-4 text-base font-semibold text-brand active:bg-brand-soft"
+          >
+            {t("Motoristas", "Drivers")}
+          </Link>
+        </nav>
+      )}
       {data?.scope.isDemo && (
         <button
           type="button"
@@ -313,7 +342,14 @@ export default function Dashboard() {
         </section>
       )}
 
-      {scope.isDemo && <CsvImport shopName={shopName} driverName={driverName} onCreated={reload} />}
+      <div id="importar">
+        <CsvImport
+          shopName={shopName}
+          driverName={driverName}
+          onCreated={reload}
+          known={scope.isDemo ? undefined : { shops: shops.map((s) => ({ id: s.id, name: s.name })), drivers: drivers.map((d) => ({ id: d.id, name: d.name })) }}
+        />
+      </div>
 
       {total === 0 ? (
         <Card className="flex flex-col gap-1 text-center">
@@ -367,6 +403,11 @@ export default function Dashboard() {
                         {h}
                       </th>
                     ))}
+                    {!scope.isDemo && (
+                      <th scope="col" className="px-4 py-3">
+                        <span className="sr-only">{t("Repetir", "Repeat")}</span>
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
@@ -397,6 +438,17 @@ export default function Dashboard() {
                         </td>
                         <td className="px-4 py-3">{invoice.method ? methodLabel(invoice.method, lang) : "—"}</td>
                         <td className="px-4 py-3 whitespace-nowrap">{formatDay(invoice.dueDate, lang)}</td>
+                        {!scope.isDemo && (
+                          <td className="px-2 py-1 text-right">
+                            <Link
+                              href={`/distribuidor/factura?tienda=${encodeURIComponent(invoice.shopId)}&motorista=${encodeURIComponent(invoice.driverId)}`}
+                              aria-label={t(`Repetir factura ${invoice.id}`, `Repeat invoice ${invoice.id}`)}
+                              className="inline-flex min-h-12 items-center rounded-xl px-3 text-base font-semibold text-brand underline active:bg-brand-soft"
+                            >
+                              {t("Repetir", "Repeat")}
+                            </Link>
+                          </td>
+                        )}
                       </tr>
                     );
                   })}

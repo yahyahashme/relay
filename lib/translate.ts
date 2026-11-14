@@ -6,6 +6,7 @@
 const MONEY = String.raw`(\$[\d,]+\.\d{2})`;
 const DATE = String.raw`(\d{1,2}) (ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)`;
 const NUM = String.raw`(\d+)`;
+const MONEY_PLAIN = String.raw`(\$[\d,]+)`;
 
 const MONTH_EN: Record<string, string> = {
   ene: "Jan", feb: "Feb", mar: "Mar", abr: "Apr", may: "May", jun: "Jun",
@@ -117,10 +118,52 @@ const RULES: Rule[] = [
   exact("Escriba la dirección de la empresa.", "Enter the business address."),
   exact("Escriba un número aproximado.", "Enter an approximate number."),
   exact("Solo para administradores de Relay.", "Relay administrators only."),
+
+  // Drivers (#131)
+  exact("Escriba el nombre del motorista.", "Enter the driver's name."),
+  exact("Escriba un teléfono de El Salvador (8 dígitos).", "Enter a Salvadoran phone number (8 digits)."),
+  exact("Esta invitación ya no es válida. Pida otra a su distribuidora.", "This invite is no longer valid. Ask your distributor for a new one."),
+  exact("Esta invitación ya se usó. Entre con su contraseña.", "This invite was already used. Sign in with your password."),
+  exact("Ya invitó a ese teléfono. Comparta el mismo enlace.", "You already invited that phone. Share the same link."),
+
+  // Drivers (#131), more
+  exact("Solo la distribuidora aprobada puede hacer esto.", "Only the approved distributor can do this."),
+
+  // Shops (#132)
+  exact("Entre a su cuenta primero.", "Sign in to your account first."),
+  exact("Escriba el nombre de su tienda.", "Write your shop's name."),
+  exact("Escriba un nombre para reconocer la tienda.", "Write a name to recognize the shop."),
+  exact("Escriba un teléfono de El Salvador (8 dígitos) o déjelo vacío.", "Write a Salvadoran phone number (8 digits) or leave it empty."),
+  exact("Este código ya no es válido. Pida otro a su distribuidora.", "This code is no longer valid. Ask your distributor for another one."),
+
+  // New invoices (#133)
+  pattern(String.raw`Factura ${NUM} creada\.`, "Invoice $1 created."),
+  pattern(String.raw`El número ${NUM} ya está usado\. Use otro\.`, "Number $1 is already used. Use another one."),
+  exact("Su distribuidora todavía no está aprobada para crear facturas.", "Your distributor isn't approved to create invoices yet."),
+  exact("Escriba un número de factura (solo números).", "Enter an invoice number (numbers only)."),
+  exact("Elija una de sus tiendas.", "Choose one of your shops."),
+  exact("Elija uno de sus motoristas.", "Choose one of your drivers."),
+  pattern(String.raw`Escriba un monto mayor que \$0 y hasta ${MONEY_PLAIN}\.`, "Enter an amount over $$0 and up to $1."),
+  exact("Elija la fecha en que vence.", "Choose the due date."),
+  exact("La fecha de vencimiento ya pasó.", "The due date has already passed."),
+  pattern(String.raw`La nota puede tener hasta ${NUM} letras\.`, "The note can have up to $1 characters."),
+  pattern(String.raw`Hay dos tiendas con ese nombre: (.*)`, "Two shops have that name: $1"),
+  pattern(String.raw`Hay dos motoristas con ese nombre: (.*)`, "Two drivers have that name: $1"),
+
+  // Shop sign-up (#134)
+  exact("La dirección es muy larga.", "The address is too long."),
+  exact("Elija qué tipo de tienda es.", "Choose what kind of shop it is."),
+  exact("Puede agregar hasta 3 contactos.", "You can add up to 3 contacts."),
+  exact("Escriba el nombre de cada contacto.", "Enter each contact's name."),
+  exact("Escriba un teléfono de El Salvador (8 dígitos) para cada contacto.", "Enter a Salvadoran phone number (8 digits) for each contact."),
+  exact("Un contacto de confianza no puede ser su propio teléfono.", "A trusted contact can't be your own phone."),
   // Who may act, and rate limits (Jack's review of #145)
   exact("Entre a su cuenta para hacer esto. Solo el dueño de la cuenta puede.", "Sign in to do this. Only the account's owner can."),
   exact("Demasiados intentos. Espere unos minutos e intente de nuevo.", "Too many tries. Wait a few minutes and try again."),
   exact("Esa contraseña es muy fácil de adivinar. Use otra.", "That password is too easy to guess. Use another one."),
+
+  // A CSV row with one of the form's messages (#149): the specific "Fila N: ..." rules above win.
+  pattern(String.raw`Fila ${NUM}: (.+)`, (_, row, rest) => `Row ${row}: ${translateMessage(rest)}`),
 ];
 
 /**

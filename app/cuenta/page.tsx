@@ -3,7 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { type CurrentUser, getCurrentUser, signOutAction } from "@/app/auth-actions";
+import { getMyDriverId } from "@/app/driver-actions";
+import { getMyShopId } from "@/app/shop-actions";
 import { BackLink, Button, ButtonLink, Card, Label, Loading, Screen } from "@/components/ui";
+import { formatPhone } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 
 const ROLE_LABEL: Record<CurrentUser["role"], [string, string]> = {
@@ -22,6 +25,8 @@ export default function Account() {
   const router = useRouter();
   const [user, setUser] = useState<CurrentUser | null | undefined>(undefined);
   const [leaving, setLeaving] = useState(false);
+  const [driverId, setDriverId] = useState<string | null>(null);
+  const [shopId, setShopId] = useState<string | null>(null);
 
   useEffect(() => {
     let live = true;
@@ -29,6 +34,8 @@ export default function Account() {
       if (!live) return;
       if (!found) router.replace("/entrar");
       else setUser(found);
+      if (found?.role === "motorista") void getMyDriverId().then((id) => live && setDriverId(id));
+      if (found?.role === "tienda") void getMyShopId().then((id) => live && setShopId(id));
     });
     return () => {
       live = false;
@@ -64,7 +71,7 @@ export default function Account() {
         </div>
         <div>
           <Label>{t("Teléfono o correo", "Phone or email")}</Label>
-          <p className="text-lg font-semibold break-all">{user.contact}</p>
+          <p className="text-lg font-semibold break-all">{formatPhone(user.contact)}</p>
         </div>
         <div>
           <Label>{t("Cuenta de dólares digitales", "Digital dollar account")}</Label>
@@ -76,6 +83,8 @@ export default function Account() {
       </Card>
 
       {user.role === "distribuidora" && <ButtonLink href="/distribuidor/espera">{t("Ir a mi panel", "Go to my dashboard")}</ButtonLink>}
+      {user.role === "motorista" && driverId && <ButtonLink href={`/ruta/${driverId}`}>{t("Ir a mi ruta", "Go to my route")}</ButtonLink>}
+      {user.role === "tienda" && shopId && <ButtonLink href={`/tienda/cuenta/${shopId}`}>{t("Ir a mi tienda", "Go to my shop")}</ButtonLink>}
       {user.role === "admin" && <ButtonLink href="/admin">{t("Distribuidoras por aprobar", "Distributors to approve")}</ButtonLink>}
       <ButtonLink href="/" variant="secondary">
         {t("Ir al inicio", "Go to the home page")}
