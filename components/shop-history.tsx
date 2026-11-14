@@ -218,6 +218,16 @@ export function ShopHistory({ shopId, backHref, backLabel }: { shopId: string; b
                       >
                         {t("Compartir por WhatsApp", "Share on WhatsApp")}
                       </a>
+                      <a
+                        href={`https://wa.me/?text=${encodeURIComponent(
+                          `${t("Hola, quiero reportar un error en este registro de Relay:", "Hi, I want to report a mistake in this Relay record:")}\n\n${shareText(row, shop.name, driver, lang)}`,
+                        )}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="min-h-11 content-center font-medium text-muted underline"
+                      >
+                        {t("Reportar un error", "Report a mistake")}
+                      </a>
                     </div>
                   </div>
                 )}

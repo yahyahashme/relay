@@ -5,7 +5,7 @@ import { useState } from "react";
 import { TapShield, useQuietOnArrival } from "@/components/tap-shield";
 import { OptionLink, OptionList, Stamp, ThumbBar, Ticket, TicketRow, TicketRule, reveal } from "@/components/ticket";
 import { BackLink, Button, Chip, LoadError, Loading, NotFound, ReceiptView, Screen } from "@/components/ui";
-import { getBalance, getInvoices, getShop, getSuppliers, repay } from "@/lib/api";
+import { getBalance, getInvoices, getShop, getShopHistory, getSuppliers, repay } from "@/lib/api";
 import { dueOn, formatDay, formatMoney, plural } from "@/lib/format";
 import { type Lang, useT } from "@/lib/i18n";
 import { leftToPay } from "@/lib/labels";
@@ -28,13 +28,14 @@ function invoiceNote(invoice: Invoice, now: number, lang: Lang): string {
 export default function AccountScreen() {
   const { shopId } = useParams<{ shopId: string }>();
   const { data, failed, stale, reload } = usePolling(`account-${shopId}`, async () => {
-    const [shop, invoices, balance, suppliers] = await Promise.all([
+    const [shop, invoices, balance, suppliers, history] = await Promise.all([
       getShop(shopId),
       getInvoices(),
       getBalance(shopId).catch(() => null), // a missing balance shouldn't hide the debt
       getSuppliers(shopId),
+      getShopHistory(shopId).catch(() => null), // the score can wait; the debt can't
     ]);
-    return { shop, balance, suppliers, unpaid: invoices.filter((i) => i.shopId === shopId && i.status !== "paid"), now: Date.now() };
+    return { shop, balance, suppliers, history, unpaid: invoices.filter((i) => i.shopId === shopId && i.status !== "paid"), now: Date.now() };
   });
   const [busy, setBusy] = useState(false);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
@@ -61,7 +62,7 @@ export default function AccountScreen() {
     );
   }
 
-  const { shop, balance, suppliers, unpaid, now } = data;
+  const { shop, balance, suppliers, history, unpaid, now } = data;
   if (!shop) {
     return (
       <Screen>
@@ -195,7 +196,7 @@ export default function AccountScreen() {
         </section>
       )}
 
-      <AccountSections shop={shop} balance={balance} suppliers={suppliers} />
+      <AccountSections shop={shop} balance={balance} suppliers={suppliers} history={history} now={now} />
 
       <section id="credito" className="flex scroll-mt-4 flex-col gap-1 px-1">
         <h2 className="text-lg font-semibold">{t("Cómo sube su límite", "How your limit grows")}</h2>
