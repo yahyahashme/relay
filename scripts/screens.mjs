@@ -68,8 +68,12 @@ async function workingDay(page) {
   await page.waitForTimeout(800);
   await press(page, /Pagar este monto|Pay this amount/);
   await paid(/^(Pagado|Paid)$/);
-  await open("/ruta/motorista-1");
-  await page.locator("button", { hasText: "1004" }).first().click();
+  await move(page, "/ruta/motorista-1");
+  await page.waitForSelector("main [data-next]", { timeout: 20_000 });
+  await page.locator("main a", { hasText: "1004" }).first().click();
+  // On a small phone at a large text size the button can open right where the row was tapped, and a tap on the
+  // same spot within 2.5 s is ignored on purpose (lib/taps.ts).
+  await page.waitForTimeout(2700);
   await press(page, /Recibí efectivo|I received cash/);
   await page.waitForTimeout(2500);
   await open("/tienda/1004");
@@ -102,7 +106,53 @@ const GROUPS = {
     ["panel", "/distribuidor", { prepare: workingDay, inView: { "1280x800": { selector: "#resumen, #facturas tbody tr", count: 11 } } }],
     ["panel-nuevo", "/distribuidor"], // as the demo starts: eight invoices, nothing paid
   ],
-  driver: [["ruta", "/ruta/motorista-1"]],
+  driver: [
+    // Gloves and wet hands: every target on the driver's screens is at least 56 px.
+    // The sheet: the next stop is pinned in view. From 40 rem of width (a phone held sideways, a tablet, a laptop)
+    // the open stop lies beside it, so its code and "Recibí efectivo" are in view too, with nothing to tap first.
+    [
+      "ruta",
+      "/ruta/motorista-1",
+      {
+        minTarget: 56,
+        inView: {
+          ...Object.fromEntries(["280x653", "320x568", "360x640", "375x667", "390x844", "393x852", "412x915", "360x800", "384x854", "412x919"].map((size) => [size, "[data-next]"])),
+          ...Object.fromEntries(
+            ["640x360", "667x375", "800x360", "844x390", "852x393", "854x384", "915x412", "919x412", "673x841", "768x1024", "820x1180", "800x1280", "841x673", "1024x768", "1180x820", "1280x800", "1366x768", "1440x900", "1920x1080"].map((size) => [
+              size,
+              "[data-next], [data-code], [data-cash]",
+            ]),
+          ),
+        },
+      },
+    ],
+    // A stop opened from the sheet (on a phone it takes the whole screen): the code and "Recibí efectivo" are in view at every size.
+    [
+      "parada",
+      "/ruta/motorista-1?parada=1001",
+      {
+        minTarget: 56,
+        inView: Object.fromEntries(
+          ["280x653", "320x568", "360x640", "375x667", "390x844", "393x852", "412x915", "360x800", "384x854", "412x919", "568x320", "640x360", "667x375", "800x360", "844x390", "852x393", "854x384", "915x412", "919x412", "673x841", "768x1024", "820x1180", "800x1280", "841x673", "1024x768", "1180x820", "1280x800", "1366x768", "1440x900", "1920x1080"].map(
+            (size) => [size, "[data-code], [data-cash]"],
+          ),
+        ),
+      },
+    ],
+    // The same after "Recibí efectivo": the words that hold the button's place, and the stamp on the sheet.
+    [
+      "efectivo",
+      "/ruta/motorista-1?parada=1002",
+      {
+        minTarget: 56,
+        prepare: async (page) => {
+          await page.locator("[data-cash] button:not([disabled])").click();
+          await page.locator("[data-cash] button").waitFor({ state: "detached", timeout: 15_000 });
+          await page.waitForTimeout(2600); // the hold after the last tap
+        },
+      },
+    ],
+  ],
   auth: [
     ["inicio", "/"],
     ["registro", "/registro"],

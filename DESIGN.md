@@ -55,12 +55,12 @@ Each status colour has a `-tint` for stamp fills only. No gradients, glass, blur
 | `stamp.tsx` | `Stamp`, large and `small` (which one an invoice gets: `lib/stamps.ts`) |
 | `button.tsx` | `Button` (blue, `danger`, `busy`, `arriving`; `sm` is 44 px, for a top bar), `Held`, `ActionList`, `ActionRow`, `ActionLink`, `DetailLink` |
 | `ledger.tsx` | `Ledger` (a table; a `secondary` column folds into the row under 60 rem of room, or under 54 rem with `secondary: 54`; under 40 rem each row is a `LedgerCard`), `LedgerFigures` (its figures share one size, set by the longest amount), and the row actions `RowLink` and `RowButton` |
-| `manifest.tsx` | `ManifestRow`: paper with a blue end |
+| `manifest.tsx` | `ManifestRow`: paper with a blue end (`current` circles the open stop in ink; under 19 rem of row the amount takes its own line). `StopSlip`: the open stop, with the code at 70% of the width or more, two reserved lines under it for a failure, and the stamp across the faded code once paid |
 | `field.tsx` | `Field`, `MoneyField`, `SelectField`, `PasswordField`, `FilterSelect` (a ledger's filters, one row) |
 | `states.tsx` | `Loading` (a blank ruled slip), `Empty`, `Failure` with Reintentar, `Answer` (what the server said after an action) |
 | `band.tsx` | the testnet band and the ES / EN switch |
 
-Buttons are at least 52 px tall, 60 px on the driver's screens, with 8 px between neighbours. `/sistema` shows every component in every state.
+Buttons are at least 52 px tall, 60 px on the driver's screens, with 8 px between neighbours. A driver's screen carries `data-gloves`: every target on it is at least 56 px, the band's ES / EN switch included (`gloves:`), with `TopNav`, `TextButton`, `Failure` and the action rows at `size="lg"`. `sideways:` is a short screen with room for two columns: the code moves beside the facts so it and "Recibí efectivo" stay in view on a phone on its side. `/sistema` shows every component in every state.
 
 A ledger row's actions (Historial, Repetir) show on hover or keyboard focus when there is a mouse and room for every column. They sit at the end of the shop cell and shorten a long name with "…", so they never cover an amount, a stamp or a date. Anywhere else the row ends in a chevron that unfolds them, together with the folded columns. The one action a small ledger exists for ("Recordar por WhatsApp", "Marcar efectivo entregado") is a column of its own and always visible.
 
@@ -84,6 +84,7 @@ In a payment flow, motion never delays or blurs what happened.
 - When a payment removes a button, something inert holds its place (`Held`). The tap shield covers the screen while a payment runs and stays until the taps have stopped for 2.2 s (`settle(HOLD_MS)`).
 - While data is stale the screen says "Cargando..." or locks its buttons.
 - "Pagar este monto" stays inside its own row, never in a bar at the bottom.
+- On the driver's route a stop opens in place (`?parada=`), and "Recibí efectivo" is quiet for a beat each time one opens. The stop shown beside the list never changes on its own: a payment that arrives cannot put another stop's button under the thumb.
 
 ## Words
 
@@ -93,4 +94,4 @@ Every string goes through `t("español", "English")`, in usted. Screens say "dó
 
 `node scripts/screens.mjs <group>` opens each screen at 30 device sizes, from a 280 px fold to 1920 px, portrait and sideways, fails on sideways scroll, a page wider than the screen (a phone would zoom out), clipped text or a touch target under 44 px, and writes a contact sheet to `docs/screenshots/redesign/`. Add `--lang en`, `--zoom 2` (200% zoom), `--text 1.5` (large system text), `--size 1280x800` (one size) or, last, `--full` (the whole page, not the first screenful). Two frames are fixed: at 360x640 the shop sees all three pay options without scrolling (the slip tightens and folds its lines on a short screen: the `short:` and `tall:` variants), and at 1280x800 the distributor sees the header strip and ten invoice rows.
 
-`node scripts/pay-taps.mjs` taps every pay button on the shop's invoice, and the distributor's cash hand-in with two drivers holding cash, twice quickly, then every second, then every two seconds. It fails unless each run makes one payment (or one hand-in) and no later tap reaches a button or a link.
+`node scripts/pay-taps.mjs` taps every pay button on the shop's invoice, the driver's "Recibí efectivo", a stop's row at the spot where that button will be (no cash may be recorded), and the distributor's cash hand-in with two drivers holding cash, twice quickly, then every second, then every two seconds. It fails unless each run makes one payment (or one hand-in) and no later tap reaches a button or a link.

@@ -225,14 +225,14 @@ export function ActionLink({
   );
 }
 
-/** A quiet text action (Cancelar, Atrás): blue words, no outline, still a full-size target. */
-export function TextButton({ children, onClick, disabled = false }: { children: ReactNode; onClick: () => void; disabled?: boolean }) {
+/** A quiet text action (Cancelar, Atrás): blue words, no outline, still a full-size target ("lg": 56 px, for the driver). */
+export function TextButton({ children, onClick, disabled = false, size = "md" }: { children: ReactNode; onClick: () => void; disabled?: boolean; size?: Size }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="min-h-12 self-center px-4 text-[1.0625rem] font-bold text-brand underline decoration-2 underline-offset-4 disabled:text-muted"
+      className={`self-center px-4 text-[1.0625rem] font-bold text-brand underline decoration-2 underline-offset-4 disabled:text-muted ${size === "lg" ? "min-h-14" : "min-h-12"}`}
     >
       {children}
     </button>

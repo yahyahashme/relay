@@ -1,12 +1,14 @@
-// Repeat-tap safety for the buttons that move money or record it (the shop's pay buttons, the distributor's cash
-// hand-in). Accidental payment is the worst bug this product can have, so each one is tapped the way a worried
-// thumb taps: twice quickly, then again and again one second apart, then two seconds apart, while the screen
-// changes underneath.
+// Repeat-tap safety for the buttons that move money or record it (the shop's pay buttons, the driver's
+// "Recibí efectivo", the distributor's cash hand-in). Accidental payment is the worst bug this product can have,
+// so each one is tapped the way a worried thumb taps: twice quickly, then again and again one second apart,
+// then two seconds apart, while the screen changes underneath.
 //
 //   npm run build && npm run start          (mock data; the mock answers in a second, like a slow phone)
 //   node scripts/pay-taps.mjs [--base http://localhost:3000] [--only "este monto"]
 //
 // Passes when each run makes exactly one payment (or one hand-in) and no later tap lands on any button or link.
+// One scenario taps a stop on the driver's sheet instead, at the spot where "Recibí efectivo" is once the stop
+// is open: it passes when no cash is recorded at all.
 // Needs Playwright where Node can find it, like scripts/screens.mjs. Exits 1 if any run fails.
 import { createRequire } from "node:module";
 
@@ -31,10 +33,13 @@ const RHYTHMS = [
 ];
 
 const button = (page, name) => page.getByRole("button", { name }).first();
-const ready = async (page) => {
-  await page.waitForSelector("main button:not([disabled])", { timeout: 20_000 });
+/** A stop on the driver's sheet, by its invoice number. */
+const stop = (page, invoice) => page.locator("main a", { hasText: String(invoice) }).first();
+const ready = async (page, selector = "main button:not([disabled])") => {
+  await page.waitForSelector(selector, { timeout: 20_000 });
   await page.waitForTimeout(900); // a pay button ignores taps for its first 0.6 s
 };
+const ROUTE = "/ruta/motorista-1";
 
 /** A client-side move, so the mock's data (it lives in the tab) comes along. */
 const move = async (page, path) => {
@@ -45,7 +50,9 @@ const move = async (page, path) => {
 /** The driver marks an invoice as paid in cash, then the shop confirms it: now the driver holds that cash. */
 const cashWithDriver = async (page, driver, invoice) => {
   await move(page, `/ruta/${driver}`);
-  await page.locator("button:visible", { hasText: String(invoice) }).first().tap();
+  await page.waitForSelector("main [data-next]", { timeout: 20_000 });
+  await stop(page, invoice).tap();
+  await page.waitForTimeout(900); // the button is quiet for a beat after a stop opens
   await button(page, "Recibí efectivo").tap();
   await page.waitForTimeout(2500);
   await move(page, `/tienda/${invoice}`);
@@ -57,9 +64,10 @@ const cashWithDriver = async (page, driver, invoice) => {
 };
 
 /**
- * name, where to start (the shop's invoice unless it says so), how to get the button on screen, the button,
- * what the screen must say afterwards (`read` picks the part to check: the slip unless it says so),
- * and where the run must end (the same invoice unless it says so).
+ * name, how to get the pay button on screen, the button, and what the slip must say afterwards.
+ * Also: `start` and `end` (the page it begins and must end on; the shop's invoice unless given), `ready` (what
+ * shows that the first page has loaded), `read` (the text `after` is given; the slip unless given), `point`
+ * (where to tap, instead of the middle of `target`) and `check` (instead of "one tap reached a button" and `after`).
  */
 const SCENARIOS = [
   {
@@ -89,10 +97,11 @@ const SCENARIOS = [
   },
   {
     name: "Confirmo (Pagué en efectivo)",
-    start: "/ruta/motorista-1",
+    start: ROUTE,
+    ready: "main [data-next]",
     setup: async (page) => {
       // The driver marks the cash first, then the same browser opens the shop's invoice (the mock lives in the tab).
-      await page.locator("button", { hasText: "1001" }).first().tap();
+      await stop(page, 1001).tap();
       await button(page, "Recibí efectivo").tap();
       await page.waitForTimeout(2500);
       await page.evaluate(() => window.next.router.push("/tienda/1001"));
@@ -103,11 +112,60 @@ const SCENARIOS = [
     after: (text) => /Pagada · Efectivo/.test(text),
   },
   {
+    // The driver's own money button: one record, and the taps that follow reach nothing (not the invitation, not a link).
+    name: "Recibí efectivo (the driver's stop)",
+    start: ROUTE,
+    end: ROUTE,
+    ready: "main [data-next]",
+    setup: async (page) => {
+      await stop(page, 1001).tap();
+      await page.waitForTimeout(900);
+    },
+    target: (page) => button(page, "Recibí efectivo"),
+    read: (page) => page.locator("main").innerText(),
+    after: (text) => /Efectivo registrado\s*\$150\.00 por confirmar/.test(text) && !/Recibí efectivo/.test(text),
+  },
+  {
+    // Opening a stop puts "Recibí efectivo" on screen, for some rows right where the row was tapped.
+    // Taps that keep landing on that spot were meant for the row: none of them may record cash.
+    name: "A stop's row, at the spot where Recibí efectivo will be",
+    start: ROUTE,
+    end: ROUTE,
+    ready: "main [data-next]",
+    point: async (page) => {
+      // Open the last stop to see where its button lies, go back to the sheet, and aim there.
+      await stop(page, 1008).tap();
+      const box = await button(page, "Recibí efectivo").boundingBox();
+      const point = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+      await page.goBack();
+      await page.waitForSelector("main [data-next]", { timeout: 20_000 });
+      await page.waitForTimeout(3000); // longer than the same-spot guard remembers the taps above
+      // The point can fall in the 8 px between two rows. A person's thumb would be on a row: nudge the sheet until one is there.
+      const under = () => page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.closest("main a")?.innerText ?? null, point);
+      let row = await under();
+      for (const by of [16, -32, 48, -64]) {
+        if (row !== null) break;
+        await page.evaluate((y) => window.scrollBy(0, y), by);
+        await page.waitForTimeout(300);
+        row = await under();
+      }
+      if (row === null) throw new Error("no stop lies where Recibí efectivo will be: pick another row for this scenario");
+      return point;
+    },
+    read: (page) => page.locator("main").innerText(),
+    check: ({ hits, text, url }) => [
+      ...(hits.length === 0 ? ["the first tap did not open the stop"] : []),
+      ...(url.searchParams.has("parada") ? [] : ["the stop is not open"]),
+      ...(/Efectivo registrado|Procesando/.test(text) || !/Recibí efectivo/.test(text) ? [`cash was recorded: ${text.replace(/\s+/g, " ").slice(-160)}`] : []),
+    ],
+  },
+  {
     // Two drivers hold cash, so the second driver's button sits right under the first. Handing in the first
     // driver's cash must not hand in the second's, however the thumb keeps tapping.
     name: "Marcar efectivo entregado (two drivers hold cash)",
-    start: "/ruta/motorista-1",
+    start: ROUTE,
     end: "/distribuidor",
+    ready: "main [data-next]",
     setup: async (page) => {
       await cashWithDriver(page, "motorista-1", 1001);
       await cashWithDriver(page, "motorista-2", 1003);
@@ -144,13 +202,18 @@ for (const scenario of SCENARIOS) {
       );
     });
     await page.goto(new URL(scenario.start ?? "/tienda/1001", base).href, { waitUntil: "networkidle" });
-    await ready(page);
+    await ready(page, scenario.ready);
     await scenario.setup?.(page);
 
-    const target = scenario.target(page);
-    await target.scrollIntoViewIfNeeded();
-    const box = await target.boundingBox();
-    const [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
+    let x, y;
+    if (scenario.point) {
+      ({ x, y } = await scenario.point(page));
+    } else {
+      const target = scenario.target(page);
+      await target.scrollIntoViewIfNeeded();
+      const box = await target.boundingBox();
+      [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
+    }
     await page.evaluate(() => (window.__hits = []));
     for (let tap = 0; tap < taps; tap++) {
       if (tap > 0) await page.waitForTimeout(gap);
@@ -160,11 +223,15 @@ for (const scenario of SCENARIOS) {
 
     const hits = await page.evaluate(() => window.__hits);
     const slip = await (scenario.read ? scenario.read(page) : page.locator("main section").first().innerText());
-    const end = scenario.end ?? "/tienda/1001";
+    const url = new URL(page.url());
     const problems = [];
-    if (hits.length !== 1) problems.push(`${hits.length} taps reached a button or link: ${hits.join(" | ")}`);
-    if (!scenario.after(slip)) problems.push(`the screen reads: ${slip.replace(/\s+/g, " ").slice(0, 200)}`);
-    if (new URL(page.url()).pathname !== end) problems.push(`ended on ${new URL(page.url()).pathname}`);
+    if (scenario.check) {
+      problems.push(...scenario.check({ hits, text: slip, url }));
+    } else {
+      if (hits.length !== 1) problems.push(`${hits.length} taps reached a button or link: ${hits.join(" | ")}`);
+      if (!scenario.after(slip)) problems.push(`the slip reads: ${slip.replace(/\s+/g, " ").slice(0, 160)}`);
+    }
+    if (url.pathname !== (scenario.end ?? "/tienda/1001")) problems.push(`ended on ${url.pathname}`);
     if (context.pages().length !== 1) problems.push("opened another tab");
 
     console.log(`${problems.length ? "FAIL" : "ok  "}  ${scenario.name}, tapped ${rhythm}`);
