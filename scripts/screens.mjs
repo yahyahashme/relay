@@ -7,6 +7,7 @@
 //   node scripts/screens.mjs shop --base http://localhost:3000 --out docs/screenshots/redesign
 //   node scripts/screens.mjs shop --zoom 2          the browser zoomed to 200%
 //   node scripts/screens.mjs shop --text 1.5        the phone's text size raised by half
+//   node scripts/screens.mjs shop --only factura --size 360x640 --full     one screen at one size, the whole page: while building
 //
 // Checked at each size: no sideways scroll, no clipped text, every touch target at least 44 px
 // (56 px on the driver's screens; the pay buttons are 52 px, the driver's 60 px; the script prints the smallest it finds).
@@ -36,6 +37,57 @@ async function shrink(file) {
  *   minTarget  the smallest touch target this screen allows (44 unless given; the driver's screens use 56)
  *   prepare    async (page) => {}: steps to take in the page before it is checked (pay an invoice, open a row)
  */
+const press = (page, name) => page.getByRole("button", { name }).first().click();
+const move = (page, path) => page.evaluate((to) => window.next.router.push(to), path);
+
+/**
+ * The panel on a working day. The demo starts with eight unpaid invoices and nothing else, so before the
+ * panel is checked one shop pays digitally, one on credit, one a part, one in cash, and two more invoices
+ * arrive. The demo's data lives in the tab, so every step is a move inside the app, never a reload.
+ */
+async function workingDay(page) {
+  const paid = (words) => page.getByText(words).first().waitFor({ timeout: 20_000 });
+  const open = async (path) => {
+    await move(page, path);
+    await page.waitForSelector("main button:not([disabled])", { timeout: 20_000 });
+    await page.waitForTimeout(800); // a pay button ignores taps for its first 0.6 s
+  };
+  await open("/tienda/1008");
+  await press(page, /Pagar ahora|Pay now/);
+  await paid(/Pagada · Digital|Paid · Digital/);
+  await open("/tienda/1007");
+  await press(page, /Pagar en 7 días|Pay in 7 days/);
+  // On a short screen the panel can open with "Confirmo" right where the row was tapped, and a tap on the
+  // same spot within 2.5 s is ignored on purpose (lib/taps.ts). A person reads the terms first; so does this.
+  await page.waitForTimeout(2700);
+  await press(page, /^Confirmo|^Confirm/);
+  await paid(/Pagada · Crédito|Paid · Credit/);
+  await open("/tienda/1006");
+  await press(page, /Pagar otro monto|Pay another amount/);
+  await page.locator("main input[inputmode=decimal]:visible").fill("45");
+  await page.waitForTimeout(800);
+  await press(page, /Pagar este monto|Pay this amount/);
+  await paid(/^(Pagado|Paid)$/);
+  await move(page, "/ruta/motorista-1");
+  await page.waitForSelector("main [data-next]", { timeout: 20_000 });
+  await page.locator("main a", { hasText: "1004" }).first().click();
+  await page.waitForTimeout(900); // the button is quiet for a beat after a stop opens
+  await press(page, /Recibí efectivo|I received cash/);
+  await page.waitForTimeout(2500);
+  await open("/tienda/1004");
+  await press(page, /^Confirmo|^Confirm/);
+  await paid(/Pagada · Efectivo|Paid · Cash/);
+  await move(page, "/distribuidor");
+  await page.locator("#facturas tbody tr:visible, #facturas ul > li:visible").first().waitFor({ timeout: 20_000 });
+  for (let made = 0; made < 2; made++) {
+    const before = await page.locator("#facturas tbody tr, #facturas ul > li").count();
+    await page.locator("button:visible", { hasText: /Nueva factura de demo|New demo invoice/ }).first().click();
+    await page.waitForFunction((count) => document.querySelectorAll("#facturas tbody tr, #facturas ul > li").length > count, before, { timeout: 20_000 });
+  }
+  await page.mouse.move(0, 0);
+  await page.waitForTimeout(4500); // the rows that just changed stop being lit
+}
+
 const GROUPS = {
   system: [
     ["sistema", "/sistema"],
@@ -47,8 +99,58 @@ const GROUPS = {
     ["factura", "/tienda/1001", { inView: { "360x640": "main button" } }],
     ["demo", "/demo", { inView: { "360x640": "main button" } }],
   ],
-  distributor: [["panel", "/distribuidor"]],
-  driver: [["ruta", "/ruta/motorista-1"]],
+  distributor: [
+    // The booth laptop: the four figures and the first ten invoices are in view without scrolling.
+    ["panel", "/distribuidor", { prepare: workingDay, inView: { "1280x800": { selector: "#resumen, #facturas tbody tr", count: 11 } } }],
+    ["panel-nuevo", "/distribuidor"], // as the demo starts: eight invoices, nothing paid
+  ],
+  driver: [
+    // Gloves and wet hands: every target on the driver's screens is at least 56 px.
+    // The sheet: the next stop is pinned in view. From 40 rem of width (a phone held sideways, a tablet, a laptop)
+    // the open stop lies beside it, so its code and "Recibí efectivo" are in view too, with nothing to tap first.
+    [
+      "ruta",
+      "/ruta/motorista-1",
+      {
+        minTarget: 56,
+        inView: {
+          ...Object.fromEntries(["280x653", "320x568", "360x640", "375x667", "390x844", "393x852", "412x915", "360x800", "384x854", "412x919"].map((size) => [size, "[data-next]"])),
+          ...Object.fromEntries(
+            ["640x360", "667x375", "800x360", "844x390", "852x393", "854x384", "915x412", "919x412", "673x841", "768x1024", "820x1180", "800x1280", "841x673", "1024x768", "1180x820", "1280x800", "1366x768", "1440x900", "1920x1080"].map((size) => [
+              size,
+              "[data-next], [data-code], [data-cash]",
+            ]),
+          ),
+        },
+      },
+    ],
+    // A stop opened from the sheet (on a phone it takes the whole screen): the code and "Recibí efectivo" are in view at every size.
+    [
+      "parada",
+      "/ruta/motorista-1?parada=1001",
+      {
+        minTarget: 56,
+        inView: Object.fromEntries(
+          ["280x653", "320x568", "360x640", "375x667", "390x844", "393x852", "412x915", "360x800", "384x854", "412x919", "568x320", "640x360", "667x375", "800x360", "844x390", "852x393", "854x384", "915x412", "919x412", "673x841", "768x1024", "820x1180", "800x1280", "841x673", "1024x768", "1180x820", "1280x800", "1366x768", "1440x900", "1920x1080"].map(
+            (size) => [size, "[data-code], [data-cash]"],
+          ),
+        ),
+      },
+    ],
+    // The same after "Recibí efectivo": the words that hold the button's place, and the stamp on the sheet.
+    [
+      "efectivo",
+      "/ruta/motorista-1?parada=1002",
+      {
+        minTarget: 56,
+        prepare: async (page) => {
+          await page.locator("[data-cash] button:not([disabled])").click();
+          await page.locator("[data-cash] button").waitFor({ state: "detached", timeout: 15_000 });
+          await page.waitForTimeout(2600); // the hold after the last tap
+        },
+      },
+    ],
+  ],
   auth: (() => {
     // The home page's first screen, on a 360x640 phone and on a 390x844 one: the logo, the sentence and both ways in.
     const fold = { selector: 'main svg[aria-label="Relay"], main h1 + p, main a[href^="/registro/"]', count: 4 };
@@ -179,9 +281,11 @@ const base = flag("--base", "http://localhost:3000");
 const lang = flag("--lang", "es");
 const outDir = resolve(root, flag("--out", "docs/screenshots/redesign"));
 const only = flag("--only"); // one screen name
+const fullPage = args.at(-1) === "--full"; // last on the line: the whole page in each shot, not only the first screenful
+const oneSize = flag("--size"); // one size, as 1280x800: a quick look while building (its sheet gets its own name)
 const zoom = Number(flag("--zoom", "1")); // 2 = the browser zoomed to 200%: the same window, half as many CSS pixels
 const text = Number(flag("--text", "1")); // 1.5 = the phone's text size raised by half
-const variant = `${lang === "es" ? "" : `-${lang}`}${zoom === 1 ? "" : `-zoom${zoom}`}${text === 1 ? "" : `-text${text}`}`;
+const variant = `${lang === "es" ? "" : `-${lang}`}${zoom === 1 ? "" : `-zoom${zoom}`}${text === 1 ? "" : `-text${text}`}${oneSize ? `-${oneSize}` : ""}`;
 const MIN_TARGET = 44;
 
 if (!GROUPS[group]) {
@@ -198,10 +302,12 @@ try {
 }
 
 /** Runs in the page: what's wrong at this size? */
-function inspect(minTarget) {
+function inspect([minTarget, width]) {
   const problems = [];
   const doc = document.documentElement;
   if (doc.scrollWidth > doc.clientWidth + 1) problems.push(`scrolls sideways by ${doc.scrollWidth - doc.clientWidth}px`);
+  // A phone browser widens the page to fit what sticks out, so nothing "scrolls": the page is just wider than the screen.
+  if (window.innerWidth > width + 1) problems.push(`${window.innerWidth - width}px wider than the screen (a phone would zoom out or scroll sideways)`);
   const shown = (el) => {
     const style = getComputedStyle(el);
     const box = el.getBoundingClientRect();
@@ -245,6 +351,7 @@ for (const [screen, path, { inView = {}, minTarget = MIN_TARGET, prepare } = {}]
   const shots = [];
   let smallest = Infinity;
   for (const [fullWidth, fullHeight] of SIZES) {
+    if (oneSize && oneSize !== `${fullWidth}x${fullHeight}`) continue;
     const [width, height] = [Math.round(fullWidth / zoom), Math.round(fullHeight / zoom)];
     if (width < 280) continue; // nothing is narrower than the folded phone
     const touch = fullWidth < 1100;
@@ -260,7 +367,7 @@ for (const [screen, path, { inView = {}, minTarget = MIN_TARGET, prepare } = {}]
       await loaded(page);
     }
     await page.waitForTimeout(1200); // the slip prints in
-    const result = await page.evaluate(inspect, minTarget);
+    const result = await page.evaluate(inspect, [minTarget, width]);
     const wanted = zoom === 1 && text === 1 ? inView[`${width}x${height}`] : undefined;
     if (wanted) {
       const { selector, count = 1 } = typeof wanted === "string" ? { selector: wanted } : wanted;
@@ -275,7 +382,7 @@ for (const [screen, path, { inView = {}, minTarget = MIN_TARGET, prepare } = {}]
     for (const problem of result.problems) failures.push(`${screen} ${width}x${height}: ${problem}`);
     const file = join(outDir, ".shots", `${group}-${screen}${variant}-${width}x${height}.png`);
     mkdirSync(dirname(file), { recursive: true });
-    await page.screenshot({ path: file });
+    await page.screenshot({ path: file, fullPage });
     shots.push({ file, width, height, bad: result.problems.length });
     await context.close();
   }

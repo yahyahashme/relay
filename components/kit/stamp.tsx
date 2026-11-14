@@ -45,7 +45,7 @@ export function Stamp({
   className?: string;
 }) {
   useEffect(() => {
-    if (!fresh) return;
+    if (!fresh || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     try {
       navigator.vibrate?.(30);
     } catch {
