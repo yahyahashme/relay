@@ -5,6 +5,8 @@
 //   node scripts/screens.mjs system                 one group: system, shop, distributor, driver, auth, account, admin
 //   node scripts/screens.mjs shop --lang en         the same screens in English
 //   node scripts/screens.mjs shop --base http://localhost:3000 --out docs/screenshots/redesign
+//   node scripts/screens.mjs shop --zoom 2          the browser zoomed to 200%
+//   node scripts/screens.mjs shop --text 1.5        the phone's text size raised by half
 //
 // Checked at each size: no sideways scroll, no clipped text, every touch target at least 44 px
 // (the pay buttons are 52 px, the driver's 60 px; the script prints the smallest ones it finds).
@@ -27,7 +29,7 @@ async function shrink(file) {
   } catch {}
 }
 
-/** name, path, and (optionally) how long to wait for mock data. */
+/** name, path, and (optionally) what must be in view without scrolling at one size: { "360x640": selector }. */
 const GROUPS = {
   system: [
     ["sistema", "/sistema"],
@@ -35,8 +37,9 @@ const GROUPS = {
     ["sistema-shell", "/sistema/shell"],
   ],
   shop: [
-    ["factura", "/tienda/1001"],
-    ["demo", "/demo"],
+    // The floor: on a 360x640 phone "Pagar ahora" and the three other ways to pay are all in view.
+    ["factura", "/tienda/1001", { "360x640": "main button" }],
+    ["demo", "/demo", { "360x640": "main button" }],
   ],
   distributor: [["panel", "/distribuidor"]],
   driver: [["ruta", "/ruta/motorista-1"]],
@@ -92,6 +95,9 @@ const base = flag("--base", "http://localhost:3000");
 const lang = flag("--lang", "es");
 const outDir = resolve(root, flag("--out", "docs/screenshots/redesign"));
 const only = flag("--only"); // one screen name
+const zoom = Number(flag("--zoom", "1")); // 2 = the browser zoomed to 200%: the same window, half as many CSS pixels
+const text = Number(flag("--text", "1")); // 1.5 = the phone's text size raised by half
+const variant = `${lang === "es" ? "" : `-${lang}`}${zoom === 1 ? "" : `-zoom${zoom}`}${text === 1 ? "" : `-text${text}`}`;
 const MIN_TARGET = 44;
 
 if (!GROUPS[group]) {
@@ -146,22 +152,36 @@ const browser = await chromium.launch();
 const failures = [];
 mkdirSync(outDir, { recursive: true });
 
-for (const [screen, path] of GROUPS[group]) {
+for (const [screen, path, inView = {}] of GROUPS[group]) {
   if (only && only !== screen) continue;
   const shots = [];
   let smallest = Infinity;
-  for (const [width, height] of SIZES) {
-    const touch = width < 1100;
+  for (const [fullWidth, fullHeight] of SIZES) {
+    const [width, height] = [Math.round(fullWidth / zoom), Math.round(fullHeight / zoom)];
+    if (width < 280) continue; // nothing is narrower than the folded phone
+    const touch = fullWidth < 1100;
     const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, isMobile: touch && Math.min(width, height) < 700, hasTouch: touch });
     const page = await context.newPage();
+    if (text !== 1) await page.addInitScript((scale) => document.addEventListener("DOMContentLoaded", () => (document.documentElement.style.fontSize = `${scale * 100}%`)), text);
     const url = new URL(path, base);
     if (lang !== "es") url.searchParams.set("lang", lang);
     await page.goto(url.href, { waitUntil: "networkidle" });
-    await page.waitForTimeout(1600); // mock reads answer after one second
+    // Mock reads answer after a second each, one after another: wait until "Cargando..." has gone, then for the slip to print in.
+    await page.waitForFunction(() => ![...document.querySelectorAll("[role=status]")].some((el) => /Cargando|Loading/.test(el.textContent)), null, { timeout: 10_000 }).catch(() => {});
+    await page.waitForTimeout(1200);
     const result = await page.evaluate(inspect, MIN_TARGET);
+    const mustSee = zoom === 1 && text === 1 ? inView[`${width}x${height}`] : undefined;
+    if (mustSee) {
+      const hidden = await page.evaluate((selector) => {
+        const below = [...document.querySelectorAll(selector)].filter((el) => el.getBoundingClientRect().bottom > window.innerHeight || el.getBoundingClientRect().top < 0);
+        return { found: document.querySelectorAll(selector).length, below: below.map((el) => el.textContent.trim().slice(0, 30)) };
+      }, mustSee);
+      if (hidden.found === 0) result.problems.push(`nothing matches "${mustSee}"`);
+      for (const text of hidden.below) result.problems.push(`not in view without scrolling: "${text}"`);
+    }
     if (result.smallest !== null) smallest = Math.min(smallest, result.smallest);
     for (const problem of result.problems) failures.push(`${screen} ${width}x${height}: ${problem}`);
-    const file = join(outDir, ".shots", `${group}-${screen}-${lang}-${width}x${height}.png`);
+    const file = join(outDir, ".shots", `${group}-${screen}${variant}-${width}x${height}.png`);
     mkdirSync(dirname(file), { recursive: true });
     await page.screenshot({ path: file });
     shots.push({ file, width, height, bad: result.problems.length });
@@ -178,13 +198,13 @@ for (const [screen, path] of GROUPS[group]) {
     })
     .join("");
   await sheet.setContent(
-    `<style>body{margin:0;padding:24px;background:#23272e;color:#e8e6df;font:14px system-ui,sans-serif}h1{font-size:18px;margin:0 0 16px}main{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end}figure{margin:0}img{display:block;outline:1px solid #555}figcaption{padding-top:5px;color:#b9bdc6}.bad{color:#ff9b8e}</style><h1>${group} · ${screen} · ${path} · ${lang} · ${SIZES.length} sizes</h1><main>${cells}</main>`,
+    `<style>body{margin:0;padding:24px;background:#23272e;color:#e8e6df;font:14px system-ui,sans-serif}h1{font-size:18px;margin:0 0 16px}main{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end}figure{margin:0}img{display:block;outline:1px solid #555}figcaption{padding-top:5px;color:#b9bdc6}.bad{color:#ff9b8e}</style><h1>${group} · ${screen} · ${path} · ${lang}${zoom === 1 ? "" : ` · zoom ${zoom * 100}%`}${text === 1 ? "" : ` · text ${text * 100}%`} · ${shots.length} sizes</h1><main>${cells}</main>`,
   );
-  const sheetFile = join(outDir, `${group}-${screen}${lang === "es" ? "" : `-${lang}`}.png`);
+  const sheetFile = join(outDir, `${group}-${screen}${variant}.png`);
   await sheet.screenshot({ path: sheetFile, fullPage: true });
   await sheet.close();
   await shrink(sheetFile);
-  console.log(`${screen}: ${SIZES.length} sizes, smallest touch target ${Number.isFinite(smallest) ? smallest : "-"}px, sheet ${sheetFile.replace(`${root}/`, "")}`);
+  console.log(`${screen}: ${shots.length} sizes, smallest touch target ${Number.isFinite(smallest) ? smallest : "-"}px, sheet ${sheetFile.replace(`${root}/`, "")}`);
 }
 
 await browser.close();
