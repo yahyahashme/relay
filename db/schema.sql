@@ -182,8 +182,23 @@ CREATE TABLE IF NOT EXISTS lenders (
   business_name   TEXT NOT NULL,
   country         TEXT NOT NULL,
   licence         TEXT NOT NULL,
+  nit             TEXT,
   status          TEXT NOT NULL DEFAULT 'pendiente' CHECK (status IN ('pendiente', 'aprobado', 'revocado')),
   stellar_address TEXT NOT NULL UNIQUE,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   decided_at      TIMESTAMPTZ
 );
+
+-- Identity check at sign-up (#215): the legal representative's DUI and birth date, the company's
+-- CNR registration, and the check's status. Never the photos.
+ALTER TABLE distributors ADD COLUMN IF NOT EXISTS rep_dui TEXT;
+ALTER TABLE distributors ADD COLUMN IF NOT EXISTS rep_birth_date DATE;
+ALTER TABLE distributors ADD COLUMN IF NOT EXISTS cnr_matricula TEXT;
+ALTER TABLE distributors ADD COLUMN IF NOT EXISTS id_check TEXT;
+ALTER TABLE distributors ADD COLUMN IF NOT EXISTS id_checked_at TIMESTAMPTZ;
+ALTER TABLE lenders ADD COLUMN IF NOT EXISTS rep_dui TEXT;
+ALTER TABLE lenders ADD COLUMN IF NOT EXISTS rep_birth_date DATE;
+ALTER TABLE lenders ADD COLUMN IF NOT EXISTS cnr_matricula TEXT;
+ALTER TABLE lenders ADD COLUMN IF NOT EXISTS id_check TEXT;
+ALTER TABLE lenders ADD COLUMN IF NOT EXISTS id_checked_at TIMESTAMPTZ;
+ALTER TABLE lenders ADD COLUMN IF NOT EXISTS nit TEXT;
