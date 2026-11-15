@@ -38,6 +38,9 @@ import { ContractError, FALLBACK_MESSAGE } from "@/lib/stellar/errors";
 import { read, run } from "@/lib/stellar/send";
 import { toDollars, toUnits } from "@/lib/stellar/units";
 import type { MyLender, Receipt } from "@/lib/types";
+import { buildLenderHistory, type LenderHistory, type PoolEvent } from "@/lib/lender-history";
+import { addressOf } from "@/lib/stellar/config";
+import { nativeToScVal, rpc, scValToNative } from "@stellar/stellar-sdk";
 
 type Reply = { ok: true } | { ok: false; message: string };
 
@@ -237,4 +240,65 @@ export async function adminDecideLender(id: string, status: "aprobado" | "revoca
     console.error("[admin] lender", error instanceof Error ? error.message : error);
     return { ok: false, message: FALLBACK_MESSAGE };
   }
+}
+
+// ---------- the lender's own movements (#224) ----------
+
+const POOL_EVENTS: Record<string, PoolEvent["kind"]> = {
+  deposited: "deposit",
+  withdrawn: "withdraw",
+  paid_with_credit: "credit",
+  default_covered: "default",
+};
+
+/** Every pool event the network still keeps (about a week), newest first. */
+async function poolEvents(): Promise<PoolEvent[]> {
+  const server = new rpc.Server(config.rpcUrl);
+  const health = await server.getHealth();
+  const topics = Object.keys(POOL_EVENTS).map((name) => [nativeToScVal(name, { type: "symbol" }).toXDR("base64"), "*"]);
+  const filters = [{ type: "contract" as const, contractIds: [config.contracts.routeLedger], topics }];
+  const events: PoolEvent[] = [];
+  let page = await server.getEvents({ filters, startLedger: Math.max(health.oldestLedger, health.latestLedger - 120_000), limit: 1000 });
+  for (let pages = 0; pages < 20; pages++) {
+    for (const e of page.events) {
+      const kind = POOL_EVENTS[String(scValToNative(e.topic[0]))];
+      if (!kind) continue;
+      const topic = scValToNative(e.topic[1]);
+      const data = scValToNative(e.value) as Record<string, unknown>;
+      const base = { at: new Date(e.ledgerClosedAt).toISOString(), txHash: e.txHash };
+      if (kind === "deposit" || kind === "withdraw") {
+        events.push({ kind, lender: String(topic), amount: BigInt(data.amount as bigint), shares: BigInt(data.shares as bigint), ...base });
+      } else if (kind === "credit") {
+        events.push({ kind, invoiceId: Number(topic), amount: BigInt(data.amount as bigint), recourse: Boolean(data.recourse), ...base });
+      } else {
+        events.push({ kind, owed: BigInt(data.owed as bigint), covered: BigInt(data.covered as bigint), ...base });
+      }
+    }
+    if (page.events.length < 1000) break;
+    page = await server.getEvents({ filters, cursor: page.cursor, limit: 1000 });
+  }
+  return events.reverse();
+}
+
+/**
+ * The signed-in lender's movements, or (`mine` false) the demo lender's, which are public on the
+ * ledger anyway. Puso, Retiró and its part of each credit sale, adding up to "Puso" and "Ganó".
+ */
+export async function getLenderHistory(mine: boolean): Promise<LenderHistory | null> {
+  let address: string | undefined;
+  if (mine) {
+    const user = await currentUser();
+    if (!user || user.role !== "prestamista") return null;
+    address = (await lenderForUser(user.id))?.stellarAddress;
+  } else {
+    address = addressOf("lender");
+  }
+  if (!address) return null;
+  const [view, pool, events] = await Promise.all([read(readClient().get_lender({ lender: address })), read(readClient().get_pool()), poolEvents()]);
+  return buildLenderHistory(events, address, {
+    shares: view.shares,
+    poolShares: pool.shares,
+    value: toDollars(view.value),
+    netDeposited: toDollars(view.net_deposited),
+  });
 }
