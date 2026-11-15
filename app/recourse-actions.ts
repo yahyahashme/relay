@@ -5,9 +5,11 @@
 // credit sales to those shops cost 0.25% instead of up to 1.50%. A signed-in,
 // approved distributor acts for its own shops; everyone else for the demo's.
 
+import { VOUCHED_FIRST_LIMIT } from "@/lib/credit-unlock";
 import { formatMoney } from "@/lib/format";
 import { isDemoParty } from "@/lib/server/authz";
 import { getDb } from "@/lib/server/db";
+import { unlockVouched } from "@/lib/server/credit-unlock";
 import { getDirectory } from "@/lib/server/directory";
 import { choices, myApprovedDistributor } from "@/lib/server/invoices";
 import { explorerTx } from "@/lib/stellar/config";
@@ -55,10 +57,27 @@ export async function vouchShop(shopId: string, on: boolean): Promise<Receipt> {
     const shop = who.directory.find(shopId, "shop");
     if (!shop || !who.mayVouch(shopId)) return fail("No encontramos esa tienda.");
     const { hash } = await run(who.id, (client) => client.vouch({ distributor: who.address, shop: shop.address, on }));
-    return receipt(hash, on ? `Listo. Ahora respalda a ${shop.name}.` : `Listo. Ya no respalda a ${shop.name}.`);
+    if (!on) return receipt(hash, `Listo. Ya no respalda a ${shop.name}.`);
+    // #217: a new shop its distributor vouches for skips the two door payments, if the deposit can back its first limit.
+    const unlocked = await vouchedFirstLimit(who.address, shop).catch((error) => {
+      console.error("[credit unlock] vouch", error instanceof Error ? error.message : error);
+      return null;
+    });
+    return receipt(
+      hash,
+      unlocked ? `Listo. Ahora respalda a ${shop.name}. Ya tiene ${formatMoney(unlocked)} de crédito.` : `Listo. Ahora respalda a ${shop.name}.`,
+    );
   } catch (error) {
     return failure(error);
   }
+}
+
+/** The first limit for a vouched shop with no credit yet, only while the deposit covers 20% of it on top of what it backs. */
+async function vouchedFirstLimit(distributor: string, shop: { address: string }): Promise<number | null> {
+  const recourse = await read(readClient().get_recourse({ distributor }));
+  const room = recourse.deposit - recourse.required;
+  if (room * 5n < toUnits(VOUCHED_FIRST_LIMIT.toFixed(2))) return null;
+  return unlockVouched(shop);
 }
 
 /** Does the acting distributor give this shop the 7 days itself (#194)? */

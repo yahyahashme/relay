@@ -214,7 +214,7 @@ export async function checkOwner(input: { name: string; phone: string; password:
 
 /**
  * A shop owner signing up alone: their user, and a shop that uses their own
- * Stellar account. The $200 starting limit comes after (set_terms, in the action).
+ * Stellar account. Credit comes later, after two door payments (#217).
  */
 export async function signUpShop(
   input: { name: string; phone: string; password: string } & ShopDetails,

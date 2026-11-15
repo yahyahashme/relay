@@ -78,8 +78,8 @@ const STEPS: { icon: ReactNode; title: [string, string]; text: [string, string] 
     ),
     title: ["Pagar a tiempo abre más crédito", "Paying on time opens more credit"],
     text: [
-      "Cada pago a tiempo sube el límite $25, de $200 hasta $500. El historial es de la tienda y lo puede mostrar a cualquier distribuidora, banco o cooperativa.",
-      "Each on-time payment raises the limit by $25, from $200 up to $500. The record belongs to the shop, and it can show it to any distributor, bank or cooperative.",
+      "Cada pago a tiempo sube el límite $25, hasta $500. El historial es de la tienda y lo puede mostrar a cualquier distribuidora, banco o cooperativa.",
+      "Each on-time payment raises the limit by $25, up to $500. The record belongs to the shop, and it can show it to any distributor, bank or cooperative.",
     ],
   },
 ];
@@ -366,8 +366,8 @@ export default function Home() {
               </h2>
               <p className="text-lead text-pretty">
                 <T
-                  es="Cada tienda empieza con $200 de crédito a 7 días, sin intereses. Pagar a tiempo lo sube hasta $500."
-                  en="Every shop starts with $200 of 7-day credit, with no interest. Paying on time raises it up to $500."
+                  es="El crédito a 7 días se abre después de 2 entregas pagadas en dólares digitales, con una semana entre ellas. Empieza en la mitad de una entrega normal, hasta $100, sin intereses. Pagar a tiempo lo sube hasta $500."
+                  en="7-day credit opens after 2 deliveries paid in digital dollars, a week apart. It starts at half a normal delivery, up to $100, with no interest. Paying on time raises it up to $500."
                 />
               </p>
             </header>

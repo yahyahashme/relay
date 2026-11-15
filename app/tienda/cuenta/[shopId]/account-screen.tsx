@@ -1,5 +1,6 @@
 "use client";
 
+import { CreditUnlockNote } from "@/components/credit-unlock-note";
 import { useParams } from "next/navigation";
 import { type ReactNode, useRef, useState } from "react";
 import { ActionLink, Button, DetailLink, Held } from "@/components/kit/button";
@@ -235,6 +236,8 @@ export default function AccountScreen() {
           <p>{t("Sin intereses", "No interest")}</p>
         ) : hasCredit ? (
           <p className="font-semibold text-ok">{t("No tiene deudas pendientes.", "You have no debts to pay.")}</p>
+        ) : shop.unlock ? (
+          <CreditUnlockNote unlock={shop.unlock} />
         ) : (
           <p className="text-pretty">{t("Su tienda no tiene crédito por ahora.", "Your shop doesn't have credit for now.")}</p>
         )}

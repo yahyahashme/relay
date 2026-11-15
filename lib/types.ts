@@ -27,6 +27,8 @@ export type Shop = {
   laterOwed?: number; laterOnTime?: number; laterLate?: number;
   /** An open pay-later invoice is past due plus the grace day: no new credit of either kind. */
   laterOverdue?: boolean;
+  /** A shop that never had pool credit (#217): door payments counted toward unlocking it, and when the next one can count. */
+  unlock?: { paid: number; needed: number; nextFrom?: string };
 };
 /** A distributor's recourse deposit (#185), in dollars. `required` = 20% of `vouchedOut`. */
 export type RecourseView = { distributorId: string; deposit: number; vouchedOut: number; required: number };
