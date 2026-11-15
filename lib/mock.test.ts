@@ -322,33 +322,20 @@ describe("the distributor gives the 7 days itself (#194)", () => {
   });
 });
 
-<<<<<<< HEAD
 describe("pay later only lowers the pool limit (#200, #203)", () => {
   it("never raises the limit when paid on time, and lowers it when late", () => {
-=======
-describe("pay later counts toward the pool limit (#200)", () => {
-  it("raises the limit when paid on time digitally, not in cash, and lowers it when late", () => {
->>>>>>> origin/main
     mock.offerOwnCredit("tienda-3", true);
     mock.payLater(1003);
     expect(mock.getShop("tienda-3")?.creditLimit).toBe(200);
     now = NOW + 4 * DAY; // open at least half a credit period
     mock.payNow(1003);
-<<<<<<< HEAD
     expect(mock.getShop("tienda-3")).toMatchObject({ creditLimit: 200, goodCycles: 0, laterOnTime: 1 });
-=======
-    expect(mock.getShop("tienda-3")).toMatchObject({ creditLimit: 225, goodCycles: 1 });
->>>>>>> origin/main
 
     mock.offerOwnCredit("tienda-1", true);
     mock.payLater(1001);
     mock.claimCash(1001, 150);
     mock.confirmCash(1001, 150);
-<<<<<<< HEAD
     expect(mock.getShop("tienda-1")).toMatchObject({ creditLimit: 200, laterOnTime: 1 });
-=======
-    expect(mock.getShop("tienda-1")).toMatchObject({ creditLimit: 200, laterOnTime: 1 }); // cash: no raise (Rule A)
->>>>>>> origin/main
 
     mock.payLater(1004); // due NOW + 11 days
     now = NOW + 13 * DAY; // 2 days past due: overdue, so no more credit
