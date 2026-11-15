@@ -50,17 +50,41 @@ pub const RECOURSE_LENDER_BPS: i128 = 15;
 /// through, at the normal pool fee.
 pub const RECOURSE_COVER_BPS: i128 = 2_000;
 
-/// Each on-time repayment raises the shop's limit by $25...
+/// A minor late repayment lowers the limit by $25.
 pub const LIMIT_STEP: i128 = 250_000_000;
-/// ...up to $500. This is our own credit record.
+/// The limit is "Crédito Relay, out of 500": never raised past $500. This is our own credit record.
 pub const LIMIT_CAP: i128 = 5_000_000_000;
-/// A repayment only raises the limit if the shop borrowed at least $40 in
-/// that cycle (about one small delivery), unless it paid at least half of
-/// every credited invoice up front (#135)...
+/// The trusted-shop fee (#185) counts a cycle as good only if the shop
+/// borrowed at least $40 in it, unless it paid at least half of every credited
+/// invoice up front (#135)...
 pub const MIN_BORROW_TO_GROW: i128 = 400_000_000;
-/// The half-up-front waiver still needs $10 on credit in the cycle, so a $1
-/// invoice paid half up front can't farm the limit (Jack's review of #139).
+/// ...in which case $10 is enough (Jack's review of #139). $10 is also the
+/// least a cycle needs to raise the limit at all (#220), so $1 of credit
+/// repaid every week can't farm it.
 pub const MIN_BORROW_WITH_HALF: i128 = 100_000_000;
+/// An on-time cycle raises the limit by tier, on the credit repaid in it
+/// (#220, Yahya, Nov 15): up to $30 → +$10, to $50 → +$15, to $75 → +$20,
+/// to $100 → +$25, over $100 → +$30.
+pub const GROWTH_TIERS: [(i128, i128); 4] = [
+    (300_000_000, 100_000_000),
+    (500_000_000, 150_000_000),
+    (750_000_000, 200_000_000),
+    (1_000_000_000, 250_000_000),
+];
+pub const GROWTH_TOP: i128 = 300_000_000;
+
+/// How much an on-time cycle with `repaid` on credit raises the limit (#220).
+pub fn growth_step(repaid: i128) -> i128 {
+    if repaid < MIN_BORROW_WITH_HALF {
+        return 0;
+    }
+    for (upto, step) in GROWTH_TIERS {
+        if repaid <= upto {
+            return step;
+        }
+    }
+    GROWTH_TOP
+}
 // ...and at most once per credit period. Together these stop a shop from
 // taking $1 of credit and repaying it over and over to reach $500.
 
@@ -1599,16 +1623,17 @@ fn close_cycle(terms: &mut Shop, now: u64, period: u64) {
     terms.max_days_late = terms.max_days_late.max(days_u32(days));
     if days <= GRACE_DAYS {
         terms.on_time += 1;
-        // +$25 for paying on time, never past $500, and only if the shop
-        // borrowed at least $40 this cycle (or $10, with half of every credited
-        // invoice paid up front), wasn't raised in the last credit period, and
-        // isn't serving a no-raise after a major late payment. A limit the
-        // admin set above $500 is left alone.
+        // Paying on time raises the limit by tier on what the cycle borrowed
+        // (#220: +$10 to +$30), never past $500, at most once per credit
+        // period (so splitting a cycle doesn't pay), and not while serving a
+        // no-raise after a major late payment. A limit the admin set above
+        // $500 is left alone.
         let big_enough = terms.cycle_borrowed >= MIN_BORROW_TO_GROW
             || (terms.cycle_half_up_front && terms.cycle_borrowed >= MIN_BORROW_WITH_HALF);
+        let step = growth_step(terms.cycle_borrowed);
         let waited = terms.last_raise_at == 0 || now >= terms.last_raise_at + period;
-        if big_enough && waited && now >= terms.no_raise_until && terms.limit < LIMIT_CAP {
-            terms.limit = (terms.limit + LIMIT_STEP).min(LIMIT_CAP);
+        if step > 0 && waited && now >= terms.no_raise_until && terms.limit < LIMIT_CAP {
+            terms.limit = (terms.limit + step).min(LIMIT_CAP);
             terms.last_raise_at = now;
         }
         // A good cycle for the trusted-shop fee (#185): same bar, once per period.

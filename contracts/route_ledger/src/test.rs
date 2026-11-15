@@ -840,12 +840,38 @@ fn only_approved_distributors_create_invoices() {
 fn tiny_loans_do_not_grow_the_limit() {
     let t = setup();
     t.with_credit();
-    t.invoice(1, 39 * USD);
+    t.invoice(1, 9 * USD);
     t.client.pay_with_credit(&t.shop, &1);
-    t.client.repay(&t.shop, &(39 * USD));
+    t.client.repay(&t.shop, &(9 * USD));
     let shop = t.client.get_shop(&t.shop);
     assert_eq!(shop.on_time, 1);
     assert_eq!(shop.limit, 200 * USD);
+}
+
+#[test]
+fn growth_follows_the_tiers() {
+    // #220: up to $30 +$10, to $50 +$15, to $75 +$20, to $100 +$25, over $100 +$30; under $10 nothing.
+    let cases = [
+        (9 * USD, 0),
+        (10 * USD, 10 * USD),
+        (30 * USD, 10 * USD),
+        (30 * USD + 1, 15 * USD),
+        (50 * USD, 15 * USD),
+        (75 * USD, 20 * USD),
+        (100 * USD, 25 * USD),
+        (100 * USD + 1, 30 * USD),
+        (450 * USD, 30 * USD),
+    ];
+    for (repaid, step) in cases {
+        assert_eq!(growth_step(repaid), step, "repaid {repaid}");
+    }
+    // In the contract: an on-time $60 cycle raises $200 to $220.
+    let t = setup();
+    t.with_credit();
+    t.invoice(1, 60 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    t.client.repay(&t.shop, &(60 * USD));
+    assert_eq!(t.client.get_shop(&t.shop).limit, 220 * USD);
 }
 
 #[test]
@@ -857,7 +883,7 @@ fn small_loans_in_one_cycle_add_up() {
     t.client.pay_with_credit(&t.shop, &1);
     t.client.pay_with_credit(&t.shop, &2);
     t.client.repay(&t.shop, &(40 * USD));
-    assert_eq!(t.client.get_shop(&t.shop).limit, 225 * USD);
+    assert_eq!(t.client.get_shop(&t.shop).limit, 215 * USD); // $40 in the cycle: +$15
 }
 
 #[test]
@@ -1749,7 +1775,7 @@ fn half_up_front_waives_the_40_dollar_minimum_to_grow() {
     t.client.pay(&t.shop, &1, &(15 * USD));
     t.client.pay_with_credit(&t.shop, &1);
     t.client.repay(&t.shop, &(15 * USD));
-    assert_eq!(t.client.get_shop(&t.shop).limit, 2_250_000_000);
+    assert_eq!(t.client.get_shop(&t.shop).limit, 2_100_000_000); // $15: +$10
 }
 
 #[test]
@@ -1775,11 +1801,11 @@ fn half_up_front_on_a_tiny_invoice_does_not_grow_the_limit() {
     t.client.pay(&t.shop, &9, &(10 * USD));
     t.client.pay_with_credit(&t.shop, &9);
     t.client.repay(&t.shop, &(10 * USD));
-    assert_eq!(t.client.get_shop(&t.shop).limit, 2_250_000_000);
+    assert_eq!(t.client.get_shop(&t.shop).limit, 2_100_000_000); // $10: +$10
 }
 
 #[test]
-fn one_credited_invoice_without_half_up_front_keeps_the_40_dollar_minimum() {
+fn small_cycles_grow_by_tier_once_a_period() {
     let t = setup();
     t.with_credit();
     t.invoice(1, 30 * USD);
@@ -1787,16 +1813,16 @@ fn one_credited_invoice_without_half_up_front_keeps_the_40_dollar_minimum() {
     t.client.pay(&t.shop, &1, &(15 * USD));
     t.client.pay_with_credit(&t.shop, &1); // half up front
     t.client.pay_with_credit(&t.shop, &2); // nothing up front
-    t.client.repay(&t.shop, &(35 * USD)); // $35 borrowed: under $40
+    t.client.repay(&t.shop, &(35 * USD)); // $35 borrowed: +$15 (#220)
     let shop = t.client.get_shop(&t.shop);
-    assert_eq!((shop.on_time, shop.limit), (1, 2_000_000_000));
+    assert_eq!((shop.on_time, shop.limit, shop.good_cycles), (1, 2_150_000_000, 0)); // not a good cycle: under $40
 
-    // The flag resets with the cycle: a new full-credit cycle under $40 doesn't grow.
+    // A week later, a $30 cycle adds $10.
     t.env.ledger().set_timestamp(START + WEEK);
     t.invoice(3, 30 * USD);
     t.client.pay_with_credit(&t.shop, &3);
     t.client.repay(&t.shop, &(30 * USD));
-    assert_eq!(t.client.get_shop(&t.shop).limit, 2_000_000_000);
+    assert_eq!(t.client.get_shop(&t.shop).limit, 2_250_000_000);
 }
 
 #[test]
@@ -2774,7 +2800,7 @@ fn on_time_pay_later_counts_on_the_record_but_never_raises_the_pool_limit() {
     t.env.ledger().set_timestamp(START + 6 * WEEK + DAY);
     t.client.repay(&t.shop, &(50 * USD));
     let shop = t.client.get_shop(&t.shop);
-    assert_eq!((shop.limit, shop.good_cycles), (225 * USD, 1));
+    assert_eq!((shop.limit, shop.good_cycles), (215 * USD, 1)); // $50 cycle: +$15
 }
 
 #[test]
@@ -2789,7 +2815,7 @@ fn on_time_pay_later_does_not_reset_or_add_to_good_cycles() {
     // A pay-later paid on time a week later leaves both alone.
     t.later_paid(1, 2, 50 * USD, 0);
     let shop = t.client.get_shop(&t.shop);
-    assert_eq!((shop.limit, shop.good_cycles), (225 * USD, 1));
+    assert_eq!((shop.limit, shop.good_cycles), (215 * USD, 1)); // $50 cycle: +$15
 }
 
 #[test]
@@ -2822,7 +2848,7 @@ fn late_pay_later_resets_good_cycles() {
     assert_eq!(t.client.get_shop(&t.shop).good_cycles, 1);
     t.later_paid(1, 2, 40 * USD, 3);
     let shop = t.client.get_shop(&t.shop);
-    assert_eq!((shop.limit, shop.good_cycles), (200 * USD, 0));
+    assert_eq!((shop.limit, shop.good_cycles), (190 * USD, 0)); // $215 - $25
 }
 
 #[test]
