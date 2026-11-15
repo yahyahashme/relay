@@ -2,10 +2,17 @@ import "server-only";
 
 /**
  * Not one of ours: the token refused because the payer's balance is too low (#205). The token's
- * BalanceError is also #10, our NoDebt, so it is told apart by the token's own words in the text.
+ * BalanceError is also #10, our NothingOwed, and testnet RPC returns only "Error(Contract, #10)",
+ * so it is told apart by the call: only these contract functions ever return NothingOwed.
  */
 export const LOW_BALANCE = 1010;
-const LOW_BALANCE_TEXT = /balance is not sufficient|resulting balance is not within the allowed range/i;
+const NOTHING_OWED = 10;
+const CAN_RETURN_NOTHING_OWED = new Set(["repay", "cover_default", "call_recourse"]);
+
+/** The error number for a refusal of `method`: a #10 from any other function is the token's low balance. */
+export function codeFor(method: string | undefined, code: number | null): number | null {
+  return code === NOTHING_OWED && method !== undefined && !CAN_RETURN_NOTHING_OWED.has(method) ? LOW_BALANCE : code;
+}
 
 // Contract error code -> what the screens say (same numbers as
 // contracts/route_ledger/src/lib.rs `enum Error`).
@@ -37,7 +44,6 @@ export const FALLBACK_MESSAGE = "No se pudo completar. Intente de nuevo.";
 
 /** The contract's error number inside an SDK error text, e.g. "Error(Contract, #4)". */
 export function contractErrorCode(text: string): number | null {
-  if (LOW_BALANCE_TEXT.test(text)) return LOW_BALANCE;
   const match = /Error\(Contract, #(\d+)\)/.exec(text);
   return match ? Number(match[1]) : null;
 }
