@@ -26,6 +26,7 @@ const pattern = (es: string, en: Rule[1]): Rule => [new RegExp(`^${es}$`), en];
 const RULES: Rule[] = [
   // Payments
   pattern(String.raw`Pago recibido: ${MONEY} en dólares digitales\.`, "Payment received: $1 in digital dollars."),
+  pattern(String.raw`Pago recibido: ${MONEY} en dólares digitales\. Su tienda ya tiene ${MONEY} de crédito para «Pagar en 7 días»\.`, "Payment received: $1 in digital dollars. Your shop now has $2 of credit for “Pay in 7 days”."),
   pattern(String.raw`Pago recibido: ${MONEY}\. Falta ${MONEY}\.`, "Payment received: $1. $2 left to pay."),
   pattern(String.raw`Listo\. Tiene hasta el ${DATE} para pagar ${MONEY}, sin intereses\.`, (_, d, m, money) =>
     `Done. You have until ${englishDay(d, m)} to pay ${money}, with no interest.`),
@@ -88,6 +89,13 @@ const RULES: Rule[] = [
   exact("El crédito no está disponible en este momento.", "Credit isn't available right now."),
   exact("Hoy no hay fondos para crédito. Intente más tarde.", "There's no credit money available today. Try again later."),
   exact("No tiene deuda pendiente.", "You have no debt to pay."),
+  // Identity check at sign-up (#215)
+  exact("El DUI debe tener 9 dígitos.", "The DUI must have 9 digits."),
+  exact("Escriba la fecha de nacimiento.", "Enter the date of birth."),
+  exact("El representante legal debe ser mayor de edad.", "The legal representative must be an adult."),
+  exact("Escriba el número de matrícula de comercio del CNR.", "Enter the CNR trade registration number."),
+  exact("Tome la foto de su DUI.", "Take the photo of your DUI."),
+  exact("Tómese una selfie.", "Take a selfie."),
   // Lenders (#207)
   exact("Escriba el país.", "Enter the country."),
   exact("Escriba el número de licencia o registro.", "Enter the licence or registration number."),
@@ -110,6 +118,7 @@ const RULES: Rule[] = [
   // Recourse tier (#185)
   exact("Su depósito de respaldo debe cubrir al menos el 20% del crédito que respalda.", "Your backing deposit must cover at least 20% of the credit you back."),
   exact("Solo puede cambiar el respaldo cuando la tienda no debe nada.", "You can only change the backing while the shop owes nothing."),
+  pattern(String.raw`Listo\. Ahora respalda a (.+)\. Ya tiene ${MONEY} de crédito\.`, "Done. You now back $1. It now has $2 of credit."),
   pattern(String.raw`Listo\. Ahora respalda a (.+)\.`, "Done. You now back $1."),
   pattern(String.raw`Listo\. Ya no respalda a (.+)\.`, "Done. You no longer back $1."),
   pattern(String.raw`Listo\. Su depósito de respaldo es ${MONEY}\.`, "Done. Your backing deposit is $1."),

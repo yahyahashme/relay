@@ -1,5 +1,6 @@
 "use client";
 
+import { CreditUnlockNote } from "@/components/credit-unlock-note";
 import { useParams } from "next/navigation";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { ActionLink, ActionList, ActionRow, Button, DetailLink, Held } from "@/components/kit/button";
@@ -60,6 +61,11 @@ function creditBlocked(shop: Shop | null, invoice: Invoice, t: (es: string, en: 
   if (shop?.laterOverdue) return t("Tiene un pago vencido", "You have an overdue payment");
   // The distributor gives the 7 days itself (#194): the pool's limit doesn't apply, only "nothing late".
   if (invoice.ownCredit) return shop?.overdue ? t("Tiene un pago vencido", "You have an overdue payment") : null;
+  // #217: a new shop opens credit by paying 2 deliveries digitally, a week apart.
+  if (shop?.unlock) {
+    const { paid, needed } = shop.unlock;
+    return t(`Se abre tras ${needed} entregas pagadas aquí: lleva ${paid} de ${needed}`, `Opens after ${needed} deliveries paid here: ${paid} of ${needed} so far`);
+  }
   if (!shop || shop.creditLimit <= 0) return t("Su tienda aún no tiene crédito", "Your shop doesn't have credit yet");
   if (shop.overdue) return t("Tiene un pago vencido", "You have an overdue payment");
   const owedAfter = Math.round((shop.creditOwed + leftToPay(invoice)) * 100);
@@ -122,6 +128,8 @@ function CreditFacts({ shop, lang }: { shop: Shop; lang: Lang }) {
             <Money value={available} />
           </ReceiptLine>
         </ReceiptLines>
+      ) : shop.unlock ? (
+        <CreditUnlockNote unlock={shop.unlock} />
       ) : (
         <p className="text-muted">{t("Su tienda aún no tiene crédito.", "Your shop doesn't have credit yet.")}</p>
       )}

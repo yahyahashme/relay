@@ -1,8 +1,9 @@
 "use server";
 
 // A shop owner signs up (#134), alone from /registro or from a distributor's
-// invite (#132). On sign-up the server gives the shop the starting $200 limit
-// with set_terms (admin key), so "Pagar en 7 días" works right away.
+// invite (#132). A new shop starts with no pool credit (#217): it unlocks after
+// two deliveries paid in dólares digitales at the door (lib/credit-unlock.ts).
+// A shop that already has a limit (a claimed one may) keeps it.
 
 import { getDb } from "@/lib/server/db";
 import { callerIp, countRecent, noteEvent, signUpBlocked, TOO_MANY } from "@/lib/server/rate-limit";
@@ -10,22 +11,16 @@ import { getDirectory } from "@/lib/server/directory";
 import { currentUser, startSession } from "@/lib/server/session";
 import { checkOwner, claimShop, saveTrustedContacts, type ShopDetails, signUpShop, trustedContacts } from "@/lib/server/shops";
 import { readClient } from "@/lib/stellar/client";
-import { read, run } from "@/lib/stellar/send";
+import { read } from "@/lib/stellar/send";
 import { toDollars } from "@/lib/stellar/units";
 
 type Reply = { ok: true } | { ok: false; message: string };
 const NO_ACCOUNTS = "Las cuentas todavía no están activas en este servidor.";
 const TRY_LATER = "No pudimos crear su cuenta en este momento. Intente de nuevo en un minuto.";
 
-/** The starting limit: $200, in the contract's 7-decimal units. */
-const STARTING_LIMIT = 2_000_000_000n;
-
-/** set_terms to $200 unless the shop already has a limit (a claimed shop may). Returns the limit in dollars. */
-async function startingCredit(stellarAddress: string): Promise<number> {
-  const view = await read(readClient().get_shop({ shop: stellarAddress }));
-  if (view.limit > 0n) return toDollars(view.limit);
-  await run("admin", (client) => client.set_terms({ shop: stellarAddress, limit: STARTING_LIMIT }));
-  return toDollars(STARTING_LIMIT);
+/** The shop's limit if it already has one (a claimed shop may), in dollars. New shops start at $0 (#217). */
+async function currentLimit(stellarAddress: string): Promise<number> {
+  return toDollars((await read(readClient().get_shop({ shop: stellarAddress }))).limit);
 }
 
 /** Step 1: checks the owner's details before anything is created. */
@@ -42,7 +37,7 @@ export async function checkOwnerAction(input: { name: string; phone: string; pas
 
 export type ShopSignUpReply = { ok: true; shopId: string; creditLimit: number } | { ok: false; message: string };
 
-/** Step 2: the account, the shop (new, or the invited one), the session, then the starting limit. */
+/** Step 2: the account, the shop (new, or the invited one), the session, then its limit if it has one. */
 export async function signUpShopAction(
   input: { name: string; phone: string; password: string } & ShopDetails,
   code?: string,
@@ -61,13 +56,13 @@ export async function signUpShopAction(
     console.error("[shop sign-up]", error instanceof Error ? error.message : error);
     return { ok: false, message: TRY_LATER };
   }
-  // The account exists now; if the limit fails, the shop still gets in and Mi cuenta shows $0.
+  // The account exists now; if the read fails, the shop still gets in.
   let creditLimit = 0;
   try {
     const shop = (await getDirectory()).find(shopId, "shop");
-    if (shop) creditLimit = await startingCredit(shop.address);
+    if (shop) creditLimit = await currentLimit(shop.address);
   } catch (error) {
-    console.error("[shop sign-up] set_terms", error instanceof Error ? error.message : error);
+    console.error("[shop sign-up] limit", error instanceof Error ? error.message : error);
   }
   return { ok: true, shopId, creditLimit };
 }

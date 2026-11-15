@@ -22,6 +22,7 @@ import { getDb } from "@/lib/server/db";
 import { checkInvoice, choices, cleanAmount, dueAt, myApprovedDistributor } from "@/lib/server/invoices";
 import { redeemConfirm, unitsToCents, type ConfirmTarget } from "@/lib/server/pay-confirm";
 import { confirmOwner } from "@/lib/server/pay-owner";
+import { recordDoorPayment, unlockIfDue, unlockStatus } from "@/lib/server/credit-unlock";
 import type { Party } from "@/lib/server/directory";
 import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type InvoiceRow, type LenderView, type Pool, type Receipt, type Payment, type Shop, type ShopHistory, type Supplier, type Totals } from "@/lib/types";
 
@@ -82,7 +83,15 @@ export async function getShop(shopId: string): Promise<Shop | null> {
   const directory = await getDirectory();
   const party = directory.find(shopId, "shop");
   if (!party) return null;
-  return toShop(party, await read(readClient().get_shop({ shop: party.address })), directory);
+  const view = await read(readClient().get_shop({ shop: party.address }));
+  const shop = toShop(party, view, directory);
+  // #217: a shop with no credit yet sees how close it is.
+  const db = getDb();
+  if (db) {
+    const unlock = await unlockStatus(db, party.id, view).catch(() => null);
+    if (unlock) shop.unlock = unlock;
+  }
+  return shop;
 }
 
 export async function getDrivers(): Promise<Driver[]> {
@@ -247,13 +256,30 @@ export async function payNow(invoiceId: number, amount?: number, confirmId?: str
       client.pay({ shop: invoice.shop, id: invoice.id, amount: units }),
     );
     const paid = formatMoney(toDollars(units));
-    const message =
+    let message =
       units === left
         ? `Pago recibido: ${paid} en dólares digitales.`
         : `Pago recibido: ${paid}. Falta ${formatMoney(toDollars(left - units))}.`;
+    // #217: a delivery paid off digitally counts toward a new shop's first credit, if at least half of it
+    // was this payment (a few cents after the cash doesn't count).
+    const unlocked = units === left && units * 2n >= invoice.amount ? await countDoorPayment(shop, invoice) : null;
+    if (unlocked) message += ` Su tienda ya tiene ${formatMoney(unlocked)} de crédito para «Pagar en 7 días».`;
     return { ok: true, message, txHash: hash, explorerUrl: explorerTx(hash) };
   } catch (error) {
     return failure(error);
+  }
+}
+
+/** Records the door payment and gives the first limit if it's due. Never fails the payment. */
+async function countDoorPayment(shop: Party, invoice: ChainInvoice): Promise<number | null> {
+  const db = getDb();
+  if (!db) return null;
+  try {
+    await recordDoorPayment(db, shop.id, Number(invoice.id), unitsToCents(invoice.amount));
+    return await unlockIfDue(db, shop);
+  } catch (error) {
+    console.error("[credit unlock]", error instanceof Error ? error.message : error);
+    return null;
   }
 }
 

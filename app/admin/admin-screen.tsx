@@ -11,7 +11,7 @@ import { HOLD_MS, TapShield, useMovedGuard, useSecondTap, useTapShield } from "@
 import { formatDay } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { sellLabel } from "@/lib/sells";
-import { LenderAdmin } from "./lender-admin";
+import { IdentityStamp, LenderAdmin } from "./lender-admin";
 
 type List = { pending: AdminRow[]; decided: AdminRow[] };
 
@@ -139,7 +139,10 @@ export default function AdminScreen() {
   const size = (d: AdminRow) => t(`${d.shopsApprox ?? "?"} tiendas · ${d.driversApprox ?? "?"} motoristas`, `${d.shopsApprox ?? "?"} shops · ${d.driversApprox ?? "?"} drivers`);
   const pendingColumns: LedgerColumn<AdminRow>[] = [
     { id: "name", header: t("Distribuidora", "Distributor"), grow: true, cell: (d) => d.businessName, title: (d) => d.businessName },
+    { id: "identity", header: t("Identidad", "Identity"), cell: (d) => <IdentityStamp status={d.idCheck} /> },
     { id: "nit", header: t("NIT", "Tax ID (NIT)"), mono: true, secondary: 54, cell: (d) => d.nit ?? "—" },
+    { id: "dui", header: t("DUI del representante", "Representative's DUI"), mono: true, secondary: true, cell: (d) => d.repDui ?? "—" },
+    { id: "matricula", header: t("Matrícula CNR", "CNR registration"), mono: true, secondary: true, cell: (d) => d.matricula ?? "—" },
     { id: "size", header: t("Tamaño (aprox.)", "Size (approx.)"), secondary: true, cell: size },
     { id: "address", header: t("Dirección", "Address"), secondary: true, cell: (d) => d.address ?? "—" },
     { id: "contact", header: t("Contacto", "Contact"), secondary: true, cell: (d) => <span className="break-all">{`${d.ownerName ?? "—"} · ${d.ownerContact ?? "—"}`}</span> },
@@ -190,7 +193,12 @@ export default function AdminScreen() {
             <LedgerCard
               title={d.businessName}
               amount={null}
-              stamp={<span className="text-label text-muted">{[d.nit ? `NIT ${d.nit}` : "", `${t("Registrada", "Signed up")} ${formatDay(d.createdAt, lang)}`].filter(Boolean).join(" · ")}</span>}
+              stamp={
+                <span className="flex flex-col items-start gap-1">
+                  <IdentityStamp status={d.idCheck} />
+                  <span className="text-label text-muted">{[d.nit ? `NIT ${d.nit}` : "", `${t("Registrada", "Signed up")} ${formatDay(d.createdAt, lang)}`].filter(Boolean).join(" · ")}</span>
+                </span>
+              }
               actions={<span className="flex justify-start">{decideCell(d)}</span>}
             />
           )}
