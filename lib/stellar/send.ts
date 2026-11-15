@@ -5,7 +5,7 @@ import type { AssembledTransaction } from "@stellar/stellar-sdk/contract";
 import type { Client } from "@/packages/route_ledger/src/index";
 import { clientFor } from "./client";
 import { config } from "./config";
-import { ContractError, contractErrorCode } from "./errors";
+import { codeFor, ContractError, contractErrorCode } from "./errors";
 import { canSponsor, describeResult, innerResultCode, sponsorFeeBump } from "./sponsor";
 
 const server = new rpc.Server(config.rpcUrl);
@@ -25,7 +25,7 @@ class BadSequence extends Error {
 /** Throws ContractError if the simulation says the contract would refuse. */
 export function checkSimulation(tx: AssembledTransaction<unknown>): void {
   const sim = tx.simulation;
-  if (sim && rpc.Api.isSimulationError(sim)) throw new ContractError(contractErrorCode(sim.error));
+  if (sim && rpc.Api.isSimulationError(sim)) throw new ContractError(codeFor(tx.options?.method, contractErrorCode(sim.error)));
   const result = tx.result as { isErr?: () => boolean } | undefined;
   if (result && typeof result.isErr === "function" && result.isErr()) throw new ContractError(null);
 }
