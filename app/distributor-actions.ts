@@ -3,7 +3,9 @@
 // Distributors (#130): sign-up with business details, waiting for approval,
 // the /admin decisions, and the dashboard scoped to the signed-in distributor.
 
+import { checkIdentity, type IdentityDetails } from "@/lib/identity";
 import { signUp } from "@/lib/server/accounts";
+import { ensureIdentityColumns, recordIdentity } from "@/lib/server/identity";
 import { signUpBlocked, TOO_MANY } from "@/lib/server/rate-limit";
 import { requireDb, getDb } from "@/lib/server/db";
 import { getDirectory } from "@/lib/server/directory";
@@ -43,15 +45,18 @@ export async function signUpDistributorAction(input: {
   contact: string;
   password: string;
   details: DistributorDetails;
+  identity: IdentityDetails;
 }): Promise<Reply> {
-  if (!getDb()) return { ok: false, message: "Las cuentas todavía no están activas en este servidor." };
-  const problem = checkDetails(input.details); // before anything is created
+  const db = getDb();
+  if (!db) return { ok: false, message: "Las cuentas todavía no están activas en este servidor." };
+  const problem = checkDetails(input.details) ?? checkIdentity(input.identity); // before anything is created
   if (problem) return { ok: false, message: problem };
   try {
     if (await signUpBlocked()) return { ok: false, message: TOO_MANY };
     const result = await signUp({ role: "distribuidora", name: input.name, contact: input.contact, password: input.password });
     if (!result.ok) return result;
-    await registerDistributor(result.user, input.details);
+    const distributor = await registerDistributor(result.user, input.details);
+    await recordIdentity(db, "distributors", distributor.id, input.identity); // numbers and status only (#215)
     await startSession(result.sessionId);
     return { ok: true };
   } catch (error) {
@@ -80,7 +85,7 @@ export async function getMyDistributor(): Promise<MyDistributor | null> {
 
 export type AdminRow = Pick<
   Distributor,
-  "id" | "businessName" | "nit" | "address" | "sells" | "shopsApprox" | "driversApprox" | "status" | "ownerName" | "ownerContact" | "createdAt"
+  "id" | "businessName" | "nit" | "address" | "sells" | "shopsApprox" | "driversApprox" | "status" | "ownerName" | "ownerContact" | "createdAt" | "idCheck" | "repDui" | "matricula"
 > & { explorerUrl: string };
 
 const toAdminRow = (d: Distributor): AdminRow => ({
@@ -95,6 +100,9 @@ const toAdminRow = (d: Distributor): AdminRow => ({
   ownerName: d.ownerName,
   ownerContact: d.ownerContact,
   createdAt: d.createdAt,
+  idCheck: d.idCheck,
+  repDui: d.repDui,
+  matricula: d.matricula,
   explorerUrl: `${config.explorer}/account/${d.stellarAddress}`,
 });
 
@@ -102,6 +110,7 @@ const toAdminRow = (d: Distributor): AdminRow => ({
 export async function getAdminList(): Promise<{ pending: AdminRow[]; decided: AdminRow[] } | null> {
   const user = await currentUser();
   if (user?.role !== "admin") return null;
+  await ensureIdentityColumns(requireDb()); // so the list can show the identity check (#215)
   const { pending, decided } = await listForAdmin();
   return { pending: pending.map(toAdminRow), decided: decided.map(toAdminRow) };
 }
