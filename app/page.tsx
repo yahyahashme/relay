@@ -123,7 +123,7 @@ function FoldChevron() {
 }
 
 /** One way into the demo: a card with a number and who you are. Tapping it unfolds one sentence and the people to choose from. */
-function Role({ n, id, who, children, links }: { n: number; id: string; who: ReactNode; children: ReactNode; links: ReactNode }) {
+function Role({ n, id, who, children, tryIt, note, links }: { n: number; id: string; who: ReactNode; children: ReactNode; tryIt: ReactNode; note?: ReactNode; links: ReactNode }) {
   return (
     <details className="fold group rounded-card border border-edge bg-paper">
       <summary className="press flex min-h-16 items-center gap-3 rounded-card px-4 py-3 hover:bg-brand-tint">
@@ -137,6 +137,31 @@ function Role({ n, id, who, children, links }: { n: number; id: string; who: Rea
       </summary>
       <div className="flex flex-col gap-3 px-4 pb-4">
         <p className="text-pretty text-muted">{children}</p>
+        {/* What to tap and what will happen, in one line. */}
+        <p className="rounded-[0.875rem] bg-white px-3.5 py-2.5 text-pretty">
+          <span className="font-bold">
+            <T es="Pruebe: " en="Try it: " />
+          </span>
+          {tryIt}
+        </p>
+        {note && (
+          <p className="flex gap-2 text-label text-muted text-pretty">
+            <svg
+              viewBox="0 0 24 24"
+              className="mt-0.5 size-4 shrink-0 text-brand"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="5" y="10" width="14" height="11" rx="2" />
+              <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+            </svg>
+            <span>{note}</span>
+          </p>
+        )}
         <div className="flex flex-col gap-2 [&_.bg-paper]:bg-white">{links}</div>
       </div>
     </details>
@@ -245,19 +270,53 @@ export default function Home() {
               </h2>
               <p className="text-lead text-muted text-pretty">
                 <T
-                  es="Elija cómo entrar: como la tienda, como el motorista o como la distribuidora. Todo usa dinero de prueba."
-                  en="Choose how to go in: as the shop, as the driver, or as the distributor. Everything uses test money."
+                  es="Elija a quién ser: la tienda, el motorista, la distribuidora o el prestamista. No necesita cuenta, y todo usa dinero de prueba."
+                  en="Choose who to be: the shop, the driver, the distributor or the lender. No account needed, and everything uses test money."
+                />
+              </p>
+              <p className="text-pretty">
+                <T
+                  es="Lo mejor: abra la tienda en un teléfono y el panel de la distribuidora en otro. Cuando la tienda paga, el pago aparece en el panel en segundos."
+                  en="Best of all: open the shop on one phone and the distributor's dashboard on another. When the shop pays, the payment shows up on the dashboard within seconds."
                 />
               </p>
             </header>
-            <div className="grid items-start gap-3 min-[64rem]:grid-cols-3 min-[64rem]:gap-4">
-              <Role n={1} id="rol-tienda" who={<T es="La tienda" en="The shop" />} links={<ShopLinks />}>
+            <div className="grid items-start gap-3 min-[64rem]:grid-cols-2 min-[64rem]:gap-4">
+              <Role
+                n={1}
+                id="rol-tienda"
+                who={<T es="La tienda" en="The shop" />}
+                links={<ShopLinks />}
+                tryIt={
+                  <T
+                    es="toque una tienda, abra una factura y elija «Pagar ahora». La factura queda pagada y la distribuidora lo ve al instante."
+                    en="tap a shop, open an invoice and choose “Pay now”. The invoice is paid and the distributor sees it right away."
+                  />
+                }
+                note={
+                  <T
+                    es="La primera vez que pague, este teléfono le pide crear su propio PIN de 6 números, o usar su cara o huella. Después lo pide en cada pago, como un banco."
+                    en="The first time you pay, this phone asks you to make your own 6-digit PIN, or to use your face or fingerprint. After that it asks on every payment, like a bank."
+                  />
+                }
+              >
                 <T
                   es="Paga cada factura desde el teléfono: ahora, en efectivo o en 7 días sin intereses."
                   en="Pays each invoice from the phone: now, in cash, or in 7 days with no interest."
                 />
               </Role>
-              <Role n={2} id="rol-motorista" who={<T es="El motorista" en="The driver" />} links={<DriverLinks />}>
+              <Role
+                n={2}
+                id="rol-motorista"
+                who={<T es="El motorista" en="The driver" />}
+                links={<DriverLinks />}
+                tryIt={
+                  <T
+                    es="abra una ruta, toque la siguiente parada y elija «Recibí efectivo». Después la tienda confirma ese efectivo desde su factura."
+                    en="open a route, tap the next stop and choose “I received cash”. The shop then confirms that cash from its invoice."
+                  />
+                }
+              >
                 <T es="Lleva la ruta del día en el teléfono y registra el efectivo que recibe." en="Carries the day's route on the phone and records the cash received." />
               </Role>
               <Role
@@ -265,8 +324,37 @@ export default function Home() {
                 id="rol-distribuidora"
                 who={<T es="La distribuidora" en="The distributor" />}
                 links={<ActionLink href="/distribuidor" title="Distribuidora El Sol" hint={<T es="Panel y facturas" en="Dashboard and invoices" />} />}
+                tryIt={
+                  <T
+                    es="abra el panel y toque «Nueva factura de demo». Aparece una factura nueva que cualquier tienda de la demo puede pagar."
+                    en="open the dashboard and tap “New demo invoice”. A new invoice appears that a demo shop can pay."
+                  />
+                }
               >
                 <T es="Ve qué se cobró, qué falta y cuánto efectivo traen sus motoristas." en="Sees what was collected, what's left, and how much cash the drivers carry." />
+              </Role>
+              <Role
+                n={4}
+                id="rol-prestamista"
+                who={<T es="El prestamista" en="The lender" />}
+                links={
+                  <ActionLink
+                    href="/prestamista"
+                    title={<T es="Fondo de crédito" en="Credit pool" />}
+                    hint={<T es="El fondo y el prestamista de la demo" en="The pool and the demo lender" />}
+                  />
+                }
+                tryIt={
+                  <T
+                    es="abra el fondo de crédito. Verá cuánto dinero hay, cuánto está prestado a las tiendas y lo que ganó el prestamista de la demo."
+                    en="open the credit pool. You'll see how much money is in it, how much is lent to shops, and what the demo lender has earned."
+                  />
+                }
+              >
+                <T
+                  es="Pone el dinero que le paga a la distribuidora cuando una tienda elige 7 días. Gana 0.50% de cada venta a crédito, que paga la distribuidora."
+                  en="Puts in the money that pays the distributor when a shop picks 7 days. Earns 0.50% of each credit sale, paid by the distributor."
+                />
               </Role>
             </div>
           </section>

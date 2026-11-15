@@ -6,6 +6,7 @@ import { Money } from "@/components/kit/money";
 import { Failure, Loading } from "@/components/kit/states";
 import { getDrivers, getInvoices, getShop } from "@/lib/api";
 import { plural } from "@/lib/format";
+import { DEMO_DRIVER_IDS, DEMO_SHOP_IDS } from "@/lib/demo-contacts";
 import { useT } from "@/lib/i18n";
 import { leftToPay } from "@/lib/labels";
 import type { Shop } from "@/lib/types";
@@ -26,9 +27,13 @@ function useDemo<Data>(key: string, load: () => Promise<Data>) {
   return { data, failed, retry, retrying };
 }
 
+/**
+ * Only the demo's own shops: anyone may pay as them without an account. A real shop that signed up has invoices too,
+ * but paying as it needs its owner signed in, so listing it here sent visitors to "Entre a su cuenta".
+ */
 async function loadShops() {
-  const invoices = await getInvoices();
-  const shopIds = [...new Set(invoices.map((i) => i.shopId))];
+  const invoices = (await getInvoices()).filter((i) => DEMO_SHOP_IDS.includes(i.shopId));
+  const shopIds = DEMO_SHOP_IDS.filter((id) => invoices.some((i) => i.shopId === id));
   const shops = (await Promise.all(shopIds.map(getShop))).filter((s): s is Shop => s !== null);
   return { invoices, shops };
 }
@@ -93,7 +98,7 @@ export function DriverLinks() {
   return (
     <ActionList>
       {data
-        .filter((driver) => (driver.distributorId ?? "distributor") === "distributor")
+        .filter((driver) => DEMO_DRIVER_IDS.includes(driver.id))
         .map((driver) => (
           <ActionLink key={driver.id} href={`/ruta/${driver.id}`} title={driver.name} hint={t("Ruta de hoy", "Today's route")} />
         ))}
