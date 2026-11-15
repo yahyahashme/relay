@@ -5,8 +5,8 @@ import type { MouseEvent, ReactNode } from "react";
 import { useT } from "@/lib/i18n";
 import { Chevron } from "./icons";
 
-// Solid blue holds actions. Anything you tap is a filled blue control (the main action)
-// or a clear outlined row (everything else). If it looks like paper, it isn't a button.
+// Wise-style actions: the main action is a light blue pill with dark navy words; everything else is a soft
+// grey-blue row or pill. Cards hold facts.
 
 type Size = "md" | "lg";
 
@@ -14,7 +14,7 @@ type Size = "md" | "lg";
 const HEIGHT: Record<Size, string> = { md: "min-h-13", lg: "min-h-15" };
 
 const PRESS =
-  "transition-[scale,background-color,border-color] duration-[120ms] ease-snap active:scale-[0.97] motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:active:scale-100 select-none";
+  "press disabled:cursor-not-allowed select-none";
 
 /** A filled button can also be "sm" (44 px), for a top bar. */
 type FilledSize = Size | "sm";
@@ -24,12 +24,12 @@ const FILL: Record<FilledSize, string> = {
   lg: "min-h-15 px-5 py-2 text-[1.125rem] text-balance",
 };
 
-const FILLED = `flex w-full flex-col items-center justify-center rounded-control text-center font-bold text-white ${PRESS}`;
+const FILLED = `flex w-full flex-col items-center justify-center rounded-full text-center font-bold ${PRESS}`;
 const TONE = {
   primary:
-    "bg-brand hover:bg-brand-press active:bg-brand-press disabled:bg-counter-rule disabled:text-muted aria-busy:disabled:bg-brand-press aria-busy:disabled:text-white data-arriving:disabled:bg-brand data-arriving:disabled:text-white",
+    "border-[1.5px] border-accent-edge bg-accent text-ink hover:bg-accent-press active:bg-accent-press disabled:border-dashed disabled:border-edge disabled:bg-white disabled:text-muted aria-busy:disabled:border-solid aria-busy:disabled:border-accent-edge aria-busy:disabled:bg-accent-press aria-busy:disabled:text-ink data-arriving:disabled:border-solid data-arriving:disabled:border-accent-edge data-arriving:disabled:bg-accent data-arriving:disabled:text-ink",
   danger:
-    "bg-bad hover:bg-[#8f1c13] active:bg-[#8f1c13] disabled:bg-counter-rule disabled:text-muted aria-busy:disabled:bg-[#8f1c13] aria-busy:disabled:text-white",
+    "bg-bad text-white hover:bg-[#8f1c13] active:bg-[#8f1c13] border-[1.5px] border-bad disabled:border-dashed disabled:border-edge disabled:bg-white disabled:text-muted aria-busy:disabled:bg-[#8f1c13] aria-busy:disabled:text-white",
 };
 
 /**
@@ -114,9 +114,9 @@ export function ButtonLink({ href, children, hint, size = "md", external = false
 
 // ---------- secondary actions: outlined rows ----------
 
-const ROW = `flex w-full items-center justify-between gap-3 px-4 py-2 text-left text-brand ${PRESS}`;
-const OUTLINE = "rounded-control border-[1.5px] border-brand hover:bg-brand/6 active:bg-brand/10";
-const OUTLINE_OFF = "disabled:border-counter-rule disabled:text-muted disabled:hover:bg-transparent";
+const ROW = `flex w-full items-center justify-between gap-3 px-4 py-2 text-left text-ink ${PRESS}`;
+const OUTLINE = "rounded-control border border-edge bg-paper hover:bg-brand-tint active:bg-brand-tint";
+const OUTLINE_OFF = "disabled:border-dashed disabled:text-muted disabled:hover:bg-paper";
 
 function RowLabel({ title, hint }: { title: ReactNode; hint?: ReactNode }) {
   return (
@@ -131,7 +131,7 @@ function RowEnd({ figure, open }: { figure?: ReactNode; open?: boolean }) {
   return (
     <span className="flex shrink-0 items-center gap-2">
       {figure && <span className="font-mono text-[1.0625rem] font-semibold text-ink">{figure}</span>}
-      <Chevron open={open} />
+      <Chevron open={open} className="size-5 text-brand" />
     </span>
   );
 }
@@ -180,13 +180,13 @@ export function ActionRow({
     );
   }
   return (
-    <div className={`rounded-control border-[1.5px] ${disabled ? "border-counter-rule" : "border-brand"}`}>
+    <div className={`rounded-control border bg-paper ${disabled ? "border-dashed border-edge" : "border-edge"}`}>
       <button
         type="button"
         onClick={onClick}
         disabled={disabled}
         aria-expanded={open}
-        className={`${ROW} ${HEIGHT[size]} rounded-[8px] -outline-offset-3 hover:bg-brand/6 active:bg-brand/10 disabled:text-muted disabled:hover:bg-transparent`}
+        className={`${ROW} ${HEIGHT[size]} rounded-control -outline-offset-3 hover:bg-brand-tint active:bg-brand-tint disabled:text-muted disabled:hover:bg-transparent`}
       >
         <RowLabel title={title} hint={hint} />
         <RowEnd figure={figure} open={open} />
@@ -242,7 +242,7 @@ export function TextButton({ children, onClick, disabled = false, size = "md" }:
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`self-center px-4 text-[1.0625rem] font-bold text-brand underline decoration-2 underline-offset-4 disabled:text-muted ${size === "lg" ? "min-h-14" : "min-h-12"}`}
+      className={`press self-center rounded-full px-4 text-[1.0625rem] font-bold text-brand underline decoration-2 underline-offset-4 disabled:text-muted ${size === "lg" ? "min-h-14" : "min-h-12"}`}
     >
       {children}
     </button>

@@ -38,6 +38,14 @@ async function shrink(file) {
  *   prepare    async (page) => {}: steps to take in the page before it is checked (pay an invoice, open a row)
  */
 const press = (page, name) => page.getByRole("button", { name }).first().click();
+/** A tap that moves money, then the demo's PIN on the confirm sheet (#199: every shop payment asks for it). */
+const pay = async (page, name) => {
+  await press(page, name);
+  const pin = page.locator("#pay-pin");
+  await pin.waitFor({ timeout: 20_000 });
+  await page.waitForTimeout(700); // the sheet's button ignores taps for its first 0.6 s
+  await pin.fill("123456");
+};
 const move = (page, path) => page.evaluate((to) => window.next.router.push(to), path);
 
 /**
@@ -53,20 +61,20 @@ async function workingDay(page) {
     await page.waitForTimeout(800); // a pay button ignores taps for its first 0.6 s
   };
   await open("/tienda/1008");
-  await press(page, /Pagar ahora|Pay now/);
+  await pay(page, /Pagar ahora|Pay now/);
   await paid(/Pagada · Digital|Paid · Digital/);
   await open("/tienda/1007");
   await press(page, /Pagar en 7 días|Pay in 7 days/);
   // On a short screen the panel can open with "Confirmo" right where the row was tapped, and a tap on the
   // same spot within 2.5 s is ignored on purpose (lib/taps.ts). A person reads the terms first; so does this.
   await page.waitForTimeout(2700);
-  await press(page, /^Confirmo|^Confirm/);
+  await pay(page, /^Confirmo|^Confirm/);
   await paid(/Pagada · Crédito|Paid · Credit/);
   await open("/tienda/1006");
   await press(page, /Pagar otro monto|Pay another amount/);
   await page.locator("main input[inputmode=decimal]:visible").fill("45");
   await page.waitForTimeout(800);
-  await press(page, /Pagar este monto|Pay this amount/);
+  await pay(page, /Pagar este monto|Pay this amount/);
   await paid(/^(Pagado|Paid)$/);
   await move(page, "/ruta/motorista-1");
   await page.waitForSelector("main [data-next]", { timeout: 20_000 });
@@ -77,7 +85,7 @@ async function workingDay(page) {
   await press(page, /Recibí efectivo|I received cash/);
   await page.waitForTimeout(2500);
   await open("/tienda/1004");
-  await press(page, /^Confirmo|^Confirm/);
+  await pay(page, /^Confirmo|^Confirm/);
   await paid(/Pagada · Efectivo|Paid · Cash/);
   await move(page, "/distribuidor");
   await page.locator("#facturas tbody tr:visible, #facturas ul > li:visible").first().waitFor({ timeout: 20_000 });
@@ -253,7 +261,7 @@ const GROUPS = {
           await page.waitForTimeout(800); // a pay button ignores taps for its first 0.6 s
           await press(page, /Pagar en 7 días|Pay in 7 days/);
           await page.waitForTimeout(2700); // a tap on the same spot within 2.5 s is ignored on purpose (lib/taps.ts)
-          await press(page, /^Confirmo|^Confirm/);
+          await pay(page, /^Confirmo|^Confirm/);
           await page.getByText(/Pagada · Crédito|Paid · Credit/).first().waitFor({ timeout: 20_000 });
           await page.waitForTimeout(2500); // the hold after a payment
           await move(page, "/tienda/cuenta/tienda-1");
@@ -271,13 +279,13 @@ const GROUPS = {
           await page.waitForTimeout(800);
           await press(page, /Pagar en 7 días|Pay in 7 days/);
           await page.waitForTimeout(2700);
-          await press(page, /^Confirmo|^Confirm/);
+          await pay(page, /^Confirmo|^Confirm/);
           await page.getByText(/Pagada · Crédito|Paid · Credit/).first().waitFor({ timeout: 20_000 });
           await page.waitForTimeout(2500);
           await move(page, "/tienda/cuenta/tienda-1");
           await page.getByRole("button", { name: /Pagar deuda|Pay debt/ }).waitFor({ timeout: 20_000 });
           await page.waitForTimeout(800);
-          await press(page, /Pagar deuda|Pay debt/);
+          await pay(page, /Pagar deuda|Pay debt/);
           await page.getByText(/Deuda pagada$|Debt paid$/).first().waitFor({ timeout: 20_000 });
           await page.waitForTimeout(2500);
         },
@@ -294,7 +302,7 @@ const GROUPS = {
           await page.waitForTimeout(800);
           await press(page, /Pagar en 7 días|Pay in 7 days/);
           await page.waitForTimeout(2700);
-          await press(page, /^Confirmo|^Confirm/);
+          await pay(page, /^Confirmo|^Confirm/);
           await page.getByText(/Pagada · Crédito|Paid · Credit/).first().waitFor({ timeout: 20_000 });
           await page.waitForTimeout(2500);
           await move(page, "/tienda/cuenta/tienda-1/historial");

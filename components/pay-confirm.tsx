@@ -253,7 +253,7 @@ function ConfirmSheet({ ask, done }: { ask: ConfirmAsk; done: (answer: ConfirmAn
         role="dialog"
         aria-modal="true"
         aria-labelledby="pay-confirm-title"
-        className="flex max-h-[100dvh] w-full max-w-[28rem] flex-col gap-3 overflow-y-auto rounded-t-[14px] bg-counter px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:rounded-[14px]"
+        className="flex max-h-[100dvh] w-full max-w-[28rem] flex-col gap-3 overflow-y-auto rounded-t-[1.75rem] bg-counter px-5 pt-5 pb-[max(1rem,env(safe-area-inset-bottom))] sm:rounded-[1.75rem]"
       >
         <Receipt>
           <ReceiptHeader as="h2" from={<span id="pay-confirm-title">{setup ? t("Proteja sus pagos", "Protect your payments") : t(title, titleEn)}</span>} />

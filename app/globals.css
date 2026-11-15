@@ -1,41 +1,50 @@
 @import "tailwindcss";
 
 /*
- * Papel de confianza: paper holds facts, solid blue holds actions. The rules are in DESIGN.md.
+ * The Relay look (Nov 14, after Wise's app): white pages, soft grey-blue cards, pill buttons in a bright light
+ * blue with dark navy words, big heavy headings. The rules are in DESIGN.md.
  * One light look on purpose: shopkeepers use it outdoors, on bright screens.
  */
 @theme {
   /* Surfaces. Paper sits on the counter; that contrast is the only depth. */
-  --color-counter: #e6e1d4;
-  --color-paper: #fffdf8;
-  --color-paper-rule: #d9d3c4;
+  --color-counter: #ffffff;
+  --color-paper: #f1f5fa;
+  --color-paper-rule: #dce4ee;
   /* A hairline drawn on the counter itself (ink at 16%); paper-rule is too close to the counter to show there. */
-  --color-counter-rule: #c4c2ba;
+  --color-counter-rule: #c9d3df;
 
   /* Text */
-  --color-ink: #14202e;
-  --color-muted: #4f5a68;
+  --color-ink: #0b1f3a;
+  --color-muted: #4a586b;
 
   /* Actions */
   --color-brand: #0b4ea2;
   --color-brand-press: #083b7a;
+  /* The bright accent (Wise's lime, in Relay blue): the main button and the big hero bands. Ink text on it. */
+  --color-accent: #a8d5ff;
+  --color-accent-press: #8cc4f7;
+  /* The edge of anything light blue (3:1 or more on white, on cards and on the light blue itself), so a button
+     is a button for anyone, not just a pale shape. */
+  --color-accent-edge: #265f9e;
+  /* The edge of a tappable row or card (3:1 or more on white and on cards). */
+  --color-edge: #6f8196;
 
   /* Stamps and status. The tints are stamp fills only, never large backgrounds. */
   --color-ok: #146c43;
-  --color-ok-tint: #e8efe6;
+  --color-ok-tint: #e3f3e8;
   --color-warn: #8f5200;
-  --color-warn-tint: #f4ecdf;
+  --color-warn-tint: #fcf0dc;
   --color-bad: #b42318;
-  --color-bad-tint: #f8e7e2;
+  --color-bad-tint: #fde8e5;
   --color-credit: #5b3fa6;
-  --color-credit-tint: #efeaf0;
-  --color-brand-tint: #e7ecef;
+  --color-credit-tint: #efeafb;
+  --color-brand-tint: #e1edfb;
 
   /* Shape: near-square paper, rounder controls */
-  --radius-paper: 12px;
-  --radius-control: 10px;
+  --radius-paper: 20px;
+  --radius-control: 14px;
   /* An account card (Mi cuenta, the panel): soft corners, so it reads as an account, not a receipt. */
-  --radius-card: 14px;
+  --radius-card: 20px;
 
   /* Fluid type, 320 to 1440 px wide. Body never under 16 px, labels never under 14 px. */
   --text-label: 0.875rem;
@@ -59,8 +68,12 @@
 }
 
 @theme inline {
+  /* Reading text: Atkinson Hyperlegible Next, made for low vision (no mixing up 0/O, 1/l/I). */
   --font-sans: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* Amounts and codes: its mono sister, so every digit and letter of a code is unmistakable. */
+  --font-mono: var(--font-atkinson-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* Big headings only: Inter, heavy and tight, for the Wise look. */
+  --font-display: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* A short screen (a 360x640 phone, any phone held sideways): the slip tightens and folds its lines, so the
@@ -134,9 +147,17 @@ body {
     outline-offset: 2px;
   }
 
-  /* Mono figures line up in columns */
+  /* Figures line up in columns */
   .font-mono {
     font-variant-numeric: tabular-nums;
+  }
+
+  /* Headings: heavy and tight, like Wise's. */
+  h1,
+  h2 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.025em;
   }
 }
 
@@ -191,7 +212,7 @@ body {
 
   /* The arrow of a select, drawn like the other chevrons */
   .select-chevron {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%230b4ea2' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 7.5 10 13l5.5-5.5'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%230b1f3a' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 7.5 10 13l5.5-5.5'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
     background-size: 1.25rem;
@@ -260,6 +281,72 @@ body {
   }
 
   /* ---------- motion ---------- */
+
+  /* Every tappable thing: it sinks a little under the finger and springs back when let go. The press is quick
+     (80 ms) so it answers at once; the release is slower with a soft overshoot, so it feels alive, not jumpy. */
+  .press {
+    transition:
+      scale 260ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      background-color 160ms ease-out,
+      color 160ms ease-out,
+      box-shadow 160ms ease-out;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .press:active:not(:disabled, [aria-disabled="true"]) {
+    scale: 0.96;
+    transition-duration: 80ms, 80ms, 80ms, 80ms;
+    transition-timing-function: ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .press,
+    .press:active {
+      scale: none;
+    }
+  }
+
+  /* A section that folds (details/summary): it opens smoothly where the browser allows, its chevron turns. */
+  .fold {
+    interpolate-size: allow-keywords;
+  }
+
+  .fold::details-content {
+    block-size: 0;
+    overflow-y: clip;
+    transition:
+      block-size 320ms var(--ease-snap),
+      content-visibility 320ms allow-discrete;
+  }
+
+  .fold[open]::details-content {
+    block-size: auto;
+  }
+
+  .fold > summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .fold > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .fold .fold-chevron {
+    transition: rotate 260ms var(--ease-snap);
+  }
+
+  .fold[open] .fold-chevron {
+    rotate: 90deg;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fold::details-content,
+    .fold .fold-chevron {
+      transition: none;
+    }
+  }
+
 
   /* A payment completes and its status appears, once: a short fade and settle. */
   .stamp-land {
