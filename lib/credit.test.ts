@@ -13,6 +13,11 @@ const paid = (daysAgo: number, daysLate = 0, amount = 100): HistoryRow => ({
 });
 
 describe("Relay score (#137)", () => {
+  it("carries the pay-later record with distributors (#203), and leaves it out when there is none", () => {
+    expect(creditScore(shop({ laterOnTime: 3, laterLate: 1 }), [], 1, NOW).later).toEqual({ onTime: 3, paid: 4 });
+    expect(creditScore(shop(), [], 1, NOW).later).toBeUndefined();
+  });
+
   it("is middling and says so for a shop with no history", () => {
     const s = creditScore(shop(), [], 1, NOW);
     expect(s.isNew).toBe(true);

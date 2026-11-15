@@ -100,8 +100,8 @@ export function ShopCreditTier({ shopId }: { shopId: string }) {
             )}
             <p className="text-label text-muted text-pretty">
               {t(
-                "Cada pago a tiempo en dólares digitales, también a 7 días con usted, le sube el límite con el fondo hasta $300. Un atraso se lo baja.",
-                "Every on-time payment in digital dollars, including 7 days with you, raises its pool limit up to $300. Paying late lowers it.",
+                "Solo los pagos a tiempo al fondo le suben el límite. Un atraso con usted también se lo baja.",
+                "Only on-time payments to the pool raise its limit. Paying you late lowers it too.",
               )}
             </p>
           </div>

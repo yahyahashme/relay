@@ -51,6 +51,14 @@ export function ScoreFacts({ score, tips = true }: { score: CreditScore; tips?: 
           </li>
         ))}
       </ul>
+      {score.later && (
+        <p className="text-pretty">
+          {t(
+            `Pagó a tiempo ${score.later.onTime} de ${score.later.paid} con sus distribuidoras, a 7 días.`,
+            `Paid its distributors on time ${score.later.onTime} of ${score.later.paid} times, on 7 days.`,
+          )}
+        </p>
+      )}
       {score.isNew && (
         <p className="text-muted text-pretty">{t("Todavía es nuevo en Relay: el puntaje se afina con cada pago.", "Still new on Relay: the score sharpens with each payment.")}</p>
       )}
