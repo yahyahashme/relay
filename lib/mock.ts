@@ -9,6 +9,7 @@ import { poolHealth } from "./pool-health";
 import { growthStep } from "./credit-tiers";
 import { formatDay, formatMoney, plural } from "./format";
 import { buildHistory } from "./history";
+import { buildLenderHistory, type LenderHistory, type LenderMove, type PoolEvent } from "./lender-history";
 import { LENDER_BPS, poolFeeSplit, RECOURSE_FEE_BPS, RECOURSE_LENDER_BPS, recourseRequired } from "./labels";
 import { HISTORY_PAGE, type Driver, type Payment, type Profile, type ShopHistory, type Supplier, type Invoice, type InvoiceHistory, type InvoiceRow, type PayMethod, type LenderView, type MyLender, type Pool, type PoolHealth, type Receipt, type RecourseView, type Shop, type Totals } from "./types";
 
@@ -75,7 +76,8 @@ type Store = {
   pool: { available: number; buffer: number }; // units
   recourse: { deposit: number }; // the demo distributor's recourse deposit, cents (#185)
   /** A signed-in lender for mock mode (#207), cents: what it put in, its place in the pool, its own test dollars. */
-  lender: { status: MyLender["status"]; netDeposited: number; value: number; balance: number };
+  lender: { status: MyLender["status"]; netDeposited: number; value: number; balance: number; moves: LenderMove[] };
+  seededAt: number;
   payments: PaymentRecord[]; // every payment, oldest first, for the shop's history (#136)
 };
 type PaymentRecord = { shopId: string; invoiceId: number | null; method: Payment["method"]; amount: number; at: number; driverId?: string };
@@ -126,7 +128,8 @@ function seed(now: number): Store {
     pool: { available: 5_000_00 * UNITS_PER_CENT, buffer: 200_00 * UNITS_PER_CENT }, // deploy.sh seeds $200
     payments: [],
     recourse: { deposit: 0 },
-    lender: { status: "aprobado", netDeposited: 0, value: 0, balance: 5_000_00 },
+    lender: { status: "aprobado", netDeposited: 0, value: 0, balance: 5_000_00, moves: [] },
+    seededAt: now,
   };
 }
 
@@ -661,6 +664,7 @@ export function lenderDeposit(amount: number): Receipt {
   lender.balance -= cents;
   lender.value += cents;
   lender.netDeposited += cents;
+  lender.moves.unshift({ kind: "in", at: new Date(clock()).toISOString(), amount: dollars(cents) });
   pool.available += cents * UNITS_PER_CENT;
   return ok("Dinero puesto en el fondo.");
 }
@@ -675,6 +679,24 @@ export function lenderWithdraw(amount: number | "all"): Receipt {
   lender.balance += cents;
   lender.value -= cents;
   lender.netDeposited -= cents;
+  lender.moves.unshift({ kind: "out", at: new Date(clock()).toISOString(), amount: dollars(cents) });
   pool.available -= cents * UNITS_PER_CENT;
   return ok("Dinero retirado del fondo.");
+}
+
+/**
+ * A lender's movements (#224). The signed-in mock lender: its Puso and Retiró. The demo lender
+ * owns the whole pool, so every credit sale is all its money and it earns the whole 0.50%.
+ */
+export function getLenderHistory(mine: boolean): LenderHistory | null {
+  const { lender, payments, seededAt } = db();
+  if (mine) return { moves: lender.moves, putIn: dollars(lender.netDeposited), earned: dollars(lender.value - lender.netDeposited) };
+  const D = 100_000n; // cents to 7-decimal units
+  const events: PoolEvent[] = payments
+    .filter((p) => p.method === "credit" && p.invoiceId !== null)
+    .map((p) => ({ kind: "credit" as const, invoiceId: p.invoiceId!, amount: BigInt(p.amount) * D, recourse: false, at: new Date(p.at).toISOString() }))
+    .reverse();
+  events.push({ kind: "deposit", lender: "lender", amount: 5_000_00n * D, shares: 0n, at: new Date(seededAt).toISOString() });
+  const view = getLender();
+  return buildLenderHistory(events, "lender", { shares: 1n, poolShares: 1n, value: view.value, netDeposited: view.netDeposited });
 }

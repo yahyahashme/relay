@@ -238,3 +238,19 @@ export async function redeemConfirm(db: Db, owner: Owner | null, id: string | un
 
 /** Contract units (7 decimals) to whole cents, rounded the way the screen shows them. */
 export const unitsToCents = (units: bigint) => Number((units + 50_000n) / 100_000n);
+
+/**
+ * "Reiniciar demo" (#223): forget every demo phone's passkey, PIN, open challenges and wrong-PIN
+ * count, so the next judge sets their own. Real accounts ("user:…") are never touched.
+ */
+export async function clearDemoConfirms(db: Db): Promise<number> {
+  await ensureTables(db);
+  const keys = await db.query<{ n: string | number }>(
+    `SELECT (SELECT count(*) FROM pay_passkeys WHERE owner LIKE 'device:%') + (SELECT count(*) FROM pay_pins WHERE owner LIKE 'device:%') AS n`,
+  );
+  await db.query(`DELETE FROM pay_passkeys WHERE owner LIKE 'device:%'`);
+  await db.query(`DELETE FROM pay_pins WHERE owner LIKE 'device:%'`);
+  await db.query(`DELETE FROM pay_challenges WHERE owner LIKE 'device:%'`);
+  await db.query(`DELETE FROM rate_events WHERE key LIKE 'pin:device:%'`);
+  return Number(keys[0]?.n ?? 0);
+}

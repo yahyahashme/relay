@@ -9,9 +9,10 @@ import { LedgerFigure, LedgerFigures } from "@/components/kit/ledger";
 import { Paper } from "@/components/kit/paper";
 import { Answer, Failure, Loading } from "@/components/kit/states";
 import { usePayConfirm } from "@/components/pay-confirm";
-import { getLender, getMyLender, getPool, getPoolHealth, lenderDeposit, lenderWithdraw } from "@/lib/api";
+import { getLender, getLenderHistory, getMyLender, getPool, getPoolHealth, lenderDeposit, lenderWithdraw } from "@/lib/api";
 import type { PoolHealth } from "@/lib/types";
-import { formatMoney } from "@/lib/format";
+import { formatDay, formatMoney } from "@/lib/format";
+import type { LenderHistory, LenderMove } from "@/lib/lender-history";
 import { useT } from "@/lib/i18n";
 import { parseAmount } from "@/lib/labels";
 import type { LenderView, MyLender, Pool, Receipt } from "@/lib/types";
@@ -70,6 +71,7 @@ export default function LenderScreen() {
       ) : (
         <>
           {mine && <MyPlace mine={mine} reload={reload} />}
+          {mine && mine.status !== "pendiente" && <LenderMoves mine version={`${mine.value}|${mine.netDeposited}`} />}
 
           <section className="flex flex-col gap-2">
             {mine && <h2 className={HEADING}>{t("El fondo de crédito", "The credit pool")}</h2>}
@@ -94,6 +96,7 @@ export default function LenderScreen() {
               </LedgerFigures>
             </section>
           )}
+          {!mine && <LenderMoves mine={false} version={`${data.lender.value}|${data.lender.netDeposited}`} />}
         </>
       )}
 
@@ -286,6 +289,103 @@ function PoolShops() {
           )}
         </p>
       </div>
+    </section>
+  );
+}
+
+/** Under $1, four decimals: a lender's part of one sale is often a few tenths of a cent. */
+const fine = (n: number) => (Math.abs(n) < 1 && n !== 0 ? `$${n.toFixed(4)}` : formatMoney(n));
+
+const SHOWN = 12;
+
+/**
+ * The lender's own movements (#224): Puso, Retiró, and its part of every credit sale (the dollars
+ * of its own that the sale used and what it earned), adding up to "Puso" and "Ganó" above.
+ * Read again whenever those figures change.
+ */
+function LenderMoves({ mine, version }: { mine: boolean; version: string }) {
+  const { lang, t } = useT();
+  const [history, setHistory] = useState<LenderHistory | null | undefined>(undefined);
+  const [all, setAll] = useState(false);
+  useEffect(() => {
+    let live = true;
+    getLenderHistory(mine).then(
+      (found) => live && setHistory(found),
+      () => live && setHistory(null),
+    );
+    return () => {
+      live = false;
+    };
+  }, [mine, version]);
+
+  const label = (m: LenderMove): [string, string, string | null] => {
+    switch (m.kind) {
+      case "in":
+        return [t("Puso", "Put in"), `+${formatMoney(m.amount)}`, null];
+      case "out":
+        return [t("Retiró", "Took out"), `-${formatMoney(m.amount)}`, null];
+      case "share":
+        return [
+          t(`Su parte de la factura ${m.invoiceId}`, `Its part of invoice ${m.invoiceId}`),
+          `+${fine(m.earned)}`,
+          t(`Usó ${fine(m.used)} de su dinero; vuelve cuando la tienda paga.`, `Used ${fine(m.used)} of its money; it comes back when the shop pays.`),
+        ];
+      case "loss":
+        return [t("Deuda que no se pagó", "Debt that wasn't paid"), `-${fine(m.lost)}`, t("Lo que el fondo de respaldo no cubrió.", "What the backup fund didn't cover.")];
+      case "earlier":
+        return [
+          t("Antes de esta lista", "Before this list"),
+          `+${fine(m.earned)}`,
+          t(`Puso ${formatMoney(m.putIn)} neto. La red guarda una semana de movimientos.`, `Put in ${formatMoney(m.putIn)} net. The network keeps a week of movements.`),
+        ];
+    }
+  };
+
+  return (
+    <section className="flex max-w-[40rem] flex-col gap-2">
+      <h2 className={HEADING}>{mine ? t("Sus movimientos", "Your movements") : t("Movimientos del prestamista de la demo", "The demo lender's movements")}</h2>
+      {history === undefined ? (
+        <Loading lines={3} torn={false} />
+      ) : history === null ? (
+        <p className="text-muted">{t("No pudimos leer los movimientos. Intente más tarde.", "We couldn't read the movements. Try later.")}</p>
+      ) : history.moves.length === 0 ? (
+        <p>{t("Todavía no hay movimientos.", "No movements yet.")}</p>
+      ) : (
+        <>
+          <ul className="flex flex-col divide-y-2 divide-dotted divide-edge">
+            {(all ? history.moves : history.moves.slice(0, SHOWN)).map((m, i) => {
+              const [what, amount, note] = label(m);
+              const tx = "txHash" in m && m.txHash ? m.txHash : null;
+              return (
+                <li key={i} className="flex flex-col gap-0.5 py-2">
+                  <span className="flex items-baseline justify-between gap-3">
+                    <span className="font-semibold">{what}</span>
+                    <span className={`font-mono tabular-nums ${amount.startsWith("-") ? "text-bad" : ""}`}>{amount}</span>
+                  </span>
+                  <span className="flex flex-wrap items-baseline gap-x-3 text-label text-muted">
+                    {"at" in m && <span>{formatDay(m.at, lang)}</span>}
+                    {note && <span>{note}</span>}
+                    {tx && (
+                      <DetailLink href={`${testnet.explorer}/tx/${tx}`} external>
+                        {t("Ver detalles", "See details")}
+                      </DetailLink>
+                    )}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          {!all && history.moves.length > SHOWN && (
+            <TextButton onClick={() => setAll(true)}>{t(`Ver los ${history.moves.length}`, `See all ${history.moves.length}`)}</TextButton>
+          )}
+          <p className="text-label text-muted text-pretty">
+            {t(
+              `En total: puso ${formatMoney(history.putIn)} y ganó ${formatMoney(history.earned)}. Cada venta a crédito usa el dinero de todos los prestamistas según lo que cada uno puso, y cada uno gana su parte del 0.50%.`,
+              `In total: put in ${formatMoney(history.putIn)} and earned ${formatMoney(history.earned)}. Each credit sale uses every lender's money in proportion to what each put in, and each earns its share of the 0.50%.`,
+            )}
+          </p>
+        </>
+      )}
     </section>
   );
 }

@@ -11,6 +11,7 @@ import { HOLD_MS, TapShield, useMovedGuard, useSecondTap, useTapShield } from "@
 import { formatDay } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { sellLabel } from "@/lib/sells";
+import { DemoReset } from "./demo-reset";
 import { IdentityStamp, LenderAdmin } from "./lender-admin";
 
 type List = { pending: AdminRow[]; decided: AdminRow[] };
@@ -180,6 +181,7 @@ export default function AdminScreen() {
   return (
     <Frame>
       {locked && <TapShield onTap={noteTap} />}
+      <DemoReset />
       <h1 className="text-title font-bold">{t("Distribuidoras por aprobar", "Distributors to approve")}</h1>
 
       <section ref={pendingBlock} className={SECTION}>
