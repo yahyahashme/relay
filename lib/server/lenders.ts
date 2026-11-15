@@ -1,9 +1,10 @@
 import "server-only";
 
+import type { IdentityStatus } from "@/lib/identity";
 import type { User } from "./accounts";
 import { newId } from "./crypto";
 import { type Db, requireDb } from "./db";
-import { autoApproveSeconds } from "./distributors";
+import { autoApproveSeconds, normalizeNit } from "./distributors";
 import { invalidateDirectory } from "./directory";
 
 // Lender sign-up and approval (#207). Only lenders approved on the contract (approve_lender) can put
@@ -19,14 +20,19 @@ export type Lender = {
   businessName: string;
   country: string;
   licence: string;
+  nit: string | null;
   status: LenderStatus;
   stellarAddress: string;
   ownerName: string | null;
   ownerContact: string | null;
   createdAt: string;
+  /** The identity check (#215): "verificada_demo", or "sin_verificar" for sign-ups from before it. */
+  idCheck: IdentityStatus;
+  repDui: string | null;
+  matricula: string | null;
 };
 
-export type LenderDetails = { businessName: string; country: string; licence: string };
+export type LenderDetails = { businessName: string; country: string; licence: string; nit: string };
 
 /** Spanish message if the details won't do, else null. */
 export function checkLenderDetails(d: LenderDetails): string | null {
@@ -39,6 +45,7 @@ export function checkLenderDetails(d: LenderDetails): string | null {
   if (country.length < 2 || country.length > 60) return "Escriba el país.";
   const licence = d.licence.trim();
   if (licence.length < 3 || licence.length > 60) return "Escriba el número de licencia o registro.";
+  if (!normalizeNit(String(d.nit ?? ""))) return "El NIT debe tener 14 dígitos.";
   return null;
 }
 
@@ -69,6 +76,7 @@ export async function ensureLenderTables(db: Db): Promise<void> {
     country TEXT NOT NULL, licence TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'pendiente' CHECK (status IN ('pendiente', 'aprobado', 'revocado')),
     stellar_address TEXT NOT NULL UNIQUE, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), decided_at TIMESTAMPTZ)`);
+  await db.query(`ALTER TABLE lenders ADD COLUMN IF NOT EXISTS nit TEXT`); // #215
   ready.add(db);
 }
 
@@ -77,11 +85,15 @@ type Row = {
   business_name: string;
   country: string;
   licence: string;
+  nit?: string | null;
   status: LenderStatus;
   stellar_address: string;
   owner_name: string | null;
   owner_contact: string | null;
   created_at: string | Date;
+  id_check?: string | null;
+  rep_dui?: string | null;
+  cnr_matricula?: string | null;
 };
 
 const SELECT = `SELECT l.*, u.name AS owner_name, COALESCE(u.phone, u.email) AS owner_contact
@@ -92,11 +104,15 @@ const toLender = (r: Row): Lender => ({
   businessName: r.business_name,
   country: r.country,
   licence: r.licence,
+  nit: r.nit ?? null,
   status: r.status,
   stellarAddress: r.stellar_address,
   ownerName: r.owner_name,
   ownerContact: r.owner_contact,
   createdAt: new Date(r.created_at).toISOString(),
+  idCheck: r.id_check === "verificada_demo" ? "verificada_demo" : "sin_verificar",
+  repDui: r.rep_dui ?? null,
+  matricula: r.cnr_matricula ?? null,
 });
 
 /** The business for a lender user, using the user's own Stellar account. */
@@ -105,13 +121,14 @@ export async function registerLender(user: User, details: LenderDetails): Promis
   await ensureLenderTables(db);
   const id = newId("l");
   await db.query(
-    `INSERT INTO lenders (id, owner_user_id, business_name, country, licence, stellar_address) VALUES ($1, $2, $3, $4, $5, $6)`,
+    `INSERT INTO lenders (id, owner_user_id, business_name, country, licence, nit, stellar_address) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
     [
       id,
       user.id,
       details.businessName.trim().replace(/\s+/g, " "),
       details.country.trim().replace(/\s+/g, " "),
       details.licence.trim(),
+      normalizeNit(details.nit),
       user.stellarAddress,
     ],
   );

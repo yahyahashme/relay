@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { IdentityStatus } from "@/lib/identity";
 import { requireDb } from "./db";
 import { invalidateDirectory } from "./directory";
 import { newId } from "./crypto";
@@ -24,6 +25,10 @@ export type Distributor = {
   ownerName: string | null;
   ownerContact: string | null;
   createdAt: string;
+  /** The identity check (#215): "verificada_demo", or "sin_verificar" for sign-ups from before it. */
+  idCheck: IdentityStatus;
+  repDui: string | null;
+  matricula: string | null;
 };
 
 export const SELLS = ["Snacks", "Bebidas", "Pan", "Lácteos", "Abarrotes", "Limpieza", "Otros"] as const;
@@ -69,6 +74,9 @@ type Row = {
   owner_name: string | null;
   owner_contact: string | null;
   created_at: string | Date;
+  id_check?: string | null;
+  rep_dui?: string | null;
+  cnr_matricula?: string | null;
 };
 
 const SELECT = `SELECT d.*, u.name AS owner_name, COALESCE(u.phone, u.email) AS owner_contact
@@ -87,6 +95,9 @@ const toDistributor = (r: Row): Distributor => ({
   ownerName: r.owner_name,
   ownerContact: r.owner_contact,
   createdAt: new Date(r.created_at).toISOString(),
+  idCheck: r.id_check === "verificada_demo" ? "verificada_demo" : "sin_verificar",
+  repDui: r.rep_dui ?? null,
+  matricula: r.cnr_matricula ?? null,
 });
 
 /** The business for a distributor user, using the user's own Stellar account. */

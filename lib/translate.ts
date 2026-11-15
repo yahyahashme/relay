@@ -88,6 +88,13 @@ const RULES: Rule[] = [
   exact("El crédito no está disponible en este momento.", "Credit isn't available right now."),
   exact("Hoy no hay fondos para crédito. Intente más tarde.", "There's no credit money available today. Try again later."),
   exact("No tiene deuda pendiente.", "You have no debt to pay."),
+  // Identity check at sign-up (#215)
+  exact("El DUI debe tener 9 dígitos.", "The DUI must have 9 digits."),
+  exact("Escriba la fecha de nacimiento.", "Enter the date of birth."),
+  exact("El representante legal debe ser mayor de edad.", "The legal representative must be an adult."),
+  exact("Escriba el número de matrícula de comercio del CNR.", "Enter the CNR trade registration number."),
+  exact("Tome la foto de su DUI.", "Take the photo of your DUI."),
+  exact("Tómese una selfie.", "Take a selfie."),
   // Lenders (#207)
   exact("Escriba el país.", "Enter the country."),
   exact("Escriba el número de licencia o registro.", "Enter the licence or registration number."),

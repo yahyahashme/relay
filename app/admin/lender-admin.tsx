@@ -8,12 +8,27 @@ import { Stamp } from "@/components/kit/stamp";
 import { Failure, Loading } from "@/components/kit/states";
 import { useSecondTap } from "@/components/tap-shield";
 import { formatDay } from "@/lib/format";
+import type { IdentityStatus } from "@/lib/identity";
 import { useT } from "@/lib/i18n";
 
 type List = { pending: LenderAdminRow[]; decided: LenderAdminRow[] };
 type Decision = "aprobado" | "revocado";
 
 const HEADING = "text-lead leading-tight font-bold";
+
+/** The identity check at sign-up (#215): simulated in the demo, so it says so. */
+export function IdentityStamp({ status }: { status: IdentityStatus }) {
+  const { t } = useT();
+  return status === "verificada_demo" ? (
+    <Stamp small tone="ok">
+      {t("Verificada (demo)", "Verified (demo)")}
+    </Stamp>
+  ) : (
+    <Stamp small tone="warn">
+      {t("Sin verificar", "Not verified")}
+    </Stamp>
+  );
+}
 
 /**
  * Lenders on /admin (#207). "Aprobar" calls approve_lender with the admin key, also for a lender
@@ -117,8 +132,12 @@ export function LenderAdmin() {
   const columns: LedgerColumn<LenderAdminRow>[] = [
     { id: "name", header: t("Prestamista", "Lender"), grow: true, cell: (l) => l.businessName, title: (l) => l.businessName },
     { id: "status", header: t("Estado", "Status"), cell: stamp },
+    { id: "identity", header: t("Identidad", "Identity"), cell: (l) => <IdentityStamp status={l.idCheck} /> },
     { id: "country", header: t("País", "Country"), secondary: true, cell: (l) => l.country },
     { id: "licence", header: t("Licencia o registro", "Licence or registration"), mono: true, secondary: true, cell: (l) => l.licence },
+    { id: "nit", header: t("NIT", "Tax ID (NIT)"), mono: true, secondary: true, cell: (l) => l.nit ?? "—" },
+    { id: "dui", header: t("DUI del representante", "Representative's DUI"), mono: true, secondary: true, cell: (l) => l.repDui ?? "—" },
+    { id: "matricula", header: t("Matrícula CNR", "CNR registration"), mono: true, secondary: true, cell: (l) => l.matricula ?? "—" },
     { id: "contact", header: t("Contacto", "Contact"), secondary: true, cell: (l) => <span className="break-all">{`${l.ownerName ?? "—"} · ${l.ownerContact ?? "—"}`}</span> },
     {
       id: "account",
@@ -153,7 +172,12 @@ export function LenderAdmin() {
           <LedgerCard
             title={l.businessName}
             amount={null}
-            stamp={stamp(l)}
+            stamp={
+              <span className="flex flex-wrap items-center gap-1">
+                {stamp(l)}
+                <IdentityStamp status={l.idCheck} />
+              </span>
+            }
             note={`${l.country} · ${l.licence} · ${t("Registrado", "Signed up")} ${formatDay(l.createdAt, lang)}`}
             actions={<span className="flex justify-start">{action(l)}</span>}
           />
