@@ -217,8 +217,8 @@ export function AccountSections({ shop, suppliers, score, now }: { shop: Shop; s
                 )}
                 <span className="whitespace-nowrap">{t("«Pagar en 7 días»", "“Pay in 7 days”")}</span>
                 {t(
-                  " ($10 si pagó la mitad al recibir). Si paga 8 días tarde o más, no sube durante 4 períodos. El límite máximo es $500.",
-                  " ($10 if you paid half on delivery). If you pay 8 or more days late, it doesn't grow for 4 periods. The highest limit is $500.",
+                  " con el fondo ($10 si pagó la mitad al recibir). Lo que su distribuidora le da a 7 días queda en su historial y no lo sube, pero pagarlo tarde sí lo baja. Si paga 8 días tarde o más, no sube durante 4 períodos. El límite máximo es $500.",
+                  " from the pool ($10 if you paid half on delivery). 7 days your distributor gives you goes on your record and doesn't raise it, but paying that late does lower it. If you pay 8 or more days late, it doesn't grow for 4 periods. The highest limit is $500.",
                 )}
               </p>
               <p className="text-label text-muted text-pretty">{t("Sin intereses: paga lo mismo que compró.", "No interest: you pay the same as you bought.")}</p>

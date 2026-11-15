@@ -373,14 +373,23 @@ export default function InvoiceScreen() {
           disabled={locked || blocked !== null}
         >
           {invoice.ownCredit ? (
-            <p className="text-lead">
-              {t("Hoy no paga nada. Le paga ", "You pay nothing today. You pay ")}
-              <Money value={left} className="font-semibold" />
-              {t(
-                ` a ${source?.distributorName || "su distribuidora"} en 7 días.`,
-                ` to ${source?.distributorName || "your distributor"} in 7 days.`,
-              )}
-            </p>
+            <>
+              <p className="text-lead">
+                {t("Hoy no paga nada. Le paga ", "You pay nothing today. You pay ")}
+                <Money value={left} className="font-semibold" />
+                {t(
+                  ` a ${source?.distributorName || "su distribuidora"} en 7 días.`,
+                  ` to ${source?.distributorName || "your distributor"} in 7 days.`,
+                )}
+              </p>
+              {/* #203: pay later builds the record, never the pool limit; paying late still lowers it. */}
+              <p className="text-label text-muted text-pretty">
+                {t(
+                  "Pagar a tiempo queda en su historial, pero no sube su límite de crédito. Pagar tarde sí lo baja.",
+                  "Paying on time goes on your record, but it doesn't raise your credit limit. Paying late does lower it.",
+                )}
+              </p>
+            </>
           ) : (
             <p className="text-lead">
               {t("Hoy no paga nada. Paga ", "You pay nothing today. You pay ")}
@@ -430,12 +439,14 @@ export default function InvoiceScreen() {
         </ActionRow>
         <ActionRow title={t("Pagar otro monto", "Pay another amount")} open={panel === "part"} onClick={() => toggle("part")} disabled={locked}>
           {/* Above the blank, so the blank and its button stay together when the keyboard comes up. */}
-          <p className="text-label text-muted text-pretty">
-            {t(
-              "Si paga la mitad o más ahora, la comisión baja y su límite puede subir con solo $10 a crédito.",
-              "If you pay half or more now, the fee is lower and your limit can grow with just $10 on credit.",
-            )}
-          </p>
+          {!invoice.ownCredit && (
+            <p className="text-label text-muted text-pretty">
+              {t(
+                "Si paga la mitad o más ahora, la comisión baja y su límite puede subir con solo $10 a crédito.",
+                "If you pay half or more now, the fee is lower and your limit can grow with just $10 on credit.",
+              )}
+            </p>
+          )}
           <MoneyField
             label={t("¿Cuánto paga ahora?", "How much are you paying now?")}
             hint={

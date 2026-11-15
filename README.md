@@ -9,7 +9,7 @@
 
 Neighbourhood shops (tiendas) in El Salvador buy their stock from distributors. In a four-country survey, 8 in 10 small businesses in El Salvador, Guatemala, Honduras and Mexico pay suppliers mainly in cash, and in El Salvador 6 in 10 informal small businesses have borrowed from loan sharks. This app lets a shop pay its supplier in digital dollars, or take the stock now and pay in 7 days with no interest, while a Stellar smart contract keeps the record and enforces the credit rules.
 
-**Live app:** [relay-sv.vercel.app](https://relay-sv.vercel.app) · **Contract on Stellar testnet:** [`CAGCZ3I7…V4ML` on stellar.expert](https://stellar.expert/explorer/testnet/contract/CAGCZ3I7CQHZDELPV5OB2W4D4LHA7MPSOBP4NO2AV4JO2G6HED7HV4ML) (every payment and fee split is public) · Built for the Velocity x Stellar challenge (Nov 2026) by Yahya, Jack, Rohan and Ruhaan. Plan and decisions: [docs/context.md](docs/context.md).
+**Live app:** [relay-sv.vercel.app](https://relay-sv.vercel.app) · **Contract on Stellar testnet:** [`CA34DSV5…S52W` on stellar.expert](https://stellar.expert/explorer/testnet/contract/CA34DSV5AYLKSBCSOJFUY5TZJOJNCVU3K4K5M65WWXZLDV5BBJNXS52W) (every payment and fee split is public) · Built for the Velocity x Stellar challenge (Nov 2026) by Yahya, Jack, Rohan and Ruhaan. Plan and decisions: [docs/context.md](docs/context.md).
 
 ## What's in this repo
 
@@ -44,7 +44,7 @@ Stellar testnet, deployed 2026-11-15 by `scripts/deploy.sh`.
 
 | What | ID | Explorer |
 |---|---|---|
-| `route_ledger` contract | `CA3I4ULD5J3AZQAHEZOERJJIXRWXHFJ3CKBWW7KDUGFIKICR5F54VI2K` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CA3I4ULD5J3AZQAHEZOERJJIXRWXHFJ3CKBWW7KDUGFIKICR5F54VI2K) |
+| `route_ledger` contract | `CA34DSV5AYLKSBCSOJFUY5TZJOJNCVU3K4K5M65WWXZLDV5BBJNXS52W` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CA34DSV5AYLKSBCSOJFUY5TZJOJNCVU3K4K5M65WWXZLDV5BBJNXS52W) |
 | Test USDC token | `CANWPJKTWATAQKWD4VNDRMPHHWONWJ5IMCIJ2OTJNYFZ5IDQWX2E2NUP` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CANWPJKTWATAQKWD4VNDRMPHHWONWJ5IMCIJ2OTJNYFZ5IDQWX2E2NUP) |
 
 Test USDC is our own, issued by `tiendas-issuer`, not Circle's.

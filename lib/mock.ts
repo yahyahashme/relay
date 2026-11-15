@@ -15,7 +15,6 @@ const CREDIT_DAYS = 7;
 const UNITS_PER_CENT = 100_000; // $1 = 10,000,000 units
 const LIMIT_STEP = 25_00; // +$25 per on-time repayment...
 const LIMIT_CAP = 500_00; // ...up to $500,
-const LATER_RAISE_CAP = 300_00; // pay later raises the limit only up to $300 (#200)
 const MIN_BORROW_WITH_HALF = 10_00; // or $10 with half of every credited invoice paid up front
 const MIN_BORROW_TO_GROW = 40_00; // ...only if the cycle borrowed at least $40,
 const RAISE_EVERY_MS = CREDIT_DAYS * DAY_MS; // ...and at most once per credit period
@@ -209,38 +208,22 @@ function settleLater(invoice: InvoiceRecord, cents: number) {
   const daysLate = now <= invoice.dueAt ? 0 : Math.ceil((now - invoice.dueAt) / DAY_MS);
   if (daysLate > GRACE_DAYS) shop.laterLate += 1;
   else shop.laterOnTime += 1;
-  gradeLater(shop, invoice, daysLate, now);
+  gradeLater(shop, daysLate, now);
 }
 
 /**
- * #200, same rules as the contract's grade_later: for a shop with pool terms, a pay-later invoice paid
- * in full counts like a pool cycle. On time and all digital (Rule A), past the $40 bar ($10 with half
- * up front): +$25 up to $300 (Rule B) and a good cycle, once per period shared with the pool.
- * Late: -$25 (2-7 days) or -$50 and a 4-period freeze (8+), whatever the method.
+ * #200 / #203, same rules as the contract's grade_later: only bad news reaches the pool terms. Late:
+ * -$25 (2-7 days) or -$50 and a 4-period freeze (8+), whatever the method, and good cycles reset.
+ * On time changes nothing (option B): only pool repayments raise the limit.
  */
-function gradeLater(shop: ShopRecord, invoice: InvoiceRecord, daysLate: number, now: number) {
+function gradeLater(shop: ShopRecord, daysLate: number, now: number) {
+  if (daysLate <= GRACE_DAYS) return;
   if (shop.limit <= 0 && shop.firstCreditAt === 0) return; // no pool terms in the demo sense
-  if (daysLate <= GRACE_DAYS) {
-    // Good news needs real dollars and real time: open at least half a credit period (review of #197).
-    if (invoice.method !== "digital" || now < (invoice.laterAt ?? 0) + (CREDIT_DAYS * DAY_MS) / 2) return;
-    const later = invoice.laterAmount ?? 0;
-    const upFront = invoice.amount - later;
-    if (!(later >= MIN_BORROW_TO_GROW || (upFront * 2 >= invoice.amount && later >= MIN_BORROW_WITH_HALF))) return;
-    if ((shop.lastRaiseAt === 0 || now >= shop.lastRaiseAt + RAISE_EVERY_MS) && now >= shop.noRaiseUntil && shop.limit < LATER_RAISE_CAP) {
-      shop.limit = Math.min(shop.limit + LIMIT_STEP, LATER_RAISE_CAP);
-      shop.lastRaiseAt = now;
-    }
-    if (shop.lastGoodAt === 0 || now >= shop.lastGoodAt + RAISE_EVERY_MS) {
-      shop.goodCycles += 1;
-      shop.lastGoodAt = now;
-    }
-  } else {
-    shop.goodCycles = 0;
-    if (daysLate <= MINOR_LATE_DAYS) shop.limit = Math.max(shop.limit - LIMIT_STEP, 0);
-    else {
-      shop.limit = Math.max(shop.limit - MAJOR_LATE_STEP, 0);
-      shop.noRaiseUntil = now + NO_RAISE_MS;
-    }
+  shop.goodCycles = 0;
+  if (daysLate <= MINOR_LATE_DAYS) shop.limit = Math.max(shop.limit - LIMIT_STEP, 0);
+  else {
+    shop.limit = Math.max(shop.limit - MAJOR_LATE_STEP, 0);
+    shop.noRaiseUntil = now + NO_RAISE_MS;
   }
 }
 

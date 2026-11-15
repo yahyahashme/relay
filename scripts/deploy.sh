@@ -214,6 +214,10 @@ if (at >= 0 && end > at) {
     ? md.replace(anchor, `${block}\n\n${anchor}`)
     : `${md.trimEnd()}\n\n${block}\n`;
 }
+// The contract link in the "Live app" line at the top follows the new ID too.
+const id = rowContract.match(/C[A-Z2-7]{55}/)[0];
+md = md.replace(/^\*\*Live app:\*\*.*$/m, (line) =>
+  line.replace(/C[A-Z2-7]{55}/g, id).replace(/`C[A-Z2-7]{7}…[A-Z2-7]{4}`/g, "`" + id.slice(0, 8) + "…" + id.slice(-4) + "`"));
 fs.writeFileSync("README.md", md);
 EOF
 echo

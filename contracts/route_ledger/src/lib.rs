@@ -79,11 +79,6 @@ pub const NO_RAISE_PERIODS: u64 = 4;
 /// 4 x 7 days = 28 days late for real, 8 minutes with the 2-minute demo period.
 pub const DEFAULT_AFTER_PERIODS: u64 = 4;
 
-/// Pay later counts toward the pool limit (#200), but only up to $300: from
-/// there to $500 only real pool repayments raise it. A shop already above
-/// $300 is never lowered by this.
-pub const LATER_RAISE_CAP: i128 = 3_000_000_000;
-
 /// `list_invoices` returns only the newest 60, so one call never reads too much.
 /// Older invoices are read a page at a time with `list_invoices_page`.
 pub const MAX_LIST: u32 = 60;
@@ -1725,48 +1720,26 @@ fn record_payment(env: &Env, invoice: &mut Invoice, method: PayMethod, amount: i
     }
 }
 
-/// A pay-later invoice was just paid in full, `days` late (#200). For a shop
-/// with pool terms it counts like a pool cycle: on time past the growth bar
-/// gives +$25 (up to `LATER_RAISE_CAP`) and a good cycle, sharing the
-/// once-per-period rule with pool repayments; late takes $25 (2-7 days) or
-/// $50 and a 4-period freeze (8+). Good news counts only if every payment on
-/// the invoice was digital, because a cash confirmation needs no money to
-/// move (Rule A); bad news counts whatever the method.
+/// A pay-later invoice was just paid in full, `days` late (#200, #203). Only
+/// bad news reaches the pool terms: late takes $25 (2-7 days) or $50 and a
+/// 4-period freeze (8+), and resets good cycles, whatever the method. On time
+/// changes nothing here: the distributor and the shop can cycle invoices at no
+/// cost, so lenders' limits and the trusted-shop fee grow only from pool
+/// repayments (Yahya, option B). The on-time count stays in `LaterRecord`.
 fn grade_later(env: &Env, invoice: &Invoice, days: u64, period: u64) {
+    if days <= GRACE_DAYS {
+        return;
+    }
     let mut terms = match load_shop(env, &invoice.shop) {
         Some(terms) => terms,
         None => return, // no pool terms: only the pay-later record
     };
-    let now = env.ledger().timestamp();
-    if days <= GRACE_DAYS {
-        // Good news needs real dollars (Rule A) and real time: open at least
-        // half a credit period, so paying the same second can't farm the
-        // limit or the trusted-shop fee (review of #197).
-        if invoice.method != PayMethod::Digital || now < invoice.later_at.saturating_add(period / 2) {
-            return;
-        }
-        let up_front = invoice.amount - invoice.later_amount;
-        let big_enough = invoice.later_amount >= MIN_BORROW_TO_GROW
-            || (up_front.saturating_mul(2) >= invoice.amount
-                && invoice.later_amount >= MIN_BORROW_WITH_HALF);
-        if !big_enough {
-            return;
-        }
-        let waited = terms.last_raise_at == 0 || now >= terms.last_raise_at + period;
-        if waited && now >= terms.no_raise_until && terms.limit < LATER_RAISE_CAP {
-            terms.limit = (terms.limit + LIMIT_STEP).min(LATER_RAISE_CAP);
-            terms.last_raise_at = now;
-        }
-        if terms.last_good_at == 0 || now >= terms.last_good_at + period {
-            terms.good_cycles = terms.good_cycles.saturating_add(1);
-            terms.last_good_at = now;
-        }
-    } else if days <= MINOR_LATE_DAYS {
-        terms.good_cycles = 0;
+    terms.good_cycles = 0;
+    if days <= MINOR_LATE_DAYS {
         terms.limit = (terms.limit - LIMIT_STEP).max(0);
     } else {
-        terms.good_cycles = 0;
         terms.limit = (terms.limit - MAJOR_LATE_STEP).max(0);
+        let now = env.ledger().timestamp();
         terms.no_raise_until = now.saturating_add(period.saturating_mul(NO_RAISE_PERIODS));
     }
     save_shop(env, &invoice.shop, &terms);

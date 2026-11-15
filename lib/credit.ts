@@ -22,7 +22,15 @@ const HALF_LIFE_MS = 182 * DAY_MS;
 export type ScoreLabel = "excelente" | "bueno" | "regular" | "riesgo";
 /** A reason in both languages, and whether it helps (+) or hurts (-). */
 export type Reason = { es: string; en: string; good: boolean; weight: number };
-export type CreditScore = { score: number; label: ScoreLabel; reasons: Reason[]; tips: { es: string; en: string }[]; isNew: boolean };
+/** `later`: the shop's record on a distributor's own 7 days (#194, #203). Shown beside the score, so a lender sees it. */
+export type CreditScore = {
+  score: number;
+  label: ScoreLabel;
+  reasons: Reason[];
+  tips: { es: string; en: string }[];
+  isNew: boolean;
+  later?: { onTime: number; paid: number };
+};
 
 const clamp = (x: number) => Math.min(1, Math.max(0, x));
 
@@ -134,7 +142,9 @@ export function creditScore(shop: Shop, rows: HistoryRow[], suppliers: number, n
   if (cycles < 12) tips.push({ es: "Cada semana que paga a tiempo alarga su historial.", en: "Every week you pay on time makes your history longer." });
   if (suppliers < 3) tips.push({ es: "Pida a sus otros proveedores que usen Relay.", en: "Ask your other suppliers to use Relay." });
 
-  return { score, label, reasons: reasons.slice(0, 3), tips: tips.slice(0, 2), isNew };
+  const laterPaid = (shop.laterOnTime ?? 0) + (shop.laterLate ?? 0);
+  const later = laterPaid > 0 ? { onTime: shop.laterOnTime ?? 0, paid: laterPaid } : undefined;
+  return { score, label, reasons: reasons.slice(0, 3), tips: tips.slice(0, 2), isNew, later };
 }
 
 export const SCORE_LABEL: Record<ScoreLabel, { es: string; en: string; tone: "paid" | "credit" | "due" | "overdue" }> = {
