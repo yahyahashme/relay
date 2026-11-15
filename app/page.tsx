@@ -154,10 +154,10 @@ export default function Home() {
   return (
     <>
       <main className="flex w-full flex-1 flex-col">
-        {/* The bar stays at the top of the page (it is light blue over the first screen, white after it). */}
+        {/* The bar stays at the top of the page, always light blue. */}
         <HomeNav />
-        {/* The first screen: all light blue. */}
-        <div className="flex min-h-[calc(100svh-var(--band-h)-4rem)] flex-col bg-accent">
+        {/* The first screen: all light blue, fading into the white page at its foot so the two blend. */}
+        <div className="flex min-h-[calc(100svh-var(--band-h)-4rem)] flex-col bg-[linear-gradient(to_bottom,var(--color-accent)_calc(100%-9rem),var(--color-counter))]">
           <section className={`${SIDE} flex flex-1 flex-col justify-center pt-6 pb-14 min-[40rem]:pb-20`}>
             <div className={`${COLUMN} flex flex-col gap-5`}>
               <p className="text-base font-semibold text-ink/80">
