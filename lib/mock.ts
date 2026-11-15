@@ -8,7 +8,7 @@
 import { formatDay, formatMoney, plural } from "./format";
 import { buildHistory } from "./history";
 import { LENDER_BPS, poolFeeSplit, RECOURSE_FEE_BPS, RECOURSE_LENDER_BPS, recourseRequired } from "./labels";
-import { HISTORY_PAGE, type Driver, type Payment, type Profile, type ShopHistory, type Supplier, type Invoice, type InvoiceHistory, type InvoiceRow, type PayMethod, type LenderView, type Pool, type Receipt, type RecourseView, type Shop, type Totals } from "./types";
+import { HISTORY_PAGE, type Driver, type Payment, type Profile, type ShopHistory, type Supplier, type Invoice, type InvoiceHistory, type InvoiceRow, type PayMethod, type LenderView, type MyLender, type Pool, type Receipt, type RecourseView, type Shop, type Totals } from "./types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CREDIT_DAYS = 7;
@@ -72,6 +72,8 @@ type Store = {
   drivers: DriverRecord[];
   pool: { available: number; buffer: number }; // units
   recourse: { deposit: number }; // the demo distributor's recourse deposit, cents (#185)
+  /** A signed-in lender for mock mode (#207), cents: what it put in, its place in the pool, its own test dollars. */
+  lender: { status: MyLender["status"]; netDeposited: number; value: number; balance: number };
   payments: PaymentRecord[]; // every payment, oldest first, for the shop's history (#136)
 };
 type PaymentRecord = { shopId: string; invoiceId: number | null; method: Payment["method"]; amount: number; at: number; driverId?: string };
@@ -122,6 +124,7 @@ function seed(now: number): Store {
     pool: { available: 5_000_00 * UNITS_PER_CENT, buffer: 200_00 * UNITS_PER_CENT }, // deploy.sh seeds $200
     payments: [],
     recourse: { deposit: 0 },
+    lender: { status: "aprobado", netDeposited: 0, value: 0, balance: 5_000_00 },
   };
 }
 
@@ -611,4 +614,60 @@ export function withdrawRecourse(amount: number): Receipt {
   }
   recourse.deposit -= cents;
   return ok(`Listo. Retiró ${money(cents)}. Su depósito de respaldo es ${money(recourse.deposit)}.`);
+}
+
+// ---------- a lender's own account (#207) ----------
+
+/**
+ * Mock mode has no sign-in, so the signed-in lender only shows with "?prestamista=demo" in the
+ * address (for screenshots and local checks). The live site uses the real session.
+ */
+export const MOCK_LENDER_ID = "prestamista-demo";
+
+export function getMyLender(signedIn: boolean): MyLender | null {
+  if (!signedIn) return null;
+  const { lender, pool } = db();
+  const available = Math.floor(pool.available / UNITS_PER_CENT);
+  return {
+    id: MOCK_LENDER_ID,
+    businessName: "Cooperativa de Ahorro Ejemplo",
+    status: lender.status,
+    autoApprove: true,
+    value: dollars(lender.value),
+    netDeposited: dollars(lender.netDeposited),
+    canWithdraw: dollars(Math.min(lender.value, available)),
+    balance: dollars(lender.balance),
+  };
+}
+
+/** Tests only: approve or revoke the mock lender. */
+export function setMockLenderStatus(status: MyLender["status"]) {
+  db().lender.status = status;
+}
+
+export function lenderDeposit(amount: number): Receipt {
+  const { lender, pool } = db();
+  if (lender.status !== "aprobado") return fail("Relay quitó su aprobación: no puede poner más dinero, pero siempre puede retirar el suyo.");
+  const cents = toCents(amount);
+  if (cents === null) return fail("Monto inválido.");
+  if (cents > lender.balance) return fail("No tiene suficientes dólares digitales para este pago.");
+  lender.balance -= cents;
+  lender.value += cents;
+  lender.netDeposited += cents;
+  pool.available += cents * UNITS_PER_CENT;
+  return ok("Dinero puesto en el fondo.");
+}
+
+export function lenderWithdraw(amount: number | "all"): Receipt {
+  const { lender, pool } = db();
+  if (lender.value <= 0) return fail("No tiene dinero en el fondo.");
+  const cents = amount === "all" ? lender.value : toCents(amount);
+  if (cents === null) return fail("Monto inválido.");
+  if (cents > lender.value) return fail("Es más de lo que tiene en el fondo.");
+  if (cents * UNITS_PER_CENT > pool.available) return fail("Hoy el fondo no tiene tanto sin prestar. Lo prestado vuelve cuando las tiendas pagan.");
+  lender.balance += cents;
+  lender.value -= cents;
+  lender.netDeposited -= cents;
+  pool.available -= cents * UNITS_PER_CENT;
+  return ok("Dinero retirado del fondo.");
 }

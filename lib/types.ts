@@ -35,6 +35,20 @@ export type Driver = { id: string; name: string; cashHeld: number; distributorId
 export type Pool = { available: number; buffer: number; lent: number };
 /** One approved lender's place in the pool, in dollars. Earned = value - netDeposited. */
 export type LenderView = { approved: boolean; value: number; netDeposited: number };
+/**
+ * The signed-in lender (#207): its business, where approval stands, its place in the pool and its
+ * test dollars on hand. `canWithdraw` = what it could take out today (its value, up to what isn't lent).
+ */
+export type MyLender = {
+  id: string;
+  businessName: string;
+  status: "pendiente" | "aprobado" | "revocado";
+  autoApprove: boolean;
+  value: number;
+  netDeposited: number;
+  canWithdraw: number;
+  balance: number;
+};
 /** Everything ever paid, by method (dollars), and how many invoices exist. */
 export type Totals = { invoices: number; digital: number; cash: number; credit: number };
 /** Newest first, `pages` pages of `HISTORY_PAGE`; `total` is how many exist. */

@@ -11,6 +11,7 @@ import { HOLD_MS, TapShield, useMovedGuard, useSecondTap, useTapShield } from "@
 import { formatDay } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { sellLabel } from "@/lib/sells";
+import { LenderAdmin } from "./lender-admin";
 
 type List = { pending: AdminRow[]; decided: AdminRow[] };
 
@@ -213,6 +214,8 @@ export default function AdminScreen() {
           />
         </section>
       )}
+
+      <LenderAdmin />
     </Frame>
   );
 }

@@ -18,6 +18,7 @@ const ROLE_LABEL: Record<CurrentUser["role"], [string, string]> = {
   tienda: ["Tienda", "Shop"],
   distribuidora: ["Distribuidora", "Distributor"],
   motorista: ["Motorista", "Driver"],
+  prestamista: ["Prestamista", "Lender"],
   admin: ["Administrador", "Administrator"],
 };
 
@@ -91,6 +92,8 @@ export default function Account() {
       ) : (
         shopId === undefined && waiting
       )
+    ) : user.role === "prestamista" ? (
+      <ButtonLink href="/prestamista">{t("Ir a mi lugar en el fondo", "Go to my place in the pool")}</ButtonLink>
     ) : (
       <ButtonLink href="/admin">{t("Distribuidoras por aprobar", "Distributors to approve")}</ButtonLink>
     );

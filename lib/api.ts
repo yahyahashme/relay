@@ -12,10 +12,11 @@ import * as shops from "@/app/shop-actions";
 import * as invoices from "@/app/invoice-actions";
 import * as recourse from "@/app/recourse-actions";
 import * as confirm from "@/app/confirm-actions";
+import * as lenders from "@/app/lender-actions";
 import { type ConfirmFinish, type ConfirmProof, type ConfirmRequest, type ConfirmStart, DEMO_PIN } from "./pay-confirm";
 import type { DistributorView } from "@/app/distributor-actions";
 import * as mock from "./mock";
-import type { Driver, Invoice, LenderView, InvoiceHistory, InvoiceRow, Pool, Profile, Receipt, RecourseView, Shop, ShopHistory, Supplier, Totals } from "./types";
+import type { Driver, Invoice, LenderView, MyLender, InvoiceHistory, InvoiceRow, Pool, Profile, Receipt, RecourseView, Shop, ShopHistory, Supplier, Totals } from "./types";
 
 export const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS !== "false";
 
@@ -54,6 +55,9 @@ export const getDrivers = (): Promise<Driver[]> => read(mock.getDrivers, live.ge
 export const getPool = (): Promise<Pool> => read(mock.getPool, live.getPool);
 /** The demo lender's place in the pool: what it put in and what that is worth now. */
 export const getLender = (): Promise<LenderView> => read(mock.getLender, live.getLender);
+/** The signed-in lender's own place in the pool (#207), or null (the page shows the public demo). */
+export const getMyLender = (): Promise<MyLender | null> =>
+  read(() => mock.getMyLender(typeof window !== "undefined" && new URLSearchParams(window.location.search).get("prestamista") === "demo"), lenders.getMyLender);
 /** The whole history a page at a time: `pages` pages, newest first. */
 export const getInvoiceHistory = (pages: number): Promise<InvoiceHistory> =>
   read(() => mock.getInvoiceHistory(pages), () => live.getInvoiceHistory(pages));
@@ -95,7 +99,7 @@ export const createDemoInvoice = (shopId?: string): Promise<Invoice> =>
 /** A tap on a pay button: what the confirm sheet needs. Mock mode has no server, so it asks for the demo PIN. */
 export async function startPayConfirm(request: ConfirmRequest): Promise<ConfirmStart> {
   if (!USE_MOCKS) return confirm.startPayConfirm(request).catch(() => ({ ok: false as const, message: "Algo salió mal. Intente de nuevo." }));
-  return { ok: true, id: "demo", shopId: request.shopId ?? "", mode: "demo", hasPin: true };
+  return { ok: true, id: "demo", shopId: request.shopId ?? request.lenderId ?? "", mode: "demo", hasPin: true };
 }
 export async function finishPayConfirm(id: string, shopId: string, proof: ConfirmProof): Promise<ConfirmFinish> {
   if (!USE_MOCKS) return confirm.finishPayConfirm(id, shopId, proof).catch(() => ({ ok: false as const, message: "Algo salió mal. Intente de nuevo." }));
@@ -132,3 +136,9 @@ export const depositRecourse = (amount: number) =>
   write(() => mock.depositRecourse(amount), () => recourse.depositRecourse(amount));
 export const withdrawRecourse = (amount: number) =>
   write(() => mock.withdrawRecourse(amount), () => recourse.withdrawRecourse(amount));
+/** A lender puts money in the pool from its own account (#207). */
+export const lenderDeposit = (lenderId: string, amount: number, confirmId?: string) =>
+  write(() => mock.lenderDeposit(amount), () => lenders.lenderDeposit(lenderId, amount, confirmId));
+/** A lender takes money out: an amount, or "all" (exactly its shares). */
+export const lenderWithdraw = (lenderId: string, amount: number | "all", confirmId?: string) =>
+  write(() => mock.lenderWithdraw(amount), () => lenders.lenderWithdraw(lenderId, amount, confirmId));

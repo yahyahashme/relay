@@ -4,6 +4,7 @@ import { Asset, Keypair, Operation, TransactionBuilder, rpc } from "@stellar/ste
 import { config } from "@/lib/stellar/config";
 import { submitSigned } from "@/lib/stellar/send";
 import { encryptSecret } from "./crypto";
+import { keypairForId } from "./directory";
 
 const FRIENDBOT = "https://friendbot.stellar.org";
 
@@ -14,6 +15,23 @@ export type WalletNetwork = {
   fund(address: string): Promise<void>;
   addUsdcTrustline(keypair: Keypair): Promise<void>;
 };
+
+/**
+ * Test dollars for a new account (#207): a plain payment of the test USDC from the demo lender's
+ * account (its key is already on the server). The issuer's key never leaves Yahya's Mac, so this
+ * is the only way the server can hand out test dollars; Yahya tops the demo lender up with a mint.
+ */
+export async function sendTestDollars(to: string, dollars: number): Promise<void> {
+  const from = await keypairForId("lender");
+  const server = new rpc.Server(config.rpcUrl);
+  const account = await server.getAccount(from.publicKey());
+  const tx = new TransactionBuilder(account, { fee: "100", networkPassphrase: config.networkPassphrase })
+    .addOperation(Operation.payment({ destination: to, asset: new Asset(config.token.code, config.token.issuer), amount: dollars.toFixed(2) }))
+    .setTimeout(60)
+    .build();
+  tx.sign(from);
+  await submitSigned(tx);
+}
 
 export const testnet: WalletNetwork = {
   async fund(address) {

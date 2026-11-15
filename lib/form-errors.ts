@@ -3,7 +3,7 @@
 // distributors.ts and the forms' own checks). A message that isn't here is about the whole form
 // and goes above its button, so a reworded or new message is never lost: it only moves there.
 
-export type Blank = "name" | "contact" | "password" | "shopName" | "businessName" | "nit" | "address" | "kind" | "sells" | "approx";
+export type Blank = "name" | "contact" | "password" | "shopName" | "businessName" | "nit" | "address" | "kind" | "sells" | "approx" | "country" | "licence";
 
 const BLANK: Record<string, Blank> = {
   "Escriba su nombre.": "name",
@@ -20,6 +20,8 @@ const BLANK: Record<string, Blank> = {
   "Escriba la dirección de la empresa.": "address",
   "Elija qué vende.": "sells",
   "Escriba un número aproximado.": "approx",
+  "Escriba el país.": "country",
+  "Escriba el número de licencia o registro.": "licence",
 };
 
 /** The blank this message is about, or undefined when it is about the whole form. */

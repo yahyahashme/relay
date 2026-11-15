@@ -20,9 +20,10 @@ const OWNER_QUERY: Record<Party["kind"], string> = {
   shop: `SELECT 1 FROM shops WHERE id = $1 AND owner_user_id = $2`,
   driver: `SELECT 1 FROM drivers WHERE id = $1 AND user_id = $2`,
   distributor: `SELECT 1 FROM distributors WHERE id = $1 AND owner_user_id = $2`,
+  lender: `SELECT 1 FROM lenders WHERE id = $1 AND owner_user_id = $2`,
 };
 
-/** Does this user own this party? (Shop owner, the driver themself, the distributor's owner.) */
+/** Does this user own this party? (Shop owner, the driver themself, the distributor's or lender's owner.) */
 export async function owns(user: User, party: Pick<Party, "id" | "kind">): Promise<boolean> {
   const db = getDb();
   if (!db) return false;

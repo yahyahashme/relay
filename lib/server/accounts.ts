@@ -8,7 +8,7 @@ import { createWallet, type WalletNetwork } from "./wallet";
 // Users, passwords and sessions (#129). Messages are Spanish, like every
 // receipt; lib/i18n.tsx translates them on screen.
 
-export type Role = "tienda" | "distribuidora" | "motorista" | "admin";
+export type Role = "tienda" | "distribuidora" | "motorista" | "admin" | "prestamista";
 
 export type User = {
   id: string;
@@ -100,7 +100,7 @@ export async function signUp(
   network?: WalletNetwork,
   options: { viaInvite?: boolean } = {},
 ): Promise<AuthResult> {
-  const allowed = options.viaInvite ? ["motorista"] : ["tienda", "distribuidora"];
+  const allowed = options.viaInvite ? ["motorista"] : ["tienda", "distribuidora", "prestamista"];
   if (!allowed.includes(input.role)) {
     return { ok: false, message: "Los motoristas se registran con la invitación de su distribuidora." };
   }
