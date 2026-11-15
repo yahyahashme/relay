@@ -61,6 +61,28 @@ export async function vouchShop(shopId: string, on: boolean): Promise<Receipt> {
   }
 }
 
+/** Does the acting distributor give this shop the 7 days itself (#194)? */
+export async function getOwnCredit(shopId: string): Promise<boolean> {
+  const who = await acting();
+  const shop = who?.directory.find(shopId, "shop");
+  if (!who || !shop) return false;
+  return read(readClient().offers_own_credit({ distributor: who.address, shop: shop.address }));
+}
+
+/** The distributor gives a shop the 7 days itself, or goes back to the pool (#194). */
+export async function offerOwnCredit(shopId: string, on: boolean): Promise<Receipt> {
+  try {
+    const who = await acting();
+    if (!who) return fail(FALLBACK_MESSAGE);
+    const shop = who.directory.find(shopId, "shop");
+    if (!shop || !who.mayVouch(shopId)) return fail("No encontramos esa tienda.");
+    const { hash } = await run(who.id, (client) => client.offer_own_credit({ distributor: who.address, shop: shop.address, on }));
+    return receipt(hash, on ? `Listo. Ahora usted le da los 7 días a ${shop.name}.` : `Listo. ${shop.name} vuelve a usar el fondo para los 7 días.`);
+  } catch (error) {
+    return failure(error);
+  }
+}
+
 export async function depositRecourse(amount: number): Promise<Receipt> {
   try {
     const who = await acting();

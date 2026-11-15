@@ -5,7 +5,7 @@ import { Button, TextButton } from "@/components/kit/button";
 import { MoneyField } from "@/components/kit/field";
 import { Paper } from "@/components/kit/paper";
 import { Answer } from "@/components/kit/states";
-import { depositRecourse, getRecourse, getShop, vouchShop, withdrawRecourse } from "@/lib/api";
+import { depositRecourse, getOwnCredit, getRecourse, getShop, offerOwnCredit, vouchShop, withdrawRecourse } from "@/lib/api";
 import { formatMoney } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { HIGHLY_TRUSTED_CYCLES, parseAmount, recourseRequired, shopCreditFeeBps, TRUSTED_CYCLES, trustLevel } from "@/lib/labels";
@@ -22,15 +22,17 @@ const percent = (bps: number) => `${(bps / 100).toFixed(2)}%`;
 export function ShopCreditTier({ shopId }: { shopId: string }) {
   const { t } = useT();
   const { data, reload } = usePolling(`tier-${shopId}`, async () => {
-    const [shop, recourse] = await Promise.all([getShop(shopId), getRecourse()]);
-    return { shop, recourse };
+    const [shop, recourse, own] = await Promise.all([getShop(shopId), getRecourse(), getOwnCredit(shopId)]);
+    return { shop, recourse, own };
   });
   const [busy, setBusy] = useState(false);
   const [answer, setAnswer] = useState<Receipt | null>(null);
   const [amount, setAmount] = useState("");
 
   if (!data?.shop) return null;
-  const { shop, recourse } = data;
+  const { shop, recourse, own } = data;
+  const laterPaid = (shop.laterOnTime ?? 0) + (shop.laterLate ?? 0);
+  const poolPaid = shop.onTime + shop.late;
   const good = shop.goodCycles ?? 0;
   const mine = shop.voucherId !== undefined && shop.voucherId === recourse.distributorId;
   const other = shop.voucherId !== undefined && !mine;
@@ -68,60 +70,109 @@ export function ShopCreditTier({ shopId }: { shopId: string }) {
 
   // Paper holds the facts; the buttons sit on the counter below it.
   return (
-    <section className="flex flex-col gap-3" aria-label={t("Comisión de crédito para esta tienda", "Credit fee for this shop")}>
-      <Paper className="flex flex-col gap-2 p-4">
-        <h2 className="text-lead font-bold">{t("Comisión de crédito para esta tienda", "Credit fee for this shop")}</h2>
-        <p className="text-pretty">{fee}</p>
-        <p className="text-label text-muted text-pretty">{cycles}</p>
-        <div className="mt-1 flex flex-col gap-1 border-t border-paper-rule pt-2">
-          <h3 className="font-bold">{t("Su depósito de respaldo", "Your backing deposit")}</h3>
+    <>
+      <section className="flex flex-col gap-3" aria-label={t("Quién da los 7 días", "Who gives the 7 days")}>
+        <Paper className="flex flex-col gap-2 p-4">
+          <h2 className="text-lead font-bold">{t("Quién da los 7 días", "Who gives the 7 days")}</h2>
           <p className="text-pretty">
-            {t(
-              `${formatMoney(recourse.deposit)} en el fondo. Respalda ${formatMoney(recourse.vouchedOut)} de crédito ahora (mínimo ${formatMoney(recourse.required)}). Cabe ${formatMoney(room)} más.`,
-              `${formatMoney(recourse.deposit)} in the pool. It backs ${formatMoney(recourse.vouchedOut)} of credit now (minimum ${formatMoney(recourse.required)}). Room for ${formatMoney(room)} more.`,
-            )}
+            {own
+              ? t(
+                  "Usted, con su propio dinero. Cuando la tienda elige «Pagar en 7 días», usted espera el pago y corre el riesgo. No paga comisión de crédito: solo el 0.10% cuando la tienda le paga.",
+                  "You, with your own money. When the shop picks “Pay in 7 days”, you wait for the money and carry the risk. You pay no credit fee: only 0.10% when the shop pays you.",
+                )
+              : t(
+                  "El fondo de crédito. Cuando la tienda elige «Pagar en 7 días», a usted le pagan al entregar y usted paga la comisión de crédito.",
+                  "The credit pool. When the shop picks “Pay in 7 days”, you get paid at delivery and you pay the credit fee.",
+                )}
           </p>
-          <p className="text-label text-muted text-pretty">
-            {t(
-              "El depósito debe ser al menos el 20% del crédito que respalda. Si no alcanza, la venta usa la comisión normal.",
-              "The deposit must be at least 20% of the credit you back. If it falls short, the sale uses the normal fee.",
+          <div className="mt-1 flex flex-col gap-1 border-t border-paper-rule pt-2">
+            <h3 className="font-bold">{t("Su historial en Relay, con todas las distribuidoras", "Its record on Relay, with every distributor")}</h3>
+            {poolPaid + laterPaid === 0 ? (
+              <p className="text-pretty">{t("Todavía no tiene pagos a 7 días en Relay.", "No 7-day payments on Relay yet.")}</p>
+            ) : (
+              <ul className="flex flex-col gap-0.5">
+                <li>{t(`Con el fondo: pagó a tiempo ${shop.onTime} de ${poolPaid}.`, `With the pool: paid on time ${shop.onTime} of ${poolPaid}.`)}</li>
+                <li>{t(`Con distribuidoras: pagó a tiempo ${shop.laterOnTime ?? 0} de ${laterPaid}.`, `With distributors: paid on time ${shop.laterOnTime ?? 0} of ${laterPaid}.`)}</li>
+                {(shop.laterOwed ?? 0) > 0 && (
+                  <li>{t(`Debe ${formatMoney(shop.laterOwed ?? 0)} a 7 días ahora.`, `Owes ${formatMoney(shop.laterOwed ?? 0)} on 7 days now.`)}</li>
+                )}
+              </ul>
             )}
-          </p>
-        </div>
-      </Paper>
-
-      {other ? (
-        <p className="text-label text-muted">{t("Otra distribuidora respalda esta tienda.", "Another distributor backs this shop.")}</p>
-      ) : (
+            <p className="text-label text-muted text-pretty">
+              {t(
+                "Cada pago a tiempo en dólares digitales, también a 7 días con usted, le sube el límite con el fondo hasta $300. Un atraso se lo baja.",
+                "Every on-time payment in digital dollars, including 7 days with you, raises its pool limit up to $300. Paying late lowers it.",
+              )}
+            </p>
+          </div>
+        </Paper>
         <Button
-          onClick={() => act(() => vouchShop(shopId, !mine))}
+          onClick={() => act(() => offerOwnCredit(shopId, !own))}
           busy={busy}
-          disabled={shop.creditOwed > 0}
           hint={
-            shop.creditOwed > 0
-              ? t("Puede cambiarlo cuando la tienda no deba nada.", "You can change this when the shop owes nothing.")
-              : mine
-                ? t("Vuelve a la comisión normal.", "It goes back to the normal fee.")
-                : t(
-                    "Paga 0.25%. Si se atrasa más de 7 días, su depósito le paga al fondo y usted le cobra a la tienda.",
-                    "You pay 0.25%. If it is more than 7 days late, your deposit pays the pool and you collect from the shop.",
-                  )
+            own
+              ? t("Vuelve al fondo: le pagan al entregar. Lo que ya está a 7 días sigue con usted.", "Back to the pool: you get paid at delivery. What's already on 7 days stays with you.")
+              : t("Para tiendas que conoce, cuando no necesita el dinero hoy.", "For shops you know, when you don't need the money today.")
           }
         >
-          {mine ? t("Dejar de respaldar", "Stop backing") : t("Respaldar esta tienda", "Back this shop")}
+          {own ? t("Volver al fondo", "Go back to the pool") : t("Dar yo los 7 días", "Give the 7 days myself")}
         </Button>
-      )}
+      </section>
+      <section className="flex flex-col gap-3" aria-label={t("Comisión de crédito para esta tienda", "Credit fee for this shop")}>
+        <Paper className="flex flex-col gap-2 p-4">
+          <h2 className="text-lead font-bold">{t("Comisión de crédito para esta tienda", "Credit fee for this shop")}</h2>
+          <p className="text-pretty">{fee}</p>
+          <p className="text-label text-muted text-pretty">{cycles}</p>
+          <div className="mt-1 flex flex-col gap-1 border-t border-paper-rule pt-2">
+            <h3 className="font-bold">{t("Su depósito de respaldo", "Your backing deposit")}</h3>
+            <p className="text-pretty">
+              {t(
+                `${formatMoney(recourse.deposit)} en el fondo. Respalda ${formatMoney(recourse.vouchedOut)} de crédito ahora (mínimo ${formatMoney(recourse.required)}). Cabe ${formatMoney(room)} más.`,
+                `${formatMoney(recourse.deposit)} in the pool. It backs ${formatMoney(recourse.vouchedOut)} of credit now (minimum ${formatMoney(recourse.required)}). Room for ${formatMoney(room)} more.`,
+              )}
+            </p>
+            <p className="text-label text-muted text-pretty">
+              {t(
+                "El depósito debe ser al menos el 20% del crédito que respalda. Si no alcanza, la venta usa la comisión normal.",
+                "The deposit must be at least 20% of the credit you back. If it falls short, the sale uses the normal fee.",
+              )}
+            </p>
+          </div>
+        </Paper>
 
-      <MoneyField label={t("Monto del depósito", "Deposit amount")} value={amount} onChange={(event) => setAmount(event.target.value)} />
-      <div className="flex flex-wrap items-center gap-2">
-        <Button onClick={() => parsed && act(() => depositRecourse(parsed))} busy={busy} disabled={!parsed} size="sm">
-          {t("Agregar al depósito", "Add to deposit")}
-        </Button>
-        <TextButton onClick={() => parsed && act(() => withdrawRecourse(parsed))} disabled={busy || !parsed || parsed > recourse.deposit - recourseRequired(recourse.vouchedOut)}>
-          {t("Retirar", "Take out")}
-        </TextButton>
-      </div>
-      {answer && <Answer receipt={answer} />}
-    </section>
+        {other ? (
+          <p className="text-label text-muted">{t("Otra distribuidora respalda esta tienda.", "Another distributor backs this shop.")}</p>
+        ) : (
+          <Button
+            onClick={() => act(() => vouchShop(shopId, !mine))}
+            busy={busy}
+            disabled={shop.creditOwed > 0}
+            hint={
+              shop.creditOwed > 0
+                ? t("Puede cambiarlo cuando la tienda no deba nada.", "You can change this when the shop owes nothing.")
+                : mine
+                  ? t("Vuelve a la comisión normal.", "It goes back to the normal fee.")
+                  : t(
+                      "Paga 0.25%. Si se atrasa más de 7 días, su depósito le paga al fondo y usted le cobra a la tienda.",
+                      "You pay 0.25%. If it is more than 7 days late, your deposit pays the pool and you collect from the shop.",
+                    )
+            }
+          >
+            {mine ? t("Dejar de respaldar", "Stop backing") : t("Respaldar esta tienda", "Back this shop")}
+          </Button>
+        )}
+
+        <MoneyField label={t("Monto del depósito", "Deposit amount")} value={amount} onChange={(event) => setAmount(event.target.value)} />
+        <div className="flex flex-wrap items-center gap-2">
+          <Button onClick={() => parsed && act(() => depositRecourse(parsed))} busy={busy} disabled={!parsed} size="sm">
+            {t("Agregar al depósito", "Add to deposit")}
+          </Button>
+          <TextButton onClick={() => parsed && act(() => withdrawRecourse(parsed))} disabled={busy || !parsed || parsed > recourse.deposit - recourseRequired(recourse.vouchedOut)}>
+            {t("Retirar", "Take out")}
+          </TextButton>
+        </div>
+        {answer && <Answer receipt={answer} />}
+      </section>
+    </>
   );
 }

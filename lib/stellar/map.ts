@@ -32,6 +32,7 @@ export function toInvoice(i: ChainInvoice, directory: Directory, cashClaim = 0n)
   if (method) invoice.method = method;
   if (cashClaim > 0n) invoice.cashClaim = toDollars(cashClaim);
   if (i.credit_fee > 0n) invoice.creditFee = toDollars(i.credit_fee);
+  if (i.later) invoice.later = true;
   return invoice;
 }
 
@@ -56,5 +57,9 @@ export function toShop(party: Party, v: ShopView, directory?: Directory): Shop {
   if (v.voucher) shop.voucherId = directory ? directory.idOf(v.voucher) : v.voucher;
   if (v.vouched_owed > 0n) shop.vouchedOwed = toDollars(v.vouched_owed);
   if (v.covered_by_distributor > 0n) shop.coveredByDistributor = toDollars(v.covered_by_distributor);
+  if (v.later_owed > 0n) shop.laterOwed = toDollars(v.later_owed);
+  if (v.later_on_time > 0) shop.laterOnTime = v.later_on_time;
+  if (v.later_late > 0) shop.laterLate = v.later_late;
+  if (v.later_overdue) shop.laterOverdue = true;
   return shop;
 }

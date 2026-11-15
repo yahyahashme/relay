@@ -87,6 +87,17 @@ T1=$(addr tienda-1)
 T2=$(addr tienda-2)
 T3=$(addr tienda-3)
 
+# The lender must hold the $5,000 pool deposit plus the $200 buffer before anything
+# is deployed; otherwise the run would stop halfway and leave an empty contract.
+NEED=52000000000
+LENDER_USDC=$(stellar contract invoke --id "$TOKEN" --source-account tiendas-admin --network "$NETWORK" \
+  --send=no -- balance --id "$LENDER" 2>/dev/null | tail -n 1 | tr -d '"')
+[[ $LENDER_USDC =~ ^[0-9]+$ ]] || die "couldn't read the lender's test USDC balance (got: $LENDER_USDC)."
+if [ "$LENDER_USDC" -lt "$NEED" ]; then
+  die "the lender has $((LENDER_USDC / 10000000)) test USDC; this needs 5200. Add 10000 first:
+  stellar token mint --id $TOKEN --to $LENDER --amount 100000000000 --source-account tiendas-issuer --network $NETWORK"
+fi
+
 # ---------- 2. Build and deploy ----------
 step "Building the contract"
 stellar contract build

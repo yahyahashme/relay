@@ -70,6 +70,9 @@ describe("map", () => {
     status: { tag: "PartPaid", values: undefined },
     method: { tag: "Digital", values: undefined },
     credit_fee: 0n,
+    later: false,
+    later_amount: 0n,
+    later_at: 0n,
   } as const;
 
   it("turns a contract invoice into the screens' invoice", () => {
@@ -97,7 +100,7 @@ describe("map", () => {
   });
 
   it("turns a ShopView into the screens' shop", () => {
-    const view = { limit: 2_000_000_000n, owed: 500_000_000n, due_at: 1_795_154_400n, overdue: false, on_time: 2, late: 0, total_repaid: 0n, written_off: 0n, late_minor: 0, late_major: 0, max_days_late: 0, first_credit_at: 0n, good_cycles: 0, voucher: null, vouched_owed: 0n, covered_by_distributor: 0n };
+    const view = { limit: 2_000_000_000n, owed: 500_000_000n, due_at: 1_795_154_400n, overdue: false, on_time: 2, late: 0, total_repaid: 0n, written_off: 0n, late_minor: 0, late_major: 0, max_days_late: 0, first_credit_at: 0n, good_cycles: 0, voucher: null, vouched_owed: 0n, covered_by_distributor: 0n, later_owed: 0n, later_on_time: 0, later_late: 0, later_overdue: false };
     expect(toShop(ROSA, view)).toEqual({
       id: "tienda-1",
       name: "Tienda Rosa",

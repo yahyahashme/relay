@@ -11,7 +11,7 @@
 
 use soroban_sdk::{
     contract, contracterror, contractevent, contractimpl, contracttype, token, Address, Env,
-    IntoVal, Val, Vec,
+    IntoVal, Map, Val, Vec,
 };
 
 /// 0.10% on every invoice paid digitally or in cash. Goes to us.
@@ -79,6 +79,11 @@ pub const NO_RAISE_PERIODS: u64 = 4;
 /// 4 x 7 days = 28 days late for real, 8 minutes with the 2-minute demo period.
 pub const DEFAULT_AFTER_PERIODS: u64 = 4;
 
+/// Pay later counts toward the pool limit (#200), but only up to $300: from
+/// there to $500 only real pool repayments raise it. A shop already above
+/// $300 is never lowered by this.
+pub const LATER_RAISE_CAP: i128 = 3_000_000_000;
+
 /// `list_invoices` returns only the newest 60, so one call never reads too much.
 /// Older invoices are read a page at a time with `list_invoices_page`.
 pub const MAX_LIST: u32 = 60;
@@ -121,6 +126,11 @@ pub enum Error {
     NotEnoughDeposit = 18,
     /// Who vouches for a shop can only change while it owes nothing.
     ShopOwes = 19,
+    /// This invoice's distributor doesn't give the shop the 7 days itself (#194).
+    NotOffered = 20,
+    /// The invoice is already on pay later with its distributor, so it can't
+    /// go on pay later again or move onto the lender pool (#194).
+    OnPayLater = 21,
 }
 
 #[contracttype]
@@ -156,6 +166,13 @@ pub struct Invoice {
     pub method: PayMethod,
     /// The credit fee the distributor paid on this invoice; 0 if no credit.
     pub credit_fee: i128,
+    /// The shop chose "pay in 7 days" and the distributor carries it itself (#194).
+    /// `due` is then the date the shop must pay the distributor by.
+    pub later: bool,
+    /// What was left to pay when the shop put it on pay later; 0 if never (#200).
+    pub later_amount: i128,
+    /// Unix seconds it went on pay later; 0 if never.
+    pub later_at: u64,
 }
 
 #[contracttype]
@@ -190,6 +207,8 @@ pub struct Lender {
     pub shares: i128,
     /// Money put in minus money taken out, so earnings = value - net_deposited.
     pub net_deposited: i128,
+    /// Set by `revoke_lender` (#195): no new deposits, but it can always withdraw.
+    pub revoked: bool,
 }
 
 /// What a lender sees: its shares, what they are worth now, and what it put in.
@@ -276,6 +295,26 @@ pub struct ShopView {
     pub voucher: Option<Address>,
     pub vouched_owed: i128,
     pub covered_by_distributor: i128,
+    /// Pay later with the distributor's own money (#194): what the shop still
+    /// owes its distributors this way, and how its paid ones went.
+    pub later_owed: i128,
+    pub later_on_time: u32,
+    pub later_late: u32,
+    /// An open pay-later invoice is past due plus the grace day.
+    pub later_overdue: bool,
+}
+
+/// A shop's pay-later record with its distributors (#194). Kept apart from
+/// the pool's terms: the distributor carries this risk, not the lenders.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct LaterRecord {
+    pub owed: i128,
+    pub on_time: u32,
+    pub late: u32,
+    /// Open pay-later invoices: id -> due (review of #197). While any is past
+    /// due plus the grace day, the shop gets no new credit of either kind.
+    pub open: Map<u64, u64>,
 }
 
 /// A distributor's recourse deposit and what it backs.
@@ -307,6 +346,9 @@ pub enum DataKey {
     Lender(Address),
     RecourseDeposit(Address),
     VouchedOut(Address),
+    /// (distributor, shop): the distributor gives this shop the 7 days itself (#194).
+    OwnCredit(Address, Address),
+    Later(Address),
 }
 
 #[contractevent]
@@ -376,6 +418,18 @@ pub struct LenderApproved {
 }
 
 #[contractevent]
+pub struct LenderRevoked {
+    #[topic]
+    pub lender: Address,
+}
+
+#[contractevent]
+pub struct DistributorRevoked {
+    #[topic]
+    pub distributor: Address,
+}
+
+#[contractevent]
 pub struct TermsSet {
     #[topic]
     pub shop: Address,
@@ -392,6 +446,23 @@ pub struct PaidWithCredit {
     pub due_at: u64,
     /// True when the voucher's deposit backs it (the 0.25% recourse fee).
     pub recourse: bool,
+}
+
+#[contractevent]
+pub struct OwnCreditOffered {
+    #[topic]
+    pub shop: Address,
+    pub distributor: Address,
+    pub on: bool,
+}
+
+#[contractevent]
+pub struct PaidLater {
+    #[topic]
+    pub id: u64,
+    pub shop: Address,
+    pub amount: i128,
+    pub due: u64,
 }
 
 #[contractevent]
@@ -498,6 +569,19 @@ impl RouteLedger {
         is_approved(&env, &distributor)
     }
 
+    /// Admin only (#195): a distributor that lost its licence, invoiced fake
+    /// shops or lost its key can't create invoices, vouch, offer its own
+    /// credit, add to its deposit, or be paid from the pool any more. Shops
+    /// still pay and repay as before, and its recourse deposit stays behind
+    /// the shops it vouched for until they are settled.
+    pub fn revoke_distributor(env: Env, distributor: Address) {
+        load_config(&env).admin.require_auth();
+        // Kept as `false`, not removed, so its drivers' cash can still be
+        // recorded as handed in (`cash_handed_in`, Jack's review of #197).
+        put(&env, &DataKey::Distributor(distributor.clone()), &false);
+        DistributorRevoked { distributor }.publish(&env);
+    }
+
     pub fn create_invoice(
         env: Env,
         distributor: Address,
@@ -528,6 +612,9 @@ impl RouteLedger {
             status: InvoiceStatus::Due,
             method: PayMethod::None,
             credit_fee: 0,
+            later: false,
+            later_amount: 0,
+            later_at: 0,
         };
         put(&env, &DataKey::Invoice(id), &invoice);
         let mut totals = load_totals(&env);
@@ -715,7 +802,8 @@ impl RouteLedger {
         // Without this, any address could sign here and zero a driver's cash total.
         // Still open: an approved distributor can lower any driver's total, because
         // the contract doesn't record which distributor a driver works for.
-        if !is_approved(&env, &distributor) {
+        // A revoked distributor can still record cash handed in (#195): no money moves.
+        if !was_ever_approved(&env, &distributor) {
             return Err(Error::NotApproved);
         }
         let key = DataKey::DriverCash(driver.clone());
@@ -737,13 +825,26 @@ impl RouteLedger {
     /// be anywhere, as long as they hold the pool's dollars on Stellar.
     pub fn approve_lender(env: Env, lender: Address) {
         load_config(&env).admin.require_auth();
-        let entry = load_lender(&env, &lender).unwrap_or_default();
+        let mut entry = load_lender(&env, &lender).unwrap_or_default();
+        entry.revoked = false;
         save_lender(&env, &lender, &entry);
         LenderApproved { lender }.publish(&env);
     }
 
+    /// Admin only (#195): a lender that lost its licence or failed a KYB
+    /// re-check can't put new money in. It keeps its shares and can always
+    /// withdraw them: we stop money coming in, never lock money out.
+    pub fn revoke_lender(env: Env, lender: Address) -> Result<(), Error> {
+        load_config(&env).admin.require_auth();
+        let mut entry = load_lender(&env, &lender).ok_or(Error::NotLender)?;
+        entry.revoked = true;
+        save_lender(&env, &lender, &entry);
+        LenderRevoked { lender }.publish(&env);
+        Ok(())
+    }
+
     pub fn is_lender(env: Env, lender: Address) -> bool {
-        load_lender(&env, &lender).is_some()
+        load_lender(&env, &lender).is_some_and(|entry| !entry.revoked)
     }
 
     /// An approved lender adds money to the pool that pays invoices on credit,
@@ -754,6 +855,9 @@ impl RouteLedger {
             return Err(Error::InvalidAmount);
         }
         let mut entry = load_lender(&env, &lender).ok_or(Error::NotLender)?;
+        if entry.revoked {
+            return Err(Error::NotLender);
+        }
         let mut pool = load_pool(&env);
         let value = pool.available + pool.lent;
         let shares = if pool.shares == 0 || value <= 0 {
@@ -828,7 +932,7 @@ impl RouteLedger {
             Some(entry) => {
                 let pool = load_pool(&env);
                 LenderView {
-                    approved: true,
+                    approved: !entry.revoked,
                     shares: entry.shares,
                     value: share_value(&pool, entry.shares).unwrap_or(0),
                     net_deposited: entry.net_deposited,
@@ -861,11 +965,23 @@ impl RouteLedger {
         if invoice.status == InvoiceStatus::Paid {
             return Err(Error::AlreadyPaid);
         }
+        // A debt the distributor carries can't be handed to the lenders later,
+        // when it is most likely to be late (#194).
+        if invoice.later {
+            return Err(Error::OnPayLater);
+        }
+        // Pool money never goes to a distributor that was revoked (#195).
+        if !is_approved(&env, &invoice.distributor) {
+            return Err(Error::NotApproved);
+        }
         let mut terms = load_shop(&env, &shop).ok_or(Error::NoCreditTerms)?;
         let now = env.ledger().timestamp();
 
-        // 1. No new credit while an older balance is late.
+        // 1. No new credit while an older balance is late, here or on pay later.
         if terms.owed > 0 && now > terms.due_at {
+            return Err(Error::Overdue);
+        }
+        if later_overdue(&env, &load_later(&env, &shop)) {
             return Err(Error::Overdue);
         }
         // 2. Never past the shop's limit. A sum too big to fit is past any limit.
@@ -1092,6 +1208,99 @@ impl RouteLedger {
         Ok(())
     }
 
+    // ---------- pay later with the distributor's own money (#194) ----------
+
+    /// A distributor gives a shop the 7 days itself, or stops. Then that
+    /// shop's "pay in 7 days" on its invoices doesn't use the lender pool:
+    /// the distributor waits for the money and carries the risk, and pays no
+    /// credit fee. We take only the usage fee, when the shop pays. Turning it
+    /// off only changes invoices the shop hasn't put on pay later yet.
+    pub fn offer_own_credit(
+        env: Env,
+        distributor: Address,
+        shop: Address,
+        on: bool,
+    ) -> Result<(), Error> {
+        distributor.require_auth();
+        if !is_approved(&env, &distributor) {
+            return Err(Error::NotApproved);
+        }
+        let key = DataKey::OwnCredit(distributor.clone(), shop.clone());
+        if on {
+            put(&env, &key, &true);
+        } else {
+            env.storage().persistent().remove(&key);
+        }
+        OwnCreditOffered {
+            shop,
+            distributor,
+            on,
+        }
+        .publish(&env);
+        Ok(())
+    }
+
+    pub fn offers_own_credit(env: Env, distributor: Address, shop: Address) -> bool {
+        env.storage()
+            .persistent()
+            .get(&DataKey::OwnCredit(distributor, shop))
+            .unwrap_or(false)
+    }
+
+    /// The shop takes 7 days (one credit period) to pay what's left of the
+    /// invoice, on its distributor's money. Nothing moves now; the shop pays
+    /// later with `pay` or in cash, with the normal usage fee.
+    pub fn pay_later(env: Env, shop: Address, id: u64) -> Result<(), Error> {
+        shop.require_auth();
+        let mut invoice = load_invoice(&env, id)?;
+        if invoice.shop != shop {
+            return Err(Error::NotYourInvoice);
+        }
+        if invoice.status == InvoiceStatus::Paid {
+            return Err(Error::AlreadyPaid);
+        }
+        if invoice.later {
+            return Err(Error::OnPayLater);
+        }
+        // A revoked distributor's old offers don't work any more (review of #197).
+        if !is_approved(&env, &invoice.distributor) {
+            return Err(Error::NotApproved);
+        }
+        if !Self::offers_own_credit(env.clone(), invoice.distributor.clone(), shop.clone()) {
+            return Err(Error::NotOffered);
+        }
+        let now = env.ledger().timestamp();
+        // Same rule as the pool: no new credit while a pool balance or an
+        // older pay-later invoice is late.
+        if let Some(terms) = load_shop(&env, &shop) {
+            if terms.owed > 0 && now > terms.due_at {
+                return Err(Error::Overdue);
+            }
+        }
+        if later_overdue(&env, &load_later(&env, &shop)) {
+            return Err(Error::Overdue);
+        }
+        let config = load_config(&env);
+        let amount = invoice.amount - invoice.paid;
+        invoice.later = true;
+        invoice.later_amount = amount;
+        invoice.later_at = now;
+        invoice.due = now + config.credit_period_secs;
+        put(&env, &DataKey::Invoice(id), &invoice);
+        let mut record = load_later(&env, &shop);
+        record.owed += amount;
+        record.open.set(id, invoice.due);
+        put(&env, &DataKey::Later(shop.clone()), &record);
+        PaidLater {
+            id,
+            shop,
+            amount,
+            due: invoice.due,
+        }
+        .publish(&env);
+        Ok(())
+    }
+
     /// An approved distributor adds to its recourse deposit.
     pub fn deposit_recourse(env: Env, distributor: Address, amount: i128) -> Result<(), Error> {
         distributor.require_auth();
@@ -1247,6 +1456,7 @@ impl RouteLedger {
 
     pub fn get_shop(env: Env, shop: Address) -> ShopView {
         let terms = load_shop(&env, &shop).unwrap_or_default();
+        let later = load_later(&env, &shop);
         ShopView {
             overdue: terms.owed > 0 && env.ledger().timestamp() > terms.due_at,
             limit: terms.limit,
@@ -1264,6 +1474,10 @@ impl RouteLedger {
             voucher: terms.voucher,
             vouched_owed: terms.vouched_owed,
             covered_by_distributor: terms.covered_by_distributor,
+            later_owed: later.owed,
+            later_on_time: later.on_time,
+            later_late: later.late,
+            later_overdue: later_overdue(&env, &later),
         }
     }
 }
@@ -1452,6 +1666,15 @@ fn bps(amount: i128, bps: i128) -> Result<i128, Error> {
 fn is_approved(env: &Env, distributor: &Address) -> bool {
     env.storage()
         .persistent()
+        .get(&DataKey::Distributor(distributor.clone()))
+        .unwrap_or(false)
+}
+
+/// Approved now, or approved once and revoked since (#195): enough for
+/// bookkeeping that moves no money, like recording a driver's cash handed in.
+fn was_ever_approved(env: &Env, distributor: &Address) -> bool {
+    env.storage()
+        .persistent()
         .has(&DataKey::Distributor(distributor.clone()))
 }
 
@@ -1482,6 +1705,86 @@ fn record_payment(env: &Env, invoice: &mut Invoice, method: PayMethod, amount: i
         _ => PayMethod::Mixed,
     };
     put(env, &DataKey::Invoice(invoice.id), invoice);
+    if invoice.later {
+        // Paying a pay-later invoice (#194): counts on the shop's record once
+        // it's paid in full, on time if within the grace day.
+        let mut record = load_later(env, &invoice.shop);
+        record.owed = (record.owed - amount).max(0);
+        if invoice.status == InvoiceStatus::Paid {
+            record.open.remove(invoice.id);
+            let period = load_config(env).credit_period_secs;
+            let days = days_late(env.ledger().timestamp(), invoice.due, period);
+            if days <= GRACE_DAYS {
+                record.on_time += 1;
+            } else {
+                record.late += 1;
+            }
+            grade_later(env, invoice, days, period);
+        }
+        put(env, &DataKey::Later(invoice.shop.clone()), &record);
+    }
+}
+
+/// A pay-later invoice was just paid in full, `days` late (#200). For a shop
+/// with pool terms it counts like a pool cycle: on time past the growth bar
+/// gives +$25 (up to `LATER_RAISE_CAP`) and a good cycle, sharing the
+/// once-per-period rule with pool repayments; late takes $25 (2-7 days) or
+/// $50 and a 4-period freeze (8+). Good news counts only if every payment on
+/// the invoice was digital, because a cash confirmation needs no money to
+/// move (Rule A); bad news counts whatever the method.
+fn grade_later(env: &Env, invoice: &Invoice, days: u64, period: u64) {
+    let mut terms = match load_shop(env, &invoice.shop) {
+        Some(terms) => terms,
+        None => return, // no pool terms: only the pay-later record
+    };
+    let now = env.ledger().timestamp();
+    if days <= GRACE_DAYS {
+        // Good news needs real dollars (Rule A) and real time: open at least
+        // half a credit period, so paying the same second can't farm the
+        // limit or the trusted-shop fee (review of #197).
+        if invoice.method != PayMethod::Digital || now < invoice.later_at.saturating_add(period / 2) {
+            return;
+        }
+        let up_front = invoice.amount - invoice.later_amount;
+        let big_enough = invoice.later_amount >= MIN_BORROW_TO_GROW
+            || (up_front.saturating_mul(2) >= invoice.amount
+                && invoice.later_amount >= MIN_BORROW_WITH_HALF);
+        if !big_enough {
+            return;
+        }
+        let waited = terms.last_raise_at == 0 || now >= terms.last_raise_at + period;
+        if waited && now >= terms.no_raise_until && terms.limit < LATER_RAISE_CAP {
+            terms.limit = (terms.limit + LIMIT_STEP).min(LATER_RAISE_CAP);
+            terms.last_raise_at = now;
+        }
+        if terms.last_good_at == 0 || now >= terms.last_good_at + period {
+            terms.good_cycles = terms.good_cycles.saturating_add(1);
+            terms.last_good_at = now;
+        }
+    } else if days <= MINOR_LATE_DAYS {
+        terms.good_cycles = 0;
+        terms.limit = (terms.limit - LIMIT_STEP).max(0);
+    } else {
+        terms.good_cycles = 0;
+        terms.limit = (terms.limit - MAJOR_LATE_STEP).max(0);
+        terms.no_raise_until = now.saturating_add(period.saturating_mul(NO_RAISE_PERIODS));
+    }
+    save_shop(env, &invoice.shop, &terms);
+}
+
+fn load_later(env: &Env, shop: &Address) -> LaterRecord {
+    env.storage()
+        .persistent()
+        .get(&DataKey::Later(shop.clone()))
+        .unwrap_or_else(|| LaterRecord { owed: 0, on_time: 0, late: 0, open: Map::new(env) })
+}
+
+/// Is any open pay-later invoice past its due date plus the grace day?
+fn later_overdue(env: &Env, record: &LaterRecord) -> bool {
+    let now = env.ledger().timestamp();
+    let day = (load_config(env).credit_period_secs / 7).max(1);
+    let grace = day.saturating_mul(GRACE_DAYS);
+    record.open.values().iter().any(|due| now > due.saturating_add(grace))
 }
 
 /// Write a persistent entry and keep it (and the contract) alive ~30 days.
