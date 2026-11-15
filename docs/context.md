@@ -529,7 +529,7 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 
 **Go or no-go:** the distributor keeps using Relay without us pushing, and defaults stay under 0.75% of credit sales, the most option 1's buffer can absorb at full credit (§5).
 
-**Money:** the pilot year costs about $177K and brings in about $10K, so it needs a grant or pre-seed (the next Stellar Community Fund build award). Break-even is at about 30 distributors. Rohan's cost model has the details.
+**Money:** the founders are the engineers, plus one local sales hire once the pilot works. The pilot year (one route of about 60 shops) costs about $138K and brings in under $1K, so it needs a grant or pre-seed (the next Stellar Community Fund build award). Break-even is at about 24 distributors (fixed costs about $147K a year plus about $3,900 per distributor); about 29 if half of credit sales are pay-later or vouched. Rohan's cost model in `docs/product/assumptions.md` has the details.
 
 ---
 

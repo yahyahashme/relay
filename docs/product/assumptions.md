@@ -6,6 +6,8 @@ Every number links to a `docs/facts.md` entry or is marked **(guess, check in in
 
 > "Distributors pay, shops never do. 0.1% of each invoice paid at delivery, and on a 'pay in 7 days' sale the distributor pays up to 1.5% to be paid now, less when the shop pays part up front: at most 0.25% to us, the rest to the lenders and a loss buffer."
 
+**Costs in one line:** "Our founders are the engineers, plus one local sales hire, so fixed costs are about $150K a year plus about $4,000 per distributor, and we break even at around 24 distributors. The pilot year needs funding."
+
 ## Assumptions
 
 | Assumption | Value | Why it's realistic | Source |
@@ -67,14 +69,56 @@ Step by step:
 
 ### Costs
 
-| Cost | Rough size | Source |
-|---|---|---|
-| Cash-in/cash-out partner fees | about $X per $100 | (guess, check in interviews) |
-| Licensed lender's share | the 0.50% above | context §16 |
-| Network fees | Stellar describes them as under a cent per payment | facts.md entry 37 |
-| Support and signing up distributors | about $300K a year for a small team | (guess) |
+Team model (Nov 15, Rohan; replaces the "2 founders + 2 engineers" draft in #198): **the founders are the engineers**, plus **one local sales and partnerships hire** in El Salvador once the pilot works. Signing up distributors is our biggest risk and a full-time job on the ground, so it gets its own person. Sourced inputs are marked **S**, guesses **G**. USD per year.
 
-**Break-even:** $300,000 ÷ $10,140 per distributor ≈ **30 distributors** (guess). This is a volume business, so sales should target groups of distributors and big brands, not single shops.
+**Fixed costs (the same at 1 or 30 distributors)**
+
+| Line | Calculation | $/yr |
+|---|---|---|
+| 2 founder-engineers (build the product, run partners and fundraising) | 2 × $30K (G; between the local software median of about $13K, **S** GlobalCostData, and senior contract rates of $32–45/hr, **S** Lemon.io) | 60,000 |
+| 1 local sales and partnerships hire (signs up distributors, works with the licensed lender and cash-in partner) | $1,000/mo (G; about 2.5× the $408.80 minimum wage, **S** EY) | 12,000 |
+| Employer on-costs (social security, pension, 13th-month bonus) | +25% on salaries (G; check with an accountant) | 18,000 |
+| Legal (fee-vs-interest opinion, contracts, partner agreements) | (G) | 20,000 |
+| Smart-contract audit | (G) | 20,000 |
+| Office, accounting, insurance | (G) | 12,000 |
+| Hosting, RPC, monitoring (Stellar network fees are under a cent per payment, facts.md entry 37) | (G) | 5,000 |
+| **Fixed total** | | **147,000** |
+
+**Variable costs (per distributor of 10 routes × 100 shops, the case above)**
+
+| Line | Calculation | $/yr per distributor |
+|---|---|---|
+| KYC on 1,000 shop owners | 1,000 × $1.35 (Sumsub Basic list price, **S**) | 1,350 |
+| Field staff (shop sign-up, driver training) | 4 staff per 30 distributors × $800/mo (about 2× minimum wage, **S** EY) + 25% | 1,600 |
+| Support staff | 2 staff per 30 distributors × $600/mo + 25% | 600 |
+| Travel and training materials | $10K ÷ 30 (G) | 333 |
+| **Variable total** | | **about 3,900** |
+
+Other costs that sit outside our budget: the licensed lender's share is the 0.50% above (context §16), and the cash-in partner's fee per $100 is still unknown (facts.md entries 42, 43; check with partners).
+
+**Break-even**
+- Revenue per distributor: **$10,140 a year** (the realistic first year above).
+- Contribution per distributor: $10,140 − $3,900 ≈ **$6,250**.
+- **Break-even = fixed ÷ contribution = $147,000 ÷ $6,250 ≈ 24 distributors.** Total costs at that scale: $147K + 24 × $3.9K ≈ **$240K a year**. This is a volume business, so sales should target groups of distributors and big brands, not single shops.
+
+**Sensitivity (the numbers a judge can push on)**
+
+| If… | Revenue per distributor | Break-even |
+|---|---|---|
+| Base case above | $10,140 | ≈ 24 |
+| The licensed partner does KYC at its own cost (our plan says the partner does KYC) | $10,140 | ≈ 19 |
+| A cheaper KYC vendor (Didit lists $0.30 a check, **S**) | $10,140 | ≈ 20 |
+| No sales hire yet (founders sell) | $10,140 | ≈ 21 |
+| Fixed costs rise by $10K | $10,140 | ≈ 25 (each $10K adds about 1.6) |
+| **Half of credit sales are pay-later (#194, the distributor gives the 7 days itself) or vouched (#185)**: those earn us only 0.10%, not 0.25% | $8,970 | **≈ 29** |
+| Only 10% of sales on credit instead of 20% | $8,970 | ≈ 29 |
+| **All** credit sales are pay-later or vouched | $7,800 | ≈ 38 |
+
+Heavy use of pay-later or vouching is good for shops and distributors but pushes our break-even up, because we earn 0.10% instead of 0.25% on those sales.
+
+**The pilot year looks very different.** One route of about 60 shops (context §7.7, guess): about $468K of invoices a year, so about **$600 in revenue**, against about **$138K in costs** (2 founder-engineers, 1 field person, legal, audit, hosting; no sales hire yet). The pilot needs **funding** (a grant or pre-seed) and we say so openly. Its job is to prove repayment and adoption, not to make money.
+
+Sources for the cost lines: GlobalCostData, Software Engineer salary in El Salvador (2026), https://globalcostdata.com/salary/el-salvador/software-engineer/ ; Lemon.io, El Salvador developer rates, https://lemon.io/rate-calculator/el-salvador/ ; EY, El Salvador minimum wage ($408.80), https://www.ey.com/es_ce/technical/tax/tax-alerts/el-salvador-salario-minimo-2026 ; Sumsub pricing (Basic $1.35 per verification), https://sumsub.com/pricing2/ ; Didit pricing ($0.30 per check), https://docs.didit.me/getting-started/competition-analysis.md
 
 ### Numbers a finance judge will check
 
