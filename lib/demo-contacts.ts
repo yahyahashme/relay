@@ -4,6 +4,8 @@
 // decide which shops get the button: its link goes to DEMO_WHATSAPP (or to no number), so nobody else is messaged by mistake.
 /** The demo's shops, so the dashboard shows each one even when none of its invoices is on the loaded page. */
 export const DEMO_SHOP_IDS = ["tienda-1", "tienda-2", "tienda-3"];
+/** The demo's drivers. Like the demo shops, anyone may act as them without signing in (lib/server/authz.ts). */
+export const DEMO_DRIVER_IDS = ["motorista-1", "motorista-2"];
 
 export const DEMO_PHONES: Record<string, string> = {
   "tienda-1": "7000-0001",
