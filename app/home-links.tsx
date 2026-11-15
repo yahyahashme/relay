@@ -31,7 +31,7 @@ export function AccountLink() {
       <NavLink href="/entrar">{t("Entrar", "Sign in")}</NavLink>
       <Link
         href="/registro"
-        className="inline-flex min-h-11 items-center rounded-full bg-accent px-4 text-[1.0625rem] font-bold text-ink transition-colors duration-[120ms] hover:bg-accent-press active:bg-accent-press"
+        className="press inline-flex min-h-11 items-center rounded-full bg-accent px-4 text-[1.0625rem] font-bold text-ink hover:bg-accent-press active:bg-accent-press"
       >
         {t("Crear cuenta", "Create account")}
       </Link>

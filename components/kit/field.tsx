@@ -102,7 +102,7 @@ export function FilterSelect({ label, children, ...select }: { label: ReactNode 
       </label>
       <select
         id={id}
-        className="select-chevron min-h-11 w-full appearance-none rounded-full bg-paper py-1 pr-9 pl-4 text-base font-semibold text-ink hover:bg-brand-tint focus:outline-3 focus:outline-brand @min-[40rem]:w-auto"
+        className="press select-chevron min-h-11 w-full appearance-none rounded-full bg-paper py-1 pr-9 pl-4 text-base font-semibold text-ink hover:bg-brand-tint focus:outline-3 focus:outline-brand @min-[40rem]:w-auto"
         {...select}
       >
         {children}

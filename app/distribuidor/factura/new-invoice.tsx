@@ -42,7 +42,7 @@ function takeFocus(element: HTMLElement | null) {
 const HEADING = "text-title font-bold";
 const LABEL = "text-label font-semibold text-muted";
 /** A choice in a list of choices: a blue-ruled row. */
-const CHOICE = "flex min-h-13 w-full flex-col justify-center px-3.5 py-1.5 text-left text-ink -outline-offset-3 hover:bg-brand-tint active:bg-brand-tint";
+const CHOICE = "press flex min-h-13 w-full flex-col justify-center px-3.5 py-1.5 text-left text-ink -outline-offset-3 hover:bg-brand-tint active:bg-brand-tint";
 
 /** The frame of the page: the distributor's shell, with "Nueva factura" marked as the place you are in. */
 function Frame({ name, demo = false, children }: { name?: string; demo?: boolean; children: ReactNode }) {

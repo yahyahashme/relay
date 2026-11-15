@@ -53,7 +53,7 @@ function RowBody({ mark, title, hint, figure, chevron }: { mark?: ReactNode; tit
 }
 
 const ROW = "flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left";
-const TAPPABLE = "transition-colors duration-[120ms] hover:bg-brand-tint active:bg-brand-tint focus-visible:-outline-offset-3";
+const TAPPABLE = "press hover:bg-brand-tint active:bg-brand-tint focus-visible:-outline-offset-3";
 
 /** A row that opens another screen. `external` opens a new tab (WhatsApp). */
 export function RowLink({
@@ -119,7 +119,7 @@ export function Shortcut({ href, icon, children }: { href: string; icon: ReactNo
     <Link href={href} className="group flex min-h-11 min-w-0 flex-1 flex-col items-center gap-1.5 rounded-control py-1 text-center">
       <span
         aria-hidden
-        className="flex size-13 items-center justify-center rounded-full bg-accent text-ink transition-[scale,background-color] duration-[120ms] group-hover:bg-accent-press group-active:scale-[0.95] motion-reduce:group-active:scale-100"
+        className="flex size-13 items-center justify-center rounded-full bg-accent text-ink press group-hover:bg-accent-press group-active:scale-[0.92] motion-reduce:group-active:scale-100"
       >
         {icon}
       </span>

@@ -185,7 +185,7 @@ export default function ShopsScreen() {
         setError(null);
         document.getElementById(`tab-${other}`)?.focus();
       }}
-      className={`min-h-12 flex-1 rounded-full px-3 py-1 text-center leading-tight font-bold text-balance -outline-offset-3 ${mode === value ? "bg-ink text-white" : "bg-paper text-ink hover:bg-brand-tint"}`}
+      className={`press min-h-12 flex-1 rounded-full px-3 py-1 text-center leading-tight font-bold text-balance -outline-offset-3 ${mode === value ? "bg-ink text-white" : "bg-paper text-ink hover:bg-brand-tint"}`}
     >
       {label}
     </button>

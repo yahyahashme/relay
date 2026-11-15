@@ -71,7 +71,7 @@ export function ManifestRow({
         aria-label={openLabel}
         aria-current={current ? "true" : undefined}
         data-next={next || undefined}
-        className={`@container/row relative flex items-stretch transition-[scale] duration-[120ms] ease-snap active:scale-[0.98] motion-reduce:active:scale-100 ${next ? "min-h-24" : "min-h-16"} ${
+        className={`@container/row relative flex items-stretch press active:scale-[0.98] motion-reduce:active:scale-100 ${next ? "min-h-24" : "min-h-16"} ${
           current
             ? "after:pointer-events-none after:absolute after:inset-0 after:hidden after:rounded-l-paper after:rounded-r-control after:border-[2.5px] after:border-ink @min-[40rem]/split:after:block"
             : ""

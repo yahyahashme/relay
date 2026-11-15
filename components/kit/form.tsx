@@ -101,7 +101,7 @@ export function Choice({ chosen, onClick, children }: { chosen: boolean; onClick
       type="button"
       aria-pressed={chosen}
       onClick={onClick}
-      className={`min-h-12 rounded-full px-5 text-[1.0625rem] font-bold transition-[scale,background-color] duration-[120ms] ease-snap select-none active:scale-[0.97] ${
+      className={`min-h-12 rounded-full px-5 text-[1.0625rem] font-bold press select-none ${
         chosen ? "bg-ink text-white" : "bg-paper text-ink hover:bg-brand-tint active:bg-brand-tint"
       }`}
     >

@@ -14,7 +14,7 @@ type Size = "md" | "lg";
 const HEIGHT: Record<Size, string> = { md: "min-h-13", lg: "min-h-15" };
 
 const PRESS =
-  "transition-[scale,background-color,border-color] duration-[120ms] ease-snap active:scale-[0.97] motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:active:scale-100 select-none";
+  "press disabled:cursor-not-allowed select-none";
 
 /** A filled button can also be "sm" (44 px), for a top bar. */
 type FilledSize = Size | "sm";
@@ -242,7 +242,7 @@ export function TextButton({ children, onClick, disabled = false, size = "md" }:
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`self-center px-4 text-[1.0625rem] font-bold text-brand underline decoration-2 underline-offset-4 disabled:text-muted ${size === "lg" ? "min-h-14" : "min-h-12"}`}
+      className={`press self-center rounded-full px-4 text-[1.0625rem] font-bold text-brand underline decoration-2 underline-offset-4 disabled:text-muted ${size === "lg" ? "min-h-14" : "min-h-12"}`}
     >
       {children}
     </button>

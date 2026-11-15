@@ -17,7 +17,7 @@ import { AccountLink, DriverLinks, ShopLinks } from "./home-links";
 const SIDE = "pl-[max(var(--gutter),env(safe-area-inset-left))] pr-[max(var(--gutter),env(safe-area-inset-right))]";
 
 const KICKER = "text-base font-semibold text-ink/80";
-const PILL = "inline-flex min-h-13 items-center justify-center rounded-full px-6 text-[1.125rem] font-bold transition-colors duration-[120ms]";
+const PILL = "press inline-flex min-h-13 items-center justify-center rounded-full px-6 text-[1.125rem] font-bold";
 
 /** The problem in three figures (docs/facts.md, entries 1, 9 and 10). */
 const FIGURES: { figure: [string, string]; text: [string, string] }[] = [
@@ -92,21 +92,33 @@ function CurlyArrow() {
   );
 }
 
-/** One way into the demo: a number, who you are, one sentence, then the links. */
+/** The fold's chevron: points right when closed, down when open (.fold-chevron in globals.css). */
+function FoldChevron() {
+  return (
+    <svg viewBox="0 0 20 20" className="fold-chevron size-6 shrink-0 text-ink" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M7.5 4.5 13 10l-5.5 5.5" />
+    </svg>
+  );
+}
+
+/** One way into the demo: a card with a number and who you are. Tapping it unfolds one sentence and the people to choose from. */
 function Role({ n, id, who, children, links }: { n: number; id: string; who: ReactNode; children: ReactNode; links: ReactNode }) {
   return (
-    <article aria-labelledby={id} className="flex flex-col gap-3 min-[64rem]:row-span-3 min-[64rem]:grid min-[64rem]:grid-rows-subgrid">
-      <header className="flex flex-col gap-1.5">
-        <h3 id={id} className="flex items-baseline gap-3 pb-1">
-          <span className="flex size-8 shrink-0 items-center justify-center self-center rounded-full bg-accent text-base font-bold text-ink" aria-hidden="true">
-            {n}
-          </span>
-          <span className="text-lead font-bold">{who}</span>
+    <details className="fold group rounded-card bg-paper">
+      <summary className="press flex min-h-16 items-center gap-3 rounded-card px-4 py-3 hover:bg-brand-tint">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent text-base font-bold text-ink" aria-hidden="true">
+          {n}
+        </span>
+        <h3 id={id} className="min-w-0 flex-1 text-lead font-bold">
+          {who}
         </h3>
-        <p className="text-pretty">{children}</p>
-      </header>
-      <div className="flex flex-col gap-2">{links}</div>
-    </article>
+        <FoldChevron />
+      </summary>
+      <div className="flex flex-col gap-3 px-4 pb-4">
+        <p className="text-pretty text-muted">{children}</p>
+        <div className="flex flex-col gap-2 [&_.bg-paper]:bg-white">{links}</div>
+      </div>
+    </details>
   );
 }
 
@@ -175,36 +187,48 @@ export default function Home() {
         </p>
       </section>
 
-      <section aria-labelledby="como" className="flex flex-col gap-6">
-        <header className="flex flex-col gap-2">
-          <h2 id="como" className="text-[clamp(1.875rem,1.3rem+2.5vw,3rem)] leading-[1.05] font-black tracking-[-0.03em]">
-            <T es="Cómo funciona" en="How it works" />
-          </h2>
-        </header>
-        <ol className="grid min-[64rem]:grid-cols-[minmax(0,1fr)_5rem_minmax(0,1fr)_5rem_minmax(0,1fr)] min-[64rem]:items-start">
-          {STEPS.map(({ icon, title, text }, i) => (
-            <li key={i} className="contents">
-              {i > 0 && <CurlyArrow />}
-              <div className="flex flex-col gap-2">
-                <svg viewBox="0 0 24 24" className="box-content size-7 rounded-full bg-accent p-2.5 text-ink" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  {icon}
-                </svg>
-                <h3 className="text-lead font-bold text-balance">
-                  <T es={title[0]} en={title[1]} />
-                </h3>
-                <p className="text-pretty">
-                  <T es={text[0]} en={text[1]} />
-                </p>
-              </div>
-            </li>
-          ))}
-        </ol>
-        <p className="max-w-[44rem] text-muted text-pretty">
-          <T
-            es="Si la tienda elige 7 días, un fondo de prestamistas le paga a la distribuidora en el momento. Las reglas de crédito están escritas en un contrato público: no se cambian para una sola tienda ni en secreto."
-            en="If the shop picks 7 days, a lender pool pays the distributor right away. The credit rules are written in a public contract, so they can't be changed for one shop or quietly changed later."
-          />
-        </p>
+      <section aria-labelledby="como">
+        <details className="fold rounded-card bg-paper">
+          <summary className="press flex items-center gap-4 rounded-card px-5 py-5 hover:bg-brand-tint min-[40rem]:px-8 min-[40rem]:py-6">
+            <span className="flex min-w-0 flex-1 flex-col gap-1">
+              <h2 id="como" className="text-[clamp(1.875rem,1.3rem+2.5vw,3rem)] leading-[1.05] font-black tracking-[-0.03em]">
+                <T es="Cómo funciona" en="How it works" />
+              </h2>
+              <span className="text-muted text-pretty">
+                <T es="En 3 pasos: la factura llega, la tienda paga, el crédito crece." en="In 3 steps: the invoice arrives, the shop pays, the credit grows." />
+              </span>
+            </span>
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white">
+              <FoldChevron />
+            </span>
+          </summary>
+          <div className="flex flex-col gap-6 px-5 pb-6 min-[40rem]:px-8 min-[40rem]:pb-8">
+            <ol className="grid min-[64rem]:grid-cols-[minmax(0,1fr)_5rem_minmax(0,1fr)_5rem_minmax(0,1fr)] min-[64rem]:items-start">
+              {STEPS.map(({ icon, title, text }, i) => (
+                <li key={i} className="contents">
+                  {i > 0 && <CurlyArrow />}
+                  <div className="flex flex-col gap-2">
+                    <svg viewBox="0 0 24 24" className="box-content size-7 rounded-full bg-accent p-2.5 text-ink" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      {icon}
+                    </svg>
+                    <h3 className="text-lead font-bold text-balance">
+                      <T es={title[0]} en={title[1]} />
+                    </h3>
+                    <p className="text-pretty">
+                      <T es={text[0]} en={text[1]} />
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <p className="max-w-[44rem] text-muted text-pretty">
+              <T
+                es="Si la tienda elige 7 días, un fondo de prestamistas le paga a la distribuidora en el momento. Las reglas de crédito están escritas en un contrato público: no se cambian para una sola tienda ni en secreto."
+                en="If the shop picks 7 days, a lender pool pays the distributor right away. The credit rules are written in a public contract, so they can't be changed for one shop or quietly changed later."
+              />
+            </p>
+          </div>
+        </details>
       </section>
 
       <section aria-labelledby="demo" className="flex flex-col gap-6">
@@ -220,7 +244,7 @@ export default function Home() {
           </p>
         </header>
 
-        <div className="grid gap-x-8 gap-y-10 min-[64rem]:grid-cols-3 min-[64rem]:gap-y-3">
+        <div className="grid items-start gap-3 min-[64rem]:grid-cols-3 min-[64rem]:gap-4">
           <Role n={1} id="rol-tienda" who={<T es="La tienda" en="The shop" />} links={<ShopLinks />}>
             <T es="Paga cada factura desde el teléfono: ahora, en efectivo o en 7 días sin intereses." en="Pays each invoice from the phone: now, in cash, or in 7 days with no interest." />
           </Role>
