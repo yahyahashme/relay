@@ -30,7 +30,7 @@ function useTucked(): boolean {
 export function HomeNav() {
   const { t } = useT();
   const tucked = useTucked();
-  const word = "press inline-flex min-h-11 items-center rounded-full px-3 text-[1.0625rem] font-bold text-ink hover:underline underline-offset-4 decoration-2";
+  const word = "press inline-flex min-h-11 items-center rounded-full px-2 text-[1.0625rem] min-[22rem]:px-3 font-bold text-ink hover:underline underline-offset-4 decoration-2";
 
   return (
     <header
@@ -40,7 +40,7 @@ export function HomeNav() {
         <Link href="/" aria-label="Relay" className="press -ml-1 inline-flex min-h-11 shrink-0 items-center rounded-full px-1" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
           <Logo className="h-auto w-[6.75rem]" />
         </Link>
-        <nav aria-label={t("Partes de la página", "Parts of the page")} className="-mr-3 flex items-center gap-1">
+        <nav aria-label={t("Partes de la página", "Parts of the page")} className="flex items-center min-[22rem]:-mr-3 min-[22rem]:gap-1">
           <a href="#demo" className={word}>
             {t("Demo", "Demo")}
           </a>
