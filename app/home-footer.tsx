@@ -24,7 +24,7 @@ const COLUMNS: { es: string; en: string; links: FooterLink[] }[] = [
     en: "Relay",
     links: [
       { href: "/pronto/nosotros", es: "Sobre Relay", en: "About Relay" },
-      { href: "#como", es: "Cómo funciona", en: "How it works" },
+      { href: "#como", es: "Qué hacemos", en: "What we do" },
       { href: "/registro/distribuidora", es: "Para distribuidoras", en: "For distributors" },
       { href: "/prestamista", es: "Para prestamistas", en: "For lenders" },
     ],

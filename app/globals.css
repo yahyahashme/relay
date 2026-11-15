@@ -384,6 +384,15 @@ body {
     .story[data-ready] [data-reveal]:not([data-shown]) .draw-head {
       opacity: 0;
     }
+    /* A straight line that grows from the left (the four joined at the end). */
+    .story[data-ready] [data-reveal] .draw-bar {
+      transform-origin: left;
+      transition: scale 1100ms cubic-bezier(0.65, 0, 0.35, 1);
+      transition-delay: calc(var(--reveal-delay, 0ms) + 300ms);
+    }
+    .story[data-ready] [data-reveal]:not([data-shown]) .draw-bar {
+      scale: 0 1;
+    }
   }
 
   /* A payment completes and its status appears, once: a short fade and settle. */

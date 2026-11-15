@@ -283,12 +283,37 @@ export default function Home() {
                   </li>
                 ))}
               </ol>
-              <p data-reveal="" className="max-w-[44rem] text-pretty">
-                <T
-                  es="Las reglas de crédito están escritas en un contrato público en Stellar: no se cambian para una sola tienda ni en secreto, y cada pago se puede revisar."
-                  en="The credit rules are written in a public contract on Stellar: they can't be changed for one shop or quietly, and every payment can be checked."
-                />
-              </p>
+              {/* The four, joined: one record, with a line drawn through them as it arrives. */}
+              <div data-reveal="" className="flex flex-col gap-5 rounded-card bg-ink p-6 text-white min-[40rem]:flex-row min-[40rem]:items-center min-[40rem]:gap-8 min-[40rem]:p-8">
+                <div className="relative flex shrink-0 items-center justify-between gap-3 min-[40rem]:w-64" aria-hidden="true">
+                  <span className="draw-bar absolute inset-x-6 top-1/2 h-0.5 -translate-y-1/2 bg-accent" />
+                  {STEPS.map(({ icon }, i) => (
+                    <svg
+                      key={i}
+                      viewBox="0 0 24 24"
+                      className="relative box-content size-5 shrink-0 rounded-full bg-accent p-2 text-ink ring-4 ring-ink"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.75"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      {icon}
+                    </svg>
+                  ))}
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <h3 className="text-lead font-bold text-balance">
+                    <T es="Los cuatro ven el mismo registro" en="All four see the same record" />
+                  </h3>
+                  <p className="text-white/85 text-pretty">
+                    <T
+                      es="Cada factura, pago y límite queda en un contrato público. Sus reglas no se cambian para una sola tienda ni en secreto, y cada pago se puede revisar."
+                      en="Every invoice, payment and limit is kept in a public contract. Its rules can't be changed for one shop or quietly, and every payment can be checked."
+                    />
+                  </p>
+                </div>
+              </div>
             </ScrollStory>
           </section>
 
