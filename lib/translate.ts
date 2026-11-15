@@ -88,6 +88,7 @@ const RULES: Rule[] = [
   exact("El crédito no está disponible en este momento.", "Credit isn't available right now."),
   exact("Hoy no hay fondos para crédito. Intente más tarde.", "There's no credit money available today. Try again later."),
   exact("No tiene deuda pendiente.", "You have no debt to pay."),
+  exact("No tiene suficientes dólares digitales para este pago.", "You don't have enough digital dollars for this payment."),
   exact("No tiene deudas pendientes.", "You have no debts to pay."),
   exact("El motorista aún no registró el efectivo.", "The driver hasn't registered the cash yet."),
   exact("Su tienda aún no tiene crédito.", "Your shop doesn't have credit yet."),

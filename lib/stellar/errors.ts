@@ -1,5 +1,12 @@
 import "server-only";
 
+/**
+ * Not one of ours: the token refused because the payer's balance is too low (#205). The token's
+ * BalanceError is also #10, our NoDebt, so it is told apart by the token's own words in the text.
+ */
+export const LOW_BALANCE = 1010;
+const LOW_BALANCE_TEXT = /balance is not sufficient|resulting balance is not within the allowed range/i;
+
 // Contract error code -> what the screens say (same numbers as
 // contracts/route_ledger/src/lib.rs `enum Error`).
 const MESSAGES: Record<number, string> = {
@@ -23,12 +30,14 @@ const MESSAGES: Record<number, string> = {
   19: "Solo puede cambiar el respaldo cuando la tienda no debe nada.",
   20: "Su distribuidora no le da los 7 días en esta factura.",
   21: "Esta factura ya está en 7 días con su distribuidora.",
+  [LOW_BALANCE]: "No tiene suficientes dólares digitales para este pago.",
 };
 
 export const FALLBACK_MESSAGE = "No se pudo completar. Intente de nuevo.";
 
 /** The contract's error number inside an SDK error text, e.g. "Error(Contract, #4)". */
 export function contractErrorCode(text: string): number | null {
+  if (LOW_BALANCE_TEXT.test(text)) return LOW_BALANCE;
   const match = /Error\(Contract, #(\d+)\)/.exec(text);
   return match ? Number(match[1]) : null;
 }

@@ -37,6 +37,11 @@ describe("errors", () => {
     expect(contractErrorCode('HostError: Error(Contract, #4)\n...')).toBe(4);
     expect(contractErrorCode("network down")).toBeNull();
   });
+  it("tells a low token balance apart from our no-debt error, though both are #10 (#205)", () => {
+    const sim = 'HostError: Error(Contract, #10)\nEvent log:\n  "balance is not sufficient to spend", 339800000, 600000000';
+    expect(errorMessage(contractErrorCode(sim))).toBe("No tiene suficientes dólares digitales para este pago.");
+    expect(errorMessage(contractErrorCode("HostError: Error(Contract, #10)"))).toBe("No tiene deuda pendiente.");
+  });
   it("says it in Spanish, with a fallback", () => {
     expect(errorMessage(5)).toBe("Esta factura ya está pagada.");
     expect(errorMessage(14)).toBe(FALLBACK_MESSAGE);
