@@ -187,3 +187,13 @@ CREATE TABLE IF NOT EXISTS lenders (
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   decided_at      TIMESTAMPTZ
 );
+
+-- #217: deliveries a shop paid in full in dólares digitales. Two of them, a credit period apart,
+-- unlock a new shop's first limit (lib/credit-unlock.ts). Created at runtime on the live DB too.
+CREATE TABLE IF NOT EXISTS door_payments (
+  shop_id    TEXT NOT NULL,
+  invoice_id BIGINT NOT NULL,
+  cents      BIGINT NOT NULL,
+  paid_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (shop_id, invoice_id)
+);

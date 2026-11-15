@@ -60,6 +60,8 @@ describe("translateMessage", () => {
     ["La nota puede tener hasta 300 letras.", "The note can have up to 300 characters."],
     ["Hay dos tiendas con ese nombre: Tienda Marta", "Two shops have that name: Tienda Marta"],
     ["Listo. Ahora respalda a Tienda Rosa.", "Done. You now back Tienda Rosa."],
+    ["Listo. Ahora respalda a Tienda Rosa. Ya tiene $100.00 de crédito.", "Done. You now back Tienda Rosa. It now has $100.00 of credit."],
+    ["Pago recibido: $90.00 en dólares digitales. Su tienda ya tiene $50.00 de crédito para «Pagar en 7 días».", "Payment received: $90.00 in digital dollars. Your shop now has $50.00 of credit for “Pay in 7 days”."],
     ["Listo. Ya no respalda a Tienda Rosa.", "Done. You no longer back Tienda Rosa."],
     ["Listo. Su depósito de respaldo es $40.00.", "Done. Your backing deposit is $40.00."],
     ["Listo. Retiró $10.00. Su depósito de respaldo es $30.00.", "Done. You took out $10.00. Your backing deposit is $30.00."],

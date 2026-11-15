@@ -259,7 +259,15 @@ export function ShopSignUp({
             <p className="pt-1.5 text-muted text-pretty">{t("Ya puede usar «Pagar en 7 días», sin intereses.", "You can use “Pay in 7 days” now, with no interest.")}</p>
           </ReceiptTotal>
         ) : (
-          <ReceiptRule />
+          <>
+            <ReceiptRule />
+            <p className="text-muted text-pretty">
+              {t(
+                "«Pagar en 7 días» se abre después de 2 entregas pagadas en dólares digitales, con una semana entre ellas. Su primer límite es la mitad de una entrega normal, hasta $100.",
+                "“Pay in 7 days” opens after 2 deliveries paid in digital dollars, a week apart. Your first limit is half a normal delivery, up to $100.",
+              )}
+            </p>
+          </>
         )}
         <ReceiptFoot stamp={<Stamp tone="ok">{t("Lista", "Ready")}</Stamp>} />
       </Receipt>

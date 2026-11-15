@@ -807,6 +807,7 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 | Date | Decision |
 |---|---|
 | Nov 3 | Space 1 (savings, credit, inflation resilience). Space 2 ruled out. |
+| Nov 15 | #217: a new shop no longer gets $200 at sign-up (Yahya: we can't run ID checks on shops, so a shop could take credit and leave). Credit opens after 2 deliveries paid in dólares digitales at the door, a credit period apart; the first limit is half its average delivery, $50 to $100, then +$25 per good cycle as before. A shop its distributor vouches for gets $100 at once if the deposit covers it. Recorded in the DB (`door_payments`), set with `set_terms`; no contract change. A runaway shop takes at most about $100 and loses its supplier. |
 | Nov 14 | #185: build both cheaper credit paths (Yahya: "whatever makes more sense from a business perspective"). Trusted shops (record-based buffer cut) and Rohan's recourse tier (distributor deposit, 0.25%). |
 | Nov 5 | Payments between El Salvador's neighbourhood shops and their distributors (the team's own idea; it replaced the Mexico tanda). |
 | Nov 5 | Work in GitHub (repo, board, docs) with one AI chat per workstream. Skip Notion. No long generated reports. |
