@@ -95,16 +95,16 @@ function CurlyArrow() {
 /** The fold's chevron: points right when closed, down when open (.fold-chevron in globals.css). */
 function FoldChevron() {
   return (
-    <svg viewBox="0 0 20 20" className="fold-chevron size-6 shrink-0 text-ink" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 20 20" className="fold-chevron size-6 shrink-0 text-brand" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M7.5 4.5 13 10l-5.5 5.5" />
     </svg>
   );
 }
 
-/** One way into the demo: a card with a number and who you are. Tapping it unfolds one sentence and the people to choose from. */
-function Role({ n, id, who, children, links }: { n: number; id: string; who: ReactNode; children: ReactNode; links: ReactNode }) {
+/** One way into the demo: a card with a number and who you are. Tapping it unfolds one sentence and the people to choose from. The shop starts open (most visitors, and booth judges, try it first). */
+function Role({ n, id, who, children, links, open = false }: { n: number; id: string; who: ReactNode; children: ReactNode; links: ReactNode; open?: boolean }) {
   return (
-    <details className="fold group rounded-card bg-paper">
+    <details open={open} className="fold group rounded-card border border-edge bg-paper">
       <summary className="press flex min-h-16 items-center gap-3 rounded-card px-4 py-3 hover:bg-brand-tint">
         <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent text-base font-bold text-ink" aria-hidden="true">
           {n}
@@ -149,7 +149,7 @@ export default function Home() {
             <Link href="/registro" className={`${PILL} bg-ink text-white hover:bg-[#162f52]`}>
               <T es="Crear cuenta" en="Create account" />
             </Link>
-            <a href="#demo" className={`${PILL} bg-white text-ink hover:bg-paper`}>
+            <a href="#demo" className={`${PILL} border-[1.5px] border-accent-edge bg-white text-ink hover:bg-paper`}>
               <T es="Probar la demo" en="Try the demo" />
             </a>
           </div>
@@ -188,7 +188,7 @@ export default function Home() {
       </section>
 
       <section aria-labelledby="como">
-        <details className="fold rounded-card bg-paper">
+        <details className="fold rounded-card border border-edge bg-paper">
           <summary className="press flex items-center gap-4 rounded-card px-5 py-5 hover:bg-brand-tint min-[40rem]:px-8 min-[40rem]:py-6">
             <span className="flex min-w-0 flex-1 flex-col gap-1">
               <h2 id="como" className="text-[clamp(1.875rem,1.3rem+2.5vw,3rem)] leading-[1.05] font-black tracking-[-0.03em]">
@@ -245,7 +245,7 @@ export default function Home() {
         </header>
 
         <div className="grid items-start gap-3 min-[64rem]:grid-cols-3 min-[64rem]:gap-4">
-          <Role n={1} id="rol-tienda" who={<T es="La tienda" en="The shop" />} links={<ShopLinks />}>
+          <Role n={1} id="rol-tienda" open who={<T es="La tienda" en="The shop" />} links={<ShopLinks />}>
             <T es="Paga cada factura desde el teléfono: ahora, en efectivo o en 7 días sin intereses." en="Pays each invoice from the phone: now, in cash, or in 7 days with no interest." />
           </Role>
           <Role n={2} id="rol-motorista" who={<T es="El motorista" en="The driver" />} links={<DriverLinks />}>

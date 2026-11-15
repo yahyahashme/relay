@@ -23,6 +23,11 @@
   /* The bright accent (Wise's lime, in Relay blue): the main button and the big hero bands. Ink text on it. */
   --color-accent: #a8d5ff;
   --color-accent-press: #8cc4f7;
+  /* The edge of anything light blue (3:1 or more on white, on cards and on the light blue itself), so a button
+     is a button for anyone, not just a pale shape. */
+  --color-accent-edge: #265f9e;
+  /* The edge of a tappable row or card (3:1 or more on white and on cards). */
+  --color-edge: #6f8196;
 
   /* Stamps and status. The tints are stamp fills only, never large backgrounds. */
   --color-ok: #146c43;
@@ -63,9 +68,12 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  /* Amounts use the same sans with figures that line up (Wise style); the name stays so every call site keeps working. */
-  --font-mono: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  /* Reading text: Atkinson Hyperlegible Next, made for low vision (no mixing up 0/O, 1/l/I). */
+  --font-sans: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
+  /* Amounts and codes: its mono sister, so every digit and letter of a code is unmistakable. */
+  --font-mono: var(--font-atkinson-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* Big headings only: Inter, heavy and tight, for the Wise look. */
+  --font-display: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* A short screen (a 360x640 phone, any phone held sideways): the slip tightens and folds its lines, so the
@@ -142,12 +150,12 @@ body {
   /* Figures line up in columns */
   .font-mono {
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
   }
 
   /* Headings: heavy and tight, like Wise's. */
   h1,
   h2 {
+    font-family: var(--font-display);
     font-weight: 800;
     letter-spacing: -0.025em;
   }

@@ -289,7 +289,7 @@ export function RowButton({ children, onClick, label, disabled = false, busy = f
       disabled={disabled || busy}
       aria-busy={busy}
       aria-label={label}
-      className="inline-flex min-h-11 items-center justify-center press rounded-full bg-paper px-4 py-1 text-center font-sans text-base leading-tight font-bold text-ink select-none hover:bg-brand-tint active:bg-brand-tint disabled:cursor-not-allowed disabled:text-muted disabled:hover:bg-transparent"
+      className="inline-flex min-h-11 items-center justify-center press rounded-full border border-edge bg-paper px-4 py-1 text-center font-sans text-base leading-tight font-bold text-ink select-none hover:bg-brand-tint active:bg-brand-tint disabled:cursor-not-allowed disabled:text-muted disabled:hover:bg-transparent"
     >
       {busy ? t("Guardando...", "Saving...") : children}
     </button>

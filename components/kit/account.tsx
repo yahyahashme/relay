@@ -23,7 +23,7 @@ export function CardHeading({ children, id }: { children: ReactNode; id?: string
 
 /** Several rows in one card, split by hairlines. */
 export function RowGroup({ children }: { children: ReactNode }) {
-  return <Card className="flex flex-col divide-y divide-paper-rule overflow-hidden">{children}</Card>;
+  return <Card className="flex flex-col divide-y divide-paper-rule overflow-hidden border border-edge">{children}</Card>;
 }
 
 /** A small round mark at the start of a row: an icon, or a name's initials. */
@@ -47,7 +47,7 @@ function RowBody({ mark, title, hint, figure, chevron }: { mark?: ReactNode; tit
         {hint && <span className="text-label text-muted text-pretty">{hint}</span>}
       </span>
       {figure && <span className="shrink-0 font-mono text-[1.0625rem] font-semibold text-ink">{figure}</span>}
-      {chevron && <Chevron className="size-5 text-muted" />}
+      {chevron && <Chevron className="size-5 text-brand" />}
     </>
   );
 }
@@ -119,7 +119,7 @@ export function Shortcut({ href, icon, children }: { href: string; icon: ReactNo
     <Link href={href} className="group flex min-h-11 min-w-0 flex-1 flex-col items-center gap-1.5 rounded-control py-1 text-center">
       <span
         aria-hidden
-        className="flex size-13 items-center justify-center rounded-full bg-accent text-ink press group-hover:bg-accent-press group-active:scale-[0.92] motion-reduce:group-active:scale-100"
+        className="flex size-13 items-center justify-center rounded-full border-[1.5px] border-accent-edge bg-accent text-ink press group-hover:bg-accent-press group-active:scale-[0.92] motion-reduce:group-active:scale-100"
       >
         {icon}
       </span>

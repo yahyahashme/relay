@@ -1,7 +1,7 @@
 import { formatMoney } from "@/lib/format";
 
 /**
- * An amount, in Inter with tabular figures: "$ 48.50", a thin gap after the sign, two decimals, tabular.
+ * An amount, in Atkinson Hyperlegible Mono: "$ 48.50", a thin gap after the sign, two decimals, tabular.
  * Size, weight and colour come from `className`. For plain text (hints, aria labels) use formatAmount().
  */
 export function Money({ value, className = "" }: { value: number; className?: string }) {

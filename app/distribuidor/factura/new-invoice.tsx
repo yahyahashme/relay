@@ -137,7 +137,7 @@ function ShopPicker({ shops, value, onChange }: { shops: Shop[]; value: Shop | n
       {matches.length === 0 ? (
         <p className="text-muted">{t("No hay tiendas con ese nombre.", "No shops with that name.")}</p>
       ) : (
-        <ul aria-label={t("Tiendas encontradas", "Shops found")} className="flex flex-col divide-y divide-paper-rule overflow-hidden rounded-control bg-paper">
+        <ul aria-label={t("Tiendas encontradas", "Shops found")} className="flex flex-col divide-y divide-paper-rule overflow-hidden rounded-control border border-edge bg-paper">
           {matches.map((shop) => (
             <li key={shop.id}>
               <button type="button" onClick={() => pick(shop)} className={`${CHOICE} rounded-[8px]`}>

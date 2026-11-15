@@ -27,9 +27,9 @@ const FILL: Record<FilledSize, string> = {
 const FILLED = `flex w-full flex-col items-center justify-center rounded-full text-center font-bold ${PRESS}`;
 const TONE = {
   primary:
-    "bg-accent text-ink hover:bg-accent-press active:bg-accent-press disabled:bg-paper-rule disabled:text-muted aria-busy:disabled:bg-accent-press aria-busy:disabled:text-ink data-arriving:disabled:bg-accent data-arriving:disabled:text-ink",
+    "border-[1.5px] border-accent-edge bg-accent text-ink hover:bg-accent-press active:bg-accent-press disabled:border-dashed disabled:border-edge disabled:bg-white disabled:text-muted aria-busy:disabled:border-solid aria-busy:disabled:border-accent-edge aria-busy:disabled:bg-accent-press aria-busy:disabled:text-ink data-arriving:disabled:border-solid data-arriving:disabled:border-accent-edge data-arriving:disabled:bg-accent data-arriving:disabled:text-ink",
   danger:
-    "bg-bad text-white hover:bg-[#8f1c13] active:bg-[#8f1c13] disabled:bg-paper-rule disabled:text-muted aria-busy:disabled:bg-[#8f1c13] aria-busy:disabled:text-white",
+    "bg-bad text-white hover:bg-[#8f1c13] active:bg-[#8f1c13] border-[1.5px] border-bad disabled:border-dashed disabled:border-edge disabled:bg-white disabled:text-muted aria-busy:disabled:bg-[#8f1c13] aria-busy:disabled:text-white",
 };
 
 /**
@@ -115,8 +115,8 @@ export function ButtonLink({ href, children, hint, size = "md", external = false
 // ---------- secondary actions: outlined rows ----------
 
 const ROW = `flex w-full items-center justify-between gap-3 px-4 py-2 text-left text-ink ${PRESS}`;
-const OUTLINE = "rounded-control bg-paper hover:bg-brand-tint active:bg-brand-tint";
-const OUTLINE_OFF = "disabled:text-muted disabled:hover:bg-paper";
+const OUTLINE = "rounded-control border border-edge bg-paper hover:bg-brand-tint active:bg-brand-tint";
+const OUTLINE_OFF = "disabled:border-dashed disabled:text-muted disabled:hover:bg-paper";
 
 function RowLabel({ title, hint }: { title: ReactNode; hint?: ReactNode }) {
   return (
@@ -131,7 +131,7 @@ function RowEnd({ figure, open }: { figure?: ReactNode; open?: boolean }) {
   return (
     <span className="flex shrink-0 items-center gap-2">
       {figure && <span className="font-mono text-[1.0625rem] font-semibold text-ink">{figure}</span>}
-      <Chevron open={open} />
+      <Chevron open={open} className="size-5 text-brand" />
     </span>
   );
 }
@@ -180,7 +180,7 @@ export function ActionRow({
     );
   }
   return (
-    <div className="rounded-control bg-paper">
+    <div className={`rounded-control border bg-paper ${disabled ? "border-dashed border-edge" : "border-edge"}`}>
       <button
         type="button"
         onClick={onClick}

@@ -52,8 +52,10 @@ Yahya asked for Wise's app style everywhere, in Relay's blues. This section wins
 - **Pages are white.** Cards are a soft grey-blue (`paper` #f1f5fa) with 20 px corners and no borders.
 - **Light blue where Wise has lime:** `accent` #a8d5ff is the main button (a full pill with dark navy words) and the home page's hero band. `ink` #0b1f3a (dark navy) is all text and the dark pill. Links and the logo keep Relay blue #0b4ea2.
 - **Secondary actions** are grey-blue rounded rows with a chevron, not outlined boxes. Choices and tabs are pills: the chosen one is navy with white words.
-- **Type:** Inter for everything. Headings are 800 to 900 weight and tight; amounts are Inter with tabular figures (`font-mono` now means that).
+- **Type:** big headings in Inter, 800 to 900 weight and tight. Reading text and amounts stay Atkinson (see Fonts below).
 - Status stays a calm pill with a dot. Inputs are white with a grey border and a light blue focus ring.
+- **Edges (review, Nov 14):** anything light blue has a dark blue edge (`accent-edge`, 3:1 on white, cards and the blue itself); tappable rows, cards and pills have an `edge` border (3:1); a disabled button is white with a dashed edge and muted words. `lib/contrast.test.ts` checks these pairs.
+- **Fonts (review, Nov 14):** Atkinson Hyperlegible Next for reading, Atkinson Hyperlegible Mono for amounts and codes (easier for older readers), Inter only for big headings.
 
 ## Account screens (Nov 14)
 
