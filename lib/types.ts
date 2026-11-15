@@ -25,6 +25,8 @@ export type Shop = {
   coveredByDistributor?: number;
   /** Pay later on its distributors' own money (#194): what it still owes that way, and how its paid ones went. */
   laterOwed?: number; laterOnTime?: number; laterLate?: number;
+  /** An open pay-later invoice is past due plus the grace day: no new credit of either kind. */
+  laterOverdue?: boolean;
 };
 /** A distributor's recourse deposit (#185), in dollars. `required` = 20% of `vouchedOut`. */
 export type RecourseView = { distributorId: string; deposit: number; vouchedOut: number; required: number };

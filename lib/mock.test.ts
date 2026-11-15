@@ -326,6 +326,8 @@ describe("pay later counts toward the pool limit (#200)", () => {
   it("raises the limit when paid on time digitally, not in cash, and lowers it when late", () => {
     mock.offerOwnCredit("tienda-3", true);
     mock.payLater(1003);
+    expect(mock.getShop("tienda-3")?.creditLimit).toBe(200);
+    now = NOW + 4 * DAY; // open at least half a credit period
     mock.payNow(1003);
     expect(mock.getShop("tienda-3")).toMatchObject({ creditLimit: 225, goodCycles: 1 });
 
@@ -335,9 +337,19 @@ describe("pay later counts toward the pool limit (#200)", () => {
     mock.confirmCash(1001, 150);
     expect(mock.getShop("tienda-1")).toMatchObject({ creditLimit: 200, laterOnTime: 1 }); // cash: no raise (Rule A)
 
-    mock.payLater(1004);
-    now = NOW + 10 * DAY; // 3 days past due
+    mock.payLater(1004); // due NOW + 11 days
+    now = NOW + 13 * DAY; // 2 days past due: overdue, so no more credit
+    expect(mock.getShop("tienda-1")?.laterOverdue).toBe(true);
+    expect(mock.payLater(1007).message).toBe("Tiene un pago vencido.");
     mock.payNow(1004);
     expect(mock.getShop("tienda-1")?.creditLimit).toBe(175);
+    expect(mock.getShop("tienda-1")?.laterOverdue).toBeUndefined();
+  });
+
+  it("doesn't count a pay-later invoice paid the same moment", () => {
+    mock.offerOwnCredit("tienda-1", true);
+    mock.payLater(1001);
+    mock.payNow(1001);
+    expect(mock.getShop("tienda-1")).toMatchObject({ creditLimit: 200, laterOnTime: 1 });
   });
 });

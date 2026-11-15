@@ -56,6 +56,8 @@ function useQuietOnOpen(panel: Panel | null): boolean {
 /** Why "Pagar en 7 días" is greyed out, or null if the shop can use it. */
 function creditBlocked(shop: Shop | null, invoice: Invoice, t: (es: string, en: string) => string): string | null {
   if (invoice.later) return t("Ya la pasó a 7 días", "Already on 7 days");
+  // An unpaid pay-later invoice past its date blocks both kinds of credit (review of #197).
+  if (shop?.laterOverdue) return t("Tiene un pago vencido", "You have an overdue payment");
   // The distributor gives the 7 days itself (#194): the pool's limit doesn't apply, only "nothing late".
   if (invoice.ownCredit) return shop?.overdue ? t("Tiene un pago vencido", "You have an overdue payment") : null;
   if (!shop || shop.creditLimit <= 0) return t("Su tienda aún no tiene crédito", "Your shop doesn't have credit yet");

@@ -60,5 +60,6 @@ export function toShop(party: Party, v: ShopView, directory?: Directory): Shop {
   if (v.later_owed > 0n) shop.laterOwed = toDollars(v.later_owed);
   if (v.later_on_time > 0) shop.laterOnTime = v.later_on_time;
   if (v.later_late > 0) shop.laterLate = v.later_late;
+  if (v.later_overdue) shop.laterOverdue = true;
   return shop;
 }

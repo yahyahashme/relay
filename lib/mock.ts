@@ -36,6 +36,7 @@ type InvoiceRecord = {
   creditFee?: number; // units
   later?: boolean; // on pay later with the distributor's own money (#194)
   laterAmount?: number; // cents left to pay when it went on pay later (#200)
+  laterAt?: number; // when it went on pay later
 };
 type ShopRecord = {
   id: string;
@@ -188,7 +189,14 @@ function toShop(s: ShopRecord): Shop {
   if (s.laterOwed > 0) shop.laterOwed = dollars(s.laterOwed);
   if (s.laterOnTime > 0) shop.laterOnTime = s.laterOnTime;
   if (s.laterLate > 0) shop.laterLate = s.laterLate;
+  if (laterOverdue(s.id)) shop.laterOverdue = true;
   return shop;
+}
+
+/** An unpaid pay-later invoice is past its date plus the grace day: no new credit of either kind. */
+function laterOverdue(shopId: string): boolean {
+  const now = clock();
+  return db().invoices.some((i) => i.shopId === shopId && i.later && i.paid < i.amount && now > i.dueAt + GRACE_DAYS * DAY_MS);
 }
 
 /** A payment on a pay-later invoice (#194): lowers what's owed, and once paid in full counts it on time or late. */
@@ -213,7 +221,8 @@ function settleLater(invoice: InvoiceRecord, cents: number) {
 function gradeLater(shop: ShopRecord, invoice: InvoiceRecord, daysLate: number, now: number) {
   if (shop.limit <= 0 && shop.firstCreditAt === 0) return; // no pool terms in the demo sense
   if (daysLate <= GRACE_DAYS) {
-    if (invoice.method !== "digital") return;
+    // Good news needs real dollars and real time: open at least half a credit period (review of #197).
+    if (invoice.method !== "digital" || now < (invoice.laterAt ?? 0) + (CREDIT_DAYS * DAY_MS) / 2) return;
     const later = invoice.laterAmount ?? 0;
     const upFront = invoice.amount - later;
     if (!(later >= MIN_BORROW_TO_GROW || (upFront * 2 >= invoice.amount && later >= MIN_BORROW_WITH_HALF))) return;
@@ -409,11 +418,13 @@ export function payLater(invoiceId: number): Receipt {
   if (!shop) return fail("Esta tienda todavía no tiene crédito.");
   const now = clock();
   if (shop.owed > 0 && now > shop.dueAt) return fail("Tiene un pago vencido.");
+  if (laterOverdue(shop.id)) return fail("Tiene un pago vencido.");
   const amount = invoice.amount - invoice.paid;
   // The distributor gives this shop the 7 days itself (#194): no pool, no limit, nothing moves today.
   if (shop.ownCredit) {
     invoice.later = true;
     invoice.laterAmount = amount;
+    invoice.laterAt = now;
     invoice.dueAt = now + CREDIT_DAYS * DAY_MS;
     shop.laterOwed += amount;
     return ok(`Listo. Tiene hasta el ${formatDay(iso(invoice.dueAt))} para pagar ${money(amount)}, sin intereses.`);

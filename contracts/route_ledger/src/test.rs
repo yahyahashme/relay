@@ -801,6 +801,7 @@ fn shop_without_terms_shows_zeros() {
             later_owed: 0,
             later_on_time: 0,
             later_late: 0,
+            later_overdue: false,
         }
     );
 }
@@ -2750,7 +2751,8 @@ impl Setup {
         self.client.offer_own_credit(&self.distributor, &self.shop, &true);
         self.client.pay_later(&self.shop, &id);
         let due = self.client.get_invoice(&id).due;
-        self.env.ledger().set_timestamp(if days_late == 0 { at + DAY } else { due + days_late * DAY });
+        // On time = 4 days after: past the half-period minimum (review of #197).
+        self.env.ledger().set_timestamp(if days_late == 0 { at + 4 * DAY } else { due + days_late * DAY });
         self.client.pay(&self.shop, &id, &amount);
     }
 }
@@ -2778,12 +2780,12 @@ fn pool_and_pay_later_share_one_raise_a_period() {
     t.env.ledger().set_timestamp(START + DAY);
     t.client.repay(&t.shop, &(50 * USD));
     assert_eq!(t.client.get_shop(&t.shop).limit, 225 * USD);
-    // A pay-later invoice paid on time two days later, same period: no second raise.
+    // A pay-later invoice open 4 days and paid on time in the same period: no second raise.
     t.env.ledger().set_timestamp(START + 2 * DAY);
     t.client.create_invoice(&t.distributor, &2, &t.shop, &t.driver, &(50 * USD), &(START + WEEK));
     t.client.offer_own_credit(&t.distributor, &t.shop, &true);
     t.client.pay_later(&t.shop, &2);
-    t.env.ledger().set_timestamp(START + 3 * DAY);
+    t.env.ledger().set_timestamp(START + 6 * DAY);
     t.client.pay(&t.shop, &2, &(50 * USD));
     let shop = t.client.get_shop(&t.shop);
     assert_eq!((shop.limit, shop.good_cycles), (225 * USD, 1));
@@ -2869,4 +2871,83 @@ fn a_shop_above_300_is_not_lowered_by_the_cap() {
     t.later_paid(0, 1, 40 * USD, 0);
     let shop = t.client.get_shop(&t.shop);
     assert_eq!((shop.limit, shop.good_cycles), (400 * USD, 1));
+}
+
+// ---------- review of #197: farming, revoked offers, unpaid pay later ----------
+
+#[test]
+fn pay_later_paid_the_same_second_never_touches_the_pool_terms() {
+    let t = setup();
+    t.with_credit();
+    for week in 0..8u64 {
+        let at = START + week * WEEK;
+        t.env.ledger().set_timestamp(at);
+        let id = 300 + week;
+        t.minter.mint(&t.shop, &(20 * USD));
+        t.client.create_invoice(&t.distributor, &id, &t.shop, &t.driver, &(20 * USD), &(at + WEEK));
+        t.client.pay(&t.shop, &id, &(10 * USD)); // half up front
+        t.client.offer_own_credit(&t.distributor, &t.shop, &true);
+        t.client.pay_later(&t.shop, &id);
+        t.client.pay(&t.shop, &id, &(10 * USD)); // same second
+    }
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!((shop.limit, shop.good_cycles, shop.later_on_time), (200 * USD, 0, 8));
+}
+
+#[test]
+fn a_revoked_distributors_offer_stops_working() {
+    let t = setup();
+    t.invoice(1, 50 * USD);
+    t.client.offer_own_credit(&t.distributor, &t.shop, &true);
+    t.client.revoke_distributor(&t.distributor);
+    assert_eq!(t.client.try_pay_later(&t.shop, &1), Err(Ok(Error::NotApproved)));
+}
+
+#[test]
+fn an_unpaid_pay_later_invoice_blocks_new_credit_once_late() {
+    let t = setup();
+    t.with_credit();
+    t.client.offer_own_credit(&t.distributor, &t.shop, &true);
+    t.invoice(1, 50 * USD);
+    t.client.pay_later(&t.shop, &1);
+    let due = t.client.get_invoice(&1).due;
+    t.invoice(2, 50 * USD);
+    t.invoice(3, 50 * USD);
+    // Inside the grace day it isn't overdue yet.
+    t.env.ledger().set_timestamp(due + DAY);
+    assert!(!t.client.get_shop(&t.shop).later_overdue);
+    // 30 days later and still unpaid: no pool credit, no more pay later.
+    t.env.ledger().set_timestamp(due + 30 * DAY);
+    assert!(t.client.get_shop(&t.shop).later_overdue);
+    t.client.offer_own_credit(&t.distributor, &t.shop, &false);
+    assert_eq!(t.client.try_pay_with_credit(&t.shop, &2), Err(Ok(Error::Overdue)));
+    t.client.offer_own_credit(&t.distributor, &t.shop, &true);
+    assert_eq!(t.client.try_pay_later(&t.shop, &3), Err(Ok(Error::Overdue)));
+    // Paying it clears the block, and it counts as late.
+    t.client.pay(&t.shop, &1, &(50 * USD));
+    let shop = t.client.get_shop(&t.shop);
+    assert!(!shop.later_overdue);
+    assert_eq!(shop.later_late, 1);
+    t.client.pay_later(&t.shop, &3);
+}
+
+#[test]
+fn a_revoked_distributor_can_still_record_cash_handed_in() {
+    let t = setup();
+    t.invoice(1, 50 * USD);
+    t.client.cash_claim(&t.driver, &1, &(50 * USD));
+    t.client.cash_confirm(&t.shop, &1, &(50 * USD));
+    t.client.revoke_distributor(&t.distributor);
+    assert!(!t.client.is_distributor(&t.distributor));
+    t.client.cash_handed_in(&t.distributor, &t.driver, &(50 * USD));
+    assert_eq!(t.client.get_driver_cash(&t.driver), 0);
+    // A never-approved address still can't.
+    let stranger = Address::generate(&t.env);
+    assert_eq!(
+        t.client.try_cash_handed_in(&stranger, &t.driver, &USD),
+        Err(Ok(Error::NotApproved))
+    );
+    // Re-approving works as before.
+    t.client.approve_distributor(&t.distributor);
+    assert!(t.client.is_distributor(&t.distributor));
 }

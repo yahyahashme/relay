@@ -130,6 +130,7 @@ export interface Invoice {
    * What was left to pay when the shop put it on pay later; 0 if never (#200).
    */
   later_amount: bigint;
+  later_at: bigint;
   method: PayMethod;
   paid: bigint;
   shop: string;
@@ -163,6 +164,7 @@ export interface ShopView {
   late_major: number;
   late_minor: number;
   later_late: number;
+  later_overdue: boolean;
   later_on_time: number;
   /**
    * Pay later with the distributor's own money (#194): what the shop still
