@@ -46,6 +46,25 @@ describe("colour contrast", () => {
     expect(contrast(token("brand"), token("counter"))).toBeGreaterThanOrEqual(AA);
   });
 
+  it("ink is AAA on the light blue main button and hero, resting and pressed", () => {
+    for (const fill of ["accent", "accent-press"]) expect(contrast(token("ink"), token(fill)), fill).toBeGreaterThanOrEqual(AAA);
+  });
+
+  it("a light blue button's edge is 3:1 or more on the page, on a card and against its own fill", () => {
+    for (const ground of ["counter", "paper", "accent", "accent-press"]) expect(contrast(token("accent-edge"), token(ground)), ground).toBeGreaterThanOrEqual(3);
+  });
+
+  it("a tappable row's or card's edge is 3:1 or more on the page and on a card", () => {
+    for (const ground of ["counter", "paper"]) expect(contrast(token("edge"), token(ground)), ground).toBeGreaterThanOrEqual(3);
+  });
+
+  it("a disabled button (white, dashed edge, muted words) tells itself apart from an active one by its edge and words", () => {
+    // The active edge against the disabled fill, and the active words against the disabled words' fill.
+    expect(contrast(token("accent-edge"), token("counter"))).toBeGreaterThanOrEqual(3);
+    expect(contrast(token("muted"), token("counter"))).toBeGreaterThanOrEqual(AA);
+    expect(contrast(token("edge"), token("counter"))).toBeGreaterThanOrEqual(3);
+  });
+
   it("white text is AA on every filled button, resting and pressed", () => {
     for (const fill of ["brand", "brand-press", "bad"]) expect(contrast("#ffffff", token(fill)), fill).toBeGreaterThanOrEqual(AA);
   });

@@ -97,7 +97,7 @@ export function ReceiptFold({ count, label, children }: { count: number; /** Ins
         type="button"
         onClick={() => setOpen((now) => !now)}
         aria-expanded={open}
-        className="min-h-11 self-start font-semibold text-brand underline decoration-[1.5px] underline-offset-4 @min-[40rem]/split:hidden tall:hidden"
+        className="press min-h-11 self-start font-semibold text-brand underline decoration-[1.5px] underline-offset-4 @min-[40rem]/split:hidden tall:hidden"
       >
         {open ? t("Ocultar", "Hide") : (label ?? t(`Ver productos (${count})`, `See items (${count})`))}
       </button>

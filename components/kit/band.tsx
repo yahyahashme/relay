@@ -39,7 +39,7 @@ export function LangSwitch() {
 export function TestnetBand() {
   const { t } = useT();
   return (
-    <div className="sticky top-0 z-5 border-b border-counter-rule bg-paper pt-[env(safe-area-inset-top)]">
+    <div className="sticky top-0 z-5 bg-paper pt-[env(safe-area-inset-top)]">
       <div className="flex min-h-(--band-h) items-center py-1 pl-[max(var(--gutter),env(safe-area-inset-left))] pr-[max(var(--gutter),env(safe-area-inset-right))]">
         {/* The switch floats at the end of the first line: on a phone the words get the whole width for their second line. */}
         <div className="flow-root w-full">

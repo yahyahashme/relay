@@ -71,13 +71,13 @@ export function ManifestRow({
         aria-label={openLabel}
         aria-current={current ? "true" : undefined}
         data-next={next || undefined}
-        className={`@container/row relative flex items-stretch transition-[scale] duration-[120ms] ease-snap active:scale-[0.98] motion-reduce:active:scale-100 ${next ? "min-h-24" : "min-h-16"} ${
+        className={`@container/row relative flex items-stretch press active:scale-[0.98] motion-reduce:active:scale-100 ${next ? "min-h-24" : "min-h-16"} ${
           current
             ? "after:pointer-events-none after:absolute after:inset-0 after:hidden after:rounded-l-paper after:rounded-r-control after:border-[2.5px] after:border-ink @min-[40rem]/split:after:block"
             : ""
         }`}
       >
-        <span className="flex min-w-0 flex-1 items-stretch rounded-l-paper bg-paper">
+        <span className="flex min-w-0 flex-1 items-stretch rounded-l-paper border border-r-0 border-edge bg-paper">
           <span
             className={`flex shrink-0 items-center justify-center border-r-2 border-solid border-paper-rule font-mono font-semibold ${
               next ? "w-14 text-[2.5rem] @max-[19rem]/row:w-11 @max-[19rem]/row:text-[2rem]" : "w-12 text-[1.75rem] @max-[19rem]/row:w-10 @max-[19rem]/row:text-[1.5rem]"
@@ -121,7 +121,7 @@ export function ManifestRow({
         <span
           aria-hidden
           className={`flex w-14 shrink-0 items-center justify-center rounded-r-control @max-[19rem]/row:w-10 ${
-            done ? "border-[1.5px] border-l-0 border-brand text-brand" : "bg-brand text-white"
+            done ? "border border-edge bg-paper text-brand" : "border-[1.5px] border-accent-edge bg-accent text-ink"
           } ${current ? "@min-[40rem]/split:border-0 @min-[40rem]/split:bg-paper @min-[40rem]/split:text-ink" : ""}`}
         >
           <Chevron className={next ? "size-7" : "size-6"} />

@@ -97,7 +97,7 @@ export function Ledger<Row>({
   const hasCardFold = cardFolded.length > 0 || actions !== undefined;
   const foldOnly = actions ? "pointer-fine:@min-[60rem]:hidden" : "@min-[60rem]:hidden";
   const place = (column: LedgerColumn<Row>) =>
-    `${column.figure ? "border-x border-paper-rule text-right font-mono font-medium" : column.end ? "text-right" : "text-left"} ${column.mono ? "font-mono font-medium" : ""} ${
+    `${column.figure ? "text-right font-mono font-medium" : column.end ? "text-right" : "text-left"} ${column.mono ? "font-mono font-medium" : ""} ${
       column.secondary ? RETURNS[returnsAt(column)!].column : ""
     } ${column.grow ? "w-full max-w-0 truncate" : "whitespace-nowrap"}`;
   const more = (row: Row, key: string | number) => t(`Ver más de ${rowName?.(row) ?? key}`, `See more of ${rowName?.(row) ?? key}`);
@@ -123,7 +123,7 @@ export function Ledger<Row>({
       <table className="hidden w-full border-collapse rounded-paper bg-paper @min-[40rem]:table">
         <caption className="sr-only">{label}</caption>
         <thead>
-          <tr className="border-b border-ink">
+          <tr className="border-b border-paper-rule">
             {columns.map((column) => (
               <th key={column.id} scope="col" className={`h-10 px-3 text-label font-semibold text-muted ${place(column)} font-sans`}>
                 {column.header}
@@ -176,7 +176,7 @@ export function Ledger<Row>({
                   )}
                   {hasFold && (
                     <td className={`h-11 w-0 p-0 text-right ${foldOnly}`}>
-                      <button type="button" onClick={() => toggle(key)} aria-expanded={isOpen} aria-label={more(row, key)} className="inline-flex size-11 items-center justify-center text-brand -outline-offset-3">
+                      <button type="button" onClick={() => toggle(key)} aria-expanded={isOpen} aria-label={more(row, key)} className="press inline-flex size-11 items-center justify-center rounded-full text-brand -outline-offset-3">
                         <Chevron open={isOpen} />
                       </button>
                     </td>
@@ -195,7 +195,7 @@ export function Ledger<Row>({
         </tbody>
         {hasTotals && (
           <tfoot>
-            <tr className="border-t-[3px] border-double border-ink">
+            <tr className="border-t border-counter-rule">
               {columns.map((column) => {
                 const Cell = column.grow ? "th" : "td";
                 return (
@@ -219,7 +219,7 @@ export function Ledger<Row>({
               <div className="flex items-stretch">
                 <div className={`min-w-0 flex-1 py-3 pl-3 ${hasCardFold ? "" : "pr-3"}`}>{card(row)}</div>
                 {hasCardFold && (
-                  <button type="button" onClick={() => toggle(key)} aria-expanded={isOpen} aria-label={more(row, key)} className="flex w-11 shrink-0 items-center justify-center rounded-r-paper text-brand -outline-offset-3">
+                  <button type="button" onClick={() => toggle(key)} aria-expanded={isOpen} aria-label={more(row, key)} className="press flex w-11 shrink-0 items-center justify-center rounded-r-paper text-brand -outline-offset-3">
                     <Chevron open={isOpen} />
                   </button>
                 )}
@@ -252,7 +252,7 @@ export function LedgerCard({ title, amount, stamp, note, actions }: { title: Rea
   );
 }
 
-const ROW_TEXT = "inline-flex min-h-11 min-w-11 items-center justify-center rounded-control px-2.5 font-sans text-base font-bold text-brand underline decoration-2 underline-offset-4 -outline-offset-3";
+const ROW_TEXT = "press inline-flex min-h-11 min-w-11 items-center justify-center rounded-control px-2.5 font-sans text-base font-bold text-brand underline decoration-2 underline-offset-4 -outline-offset-3";
 
 /** A small blue action in a row's menu ("Repetir"). `danger` turns it red, for the second tap of something that can't be undone. */
 export function RowAction({ children, onClick, label, danger = false }: { children: ReactNode; onClick: () => void; label?: string; danger?: boolean }) {
@@ -289,7 +289,7 @@ export function RowButton({ children, onClick, label, disabled = false, busy = f
       disabled={disabled || busy}
       aria-busy={busy}
       aria-label={label}
-      className="inline-flex min-h-11 items-center justify-center rounded-control border-[1.5px] border-brand px-3 py-1 text-center font-sans text-base leading-tight font-bold text-brand select-none hover:bg-brand/6 active:bg-brand/10 disabled:cursor-not-allowed disabled:border-counter-rule disabled:text-muted disabled:hover:bg-transparent"
+      className="inline-flex min-h-11 items-center justify-center press rounded-full border border-edge bg-paper px-4 py-1 text-center font-sans text-base leading-tight font-bold text-ink select-none hover:bg-brand-tint active:bg-brand-tint disabled:cursor-not-allowed disabled:text-muted disabled:hover:bg-transparent"
     >
       {busy ? t("Guardando...", "Saving...") : children}
     </button>

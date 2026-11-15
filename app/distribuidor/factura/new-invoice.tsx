@@ -42,7 +42,7 @@ function takeFocus(element: HTMLElement | null) {
 const HEADING = "text-title font-bold";
 const LABEL = "text-label font-semibold text-muted";
 /** A choice in a list of choices: a blue-ruled row. */
-const CHOICE = "flex min-h-13 w-full flex-col justify-center px-3.5 py-1.5 text-left text-brand -outline-offset-3 hover:bg-brand/6 active:bg-brand/10";
+const CHOICE = "press flex min-h-13 w-full flex-col justify-center px-3.5 py-1.5 text-left text-ink -outline-offset-3 hover:bg-brand-tint active:bg-brand-tint";
 
 /** The frame of the page: the distributor's shell, with "Nueva factura" marked as the place you are in. */
 function Frame({ name, demo = false, children }: { name?: string; demo?: boolean; children: ReactNode }) {
@@ -137,7 +137,7 @@ function ShopPicker({ shops, value, onChange }: { shops: Shop[]; value: Shop | n
       {matches.length === 0 ? (
         <p className="text-muted">{t("No hay tiendas con ese nombre.", "No shops with that name.")}</p>
       ) : (
-        <ul aria-label={t("Tiendas encontradas", "Shops found")} className="flex flex-col divide-y divide-brand/25 rounded-control border-[1.5px] border-brand">
+        <ul aria-label={t("Tiendas encontradas", "Shops found")} className="flex flex-col divide-y divide-paper-rule overflow-hidden rounded-control border border-edge bg-paper">
           {matches.map((shop) => (
             <li key={shop.id}>
               <button type="button" onClick={() => pick(shop)} className={`${CHOICE} rounded-[8px]`}>
@@ -494,7 +494,7 @@ export default function NewInvoice() {
                 disabled={again.length === 0 || busy}
                 onClick={() => setRepeatOpen((now) => !now)}
               >
-                <ul className="flex flex-col divide-y divide-brand/25 border-t border-brand/25">
+                <ul className="flex flex-col divide-y divide-paper-rule border-t border-paper-rule">
                   {again.map((invoice) => (
                     <li key={invoice.id}>
                       <button type="button" onClick={() => repeat(invoice)} className={`${CHOICE} -mx-2 w-[calc(100%+1rem)] rounded-[6px] px-2`}>

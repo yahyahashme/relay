@@ -87,7 +87,7 @@ export function TopNav({
   return (
     <nav className={`flex items-center justify-between gap-3 ${height}`}>
       {back ? (
-        <Link href={back} onClick={onBack} prefetch={onBack ? false : undefined} className={`-ml-1.5 inline-flex shrink-0 items-center gap-0.5 pr-2 text-[1.0625rem] font-bold text-brand ${height}`}>
+        <Link href={back} onClick={onBack} prefetch={onBack ? false : undefined} className={`press -ml-1.5 inline-flex shrink-0 items-center gap-0.5 rounded-full pr-2 text-[1.0625rem] font-bold text-brand ${height}`}>
           <ChevronBack />
           {backLabel}
         </Link>
@@ -102,7 +102,7 @@ export function TopNav({
 /** A blue text link for the top row ("Mi cuenta"). */
 export function NavLink({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <Link href={href} className="inline-flex min-h-12 items-center pl-2 text-[1.0625rem] font-bold text-brand">
+    <Link href={href} className="press inline-flex min-h-12 items-center rounded-full px-2 text-[1.0625rem] font-bold text-brand">
       {children}
     </Link>
   );
@@ -141,7 +141,7 @@ export function Shell({
   const { t } = useT();
   return (
     <div className="flex flex-1 flex-col lg:flex-row">
-      <aside className="hidden w-60 shrink-0 flex-col gap-5 border-r border-counter-rule py-5 pl-[max(1.25rem,env(safe-area-inset-left))] lg:sticky lg:top-(--band-h) lg:flex lg:h-[calc(100dvh-var(--band-h))]">
+      <aside className="hidden w-60 shrink-0 flex-col gap-5 border-r border-paper-rule py-5 pl-[max(1.25rem,env(safe-area-inset-left))] lg:sticky lg:top-(--band-h) lg:flex lg:h-[calc(100dvh-var(--band-h))]">
         <div className="pr-5">{brand}</div>
         {name !== undefined && <p className="min-h-[1lh] pr-5 text-label font-semibold text-muted text-balance">{name}</p>}
         <nav aria-label={t("Secciones", "Sections")} className="flex flex-col gap-1">
@@ -151,8 +151,8 @@ export function Shell({
               href={item.href}
               onClick={item.onClick}
               aria-current={item.current ? (item.href.includes("#") ? "location" : "page") : undefined}
-              className={`flex min-h-12 items-center rounded-l-paper px-3 text-[1.0625rem] font-bold -outline-offset-3 ${
-                item.current ? "bg-paper text-ink" : "text-brand hover:bg-brand/6"
+              className={`press mr-4 flex min-h-12 items-center rounded-full px-4 text-[1.0625rem] font-semibold -outline-offset-3 ${
+                item.current ? "bg-paper font-bold text-ink" : "text-muted hover:bg-paper hover:text-ink"
               }`}
             >
               {item.label}
@@ -185,8 +185,8 @@ export function Shell({
               href={item.href}
               onClick={item.onClick}
               aria-current={item.current ? (item.href.includes("#") ? "location" : "page") : undefined}
-              className={`flex min-h-14 min-w-0 flex-auto items-center justify-center px-1.5 text-center text-[min(var(--text-label),max(14px,4.4vw))] leading-tight font-bold -outline-offset-3 ${
-                item.current ? "rounded-b-paper bg-paper text-ink" : "text-brand"
+              className={`press flex min-h-14 min-w-0 flex-auto items-center justify-center px-1.5 text-center text-[min(var(--text-label),max(14px,4.4vw))] leading-tight font-bold -outline-offset-3 ${
+                item.current ? "text-ink underline decoration-2 underline-offset-6 decoration-accent-press" : "text-muted"
               }`}
             >
               {item.label}

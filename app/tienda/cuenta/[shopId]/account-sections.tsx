@@ -281,7 +281,7 @@ export function AccountSections({ shop, suppliers, score, now }: { shop: Shop; s
       <Section title={t("Notificaciones", "Notifications")}>
         <Card className="overflow-hidden">
           {/* The whole row is the switch. */}
-          <label className="relative flex min-h-16 cursor-pointer items-center gap-3 px-4 py-3 select-none hover:bg-brand/6 has-focus-visible:outline-3 has-focus-visible:-outline-offset-3 has-focus-visible:outline-brand">
+          <label className="relative flex min-h-16 cursor-pointer items-center gap-3 px-4 py-3 select-none hover:bg-brand-tint has-focus-visible:outline-3 has-focus-visible:-outline-offset-3 has-focus-visible:outline-brand">
             <RowMark>{icons.bell}</RowMark>
             <span className="flex min-w-0 flex-1 flex-col">
               <span className="text-[1.0625rem] font-semibold">{t("Recordatorios por WhatsApp", "WhatsApp reminders")}</span>
