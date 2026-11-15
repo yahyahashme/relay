@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 const { addressOf, roleOf, SHOP_IDS, DRIVER_IDS } = await import("./config");
-const { contractErrorCode, errorMessage, ContractError, FALLBACK_MESSAGE } = await import("./errors");
+const { codeFor, contractErrorCode, errorMessage, ContractError, FALLBACK_MESSAGE } = await import("./errors");
 const { secretEnvName } = await import("./keys");
 const { toInvoice, toShop } = await import("./map");
 const { Directory, seedParties } = await import("@/lib/server/directory");
@@ -36,6 +36,13 @@ describe("errors", () => {
   it("reads the contract's error number from SDK text", () => {
     expect(contractErrorCode('HostError: Error(Contract, #4)\n...')).toBe(4);
     expect(contractErrorCode("network down")).toBeNull();
+  });
+  it("reads a #10 outside repay, cover_default and call_recourse as the token's low balance (#205)", () => {
+    expect(errorMessage(codeFor("pay", 10))).toBe("No tiene suficientes dólares digitales para este pago.");
+    expect(errorMessage(codeFor("pay_with_credit", 10))).toBe("No tiene suficientes dólares digitales para este pago.");
+    expect(errorMessage(codeFor("repay", 10))).toBe("No tiene deuda pendiente.");
+    expect(codeFor("pay", 4)).toBe(4);
+    expect(codeFor(undefined, 10)).toBe(10);
   });
   it("says it in Spanish, with a fallback", () => {
     expect(errorMessage(5)).toBe("Esta factura ya está pagada.");
