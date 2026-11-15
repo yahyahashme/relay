@@ -313,6 +313,50 @@ body {
     }
   }
 
+  /* The home page's "Lo que hacemos" loop (home-reveal.tsx): each card rises in as it scrolls into view,
+     and each curly arrow draws itself, then its head. Delays only stagger the row on a laptop. */
+  .reveal {
+    transition:
+      opacity 700ms var(--ease-snap),
+      translate 700ms var(--ease-snap);
+  }
+  .reveal[data-reveal="waiting"] {
+    opacity: 0;
+    translate: 0 1.5rem;
+  }
+  .reveal .draw-line,
+  .reveal .draw-head {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 900ms cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .reveal .draw-head {
+    transition-duration: 300ms;
+    transition-delay: 800ms;
+  }
+  .reveal[data-reveal="waiting"] .draw-line,
+  .reveal[data-reveal="waiting"] .draw-head {
+    stroke-dashoffset: 1;
+  }
+  @media (min-width: 64rem) {
+    .reveal {
+      transition-delay: var(--reveal-delay, 0ms);
+    }
+    .reveal .draw-line {
+      transition-delay: var(--reveal-delay, 0ms);
+    }
+    .reveal .draw-head {
+      transition-delay: calc(var(--reveal-delay, 0ms) + 800ms);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal,
+    .reveal .draw-line,
+    .reveal .draw-head {
+      transition: none;
+    }
+  }
+
   /* A section that folds (details/summary): it opens smoothly where the browser allows, its chevron turns. */
   .fold {
     interpolate-size: allow-keywords;
