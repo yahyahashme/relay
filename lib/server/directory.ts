@@ -11,7 +11,7 @@ import { getDb } from "./db";
 // (the demo accounts setup.sh made). The demo accounts are also seed rows in the
 // database, so their ids ("tienda-1", "motorista-1", "distributor") never change.
 
-export type PartyKind = "shop" | "driver" | "distributor";
+export type PartyKind = "shop" | "driver" | "distributor" | "lender";
 
 export type Party = {
   id: string;
@@ -24,7 +24,7 @@ export type Party = {
   distributorId?: string;
   /** Drivers: false once the distributor removed them (their old invoices still name them). */
   active?: boolean;
-  /** Distributors: pendiente / aprobado / rechazado. */
+  /** Distributors: pendiente / aprobado / rechazado. Lenders: pendiente / aprobado / revocado. */
   status?: string;
 };
 
@@ -106,6 +106,8 @@ async function partiesFromDb(): Promise<Party[] | null> {
     db.query<Row & { active: boolean }>(`SELECT id, name, stellar_address, distributor_id, active FROM drivers`),
     db.query<Row>(`SELECT id, business_name, stellar_address, status FROM distributors`),
   ]);
+  // Lenders (#207) live in a table the live database only gets with the first lender sign-up.
+  const lenders = await db.query<Row>(`SELECT id, business_name, stellar_address, status FROM lenders`).catch(() => [] as Row[]);
   return [
     ...shops.map((r) => ({ id: r.id!, kind: "shop" as const, name: r.name!, owner: r.owner ?? "", address: r.stellar_address! })),
     ...drivers.map((r) => ({
@@ -120,6 +122,14 @@ async function partiesFromDb(): Promise<Party[] | null> {
     ...distributors.map((r) => ({
       id: r.id!,
       kind: "distributor" as const,
+      name: r.business_name!,
+      owner: "",
+      address: r.stellar_address!,
+      status: r.status!,
+    })),
+    ...lenders.map((r) => ({
+      id: r.id!,
+      kind: "lender" as const,
       name: r.business_name!,
       owner: "",
       address: r.stellar_address!,

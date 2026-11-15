@@ -353,3 +353,30 @@ describe("pay later only lowers the pool limit (#200, #203)", () => {
     expect(mock.getShop("tienda-1")).toMatchObject({ creditLimit: 200, laterOnTime: 1 });
   });
 });
+
+describe("a lender's own account (#207)", () => {
+  it("shows only when signed in", () => {
+    expect(mock.getMyLender(false)).toBeNull();
+    expect(mock.getMyLender(true)).toMatchObject({ status: "aprobado", value: 0, balance: 5_000, canWithdraw: 0 });
+  });
+
+  it("puts money in from its own dollars and takes it out by amount or all", () => {
+    const before = mock.getPool().available;
+    expect(mock.lenderDeposit(6_000).message).toBe("No tiene suficientes dólares digitales para este pago.");
+    expect(mock.lenderDeposit(1_000)).toMatchObject({ ok: true, message: "Dinero puesto en el fondo." });
+    expect(mock.getMyLender(true)).toMatchObject({ value: 1_000, netDeposited: 1_000, balance: 4_000, canWithdraw: 1_000 });
+    expect(mock.getPool().available).toBe(before + 1_000);
+    expect(mock.lenderWithdraw(1_500).message).toBe("Es más de lo que tiene en el fondo.");
+    expect(mock.lenderWithdraw(250).ok).toBe(true);
+    expect(mock.lenderWithdraw("all").ok).toBe(true);
+    expect(mock.getMyLender(true)).toMatchObject({ value: 0, balance: 5_000 });
+    expect(mock.lenderWithdraw("all").message).toBe("No tiene dinero en el fondo.");
+  });
+
+  it("a revoked lender can't put more in but can always take its money out", () => {
+    mock.lenderDeposit(500);
+    mock.setMockLenderStatus("revocado");
+    expect(mock.lenderDeposit(100).message).toBe("Relay quitó su aprobación: no puede poner más dinero, pero siempre puede retirar el suyo.");
+    expect(mock.lenderWithdraw("all").ok).toBe(true);
+  });
+});

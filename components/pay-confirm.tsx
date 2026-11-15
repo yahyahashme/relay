@@ -52,6 +52,8 @@ const TITLE: Record<ConfirmAction, [string, string]> = {
   later: ["Confirme el crédito", "Confirm the credit"],
   cash: ["Confirme el efectivo", "Confirm the cash"],
   repay: ["Confirme el pago", "Confirm the payment"],
+  lend: ["Confirme el depósito", "Confirm the deposit"],
+  withdraw: ["Confirme el retiro", "Confirm the withdrawal"],
 };
 
 const WHAT: Record<ConfirmAction, [string, string]> = {
@@ -59,6 +61,8 @@ const WHAT: Record<ConfirmAction, [string, string]> = {
   later: ["Paga en 7 días", "You pay in 7 days"],
   cash: ["Pagó en efectivo", "You paid in cash"],
   repay: ["Paga su crédito", "You pay your credit"],
+  lend: ["Pone en el fondo", "You put in the pool"],
+  withdraw: ["Retira del fondo", "You take out of the pool"],
 };
 
 function ConfirmSheet({ ask, done }: { ask: ConfirmAsk; done: (answer: ConfirmAnswer) => void }) {

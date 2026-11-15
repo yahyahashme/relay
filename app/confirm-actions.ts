@@ -15,9 +15,14 @@ import { type ConfirmFinish, type ConfirmProof, type ConfirmRequest, type Confir
 
 const NO_DB = "No se puede confirmar pagos en este servidor.";
 
-/** The shop this confirmation is for, checked against the invoice on the contract. */
+const LENDER_ACTIONS = ["lend", "withdraw"];
+
+/** The shop (or, for "lend" and "withdraw", the lender) this confirmation is for, checked against the invoice on the contract. */
 async function shopFor(request: ConfirmRequest): Promise<Party | string> {
   const directory = await getDirectory();
+  if (LENDER_ACTIONS.includes(request.action)) {
+    return directory.find(String(request.lenderId ?? ""), "lender") ?? "No encontramos ese prestamista.";
+  }
   if (request.action === "repay") {
     return directory.find(String(request.shopId ?? ""), "shop") ?? "No encontramos esa tienda.";
   }
@@ -39,7 +44,7 @@ export async function startPayConfirm(request: ConfirmRequest): Promise<ConfirmS
   try {
     const db = getDb();
     if (!db) return { ok: false, message: NO_DB };
-    if (!["pay", "later", "cash", "repay"].includes(request.action)) return { ok: false, message: "Monto inválido." };
+    if (!["pay", "later", "cash", "repay", ...LENDER_ACTIONS].includes(request.action)) return { ok: false, message: "Monto inválido." };
     if (!Number.isFinite(request.amount) || request.amount <= 0) return { ok: false, message: "Monto inválido." };
     const shop = await shopFor(request);
     if (typeof shop === "string") return { ok: false, message: shop };
@@ -49,7 +54,7 @@ export async function startPayConfirm(request: ConfirmRequest): Promise<ConfirmS
     const target = {
       action: request.action,
       partyId: shop.id,
-      invoiceId: request.action === "repay" ? null : Number(request.invoiceId),
+      invoiceId: request.action === "repay" || LENDER_ACTIONS.includes(request.action) ? null : Number(request.invoiceId),
       cents: toCents(request.amount),
     };
     return await startConfirm(db, owner, target, await relyingParty());
@@ -64,7 +69,8 @@ export async function finishPayConfirm(id: string, shopId: string, proof: Confir
   try {
     const db = getDb();
     if (!db) return { ok: false, message: NO_DB };
-    const shop = (await getDirectory()).find(String(shopId), "shop");
+    const directory = await getDirectory();
+    const shop = directory.find(String(shopId), "shop") ?? directory.find(String(shopId), "lender");
     if (!shop) return { ok: false, message: "No encontramos esa tienda." };
     const owner = await confirmOwner(shop, false);
     if (!owner) return { ok: false, message: NOT_YOURS };

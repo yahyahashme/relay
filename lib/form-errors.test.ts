@@ -5,7 +5,7 @@ import { BLANK_MESSAGES, blankOf } from "./form-errors";
 
 const root = join(__dirname, "..");
 // Where the sign-up forms' messages are written.
-const SOURCES = ["lib/server/accounts.ts", "lib/server/shops.ts", "lib/server/distributors.ts", "app/registro/distributor-form.tsx", "components/shop-signup.tsx"];
+const SOURCES = ["lib/server/accounts.ts", "lib/server/shops.ts", "lib/server/distributors.ts", "lib/server/lenders.ts", "app/registro/distributor-form.tsx", "components/shop-signup.tsx"];
 const code = SOURCES.map((path) => readFileSync(join(root, path), "utf8")).join("\n");
 
 describe("blankOf", () => {

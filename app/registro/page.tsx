@@ -5,8 +5,8 @@ import { Slip } from "@/components/kit/layout";
 import { Paper } from "@/components/kit/paper";
 import { T } from "@/lib/i18n";
 
-// Sign-up starts with one question: a shop or a distributor. Each answer is its own page
-// (/registro/tienda, /registro/distribuidora), so the phone's Back button comes back here.
+// Sign-up starts with one question: a shop, a distributor or a lender (#207). Each answer is its own page
+// (/registro/tienda, /registro/distribuidora, /registro/prestamista), so the phone's Back button comes back here.
 export default function SignUp() {
   return (
     <Slip>
@@ -26,6 +26,12 @@ export default function SignUp() {
             href="/registro/distribuidora"
             title={<T es="Distribuidora" en="Distributor" />}
             hint={<T es="Vendo y entrego a tiendas" en="I sell and deliver to shops" />}
+          />
+          <ActionLink
+            size="lg"
+            href="/registro/prestamista"
+            title={<T es="Prestamista" en="Lender" />}
+            hint={<T es="Una empresa con licencia que pone dinero en el fondo de crédito" en="A licensed business that puts money in the credit pool" />}
           />
         </ActionList>
       </section>

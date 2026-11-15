@@ -81,8 +81,8 @@ export function ShopCreditTier({ shopId }: { shopId: string }) {
                   "You, with your own money. When the shop picks “Pay in 7 days”, you wait for the money and carry the risk. You pay no credit fee: only 0.10% when the shop pays you.",
                 )
               : t(
-                  "El fondo de crédito. Cuando la tienda elige «Pagar en 7 días», a usted le pagan al entregar y usted paga la comisión de crédito.",
-                  "The credit pool. When the shop picks “Pay in 7 days”, you get paid at delivery and you pay the credit fee.",
+                  "El fondo de crédito, con dinero de prestamistas con licencia, no suyo. Cuando la tienda elige «Pagar en 7 días», a usted le pagan al entregar y usted paga la comisión de crédito.",
+                  "The credit pool, with licensed lenders' money, not yours. When the shop picks “Pay in 7 days”, you get paid at delivery and you pay the credit fee.",
                 )}
           </p>
           <div className="mt-1 flex flex-col gap-1 border-t border-paper-rule pt-2">

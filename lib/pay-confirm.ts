@@ -4,8 +4,11 @@
 
 import type { AuthenticationResponseJSON, PublicKeyCredentialCreationOptionsJSON, PublicKeyCredentialRequestOptionsJSON, RegistrationResponseJSON } from "@simplewebauthn/browser";
 
-/** What the shop is confirming: pay (all or part), take the 7 days, confirm cash, or pay back credit. */
-export type ConfirmAction = "pay" | "later" | "cash" | "repay";
+/**
+ * What the shop is confirming: pay (all or part), take the 7 days, confirm cash, or pay back credit.
+ * A lender (#207): put money in the pool ("lend") or take it out ("withdraw").
+ */
+export type ConfirmAction = "pay" | "later" | "cash" | "repay" | "lend" | "withdraw";
 
 export type ConfirmRequest = {
   action: ConfirmAction;
@@ -13,6 +16,8 @@ export type ConfirmRequest = {
   invoiceId?: number;
   /** "repay" names the shop instead. */
   shopId?: string;
+  /** "lend" and "withdraw" name the lender. */
+  lenderId?: string;
   /** The dollars on the sheet. The server only lets this exact amount move. */
   amount: number;
 };

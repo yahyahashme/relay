@@ -7,7 +7,7 @@
 
 CREATE TABLE IF NOT EXISTS users (
   id            TEXT PRIMARY KEY,
-  role          TEXT NOT NULL CHECK (role IN ('tienda', 'distribuidora', 'motorista', 'admin')),
+  role          TEXT NOT NULL CHECK (role IN ('tienda', 'distribuidora', 'motorista', 'admin', 'prestamista')),
   name          TEXT NOT NULL,
   phone         TEXT UNIQUE,
   email         TEXT UNIQUE,
@@ -172,4 +172,18 @@ CREATE TABLE IF NOT EXISTS pay_challenges (
   method      TEXT,              -- passkey | pin
   used_at     TIMESTAMPTZ,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Lenders (#207): a business Relay approves (approve_lender on the contract) before it can put
+-- money in the pool. "revocado" = revoke_lender: no new deposits, it can always withdraw.
+CREATE TABLE IF NOT EXISTS lenders (
+  id              TEXT PRIMARY KEY,
+  owner_user_id   TEXT NOT NULL REFERENCES users(id),
+  business_name   TEXT NOT NULL,
+  country         TEXT NOT NULL,
+  licence         TEXT NOT NULL,
+  status          TEXT NOT NULL DEFAULT 'pendiente' CHECK (status IN ('pendiente', 'aprobado', 'revocado')),
+  stellar_address TEXT NOT NULL UNIQUE,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  decided_at      TIMESTAMPTZ
 );
