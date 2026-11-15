@@ -5,16 +5,18 @@
 // Inside this file money is in whole cents (pool: 7-decimal units, like the
 // contract) so sums never drift. Everything returned is in dollars.
 
+import { poolHealth } from "./pool-health";
+import { growthStep } from "./credit-tiers";
 import { formatDay, formatMoney, plural } from "./format";
 import { buildHistory } from "./history";
 import { LENDER_BPS, poolFeeSplit, RECOURSE_FEE_BPS, RECOURSE_LENDER_BPS, recourseRequired } from "./labels";
-import { HISTORY_PAGE, type Driver, type Payment, type Profile, type ShopHistory, type Supplier, type Invoice, type InvoiceHistory, type InvoiceRow, type PayMethod, type LenderView, type MyLender, type Pool, type Receipt, type RecourseView, type Shop, type Totals } from "./types";
+import { HISTORY_PAGE, type Driver, type Payment, type Profile, type ShopHistory, type Supplier, type Invoice, type InvoiceHistory, type InvoiceRow, type PayMethod, type LenderView, type MyLender, type Pool, type PoolHealth, type Receipt, type RecourseView, type Shop, type Totals } from "./types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CREDIT_DAYS = 7;
 const UNITS_PER_CENT = 100_000; // $1 = 10,000,000 units
-const LIMIT_STEP = 25_00; // +$25 per on-time repayment...
-const LIMIT_CAP = 500_00; // ...up to $500,
+const LIMIT_STEP = 25_00; // a minor late repayment: -$25
+const LIMIT_CAP = 500_00; // Crédito Relay is out of 500
 const MIN_BORROW_WITH_HALF = 10_00; // or $10 with half of every credited invoice paid up front
 const MIN_BORROW_TO_GROW = 40_00; // ...only if the cycle borrowed at least $40,
 const RAISE_EVERY_MS = CREDIT_DAYS * DAY_MS; // ...and at most once per credit period
@@ -282,6 +284,10 @@ export function getInvoice(id: number): Invoice | null {
   return invoice ? toInvoice(invoice) : null;
 }
 
+export function getPoolHealth(): PoolHealth {
+  return poolHealth(db().shops.map(toShop), getTotals().credit, clock());
+}
+
 export function getShop(shopId: string): Shop | null {
   const shop = findShop(shopId);
   return shop ? toShop(shop) : null;
@@ -500,6 +506,7 @@ export function repay(shopId: string, amount: number): Receipt {
   const now = clock();
   const daysLate = now <= shop.dueAt ? 0 : Math.ceil((now - shop.dueAt) / DAY_MS);
   const bigEnough = shop.cycleBorrowed >= MIN_BORROW_TO_GROW || (shop.halfUpFront && shop.cycleBorrowed >= MIN_BORROW_WITH_HALF);
+  const step = growthStep(shop.cycleBorrowed / 100); // #220: by tier on what the cycle borrowed
   shop.dueAt = 0;
   shop.cycleBorrowed = 0;
   shop.halfUpFront = false;
@@ -523,10 +530,10 @@ export function repay(shopId: string, amount: number): Receipt {
     shop.lastGoodAt = now;
   }
   const waited = shop.lastRaiseAt === 0 || now >= shop.lastRaiseAt + RAISE_EVERY_MS;
-  if (shop.limit >= LIMIT_CAP || !bigEnough || !waited || now < shop.noRaiseUntil) {
+  if (shop.limit >= LIMIT_CAP || step === 0 || !waited || now < shop.noRaiseUntil) {
     return ok("Deuda pagada a tiempo. Gracias.");
   }
-  shop.limit = Math.min(shop.limit + LIMIT_STEP, LIMIT_CAP);
+  shop.limit = Math.min(shop.limit + step * 100, LIMIT_CAP);
   shop.lastRaiseAt = now;
   return ok(`Deuda pagada a tiempo. Su límite subió a ${money(shop.limit)}.`);
 }

@@ -14,6 +14,7 @@ import { toInvoice, toShop } from "@/lib/stellar/map";
 import { read, run } from "@/lib/stellar/send";
 import { toDollars, toUnits } from "@/lib/stellar/units";
 import { buildHistory } from "@/lib/history";
+import { poolHealth } from "@/lib/pool-health";
 import { rpc, scValToNative } from "@stellar/stellar-sdk";
 import type { Invoice as ChainInvoice } from "@/packages/route_ledger/src/index";
 import { toUnixSeconds } from "@/lib/dates";
@@ -24,7 +25,7 @@ import { redeemConfirm, unitsToCents, type ConfirmTarget } from "@/lib/server/pa
 import { confirmOwner } from "@/lib/server/pay-owner";
 import { recordDoorPayment, unlockIfDue, unlockStatus } from "@/lib/server/credit-unlock";
 import type { Party } from "@/lib/server/directory";
-import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type InvoiceRow, type LenderView, type Pool, type Receipt, type Payment, type Shop, type ShopHistory, type Supplier, type Totals } from "@/lib/types";
+import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type InvoiceRow, type LenderView, type Pool, type PoolHealth, type Receipt, type Payment, type Shop, type ShopHistory, type Supplier, type Totals } from "@/lib/types";
 
 // ---------- reads ----------
 
@@ -78,6 +79,18 @@ export async function getInvoice(id: number): Promise<Invoice | null> {
 
 const offersOwnCredit = (invoice: ChainInvoice) =>
   read(readClient().offers_own_credit({ distributor: invoice.distributor, shop: invoice.shop }));
+
+/** Pool-level numbers for lenders (#220): no shop's own history. */
+export async function getPoolHealth(): Promise<PoolHealth> {
+  const directory = await getDirectory();
+  const parties = directory.ofKind("shop");
+  const [views, totals] = await Promise.all([
+    Promise.all(parties.map((p) => read(readClient().get_shop({ shop: p.address })).catch(() => null))),
+    read(readClient().get_totals()),
+  ]);
+  const shops = parties.flatMap((p, i) => (views[i] ? [toShop(p, views[i]!, directory)] : []));
+  return poolHealth(shops, toDollars(totals.credit), Date.now());
+}
 
 export async function getShop(shopId: string): Promise<Shop | null> {
   const directory = await getDirectory();

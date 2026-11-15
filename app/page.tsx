@@ -78,8 +78,8 @@ const STEPS: { icon: ReactNode; title: [string, string]; text: [string, string] 
     ),
     title: ["Pagar a tiempo abre más crédito", "Paying on time opens more credit"],
     text: [
-      "Cada pago a tiempo sube el límite $25, hasta $500. El historial es de la tienda y lo puede mostrar a cualquier distribuidora, banco o cooperativa.",
-      "Each on-time payment raises the limit by $25, up to $500. The record belongs to the shop, and it can show it to any distributor, bank or cooperative.",
+      "Cada crédito pagado a tiempo sube su Crédito Relay de 10 a 30, hasta 500. El historial es de la tienda y lo puede mostrar a cualquier distribuidora, banco o cooperativa.",
+      "Each credit repaid on time raises its Relay credit by 10 to 30, up to 500. The record belongs to the shop, and it can show it to any distributor, bank or cooperative.",
     ],
   },
 ];
@@ -170,7 +170,11 @@ function Role({ n, id, who, children, tryIt, note, links }: { n: number; id: str
 
 /** The limit rules, for any shop (Mi cuenta keeps only the shop's own numbers). */
 const LIMIT_STEPS: { label: [string, string]; change: number }[] = [
-  { label: ["Si la tienda paga a tiempo", "If the shop pays on time"], change: 25 },
+  { label: ["Paga a tiempo hasta $30", "Repays up to $30 on time"], change: 10 },
+  { label: ["De $30 a $50", "$30 to $50"], change: 15 },
+  { label: ["De $50 a $75", "$50 to $75"], change: 20 },
+  { label: ["De $75 a $100", "$75 to $100"], change: 25 },
+  { label: ["Más de $100", "Over $100"], change: 30 },
   { label: ["De 2 a 7 días tarde", "2 to 7 days late"], change: -25 },
   { label: ["8 días tarde o más", "8 or more days late"], change: -50 },
 ];
@@ -362,12 +366,12 @@ export default function Home() {
           <section id="limite" aria-labelledby="limite-titulo" className={`${COLUMN} ${ANCHOR} flex flex-col gap-5`}>
             <header className="flex max-w-[44rem] flex-col gap-2">
               <h2 id="limite-titulo" className={TITLE}>
-                <T es="Cómo sube el límite" en="How the limit grows" />
+                <T es="Crédito Relay: de 0 a 500" en="Relay credit: from 0 to 500" />
               </h2>
               <p className="text-lead text-pretty">
                 <T
-                  es="El crédito a 7 días se abre después de 2 entregas pagadas en dólares digitales, con una semana entre ellas. Empieza en la mitad de una entrega normal, hasta $100, sin intereses. Pagar a tiempo lo sube hasta $500."
-                  en="7-day credit opens after 2 deliveries paid in digital dollars, a week apart. It starts at half a normal delivery, up to $100, with no interest. Paying on time raises it up to $500."
+                  es="El crédito a 7 días se abre después de 2 entregas pagadas en dólares digitales, con una semana entre ellas. Empieza en la mitad de una entrega normal, hasta $100, sin intereses. Cada crédito pagado a tiempo lo sube según cuánto pagó, hasta 500."
+                  en="7-day credit opens after 2 deliveries paid in digital dollars, a week apart. It starts at half a normal delivery, up to $100, with no interest. Each credit repaid on time raises it by how much was repaid, up to 500."
                 />
               </p>
             </header>
@@ -387,8 +391,8 @@ export default function Home() {
               <div className="flex flex-col gap-2 text-muted text-pretty">
                 <p>
                   <T
-                    es="Un día tarde todavía cuenta a tiempo. El límite sube como máximo una vez por período, y solo si la tienda compró $40 o más con «Pagar en 7 días» del fondo ($10 si pagó la mitad al recibir)."
-                    en="One day late still counts as on time. The limit goes up at most once per period, and only if the shop bought $40 or more with “Pay in 7 days” from the pool ($10 if it paid half on delivery)."
+                    es="Un día tarde todavía cuenta a tiempo. El crédito sube como máximo una vez por semana, según todo lo que la tienda pagó a tiempo esa semana con «Pagar en 7 días» del fondo (desde $10)."
+                    en="One day late still counts as on time. Credit goes up at most once a week, by everything the shop repaid on time that week with “Pay in 7 days” from the pool (from $10)."
                   />
                 </p>
                 <p>

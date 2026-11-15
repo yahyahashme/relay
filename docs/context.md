@@ -488,7 +488,9 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 ### 7.3 Credit rules ("pay in 7 days")
 - Full price, no interest. It's time to pay, not free goods.
 - Due by the next delivery, and never later than 7 days. (Weekly visits are a guess; ask in interviews.)
-- Limits start small and grow with every on-time repayment. Tienda Pago's average was about $250 to $300.
+- **Crédito Relay, out of 500 (#220, Yahya, Nov 15):** the limit in dollars, shown as "300/500". A new shop unlocks it with 2 digital door payments (#217). Each on-time repayment of pool credit raises it by tier on what the cycle borrowed: up to $30 +10, $30-50 +15, $50-75 +20, $75-100 +25, over $100 +30. At most once per credit period (so splitting a cycle doesn't pay), cycles under $10 don't count, and pay-at-door and pay-later never raise it. Late: 2-7 days -25, 8+ days -50 and no raise for 4 periods. Cap 500. In the contract (`growth_step`). Tienda Pago's average was about $250 to $300.
+- **Relay rating, 1 to 10 (#220, replaces the 0-100 score):** "how likely is this shop to repay within 7 days". A Beta prior worth 10 cycles at 60% (a new shop is 6); each on-time pool or pay-later cycle is a success, 2-7 days late half a miss, 8+ days a miss, a write-off 3 misses; rating = round(10 p). Caps: 3 with an unpaid write-off, 2 while overdue, 7 under 4 weeks of history. The 8-week recency half-life needs a date per cycle, which the contract doesn't keep yet, so every cycle weighs the same for now. Distributors see it next to "Pagó a tiempo X de Y" (`lib/credit.ts`).
+- **Lenders see the pool, not the shops:** /prestamista shows lent, available, the default rate and the spread of ratings (8-10, 6-7, 4-5, 1-3), never one shop's history.
 - No new credit while anything is overdue. The truck keeps coming back, which is our leverage.
 - The driver's app shows what the shop owes at each stop.
 - WhatsApp reminders, and auto-pay with the shop's permission (stretch).
@@ -807,6 +809,7 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 | Date | Decision |
 |---|---|
 | Nov 3 | Space 1 (savings, credit, inflation resilience). Space 2 ruled out. |
+| Nov 15 | #220: Crédito Relay out of 500, growing by tier on what the shop repaid on time (+10 to +30, once a period, $10 minimum; contract change and redeploy), and a 1-10 rating ("how likely to repay in 7 days") that replaces the 0-100 score. Lenders see pool numbers only (Yahya, lead thread). |
 | Nov 15 | #217: a new shop no longer gets $200 at sign-up (Yahya: we can't run ID checks on shops, so a shop could take credit and leave). Credit opens after 2 deliveries paid in dólares digitales at the door, a credit period apart; the first limit is half its average delivery, $50 to $100, then +$25 per good cycle as before. A shop its distributor vouches for gets $100 at once if the deposit covers it. Recorded in the DB (`door_payments`), set with `set_terms`; no contract change. A runaway shop takes at most about $100 and loses its supplier. |
 | Nov 14 | #185: build both cheaper credit paths (Yahya: "whatever makes more sense from a business perspective"). Trusted shops (record-based buffer cut) and Rohan's recourse tier (distributor deposit, 0.25%). |
 | Nov 5 | Payments between El Salvador's neighbourhood shops and their distributors (the team's own idea; it replaced the Mexico tanda). |

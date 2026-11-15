@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import testnet from "@/config/testnet.json";
 import { Button, DetailLink, TextButton } from "@/components/kit/button";
 import { MoneyField } from "@/components/kit/field";
@@ -9,7 +9,8 @@ import { LedgerFigure, LedgerFigures } from "@/components/kit/ledger";
 import { Paper } from "@/components/kit/paper";
 import { Answer, Failure, Loading } from "@/components/kit/states";
 import { usePayConfirm } from "@/components/pay-confirm";
-import { getLender, getMyLender, getPool, lenderDeposit, lenderWithdraw } from "@/lib/api";
+import { getLender, getMyLender, getPool, getPoolHealth, lenderDeposit, lenderWithdraw } from "@/lib/api";
+import type { PoolHealth } from "@/lib/types";
 import { formatMoney } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { parseAmount } from "@/lib/labels";
@@ -79,6 +80,8 @@ export default function LenderScreen() {
               <LedgerFigure label={t("Total de los prestamistas", "Lenders' total")} value={round(data.pool.available + data.pool.lent)} />
             </LedgerFigures>
           </section>
+
+          <PoolShops />
 
           {!mine && (
             <section className="flex flex-col gap-2">
@@ -223,6 +226,66 @@ function MyPlace({ mine, reload }: { mine: MyLender; reload: () => Promise<void>
         )}
       </div>
       {answer && <Answer receipt={answer} />}
+    </section>
+  );
+}
+
+/**
+ * The shops behind the pool, as totals only (#220): how many, the default rate, and how their 1-10 ratings spread.
+ * Lenders never see one shop's history. Read once, not every 3 seconds: it asks the contract about every shop.
+ */
+function PoolShops() {
+  const { t } = useT();
+  const [health, setHealth] = useState<PoolHealth | null>(null);
+  useEffect(() => {
+    let live = true;
+    getPoolHealth()
+      .then((h) => live && setHealth(h))
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, []);
+  if (!health || health.shops === 0) return null;
+  const bands: { key: keyof PoolHealth["ratings"]; label: string; tone: string }[] = [
+    { key: "high", label: "8–10", tone: "bg-ok" },
+    { key: "good", label: "6–7", tone: "bg-brand" },
+    { key: "fair", label: "4–5", tone: "bg-warn" },
+    { key: "low", label: "1–3", tone: "bg-bad" },
+  ];
+  const pct = (n: number) => `${Math.round((n / health.shops) * 100)}%`;
+  return (
+    <section className="flex flex-col gap-3" aria-labelledby="pool-shops">
+      <h2 id="pool-shops" className={HEADING}>
+        {t("Las tiendas del fondo", "The shops behind the pool")}
+      </h2>
+      <LedgerFigures>
+        <LedgerFigure label={t("Tiendas", "Shops")} text={String(health.shops)} />
+        <LedgerFigure label={t("Tasa de impago", "Default rate")} text={`${(health.defaultRate * 100).toFixed(2)}%`} />
+      </LedgerFigures>
+      <div className="flex flex-col gap-2">
+        <p className="font-semibold">{t("Calificación Relay de las tiendas (de 1 a 10)", "Shops' Relay rating (1 to 10)")}</p>
+        <div className="flex h-3 overflow-hidden rounded-full bg-paper-rule" aria-hidden="true">
+          {bands.map((b) => (health.ratings[b.key] > 0 ? <span key={b.key} className={b.tone} style={{ width: pct(health.ratings[b.key]) }} /> : null))}
+        </div>
+        <ul className="grid grid-cols-2 gap-x-4 gap-y-1 text-label min-[40rem]:grid-cols-4">
+          {bands.map((b) => (
+            <li key={b.key} className="flex items-center gap-2">
+              <span className={`size-2.5 shrink-0 rounded-full ${b.tone}`} aria-hidden="true" />
+              <span className="font-mono">{b.label}</span>
+              <span className="text-muted">
+                {health.ratings[b.key]} {t("tiendas", "shops")}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p className="text-label text-muted text-pretty">
+          {t(
+            "Solo números del fondo: los prestamistas no ven el historial de cada tienda.",
+            "Pool totals only: lenders never see a single shop's history.",
+          )}
+        </p>
+      </div>
     </section>
   );
 }

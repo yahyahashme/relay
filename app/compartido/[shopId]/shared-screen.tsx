@@ -85,7 +85,7 @@ export default function SharedScreen() {
           <ReceiptLine label={t("Válido hasta", "Valid until")}>{lastDay}</ReceiptLine>
         </ReceiptLines>
         <ReceiptRule />
-        <h2 className="text-label font-bold">{t("Puntaje Relay", "Relay score")}</h2>
+        <h2 className="text-label font-bold">{t("Calificación Relay", "Relay rating")}</h2>
         <ScoreFacts score={score} tips={false} />
         <ReceiptRule />
         <ReceiptLines>

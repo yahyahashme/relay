@@ -177,7 +177,7 @@ export function AccountSections({ shop, suppliers, score, now }: { shop: Shop; s
   return (
     <>
       {score && (
-        <Section title={t("Su puntaje Relay", "Your Relay score")}>
+        <Section title={t("Su calificación Relay", "Your Relay rating")}>
           <CreditScoreCard score={score} shareFrom={{ shopId: shop.id, shopName: shop.name, now }} />
         </Section>
       )}

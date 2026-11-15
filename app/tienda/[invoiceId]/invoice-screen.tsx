@@ -1,5 +1,6 @@
 "use client";
 
+import { CREDIT_OUT_OF } from "@/lib/credit-tiers";
 import { CreditUnlockNote } from "@/components/credit-unlock-note";
 import { useParams } from "next/navigation";
 import { type ReactNode, useEffect, useRef, useState } from "react";
@@ -115,8 +116,10 @@ function CreditFacts({ shop, lang }: { shop: Shop; lang: Lang }) {
       </h2>
       {shop.creditLimit > 0 ? (
         <ReceiptLines>
-          <ReceiptLine label={t("Límite", "Limit")}>
-            <Money value={shop.creditLimit} />
+          <ReceiptLine label={t("Crédito Relay", "Relay credit")}>
+            <span className="font-mono">
+              {Math.round(shop.creditLimit)}/{CREDIT_OUT_OF}
+            </span>
           </ReceiptLine>
           <ReceiptLine label={t("Debe", "You owe")}>
             <Money value={shop.creditOwed} />
@@ -450,8 +453,8 @@ export default function InvoiceScreen() {
           {!invoice.ownCredit && (
             <p className="text-label text-muted text-pretty">
               {t(
-                "Si paga la mitad o más ahora, la comisión baja y su límite puede subir con solo $10 a crédito.",
-                "If you pay half or more now, the fee is lower and your limit can grow with just $10 on credit.",
+                "Si paga la mitad o más ahora, la comisión de la distribuidora baja.",
+                "If you pay half or more now, the distributor's fee is lower.",
               )}
             </p>
           )}

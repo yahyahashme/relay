@@ -92,3 +92,12 @@ export type HistoryRow = {
 export type ShopHistory = { rows: HistoryRow[]; owedNow: number; nextDue?: string; paidThisMonth: number };
 export type Receipt = { ok: boolean; message: string; txHash?: string; explorerUrl?: string };
 export type InvoiceRow = { invoiceId: number; shopId: string; driverId: string; amount: string; dueDate: string };
+
+/** What a lender sees about the shops behind the pool (#220): totals only, never one shop's history. */
+export type PoolHealth = {
+  shops: number;
+  /** Credit written off and still unpaid, as a share of all credit ever given. */
+  defaultRate: number;
+  /** Shops by their 1-10 Relay rating: 8-10, 6-7, 4-5, 1-3. */
+  ratings: { high: number; good: number; fair: number; low: number };
+};

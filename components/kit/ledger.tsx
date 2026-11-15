@@ -317,7 +317,8 @@ export function LedgerFigures({ children, pair = false }: { children: ReactNode;
 }
 
 /** One figure of the strip, for <LedgerFigures>. A long amount shrinks to stay inside its column, and the others with it. */
-export function LedgerFigure({ label, value, note }: { label: ReactNode; value: number; note?: ReactNode }) {
+/** `text` shows a figure that isn't money (a count or a rate) in place of `value`. */
+export function LedgerFigure({ label, value = 0, text, note }: { label: ReactNode; value?: number; text?: string; note?: ReactNode }) {
   return (
     <div className="flex min-w-0 flex-col gap-0.5 border-paper-rule px-4 pt-2.5 pb-2.5 not-first:border-l @max-[43.99rem]/figures:nth-[3]:border-l-0 @max-[43.99rem]/figures:nth-[n+3]:border-t @max-[43.99rem]/figures:[&:nth-child(n+3)>dt]:min-h-[2lh]">
       {/* A long label takes two lines (four across on a tablet, the second pair on a phone): its row of labels keeps room for two, so the figures stay in line. */}
@@ -326,7 +327,7 @@ export function LedgerFigure({ label, value, note }: { label: ReactNode; value: 
         className="font-mono leading-tight font-semibold tracking-[-0.02em]"
         style={{ fontSize: "min(var(--text-figure), calc((100cqi / var(--fit-cols) - 2rem) / (var(--fit-chars) * 0.62)))" }}
       >
-        <Money value={value} />
+        {text ?? <Money value={value} />}
       </dd>
       {note && <dd className="text-label text-muted text-pretty">{note}</dd>}
     </div>
