@@ -13,6 +13,7 @@ import * as invoices from "@/app/invoice-actions";
 import * as recourse from "@/app/recourse-actions";
 import * as confirm from "@/app/confirm-actions";
 import * as lenders from "@/app/lender-actions";
+import type { LenderHistory } from "./lender-history";
 import { type ConfirmFinish, type ConfirmProof, type ConfirmRequest, type ConfirmStart, DEMO_PIN } from "./pay-confirm";
 import type { DistributorView } from "@/app/distributor-actions";
 import * as mock from "./mock";
@@ -56,6 +57,9 @@ export const getPool = (): Promise<Pool> => read(mock.getPool, live.getPool);
 /** The demo lender's place in the pool: what it put in and what that is worth now. */
 export const getLender = (): Promise<LenderView> => read(mock.getLender, live.getLender);
 /** The signed-in lender's own place in the pool (#207), or null (the page shows the public demo). */
+/** A lender's own movements (#224): the signed-in lender's (`mine`), or the demo lender's. */
+export const getLenderHistory = (mine: boolean): Promise<LenderHistory | null> =>
+  read(() => mock.getLenderHistory(mine), () => lenders.getLenderHistory(mine));
 export const getMyLender = (): Promise<MyLender | null> =>
   read(() => mock.getMyLender(typeof window !== "undefined" && new URLSearchParams(window.location.search).get("prestamista") === "demo"), lenders.getMyLender);
 /** The whole history a page at a time: `pages` pages, newest first. */
