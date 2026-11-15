@@ -7,10 +7,11 @@ import { T } from "@/lib/i18n";
 import { HomeFooter } from "./home-footer";
 import { DriverLinks, ShopLinks } from "./home-links";
 import { HomeNav } from "./home-nav";
+import { ScrollStory } from "./home-story";
 
 // The home page, after Wise.com: the first screen is all light blue (the tagline, what Relay does, Crear cuenta
 // and Entrar), with a bar at the top that stays while you scroll and takes you to each part. Then how it works and
-// the demo's three ways in (both fold), how a shop's limit grows, the problem in three figures, and a footer.
+// the demo's four ways in (what we do opens as you scroll; the demo's roles fold), how a shop's limit grows, the problem in three figures, and a footer.
 // The page is drawn on the server; only the words (two languages), the bar and the demo's links wait for the browser.
 // The figures and their sources are in docs/facts.md (entries 1, 9 and 10).
 
@@ -42,52 +43,79 @@ const FIGURES: { figure: [string, string]; text: [string, string] }[] = [
   },
 ];
 
-/** How it works, in the order it happens on a delivery day. */
-const STEPS: { icon: ReactNode; title: [string, string]; text: [string, string] }[] = [
+/** What we do: the four people Relay brings together, in the order a delivery happens. */
+const STEPS: { who: [string, string]; icon: ReactNode; title: [string, string]; text: [string, string] }[] = [
   {
+    who: ["La distribuidora", "The distributor"],
     icon: (
       <>
-        <rect x="7" y="2.5" width="10" height="19" rx="2" />
-        <path d="M10 6.5h4M10 10h4M10 13.5h2.5" />
+        <rect x="5" y="2.5" width="14" height="19" rx="2" />
+        <path d="M8.5 7h7M8.5 10.5h7M8.5 14h4" />
       </>
     ),
-    title: ["La factura llega al teléfono", "The invoice reaches the phone"],
-    text: ["El motorista entrega el pedido y la factura aparece en el teléfono de la tienda.", "The driver delivers the order and the invoice shows up on the shop owner's phone."],
-  },
-  {
-    icon: (
-      <>
-        <circle cx="9" cy="9" r="5.5" />
-        <path d="M15.4 9.6a5.5 5.5 0 1 1-5.8 5.8" />
-        <path d="M9 6.5v5" />
-      </>
-    ),
-    title: ["La tienda elige cómo pagar", "The shop chooses how to pay"],
+    title: ["Manda la factura", "Sends the invoice"],
     text: [
-      "Con dólares digitales, en efectivo confirmado por los dos en la app, o en 7 días sin intereses.",
-      "In digital dollars, in cash that both sides confirm in the app, or in 7 days with no interest.",
+      "Cada pedido sale con su factura en Relay. En su panel ve qué se cobró, qué falta y el efectivo de cada motorista.",
+      "Every order goes out with its invoice in Relay. Its dashboard shows what was collected, what's left and each driver's cash.",
     ],
   },
   {
+    who: ["El motorista", "The driver"],
     icon: (
       <>
-        <path d="M3 20h18" />
-        <path d="M5 16l5-5 3.5 3.5L20 8" />
-        <path d="M15 8h5v5" />
+        <path d="M2.5 6.5h11v9h-11z" />
+        <path d="M13.5 9.5h4l3 3v3h-7" />
+        <circle cx="6.5" cy="17" r="1.75" />
+        <circle cx="17" cy="17" r="1.75" />
       </>
     ),
-    title: ["Pagar a tiempo abre más crédito", "Paying on time opens more credit"],
+    title: ["Entrega el pedido", "Delivers the order"],
     text: [
-      "Cada pago a tiempo sube el límite $25, hasta $500. El historial es de la tienda y lo puede mostrar a cualquier distribuidora, banco o cooperativa.",
-      "Each on-time payment raises the limit by $25, up to $500. The record belongs to the shop, and it can show it to any distributor, bank or cooperative.",
+      "Lleva la ruta del día en el teléfono. Si la tienda paga en efectivo, los dos lo confirman con un toque.",
+      "Carries the day's route on the phone. If the shop pays in cash, both of them confirm it with a tap.",
+    ],
+  },
+  {
+    who: ["La tienda", "The shop"],
+    icon: (
+      <>
+        <rect x="7" y="2.5" width="10" height="19" rx="2" />
+        <path d="M10 17.5h4" />
+        <path d="M9.5 9.5l2 2 3.5-4" />
+      </>
+    ),
+    title: ["Paga como quiera", "Pays the way it wants"],
+    text: [
+      "En dólares digitales, en efectivo confirmado o en 7 días sin intereses. Cada pago a tiempo sube su límite, hasta $500.",
+      "In digital dollars, in confirmed cash, or in 7 days with no interest. Every on-time payment raises its limit, up to $500.",
+    ],
+  },
+  {
+    who: ["El prestamista", "The lender"],
+    icon: (
+      <>
+        <path d="M3 9.5 12 4l9 5.5" />
+        <path d="M5 10v7M9.5 10v7M14.5 10v7M19 10v7" />
+        <path d="M3 20h18" />
+      </>
+    ),
+    title: ["Adelanta el pago", "Pays up front"],
+    text: [
+      "Si la tienda elige 7 días, un fondo de prestamistas le paga a la distribuidora en el momento y gana 0.50%.",
+      "If the shop picks 7 days, a lender pool pays the distributor right away and earns 0.50%.",
     ],
   },
 ];
 
 /** A hand-drawn arrow with a loop in it, from one step to the next: across on a laptop, down on a phone. */
-function CurlyArrow() {
+function CurlyArrow({ delay }: { delay: number }) {
   return (
-    <div className="flex h-24 w-12 items-center justify-center min-[64rem]:h-9 min-[64rem]:w-auto min-[64rem]:px-2" aria-hidden="true">
+    <div
+      data-reveal=""
+      style={{ "--reveal-delay": `${delay}ms` } as React.CSSProperties}
+      className="flex h-24 w-12 items-center justify-center justify-self-center min-[64rem]:mt-16 min-[64rem]:h-12 min-[64rem]:w-auto min-[64rem]:self-start min-[64rem]:px-1"
+      aria-hidden="true"
+    >
       <svg
         viewBox="0 0 80 48"
         className="h-12 w-20 shrink-0 rotate-90 text-ink min-[64rem]:h-auto min-[64rem]:w-full min-[64rem]:rotate-0"
@@ -97,8 +125,8 @@ function CurlyArrow() {
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        <path d="M4 34C18 36 24 12 38 10C50 8 52 26 42 28C32 30 36 12 52 14C60 15 66 19 72 24" />
-        <path d="M63 25.5L72.5 24.5L69 15.5" />
+        <path className="draw" pathLength={1} d="M4 34C18 36 24 12 38 10C50 8 52 26 42 28C32 30 36 12 52 14C60 15 66 19 72 24" />
+        <path className="draw-head" d="M63 25.5L72.5 24.5L69 15.5" />
       </svg>
     </div>
   );
@@ -211,29 +239,27 @@ export default function Home() {
 
         <div className={`${SIDE} flex flex-col gap-14 pt-12 pb-16 min-[40rem]:gap-20 min-[40rem]:pt-16`}>
           <section id="como" aria-labelledby="como-titulo" className={`${COLUMN} ${ANCHOR}`}>
-            <details className="fold rounded-card border border-edge bg-paper">
-              <summary className="press flex items-center gap-4 rounded-card px-5 py-5 hover:bg-brand-tint min-[40rem]:px-8 min-[40rem]:py-6">
-                <span className="flex min-w-0 flex-1 flex-col gap-1">
-                  <h2 id="como-titulo" className={TITLE}>
-                    <T es="Cómo funciona" en="How it works" />
-                  </h2>
-                  <span className="text-muted text-pretty">
-                    <T es="En 3 pasos: la factura llega, la tienda paga, el crédito crece." en="In 3 steps: the invoice arrives, the shop pays, the credit grows." />
-                  </span>
-                </span>
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-full border border-edge bg-white">
-                  <FoldChevron />
-                </span>
-              </summary>
-              <div className="flex flex-col gap-6 px-5 pb-6 min-[40rem]:px-8 min-[40rem]:pb-8">
-                <ol className="grid min-[64rem]:grid-cols-[minmax(0,1fr)_5rem_minmax(0,1fr)_5rem_minmax(0,1fr)] min-[64rem]:items-start">
-                  {STEPS.map(({ icon, title, text }, i) => (
-                    <li key={i} className="contents">
-                      {i > 0 && <CurlyArrow />}
-                      <div className="flex flex-col gap-2">
+            <ScrollStory className="flex flex-col gap-8">
+              <header data-reveal="" className="flex max-w-[44rem] flex-col gap-2">
+                <h2 id="como-titulo" className={TITLE}>
+                  <T es="Qué hacemos" en="What we do" />
+                </h2>
+                <p className="text-lead text-pretty">
+                  <T
+                    es="Una sola app une a los cuatro que mueven cada entrega: la distribuidora, el motorista, la tienda y el prestamista."
+                    en="One app brings together the four people behind every delivery: the distributor, the driver, the shop and the lender."
+                  />
+                </p>
+              </header>
+              <ol className="grid min-[64rem]:grid-cols-[minmax(0,1fr)_4.5rem_minmax(0,1fr)_4.5rem_minmax(0,1fr)_4.5rem_minmax(0,1fr)] min-[64rem]:items-stretch">
+                {STEPS.map(({ who, icon, title, text }, i) => (
+                  <li key={i} className="contents">
+                    {i > 0 && <CurlyArrow delay={i * 120} />}
+                    <div data-reveal="" style={{ "--reveal-delay": `${i * 120}ms` } as React.CSSProperties} className="flex flex-col gap-2 rounded-card border border-edge bg-paper p-5">
+                      <span className="flex items-center gap-3">
                         <svg
                           viewBox="0 0 24 24"
-                          className="box-content size-7 rounded-full bg-accent p-2.5 text-ink"
+                          className="box-content size-7 shrink-0 rounded-full bg-accent p-2.5 text-ink"
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="1.75"
@@ -243,24 +269,27 @@ export default function Home() {
                         >
                           {icon}
                         </svg>
-                        <h3 className="text-lead font-bold text-balance">
-                          <T es={title[0]} en={title[1]} />
-                        </h3>
-                        <p className="text-pretty">
-                          <T es={text[0]} en={text[1]} />
-                        </p>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-                <p className="max-w-[44rem] text-muted text-pretty">
-                  <T
-                    es="Si la tienda elige 7 días, un fondo de prestamistas le paga a la distribuidora en el momento. Las reglas de crédito están escritas en un contrato público: no se cambian para una sola tienda ni en secreto."
-                    en="If the shop picks 7 days, a lender pool pays the distributor right away. The credit rules are written in a public contract, so they can't be changed for one shop or quietly changed later."
-                  />
-                </p>
-              </div>
-            </details>
+                        <span className="text-label font-bold tracking-wide text-brand uppercase">
+                          <T es={who[0]} en={who[1]} />
+                        </span>
+                      </span>
+                      <h3 className="text-lead font-bold text-balance">
+                        <T es={title[0]} en={title[1]} />
+                      </h3>
+                      <p className="text-pretty text-muted">
+                        <T es={text[0]} en={text[1]} />
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+              <p data-reveal="" className="max-w-[44rem] text-pretty">
+                <T
+                  es="Las reglas de crédito están escritas en un contrato público en Stellar: no se cambian para una sola tienda ni en secreto, y cada pago se puede revisar."
+                  en="The credit rules are written in a public contract on Stellar: they can't be changed for one shop or quietly, and every payment can be checked."
+                />
+              </p>
+            </ScrollStory>
           </section>
 
           <section id="demo" aria-labelledby="demo-titulo" className={`${COLUMN} ${ANCHOR} flex flex-col gap-6`}>
