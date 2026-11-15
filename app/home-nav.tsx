@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { Logo } from "@/components/logo";
 import { useT } from "@/lib/i18n";
 
-// The home page's bar (Wise.com style): it stays at the top while you scroll. Over the first screen it is the same
-// light blue; once you scroll it turns white with a hairline. On the right it says where you are and takes you to
+// The home page's bar (Wise.com style): it stays at the top while you scroll. It is always the same light blue as the
+// first screen; once you scroll it gets a soft shadow so the page slides under it. On the right it says where you are and takes you to
 // each part: every part as a pill on a laptop, one pill with a small menu on a phone.
 
 const PARTS = [
@@ -81,7 +81,7 @@ export function HomeNav() {
   }, [menu]);
 
   return (
-    <header className={`sticky top-(--band-h) z-4 transition-[background-color,box-shadow] duration-200 ${scrolled ? "bg-white shadow-[0_1px_0_var(--color-paper-rule)]" : "bg-accent"}`}>
+    <header className={`sticky top-(--band-h) z-4 transition-[box-shadow] duration-200 bg-accent ${scrolled ? "shadow-[0_6px_20px_rgb(11_31_58/0.10)]" : ""}`}>
       <div className="mx-auto flex min-h-16 w-full max-w-[calc(28rem+2*var(--gutter))] items-center justify-between gap-3 pr-[max(var(--gutter),env(safe-area-inset-right))] pl-[max(var(--gutter),env(safe-area-inset-left))] min-[40rem]:max-w-[calc(64rem+2*var(--gutter))]">
         <Link
           href="/"
