@@ -205,6 +205,7 @@ const GROUPS = {
     };
     return [
       ["inicio", "/", { inView: { "360x640": fold, "390x844": fold } }],
+      ["pronto", "/pronto/privacidad"],
       ["registro", "/registro"],
       ["registro-tienda", "/registro/tienda"],
       ["registro-distribuidora", "/registro/distribuidora"],

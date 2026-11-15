@@ -306,6 +306,33 @@ body {
     }
   }
 
+  /* The home page's bar jumps to its parts smoothly (only there, and not with reduced motion). */
+  @media (prefers-reduced-motion: no-preference) {
+    :root:has(#como) {
+      scroll-behavior: smooth;
+    }
+  }
+
+  /* A small menu that drops from its button. */
+  .menu-in {
+    animation: menu-in 180ms var(--ease-snap) both;
+    transform-origin: top right;
+  }
+
+  @keyframes menu-in {
+    from {
+      opacity: 0;
+      scale: 0.95;
+      translate: 0 -4px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .menu-in {
+      animation: fade-in 120ms ease-out both;
+    }
+  }
+
   /* A section that folds (details/summary): it opens smoothly where the browser allows, its chevron turns. */
   .fold {
     interpolate-size: allow-keywords;
