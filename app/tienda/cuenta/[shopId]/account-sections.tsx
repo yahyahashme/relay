@@ -173,8 +173,6 @@ export function AccountSections({ shop, suppliers, score, now }: { shop: Shop; s
   const base = `/tienda/cuenta/${shop.id}`;
   const info = (topic: string) => `${base}/info/${topic}`;
   const [whatsApp, setWhatsApp] = useWhatsAppOn(shop.id);
-  const hasCredit = shop.creditLimit > 0;
-  const payments = shop.onTime + shop.late;
 
   return (
     <>
@@ -183,51 +181,6 @@ export function AccountSections({ shop, suppliers, score, now }: { shop: Shop; s
           <CreditScoreCard score={score} shareFrom={{ shopId: shop.id, shopName: shop.name, now }} />
         </Section>
       )}
-
-      <Section id="credito" title={t("Cómo sube su límite", "How your limit grows")}>
-        <Card className="flex flex-col gap-3 px-4 py-4">
-          {hasCredit ? (
-            <>
-              <ul className="flex flex-col divide-y divide-paper-rule">
-                {(
-                  [
-                    [t("Si paga a tiempo", "If you pay on time"), 25],
-                    [t("De 2 a 7 días tarde", "2 to 7 days late"), -25],
-                    [t("8 días tarde o más", "8 or more days late"), -50],
-                  ] as const
-                ).map(([label, change]) => (
-                  <li key={label} className="flex items-center justify-between gap-3 py-2.5 first:pt-0">
-                    <span>{label}</span>
-                    <span className={`shrink-0 rounded-full px-2.5 py-0.5 font-semibold ${change > 0 ? "bg-ok-tint text-ok" : "bg-bad-tint text-bad"}`}>
-                      {change > 0 && "+"}
-                      <Money value={change} />
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              {payments > 0 && (
-                <p className="font-semibold text-pretty">
-                  {t(`Lleva ${plural(shop.onTime, "pago", "pagos")} a tiempo y ${shop.late} tarde.`, `${plural(shop.onTime, "payment", "payments")} on time and ${shop.late} late so far.`)}
-                </p>
-              )}
-              <p className="text-label text-muted text-pretty">
-                {t(
-                  "Un día tarde todavía cuenta a tiempo. Sube como máximo una vez por período de crédito, y solo si compró $40 o más con ",
-                  "One day late still counts as on time. It goes up at most once per credit period, and only if you bought $40 or more with ",
-                )}
-                <span className="whitespace-nowrap">{t("«Pagar en 7 días»", "“Pay in 7 days”")}</span>
-                {t(
-                  " con el fondo ($10 si pagó la mitad al recibir). Lo que su distribuidora le da a 7 días queda en su historial y no lo sube, pero pagarlo tarde sí lo baja. Si paga 8 días tarde o más, no sube durante 4 períodos. El límite máximo es $500.",
-                  " from the pool ($10 if you paid half on delivery). 7 days your distributor gives you goes on your record and doesn't raise it, but paying that late does lower it. If you pay 8 or more days late, it doesn't grow for 4 periods. The highest limit is $500.",
-                )}
-              </p>
-              <p className="text-label text-muted text-pretty">{t("Sin intereses: paga lo mismo que compró.", "No interest: you pay the same as you bought.")}</p>
-            </>
-          ) : (
-            <p className="text-muted">{t("Su tienda no tiene crédito por ahora.", "Your shop doesn't have credit for now.")}</p>
-          )}
-        </Card>
-      </Section>
 
       <Section title={t("Proveedores", "Suppliers")}>
         {suppliers.length === 0 ? (

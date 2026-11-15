@@ -1,10 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { type CurrentUser, getCurrentUser } from "@/app/auth-actions";
+import { useState } from "react";
 import { ActionLink, ActionList, ActionRow } from "@/components/kit/button";
-import { NavLink } from "@/components/kit/layout";
 import { Money } from "@/components/kit/money";
 import { Failure, Loading } from "@/components/kit/states";
 import { getDrivers, getInvoices, getShop } from "@/lib/api";
@@ -16,28 +13,6 @@ import { usePolling } from "@/lib/use-polling";
 
 // The parts of the home page that need the browser: who is signed in, and the demo's shops and drivers.
 // Everything else on the page is drawn on the server (app/page.tsx).
-
-/** "Crear cuenta" and "Entrar", or "Mi cuenta" once we know someone is signed in (#129). Same place either way. */
-export function AccountLink() {
-  const { t } = useT();
-  const [user, setUser] = useState<CurrentUser | null>(null);
-  useEffect(() => {
-    void getCurrentUser().then(setUser, () => setUser(null));
-  }, []);
-  if (user) return <NavLink href="/cuenta">{t("Mi cuenta", "My account")}</NavLink>;
-  // Signed out: both ways in, side by side. "Crear cuenta" asks shop or distributor next (/registro).
-  return (
-    <nav aria-label={t("Cuenta", "Account")} className="flex shrink-0 items-center gap-x-2">
-      <NavLink href="/entrar">{t("Entrar", "Sign in")}</NavLink>
-      <Link
-        href="/registro"
-        className="press inline-flex min-h-11 items-center rounded-full border-[1.5px] border-accent-edge bg-accent px-4 text-[1.0625rem] font-bold text-ink hover:bg-accent-press active:bg-accent-press"
-      >
-        {t("Crear cuenta", "Create account")}
-      </Link>
-    </nav>
-  );
-}
 
 /** Loads once. A load that fails says so and offers "Reintentar". */
 function useDemo<Data>(key: string, load: () => Promise<Data>) {
@@ -80,7 +55,13 @@ export function ShopLinks() {
         const unpaid = data.invoices.filter((i) => i.shopId === shop.id && i.status !== "paid");
         const count = t(plural(unpaid.length, "factura por pagar", "facturas por pagar"), plural(unpaid.length, "invoice to pay", "invoices to pay"));
         return (
-          <ActionRow key={shop.id} title={shop.name} hint={unpaid.length > 0 ? `${shop.owner} · ${count}` : shop.owner} open={open === shop.id} onClick={() => setOpen(open === shop.id ? null : shop.id)}>
+          <ActionRow
+            key={shop.id}
+            title={shop.name}
+            hint={unpaid.length > 0 ? `${shop.owner} · ${count}` : shop.owner}
+            open={open === shop.id}
+            onClick={() => setOpen(open === shop.id ? null : shop.id)}
+          >
             <ActionList>
               {unpaid.map((invoice) => (
                 <ActionLink key={invoice.id} href={`/tienda/${invoice.id}`} title={`${t("Factura", "Invoice")} ${invoice.id}`} figure={<Money value={leftToPay(invoice)} />} />
