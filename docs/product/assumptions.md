@@ -6,6 +6,8 @@ Every number links to a `docs/facts.md` entry or is marked **(guess, check in in
 
 > "Distributors pay, shops never do. 0.1% of each invoice paid at delivery, and on a 'pay in 7 days' sale the distributor pays up to 1.5% to be paid now, less when the shop pays part up front: at most 0.25% to us, the rest to the lenders and a loss buffer."
 
+**Costs in one line:** "Our founders are the engineers, plus one local sales hire, so fixed costs are about $150K a year plus about $2,500 per distributor, and we break even at around 20 distributors. The pilot year needs funding."
+
 ## Assumptions
 
 | Assumption | Value | Why it's realistic | Source |
@@ -16,7 +18,7 @@ Every number links to a `docs/facts.md` entry or is marked **(guess, check in in
 | Average delivery | $150 | Matches our demo invoices | (guess, check in interviews) |
 | Precedent: short stock credit size | under $500 per loan, about 3 a month | Tienda Pago in Mexico and Peru | facts.md entry 28 (replaces the unsourced "$250 to $300" in context §7.3) |
 | Share of sales on "pay in 7 days" | 20% for one distributor; 10% for the ceiling | Only shops short on cash use it | (guess, check in interviews) |
-| Default rate | under 0.75% of credit volume | That's the most the buffer can absorb at full credit; less when shops pay part up front (context §5). Limits start at $200, grow $25 after an on-time $40+ cycle ($10+ with half up front; once per period, $500 cap), drop $25 or $50 when repaid late, and freeze when overdue (`docs/product/credit-model.md`) | (guess, check in interviews) |
+| Default rate | under 0.75% of credit volume | That's the most the buffer can absorb at full credit; less when shops pay part up front (context §5). New shops unlock credit after 2 deliveries paid digitally at the door, starting at half a delivery ($50 to $100, #217); limits grow $25 after an on-time $40+ cycle ($10+ with half up front; once per period, $500 cap), drop $25 or $50 when repaid late, and freeze when overdue (`docs/product/credit-model.md`) | (guess, check in interviews) |
 | Our usage fee | 0.1% of every invoice paid at delivery (not on pay-in-7-days sales) | Contract constant `USAGE_FEE_BPS = 10` | facts.md entry 29 |
 | Credit fee, paid by the distributor | Up to 1.5% of what goes on credit: 0.75% buffer, 0.50% lenders, 0.25% us at full credit; down to 1.00% when the shop pays part up front | Contract constants `CREDIT_FEE_BPS = 150` (top) and `MIN_CREDIT_FEE_BPS = 100` (floor), `LENDER_BPS = 50`; the rest 3:1 buffer : us (#139) | facts.md entry 29 |
 | Why a distributor accepts up to 1.5% | Paid at delivery instead of in 7 days, no default risk, less cash and extortion risk; or it skips credit and the shop pays at delivery | Suppliers already give up about 37% a year with "2/10 net 30" discounts | context §5; facts.md entries 7, 52 |
@@ -67,14 +69,54 @@ Step by step:
 
 ### Costs
 
-| Cost | Rough size | Source |
-|---|---|---|
-| Cash-in/cash-out partner fees | about $X per $100 | (guess, check in interviews) |
-| Licensed lender's share | the 0.50% above | context §16 |
-| Network fees | Stellar describes them as under a cent per payment | facts.md entry 37 |
-| Support and signing up distributors | about $300K a year for a small team | (guess) |
+Team model (Nov 15, Rohan; replaces the "2 founders + 2 engineers" draft in #198): **the founders are the engineers**, plus **one local sales and partnerships hire** in El Salvador once the pilot works. Signing up distributors is our biggest risk and a full-time job on the ground, so it gets its own person. Sourced inputs are marked **S**, guesses **G**. USD per year.
 
-**Break-even:** $300,000 ÷ $10,140 per distributor ≈ **30 distributors** (guess). This is a volume business, so sales should target groups of distributors and big brands, not single shops.
+**Fixed costs (the same at 1 or 30 distributors)**
+
+| Line | Calculation | $/yr |
+|---|---|---|
+| 2 founder-engineers (build the product, run partners and fundraising) | 2 × $30K (G; between the local software median of about $13K, **S** GlobalCostData, and senior contract rates of $32–45/hr, **S** Lemon.io) | 60,000 |
+| 1 local sales and partnerships hire (signs up distributors, works with the licensed lender and cash-in partner) | $1,000/mo (G; about 2.5× the $408.80 minimum wage, **S** EY) | 12,000 |
+| Employer on-costs (social security, pension, 13th-month bonus) | +25% on salaries (G; check with an accountant) | 18,000 |
+| Legal (fee-vs-interest opinion, contracts, partner agreements) | (G) | 20,000 |
+| Smart-contract audit | (G) | 20,000 |
+| Office, accounting, insurance | (G) | 12,000 |
+| Hosting, RPC, monitoring (Stellar network fees are under a cent per payment, facts.md entry 37) | (G) | 5,000 |
+| **Fixed total** | | **147,000** |
+
+**Variable costs (per distributor of 10 routes × 100 shops, the case above)**
+
+| Line | Calculation | $/yr per distributor |
+|---|---|---|
+| ID check of the distributor's legal representative (#215) | 1 check × about $1 (G; an ID-verification provider's list price). Shops are not ID-checked: they unlock credit with door payments (#217) | 1 |
+| Field staff (shop sign-up, driver training) | 4 staff per 30 distributors × $800/mo (about 2× minimum wage, **S** EY) + 25% | 1,600 |
+| Support staff | 2 staff per 30 distributors × $600/mo + 25% | 600 |
+| Travel and training materials | $10K ÷ 30 (G) | 333 |
+| **Variable total** | | **about 2,550** |
+
+Other costs that sit outside our budget: the licensed lender's share is the 0.50% above (context §16), and the cash-in partner's fee per $100 is still unknown (facts.md entries 42, 43; check with partners).
+
+**Break-even**
+- Revenue per distributor: **$10,140 a year** (the realistic first year above).
+- Contribution per distributor: $10,140 − $2,534 ≈ **$7,600**.
+- **Break-even = fixed ÷ contribution = $147,000 ÷ $7,600 ≈ 19 distributors.** Total costs at that scale: $147K + 19 × $2.5K ≈ **$195K a year**. This is a volume business, so sales should target groups of distributors and big brands, not single shops.
+
+**Sensitivity (the numbers a judge can push on)**
+
+| If… | Revenue per distributor | Break-even |
+|---|---|---|
+| Base case above | $10,140 | ≈ 19 |
+| No sales hire yet (founders sell) | $10,140 | ≈ 17 |
+| Fixed costs rise by $10K | $10,140 | ≈ 21 (each $10K adds about 1.3) |
+| **Half of credit sales are pay-later (#194, the distributor gives the 7 days itself) or vouched (#185)**: those earn us only 0.10%, not 0.25% | $8,970 | **≈ 23** |
+| Only 10% of sales on credit instead of 20% | $8,970 | ≈ 23 |
+| **All** credit sales are pay-later or vouched | $7,800 | ≈ 28 |
+
+Heavy use of pay-later or vouching is good for shops and distributors but pushes our break-even up, because we earn 0.10% instead of 0.25% on those sales.
+
+**The pilot year looks very different.** One route of about 60 shops (context §7.7, guess): about $468K of invoices a year, so about **$600 in revenue**, against about **$138K in costs** (2 founder-engineers, 1 field person, legal, audit, hosting; no sales hire yet, and no outside lender: the pilot runs on our own money first, context §7). The pilot needs **funding** (a grant or pre-seed) and we say so openly. Its job is to prove repayment and adoption, not to make money.
+
+Sources for the cost lines: GlobalCostData, Software Engineer salary in El Salvador (2026), https://globalcostdata.com/salary/el-salvador/software-engineer/ ; Lemon.io, El Salvador developer rates, https://lemon.io/rate-calculator/el-salvador/ ; EY, El Salvador minimum wage ($408.80), https://www.ey.com/es_ce/technical/tax/tax-alerts/el-salvador-salario-minimo-2026
 
 ### Numbers a finance judge will check
 
