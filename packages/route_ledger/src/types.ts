@@ -130,6 +130,9 @@ export interface Invoice {
    * What was left to pay when the shop put it on pay later; 0 if never (#200).
    */
   later_amount: bigint;
+  /**
+   * Unix seconds it went on pay later; 0 if never.
+   */
   later_at: bigint;
   method: PayMethod;
   paid: bigint;
@@ -164,8 +167,11 @@ export interface ShopView {
   late_major: number;
   late_minor: number;
   later_late: number;
-  later_overdue: boolean;
   later_on_time: number;
+  /**
+   * An open pay-later invoice is past due plus the grace day.
+   */
+  later_overdue: boolean;
   /**
    * Pay later with the distributor's own money (#194): what the shop still
    * owes its distributors this way, and how its paid ones went.
