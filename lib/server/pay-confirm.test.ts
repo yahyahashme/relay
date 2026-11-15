@@ -8,7 +8,7 @@ import type { ConfirmStart } from "@/lib/pay-confirm";
 vi.mock("server-only", () => ({}));
 
 const { applySchema } = await import("./setup");
-const { finishConfirm, redeemConfirm, startConfirm, unitsToCents } = await import("./pay-confirm");
+const { clearDemoConfirms, finishConfirm, redeemConfirm, startConfirm, unitsToCents } = await import("./pay-confirm");
 
 const RP = { id: "relay-sv.vercel.app", origin: "https://relay-sv.vercel.app" };
 const ROSA = { key: "user:rosa", name: "Tienda Rosa" };
@@ -222,5 +222,15 @@ describe("confirming a payment with face, fingerprint or PIN", () => {
     const pg = new PGlite();
     const bare = { query: async (text: string, params: unknown[] = []) => (await pg.query(text, params)).rows as never[] };
     expect(started(await startConfirm(bare, ROSA, PAY_45, RP)).mode).toBe("setup");
+  });
+
+  it("Reiniciar demo forgets demo phones' PINs, never a real owner's (#223)", async () => {
+    for (const owner of [ROSA, OTHER]) {
+      const start = started(await startConfirm(db, owner, PAY_45, RP));
+      expect(await finishConfirm(db, owner, start.id, { kind: "new-pin", pin: "482913" }, RP)).toEqual({ ok: true });
+    }
+    expect(await clearDemoConfirms(db)).toBe(1);
+    expect(started(await startConfirm(db, OTHER, PAY_45, RP)).mode).toBe("setup");
+    expect(started(await startConfirm(db, ROSA, PAY_45, RP)).mode).toBe("pin");
   });
 });
