@@ -5,9 +5,11 @@
 // The server holds each lender's test key (testnet only), so every move is confirmed with the
 // lender's passkey or PIN first, like a shop payment (#199).
 
+import { checkIdentity, type IdentityDetails } from "@/lib/identity";
 import { signUp } from "@/lib/server/accounts";
+import { ensureIdentityColumns, recordIdentity } from "@/lib/server/identity";
 import { mayActAs, NOT_YOURS } from "@/lib/server/authz";
-import { getDb } from "@/lib/server/db";
+import { getDb, requireDb } from "@/lib/server/db";
 import { getDirectory, type Party } from "@/lib/server/directory";
 import { autoApproveSeconds } from "@/lib/server/distributors";
 import {
@@ -48,10 +50,10 @@ async function lenderOnChain(stellarAddress: string, approve: boolean): Promise<
   await run("admin", (client) => (approve ? client.approve_lender({ lender: stellarAddress }) : client.revoke_lender({ lender: stellarAddress })));
 }
 
-export async function signUpLenderAction(input: { name: string; contact: string; password: string; details: LenderDetails }): Promise<Reply> {
+export async function signUpLenderAction(input: { name: string; contact: string; password: string; details: LenderDetails; identity: IdentityDetails }): Promise<Reply> {
   const db = getDb();
   if (!db) return { ok: false, message: NO_ACCOUNTS };
-  const problem = checkLenderDetails(input.details); // before anything is created
+  const problem = checkLenderDetails(input.details) ?? checkIdentity(input.identity); // before anything is created
   if (problem) return { ok: false, message: problem };
   let address: string;
   try {
@@ -64,7 +66,8 @@ export async function signUpLenderAction(input: { name: string; contact: string;
     await ensureLenderTables(db); // the "prestamista" role, before the user row
     const result = await signUp({ role: "prestamista", name: input.name, contact: input.contact, password: input.password });
     if (!result.ok) return result;
-    await registerLender(result.user, input.details);
+    const lender = await registerLender(result.user, input.details);
+    await recordIdentity(db, "lenders", lender.id, input.identity); // numbers and status only (#215)
     await startSession(result.sessionId);
     address = result.user.stellarAddress;
   } catch (error) {
@@ -194,7 +197,7 @@ export async function lenderWithdraw(lenderId: string, amount: number | "all", c
 
 // ---------- /admin ----------
 
-export type LenderAdminRow = Pick<Lender, "id" | "businessName" | "country" | "licence" | "status" | "ownerName" | "ownerContact" | "createdAt"> & {
+export type LenderAdminRow = Pick<Lender, "id" | "businessName" | "country" | "licence" | "nit" | "status" | "ownerName" | "ownerContact" | "createdAt" | "idCheck" | "repDui" | "matricula"> & {
   explorerUrl: string;
 };
 
@@ -203,10 +206,14 @@ const toRow = (l: Lender): LenderAdminRow => ({
   businessName: l.businessName,
   country: l.country,
   licence: l.licence,
+  nit: l.nit,
   status: l.status,
   ownerName: l.ownerName,
   ownerContact: l.ownerContact,
   createdAt: l.createdAt,
+  idCheck: l.idCheck,
+  repDui: l.repDui,
+  matricula: l.matricula,
   explorerUrl: `${config.explorer}/account/${l.stellarAddress}`,
 });
 
@@ -214,6 +221,7 @@ const toRow = (l: Lender): LenderAdminRow => ({
 export async function getLenderAdminList(): Promise<{ pending: LenderAdminRow[]; decided: LenderAdminRow[] } | null> {
   const user = await currentUser();
   if (user?.role !== "admin") return null;
+  await ensureIdentityColumns(requireDb()); // so the list can show the identity check (#215)
   const { pending, decided } = await listLendersForAdmin();
   return { pending: pending.map(toRow), decided: decided.map(toRow) };
 }

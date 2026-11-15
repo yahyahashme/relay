@@ -16,7 +16,7 @@ const l = await import("./lenders");
 const d = await import("./distributors");
 
 const noNetwork = { fund: async () => {}, addUsdcTrustline: async () => {} };
-const details = { businessName: "Cooperativa  Ahorro Sur", country: "El Salvador", licence: "SSF-COOP-0142" };
+const details = { businessName: "Cooperativa  Ahorro Sur", country: "El Salvador", licence: "SSF-COOP-0142", nit: "0614-120394-101-3" };
 type Db = { query: (text: string, params?: unknown[]) => Promise<never[]> };
 let db: Db;
 
@@ -120,11 +120,25 @@ describe("lender sign-up and approval (#207)", () => {
   });
 });
 
+describe("identity record (#215)", () => {
+  beforeEach(() => freshDb());
+
+  it("keeps only the numbers and the status, and shows them to /admin", async () => {
+    const { recordIdentity } = await import("./identity");
+    const { lender } = await newLender();
+    expect(lender).toMatchObject({ idCheck: "sin_verificar", repDui: null, matricula: null, nit: "0614-120394-101-3" });
+    await recordIdentity(db, "lenders", lender.id, { dui: "012345678", birthDate: "1985-04-02", matricula: "2016 012345" });
+    expect(await l.lenderById(lender.id)).toMatchObject({ idCheck: "verificada_demo", repDui: "01234567-8", matricula: "2016012345" });
+    await expect(recordIdentity(db, "lenders", lender.id, { dui: "1", birthDate: "", matricula: "" })).rejects.toThrow();
+  });
+});
+
 describe("the live database from before lenders", () => {
   it("adds the lender role and table on first use", async () => {
     const old = readFileSync("db/schema.sql", "utf8")
       .replace("'admin', 'prestamista'", "'admin'")
-      .replace(/CREATE TABLE IF NOT EXISTS lenders \([\s\S]*?\);/, "");
+      .replace(/CREATE TABLE IF NOT EXISTS lenders \([\s\S]*?\);/, "")
+      .replace(/^ALTER TABLE lenders .*$/gm, "");
     await freshDb(old);
     expect(await getDirectory()).toBeTruthy(); // no lenders table yet: the directory still works
     const early = await signUp({ role: "prestamista", name: "Ana", contact: "early@coop.example", password: "segura123" }, noNetwork).catch((e) => e);

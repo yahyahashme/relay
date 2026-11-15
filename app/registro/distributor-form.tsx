@@ -4,23 +4,41 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, type ReactNode, useEffect, useState } from "react";
 import { signUpDistributorAction } from "@/app/distributor-actions";
 import { TextButton } from "@/components/kit/button";
+import { IdentityFields, useIdentityCheck } from "@/components/identity-check";
 import { Field, PasswordField } from "@/components/kit/field";
 import { Choice, Choices, Form, FormHead, FormSubmit } from "@/components/kit/form";
 import { type Blank, blankOf } from "@/lib/form-errors";
+import { normalizeMatricula } from "@/lib/identity";
 import { useT } from "@/lib/i18n";
 import { SELLS, sellLabel } from "@/lib/sells";
 
 /** The step each blank is on. A message about a blank that isn't on screen goes above the button. */
-const STEP_OF: Partial<Record<Blank, 1 | 2>> = { businessName: 1, nit: 1, address: 1, sells: 1, approx: 1, name: 2, contact: 2, password: 2 };
+const STEP_OF: Partial<Record<Blank, 1 | 2 | 3>> = {
+  businessName: 1,
+  nit: 1,
+  address: 1,
+  sells: 1,
+  approx: 1,
+  matricula: 1,
+  dui: 2,
+  birthDate: 2,
+  photo: 2,
+  name: 3,
+  contact: 3,
+  password: 3,
+};
 
 /**
- * Distributor sign-up (#130), one slip at every size: "Su empresa", then "Su cuenta".
+ * Distributor sign-up (#130), one slip at every size: "Su empresa", "Representante legal" (the
+ * identity check, #215, simulated in the demo), then "Su cuenta".
  * `intro` is one sentence under the first step's name.
  */
 export function DistributorForm({ intro }: { intro?: ReactNode }) {
   const { lang, t, msg } = useT();
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [matricula, setMatricula] = useState("");
+  const identity = useIdentityCheck();
   const [businessName, setBusinessName] = useState("");
   const [nit, setNit] = useState("");
   const [address, setAddress] = useState("");
@@ -46,6 +64,7 @@ export function DistributorForm({ intro }: { intro?: ReactNode }) {
     if (nit.replace(/\D/g, "").length !== 14) return "El NIT debe tener 14 dígitos.";
     if (address.trim().length < 5) return "Escriba la dirección de la empresa.";
     if (sells.length === 0) return "Elija qué vende.";
+    if (!normalizeMatricula(matricula)) return "Escriba el número de matrícula de comercio del CNR.";
     return null;
   }
 
@@ -55,13 +74,29 @@ export function DistributorForm({ intro }: { intro?: ReactNode }) {
     if (!problem) setStep(2);
   }
 
+  /** Step 2: run the identity check; once it passed, the same button goes on. */
+  async function checkIdentityStep() {
+    if (identity.verified) {
+      setError(null);
+      setStep(3);
+      return;
+    }
+    setError(null);
+    setError(await identity.verify(matricula));
+  }
+
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (step === 1) return next(); // the keyboard's Enter on the first step is "Siguiente"
+    if (step === 2) return checkIdentityStep();
     const problem = businessProblem();
     if (problem) {
       setError(problem);
       setStep(1);
+      return;
+    }
+    if (!identity.verified) {
+      setStep(2);
       return;
     }
     setBusy(true);
@@ -71,6 +106,7 @@ export function DistributorForm({ intro }: { intro?: ReactNode }) {
       contact,
       password,
       details: { businessName, nit, address, sells, shopsApprox, driversApprox },
+      identity: { ...identity.details, matricula },
     });
     if (reply.ok) {
       router.push("/distribuidor/espera");
@@ -88,8 +124,12 @@ export function DistributorForm({ intro }: { intro?: ReactNode }) {
 
   return (
     // The first step runs its own checks, in its own words ("El NIT debe tener 14 dígitos.").
-    <Form onSubmit={submit} noValidate={step === 1} error={error}>
-      <FormHead step={t(`Crear cuenta · Paso ${step} de 2`, `Create account · Step ${step} of 2`)} at={step} title={step === 1 ? t("Su empresa", "Your business") : t("Su cuenta", "Your account")}>
+    <Form onSubmit={submit} noValidate={step !== 3} error={error}>
+      <FormHead
+        step={t(`Crear cuenta · Paso ${step} de 3`, `Create account · Step ${step} of 3`)}
+        at={step}
+        title={step === 1 ? t("Su empresa", "Your business") : step === 2 ? t("Representante legal", "Legal representative") : t("Su cuenta", "Your account")}
+      >
         {step === 1 && intro}
       </FormHead>
 
@@ -114,6 +154,16 @@ export function DistributorForm({ intro }: { intro?: ReactNode }) {
             onChange={(e) => setNit(e.target.value)}
             error={under("nit")}
           />
+          <Field
+            label={t("Matrícula de comercio (CNR)", "Trade registration (CNR)")}
+            hint={t("El número de registro de la empresa en el CNR.", "The company's registration number at the CNR.")}
+            autoComplete="off"
+            autoCapitalize="characters"
+            required
+            value={matricula}
+            onChange={(e) => setMatricula(e.target.value)}
+            error={under("matricula")}
+          />
           <Field label={t("Dirección", "Address")} autoComplete="street-address" required value={address} onChange={(e) => setAddress(e.target.value)} error={under("address")} />
           <Choices label={t("¿Qué vende?", "What do you sell?")} error={under("sells")}>
             {SELLS.map((item) => (
@@ -134,6 +184,28 @@ export function DistributorForm({ intro }: { intro?: ReactNode }) {
             )}
           </div>
           <FormSubmit error={aboveButton}>{t("Siguiente", "Next")}</FormSubmit>
+        </div>
+      ) : step === 2 ? (
+        <div key="identidad" className="contents">
+          <p className="text-pretty">
+            {t(
+              "La persona que firma por la empresa. Relay verifica que la empresa y la persona sean reales antes de aprobarla.",
+              "The person who signs for the business. Relay checks that the business and the person are real before approving it.",
+            )}
+          </p>
+          <IdentityFields state={identity} error={error} />
+          {!identity.checking && (
+            <FormSubmit error={aboveButton}>{identity.verified ? t("Siguiente", "Next") : t("Verificar identidad", "Verify identity")}</FormSubmit>
+          )}
+          <TextButton
+            onClick={() => {
+              setError(null);
+              setStep(1);
+            }}
+            disabled={identity.checking}
+          >
+            {t("Atrás", "Back")}
+          </TextButton>
         </div>
       ) : (
         <div key="cuenta" className="contents">
@@ -182,7 +254,7 @@ export function DistributorForm({ intro }: { intro?: ReactNode }) {
           <TextButton
             onClick={() => {
               setError(null); // a message about this step doesn't follow to the one before
-              setStep(1);
+              setStep(2);
             }}
             disabled={busy}
           >
