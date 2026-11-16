@@ -332,8 +332,7 @@ describe("pay later only lowers the pool limit (#200, #203)", () => {
 
     mock.offerOwnCredit("tienda-1", true);
     mock.payLater(1001);
-    mock.claimCash(1001, 150);
-    mock.confirmCash(1001, 150);
+    mock.payNow(1001);
     expect(mock.getShop("tienda-1")).toMatchObject({ creditLimit: 200, laterOnTime: 1 });
 
     mock.payLater(1004); // due NOW + 11 days
@@ -409,5 +408,14 @@ describe("split at the door (#235)", () => {
     expect(mock.payPartLater(1001, 30).ok).toBe(true);
     expect(mock.getInvoice(1001)).toMatchObject({ paid: 30, later: true, laterAmount: 120 });
     expect(mock.getShop("tienda-1")).toMatchObject({ creditOwed: 0 });
+  });
+});
+
+describe("credit is paid back only in digital dollars (Nov 16)", () => {
+  it("refuses cash on an invoice on the distributor's 7 days", () => {
+    mock.offerOwnCredit("tienda-1", true);
+    expect(mock.payLater(1001).ok).toBe(true);
+    expect(mock.claimCash(1001, 150).message).toBe("Esta factura está en 7 días: se paga solo en dólares digitales.");
+    expect(mock.payNow(1001).ok).toBe(true);
   });
 });
