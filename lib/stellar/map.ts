@@ -33,6 +33,7 @@ export function toInvoice(i: ChainInvoice, directory: Directory, cashClaim = 0n)
   if (cashClaim > 0n) invoice.cashClaim = toDollars(cashClaim);
   if (i.credit_fee > 0n) invoice.creditFee = toDollars(i.credit_fee);
   if (i.later) invoice.later = true;
+  if (i.later_amount > 0n) invoice.laterAmount = toDollars(i.later_amount);
   return invoice;
 }
 

@@ -14,7 +14,7 @@ import { toInvoice, toShop } from "@/lib/stellar/map";
 import { read, run } from "@/lib/stellar/send";
 import { toDollars, toUnits } from "@/lib/stellar/units";
 import { buildHistory } from "@/lib/history";
-import { rpc, scValToNative } from "@stellar/stellar-sdk";
+import { nativeToScVal, rpc, scValToNative } from "@stellar/stellar-sdk";
 import type { Invoice as ChainInvoice } from "@/packages/route_ledger/src/index";
 import { toUnixSeconds } from "@/lib/dates";
 import { firstFreeId, nextDemoId } from "@/lib/demo-ids";
@@ -26,7 +26,8 @@ import { redeemConfirm, unitsToCents, type ConfirmTarget } from "@/lib/server/pa
 import { confirmOwner } from "@/lib/server/pay-owner";
 import { recordDoorPayment, unlockIfDue, unlockStatus } from "@/lib/server/credit-unlock";
 import type { Party } from "@/lib/server/directory";
-import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type InvoiceRow, type LenderView, type Pool, type Receipt, type Payment, type Shop, type ShopHistory, type Supplier, type Totals } from "@/lib/types";
+import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type InvoiceRow, type LenderView, type Pool, type Receipt, type Payment, type Shop, type ShopHistory, type StopPayments, type Supplier, type Totals } from "@/lib/types";
+import { splitBlock } from "@/lib/labels";
 
 // ---------- reads ----------
 
@@ -301,27 +302,113 @@ export async function payLater(invoiceId: number, confirmId?: string): Promise<R
     if (!(await mayActAs(shop))) return fail(NOT_YOURS);
     const unconfirmed = await confirmed(confirmId, shop, { action: "later", invoiceId }, left);
     if (unconfirmed) return fail(unconfirmed);
-
-    // The distributor gives this shop the 7 days itself (#194): the pool isn't used, nothing moves today.
-    if (!invoice.later && (await offersOwnCredit(invoice))) {
-      const { hash } = await run(shop.id, (client) => client.pay_later({ shop: invoice.shop, id: invoice.id }));
-      const after = await chainInvoice(invoiceId);
-      const due = new Date(Number(after?.due ?? 0n) * 1000).toISOString();
-      return receipt(hash, `Listo. Tiene hasta el ${formatDay(due)} para pagar ${formatMoney(toDollars(left))}, sin intereses.`);
-    }
-    // #231: while Relay reviews this distributor's invoices, they don't go on the lenders' money.
-    const db = getDb();
-    const seller = (await getDirectory()).byAddress(invoice.distributor);
-    if (db && seller && (await inReview(db, "distributor", seller.id))) {
-      return fail("Esta distribuidora está en revisión. Por ahora pague en dólares digitales o en efectivo.");
-    }
-    const { hash } = await run(shop.id, (client) => client.pay_with_credit({ shop: invoice.shop, id: invoice.id }));
-    const after = await shopView(invoice.shop);
-    const due = new Date(Number(after.due_at) * 1000).toISOString();
+    const ownCredit = !invoice.later && (await offersOwnCredit(invoice));
+    if (!ownCredit && (await distributorInReview(invoice))) return fail(IN_REVIEW);
+    const { hash, due } = await restOnLater(shop, invoice, ownCredit);
     return receipt(hash, `Listo. Tiene hasta el ${formatDay(due)} para pagar ${formatMoney(toDollars(left))}, sin intereses.`);
   } catch (error) {
     return failure(error);
   }
+}
+
+const IN_REVIEW = "Esta distribuidora está en revisión. Por ahora pague en dólares digitales o en efectivo.";
+
+/** #231: while Relay reviews this distributor's invoices, they don't go on the lenders' money. */
+async function distributorInReview(invoice: ChainInvoice): Promise<boolean> {
+  const db = getDb();
+  const seller = (await getDirectory()).byAddress(invoice.distributor);
+  return Boolean(db && seller && (await inReview(db, "distributor", seller.id)));
+}
+
+/** What's left goes on 7 days: the distributor's own (#194, nothing moves today) or the pool's. */
+async function restOnLater(shop: Party, invoice: ChainInvoice, ownCredit: boolean): Promise<{ hash: string; due: string }> {
+  if (ownCredit) {
+    const { hash } = await run(shop.id, (client) => client.pay_later({ shop: invoice.shop, id: invoice.id }));
+    const after = await chainInvoice(Number(invoice.id));
+    return { hash, due: new Date(Number(after?.due ?? 0n) * 1000).toISOString() };
+  }
+  const { hash } = await run(shop.id, (client) => client.pay_with_credit({ shop: invoice.shop, id: invoice.id }));
+  const after = await shopView(invoice.shop);
+  return { hash, due: new Date(Number(after.due_at) * 1000).toISOString() };
+}
+
+/**
+ * Split at the door (#235): the shop pays a part now, digitally or by confirming the cash the driver
+ * recorded, and the rest goes on 7 days, in one confirm. Two contract calls (pay or cash_confirm, then
+ * pay_with_credit or pay_later). Every check the second call makes is run first, so a part is only
+ * paid on a split that can finish; if the second still fails, the part stays paid and the screen says so.
+ */
+export async function payPartLater(invoiceId: number, amount: number, cash: boolean, confirmId?: string): Promise<Receipt> {
+  try {
+    const invoice = await chainInvoice(invoiceId);
+    if (!invoice) return fail("No encontramos esa factura.");
+    const left = invoice.amount - invoice.paid;
+    if (left <= 0n) return fail("Esta factura ya está pagada.");
+    if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
+    const units = toUnits(amount.toFixed(2));
+    if (units >= left) return fail("Para pagar todo, use «Pagar ahora».");
+    const shop = (await getDirectory()).byAddress(invoice.shop);
+    if (shop?.kind !== "shop") return fail("Esta factura no es de su tienda.");
+    if (!(await mayActAs(shop))) return fail(NOT_YOURS);
+
+    const claim = await read(readClient().get_cash_claim({ id: invoice.id }));
+    if (cash && claim !== units) return fail("El efectivo registrado cambió. Revise el monto.");
+    if (!cash && claim > 0n) return fail("Hay efectivo por confirmar. Confírmelo primero en «Pagué en efectivo».");
+
+    const ownCredit = !invoice.later && (await offersOwnCredit(invoice));
+    if (!ownCredit && (await distributorInReview(invoice))) return fail(IN_REVIEW);
+    const [view, pool] = await Promise.all([getShop(shop.id), ownCredit ? null : getPool()]);
+    const blocked = splitBlock(view, { ...toInvoice(invoice, await getDirectory()), ownCredit }, toDollars(left - units), pool?.available);
+    if (blocked) return fail(blocked);
+
+    const unconfirmed = await confirmed(confirmId, shop, { action: cash ? "splitcash" : "split", invoiceId }, units);
+    if (unconfirmed) return fail(unconfirmed);
+
+    const first = await run(shop.id, (client) =>
+      cash
+        ? client.cash_confirm({ shop: invoice.shop, id: invoice.id, amount: units })
+        : client.pay({ shop: invoice.shop, id: invoice.id, amount: units }),
+    );
+    const part = formatMoney(toDollars(units));
+    const rest = formatMoney(toDollars(left - units));
+    const paidAfter = await chainInvoice(invoiceId);
+    try {
+      const { hash, due } = await restOnLater(shop, paidAfter ?? invoice, ownCredit);
+      return receipt(hash, `Listo. Pagó ${part} hoy. Tiene hasta el ${formatDay(due)} para pagar ${rest}, sin intereses.`);
+    } catch (error) {
+      console.error("[split] rest", error);
+      return receipt(first.hash, `Pagó ${part}. El resto (${rest}) no pasó a 7 días: páguelo aquí.`);
+    }
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+/** How each stop was paid (#235), from the contract's events (about a week of them, today's route is in there). */
+export async function getStopPayments(invoiceIds: number[]): Promise<Record<number, StopPayments>> {
+  const wanted = new Set(invoiceIds.filter((id) => Number.isSafeInteger(id)).slice(0, 100));
+  const out: Record<number, StopPayments> = {};
+  if (wanted.size === 0) return out;
+  const KIND: Record<string, keyof StopPayments> = { invoice_paid: "digital", cash_confirmed: "cash", paid_with_credit: "credit" };
+  const server = new rpc.Server(config.rpcUrl);
+  const health = await server.getHealth();
+  const topics = Object.keys(KIND).map((name) => [nativeToScVal(name, { type: "symbol" }).toXDR("base64"), "*"]);
+  const filters = [{ type: "contract" as const, contractIds: [config.contracts.routeLedger], topics }];
+  let page = await server.getEvents({ filters, startLedger: Math.max(health.oldestLedger, health.latestLedger - 120_000), limit: 1000 });
+  for (let pages = 0; pages < 20; pages++) {
+    for (const e of page.events) {
+      const kind = KIND[String(scValToNative(e.topic[0]))];
+      const id = Number(scValToNative(e.topic[1]));
+      if (!kind || !wanted.has(id)) continue;
+      const data = scValToNative(e.value) as { amount?: bigint };
+      if (data.amount === undefined) continue;
+      out[id] ??= { digital: 0, cash: 0, credit: 0 };
+      out[id][kind] = Math.round((out[id][kind] + toDollars(data.amount)) * 100) / 100;
+    }
+    if (page.events.length < 1000) break;
+    page = await server.getEvents({ filters, cursor: page.cursor, limit: 1000 });
+  }
+  return out;
 }
 
 /** Cash, step 1: the driver says how much cash the shop handed over. Nothing moves yet. */

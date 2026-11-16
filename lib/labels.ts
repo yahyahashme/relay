@@ -1,4 +1,4 @@
-import type { Invoice, PayMethod } from "./types";
+import type { Invoice, PayMethod, Shop } from "./types";
 
 export type StatusTone = "due" | "part" | "paid" | "credit";
 
@@ -127,4 +127,27 @@ export function partPayError(text: string, left: number, cashClaim = 0): string 
     return `Hay $${cashClaim.toFixed(2)} en efectivo por confirmar. Puede pagar hasta $${(room / 100).toFixed(2)}.`;
   }
   return null;
+}
+
+/**
+ * Why the rest of a split (#235) can't go on 7 days, or null. The same checks as "Pagar en 7 días",
+ * for the rest only, run before any money moves so a part is never paid on a split that can't finish.
+ * `poolAvailable` is left out when the distributor gives the 7 days itself (no pool).
+ */
+export function splitBlock(shop: Shop | null, invoice: Invoice, rest: number, poolAvailable?: number): string | null {
+  const cents = (n: number) => Math.round(n * 100);
+  if (cents(rest) <= 0) return "Para pagar todo, use «Pagar ahora».";
+  if (invoice.later) return "Esta factura ya está en 7 días con su distribuidora.";
+  if (!shop) return "Su tienda aún no tiene crédito.";
+  if (shop.laterOverdue || shop.overdue) return "Tiene un pago vencido.";
+  if (invoice.ownCredit) return null;
+  if (shop.unlock || shop.creditLimit <= 0) return "Su tienda aún no tiene crédito.";
+  if (cents(shop.creditOwed) + cents(rest) > cents(shop.creditLimit)) return "Supera su límite de crédito.";
+  if (poolAvailable !== undefined && cents(poolAvailable) < cents(rest)) return "Hoy no hay fondos para crédito. Intente más tarde.";
+  return null;
+}
+
+/** What one stop still needs today (#235): nothing once the rest is on 7 days. */
+export function leftToday(invoice: Invoice): number {
+  return invoice.later ? 0 : leftToPay(invoice);
 }
