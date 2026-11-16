@@ -35,13 +35,13 @@ Three screens (a website that works like a phone app): the **shop** pays an invo
 - **Fees:** distributors pay a 0.1% usage fee on digital and cash payments (for cash it's recorded and billed later). Shops never pay fees.
 - **Network fee sponsorship:** every transaction goes out inside a fee bump paid by our sponsor account (`lib/stellar/sponsor.ts`, used by `lib/stellar/send.ts`), so shops, drivers and the distributor never hold or spend XLM for fees.
 - **Split payment:** "Pagar una parte, el resto en 7 días" pays part now in digital dollars and puts the rest on 7 days in one confirm (#235).
-- **Credit is repaid only in digital dollars** (#241): pool credit always was, and an invoice on the distributor's own 7 days can no longer be paid in cash (the app refuses it now; the contract does after the #222 redeploy).
-- **Who carries the 7 days:** per shop, the distributor picks the lender pool, the pool with the distributor vouching ("Respaldar esta tienda": 0.25% per credit sale, backed by a deposit of at least 20% of what vouched shops owe), or its own money ("Dar yo los 7 días": no credit fee, only the 0.1% usage fee). "Buscar en Relay" → "Agregar y respaldar" vouches for any shop on Relay, including a brand-new account (#228).
+- **Credit is repaid only in digital dollars** (#241): pool credit always was, and an invoice on the distributor's own 7 days can no longer be paid in cash (the app and, since the Nov 16 redeploy, the contract refuse it).
+- **Who carries the 7 days:** per shop, the distributor picks the lender pool, the pool with the distributor vouching ("Respaldar esta tienda": 0.25% per credit sale, backed by a deposit of at least 20% of what vouched shops owe; if a vouched shop defaults, the distributor owes all of it, deposit first, then from its next payouts), or its own money ("Dar yo los 7 días": no credit fee, only the 0.1% usage fee). "Buscar en Relay" → "Agregar y respaldar" vouches for any shop on Relay, including a brand-new account (#228).
 - **Lenders:** only lenders approved after a business check can deposit. Pool money sits in the contract, not in a wallet; each lender owns shares, so every credit sale and every earning splits in proportion to what it put in, and money that isn't lent can always come out. `/prestamista` shows the history.
 - **Fraud checks:** Relay checks every distributor's invoices for signs of fake shops and other odd patterns. A flagged account loses pool credit while the admin asks for proof (a DTE code or a delivery photo), then clears it or closes the account (#232).
 - **Simulated ID check:** distributor and lender sign-up asks for the legal representative's DUI, a selfie and the company registration; the demo only checks the formats (#216).
 
-**What's live and what's planned** [docs/context.md §7.8](docs/context.md#78-whats-live-and-whats-planned-nov-16). Contract changes not deployed yet: [#234](https://github.com/yahyahashme/relay/issues/234).
+**What's live and what's planned** [docs/context.md §7.8](docs/context.md#78-whats-live-and-whats-planned-nov-16). Every contract change is deployed (the last redeploy, #234, closed Nov 16).
 
 **Demo vs real product:** in the demo the server signs for each role with test keys. The real product uses passkey smart wallets on the users' phones, and a licensed partner does KYC on shop owners and KYB on distributors.
 

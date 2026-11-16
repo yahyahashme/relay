@@ -60,9 +60,8 @@ would be $2.25 and the distributor would get $147.75). Say what the screen shows
 ## End card
 
 - App: https://relay-sv.vercel.app
-- Contract: `CAGCZ3I7CQHZDELPV5OB2W4D4LHA7MPSOBP4NO2AV4JO2G6HED7HV4ML`
-  (https://stellar.expert/explorer/testnet/contract/CAGCZ3I7CQHZDELPV5OB2W4D4LHA7MPSOBP4NO2AV4JO2G6HED7HV4ML). Redeployed for #139 (sliding credit fee); the one before was `CDHDZX7V…`.
-  If the contract is redeployed (#52), copy the new ID from `config/testnet.json`.
+- Contract: `CBXUYASL5HI4J7JWMJSGUNH44R2JKLI2QWGDC5LTTYXM4AFMY5DMGP4J`
+  (https://stellar.expert/explorer/testnet/contract/CBXUYASL5HI4J7JWMJSGUNH44R2JKLI2QWGDC5LTTYXM4AFMY5DMGP4J), the final redeploy of Nov 16 (#222). Always check it against `contracts.routeLedger` in `config/testnet.json`.
 - Product name: **Relay**, with *Del efectivo al crédito* under it (PR #100)
 
 ## If something goes wrong while recording
