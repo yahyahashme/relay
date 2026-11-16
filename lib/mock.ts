@@ -10,8 +10,8 @@ import { growthStep } from "./credit-tiers";
 import { formatDay, formatMoney, plural } from "./format";
 import { buildHistory } from "./history";
 import { buildLenderHistory, type LenderHistory, type LenderMove, type PoolEvent } from "./lender-history";
-import { LENDER_BPS, poolFeeSplit, RECOURSE_FEE_BPS, RECOURSE_LENDER_BPS, recourseRequired } from "./labels";
-import { HISTORY_PAGE, type Driver, type Payment, type Profile, type ShopHistory, type Supplier, type Invoice, type InvoiceHistory, type InvoiceRow, type PayMethod, type LenderView, type MyLender, type Pool, type PoolHealth, type Receipt, type RecourseView, type Shop, type Totals } from "./types";
+import { LENDER_BPS, poolFeeSplit, splitBlock, RECOURSE_FEE_BPS, RECOURSE_LENDER_BPS, recourseRequired } from "./labels";
+import { HISTORY_PAGE, type Driver, type Payment, type Profile, type ShopHistory, type Supplier, type Invoice, type InvoiceHistory, type InvoiceRow, type PayMethod, type LenderView, type MyLender, type Pool, type PoolHealth, type Receipt, type RecourseView, type Shop, type StopPayments, type Totals } from "./types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CREDIT_DAYS = 7;
@@ -170,7 +170,8 @@ function toInvoice(r: InvoiceRecord): Invoice {
   if (r.cashClaim !== undefined) invoice.cashClaim = dollars(r.cashClaim);
   if (r.creditFee) invoice.creditFee = r.creditFee / (UNITS_PER_CENT * 100);
   if (r.later) invoice.later = true;
-  else if (r.paid < r.amount && findShop(r.shopId)?.ownCredit) invoice.ownCredit = true;
+  if (r.laterAmount) invoice.laterAmount = dollars(r.laterAmount);
+  if (!r.later && r.paid < r.amount && findShop(r.shopId)?.ownCredit) invoice.ownCredit = true;
   return invoice;
 }
 
@@ -490,6 +491,40 @@ export function confirmCash(invoiceId: number, amount: number): Receipt {
   const driver = db().drivers.find((d) => d.id === invoice.driverId);
   if (driver) driver.cashHeld += cash;
   return ok(`Listo. Confirmó ${money(cash)} en efectivo.`);
+}
+
+/** Split at the door (#235): a part now (digital, or the driver's cash), the rest on 7 days. Checked first. */
+export function payPartLater(invoiceId: number, amount: number, cash: boolean): Receipt {
+  const invoice = findInvoice(invoiceId);
+  if (!invoice) return fail("No encontramos esa factura.");
+  if (invoice.paid >= invoice.amount) return fail("Esta factura ya está pagada.");
+  const part = toCents(amount);
+  if (part === null) return fail("Monto inválido.");
+  const left = invoice.amount - invoice.paid;
+  if (part >= left) return fail("Para pagar todo, use «Pagar ahora».");
+  if (cash && invoice.cashClaim !== part) return fail("El efectivo registrado cambió. Revise el monto.");
+  if (!cash && invoice.cashClaim !== undefined) return fail("Hay efectivo por confirmar. Confírmelo primero en «Pagué en efectivo».");
+  const view = toInvoice(invoice);
+  const blocked = splitBlock(getShop(invoice.shopId), view, dollars(left - part), view.ownCredit ? undefined : dollars(db().pool.available / UNITS_PER_CENT));
+  if (blocked) return fail(blocked);
+
+  const first = cash ? confirmCash(invoiceId, dollars(part)) : payNow(invoiceId, dollars(part));
+  if (!first.ok) return first;
+  const rest = payLater(invoiceId);
+  if (!rest.ok) return ok(`Pagó ${money(part)}. El resto (${money(left - part)}) no pasó a 7 días: páguelo aquí.`);
+  const due = invoice.later ? invoice.dueAt : (findShop(invoice.shopId)?.dueAt ?? clock());
+  return ok(`Listo. Pagó ${money(part)} hoy. Tiene hasta el ${formatDay(iso(due))} para pagar ${money(left - part)}, sin intereses.`);
+}
+
+/** How each stop was paid (#235). */
+export function getStopPayments(invoiceIds: number[]): Record<number, StopPayments> {
+  const out: Record<number, StopPayments> = {};
+  for (const p of db().payments) {
+    if (p.invoiceId === null || !invoiceIds.includes(p.invoiceId) || p.method === "repay") continue;
+    out[p.invoiceId] ??= { digital: 0, cash: 0, credit: 0 };
+    out[p.invoiceId][p.method] = dollars(Math.round(out[p.invoiceId][p.method] * 100) + p.amount);
+  }
+  return out;
 }
 
 export function repay(shopId: string, amount: number): Receipt {

@@ -3,6 +3,8 @@ export type PayMethod = "digital" | "cash" | "credit" | "mixed";
 export type Invoice = { id: number; shopId: string; driverId: string; amount: number; paid: number; dueDate: string; status: InvoiceStatus; method?: PayMethod; cashClaim?: number; creditFee?: number;
   /** The shop took 7 days on its distributor's own money (#194); `dueDate` is when it must pay. */
   later?: boolean;
+  /** What was left when it went on 7 days with the distributor (#194). */
+  laterAmount?: number;
   /** Its distributor gives this shop the 7 days itself, so "Pagar en 7 días" doesn't use the pool (#194). */
   ownCredit?: boolean };
 export type Shop = {
@@ -30,6 +32,8 @@ export type Shop = {
   /** A shop that never had pool credit (#217): door payments counted toward unlocking it, and when the next one can count. */
   unlock?: { paid: number; needed: number; nextFrom?: string };
 };
+/** How one stop was paid (#235): what came in digitally, in cash, and on credit (pool or the distributor's 7 days). */
+export type StopPayments = { digital: number; cash: number; credit: number };
 /** A distributor's recourse deposit (#185), in dollars. `required` = 20% of `vouchedOut`. */
 export type RecourseView = {
   distributorId: string; deposit: number; vouchedOut: number; required: number;

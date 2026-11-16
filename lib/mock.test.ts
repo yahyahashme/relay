@@ -380,3 +380,40 @@ describe("a lender's own account (#207)", () => {
     expect(mock.lenderWithdraw("all").ok).toBe(true);
   });
 });
+
+describe("split at the door (#235)", () => {
+  it("pays a part digitally and puts the rest on credit, even over the limit for the whole", () => {
+    // $220 is over the $200 limit, but $40 now and $180 on credit fits.
+    expect(mock.payLater(1003).message).toBe("Supera su límite de crédito.");
+    const receipt = mock.payPartLater(1003, 40, false);
+    expect(receipt).toMatchObject({ ok: true });
+    expect(receipt.message).toMatch(/^Listo\. Pagó \$40\.00 hoy\. Tiene hasta el .+ para pagar \$180\.00, sin intereses\.$/);
+    expect(mock.getInvoice(1003)).toMatchObject({ paid: 220, status: "paid" });
+    expect(mock.getShop("tienda-3")).toMatchObject({ creditOwed: 180 });
+    expect(mock.getStopPayments([1003])[1003]).toEqual({ digital: 40, cash: 0, credit: 180 });
+  });
+
+  it("checks the rest before any money moves", () => {
+    expect(mock.payPartLater(1003, 10, false).message).toBe("Supera su límite de crédito.");
+    expect(mock.getInvoice(1003)).toMatchObject({ paid: 0 });
+    expect(mock.payPartLater(1001, 150, false).message).toBe("Para pagar todo, use «Pagar ahora».");
+  });
+
+  it("confirms the driver's cash and puts the rest on credit", () => {
+    mock.claimCash(1001, 50);
+    expect(mock.payPartLater(1001, 60, true).message).toBe("El efectivo registrado cambió. Revise el monto.");
+    expect(mock.payPartLater(1001, 20, false).message).toBe("Hay efectivo por confirmar. Confírmelo primero en «Pagué en efectivo».");
+    expect(mock.payPartLater(1001, 50, true).ok).toBe(true);
+    expect(mock.getInvoice(1001)).toMatchObject({ paid: 150, status: "paid" });
+    expect(mock.getInvoice(1001)?.cashClaim).toBeUndefined();
+    expect(mock.getDrivers().find((d) => d.id === "motorista-1")?.cashHeld).toBe(50);
+    expect(mock.getStopPayments([1001])[1001]).toEqual({ digital: 0, cash: 50, credit: 100 });
+  });
+
+  it("puts the rest on the distributor's own 7 days when it gives them", () => {
+    mock.offerOwnCredit("tienda-1", true);
+    expect(mock.payPartLater(1001, 30, false).ok).toBe(true);
+    expect(mock.getInvoice(1001)).toMatchObject({ paid: 30, later: true, laterAmount: 120 });
+    expect(mock.getShop("tienda-1")).toMatchObject({ creditOwed: 0 });
+  });
+});

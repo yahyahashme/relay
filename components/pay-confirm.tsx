@@ -4,7 +4,7 @@ import { platformAuthenticatorIsAvailable, startAuthentication, startRegistratio
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Button, TextButton } from "@/components/kit/button";
 import { INPUT } from "@/components/kit/field";
-import { MoneyText } from "@/components/kit/money";
+import { Money, MoneyText } from "@/components/kit/money";
 import { Receipt, ReceiptHeader, ReceiptLine, ReceiptLines, ReceiptTotal } from "@/components/kit/paper";
 import { useQuietOnArrival } from "@/components/tap-shield";
 import { finishPayConfirm, startPayConfirm } from "@/lib/api";
@@ -19,6 +19,8 @@ import { type ConfirmAction, type ConfirmProof, type ConfirmRequest, type Confir
 export type ConfirmAsk = ConfirmRequest & {
   /** Who gets the money, for the sheet ("Para"). */
   to?: string;
+  /** A split (#235): what goes on 7 days after this part, shown as its own line. */
+  rest?: number;
 };
 
 /** The confirmation id to send with the payment, or why there is none (no message = the shop cancelled). */
@@ -51,6 +53,8 @@ const TITLE: Record<ConfirmAction, [string, string]> = {
   pay: ["Confirme el pago", "Confirm the payment"],
   later: ["Confirme el crédito", "Confirm the credit"],
   cash: ["Confirme el efectivo", "Confirm the cash"],
+  split: ["Confirme el pago", "Confirm the payment"],
+  splitcash: ["Confirme el efectivo", "Confirm the cash"],
   repay: ["Confirme el pago", "Confirm the payment"],
   lend: ["Confirme el depósito", "Confirm the deposit"],
   withdraw: ["Confirme el retiro", "Confirm the withdrawal"],
@@ -60,6 +64,8 @@ const WHAT: Record<ConfirmAction, [string, string]> = {
   pay: ["Paga ahora", "You pay now"],
   later: ["Paga en 7 días", "You pay in 7 days"],
   cash: ["Pagó en efectivo", "You paid in cash"],
+  split: ["Paga ahora", "You pay now"],
+  splitcash: ["Pagó en efectivo", "You paid in cash"],
   repay: ["Paga su crédito", "You pay your credit"],
   lend: ["Pone en el fondo", "You put in the pool"],
   withdraw: ["Retira del fondo", "You take out of the pool"],
@@ -265,6 +271,13 @@ function ConfirmSheet({ ask, done }: { ask: ConfirmAsk; done: (answer: ConfirmAn
             <ReceiptLines>
               <ReceiptLine label={t("Para", "To")} shorten>
                 {ask.to}
+              </ReceiptLine>
+            </ReceiptLines>
+          )}
+          {ask.rest !== undefined && ask.rest > 0 && (
+            <ReceiptLines>
+              <ReceiptLine label={t("En 7 días", "In 7 days")}>
+                <Money value={ask.rest} />
               </ReceiptLine>
             </ReceiptLines>
           )}

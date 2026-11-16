@@ -69,6 +69,8 @@ export const getInvoiceHistory = (pages: number): Promise<InvoiceHistory> =>
 export const getDistributorView = (pages: number): Promise<DistributorView> =>
   read(() => mock.getDistributorView(pages), () => distributors.getDistributorView(pages));
 /** Notes / products on these invoices (#133); the demo's have none. */
+/** How each stop was paid (#235): digital, cash, credit. */
+export const getStopPayments = (ids: number[]) => read(() => mock.getStopPayments(ids), () => live.getStopPayments(ids));
 export const getInvoiceNotes = (ids: number[]) => read(() => ({}) as Record<number, string>, () => invoices.getInvoiceNotes(ids));
 /** Who sent an invoice, and its note (#133). The demo's come from Distribuidora El Sol. */
 export const getInvoiceSource = (id: number) =>
@@ -122,6 +124,9 @@ export const claimCash = (invoiceId: number, amount: number) =>
 /** `amount` is the claim the shop saw: if the driver changed it since, nothing happens. */
 export const confirmCash = (invoiceId: number, amount: number, confirmId?: string) =>
   write(() => mock.confirmCash(invoiceId, amount), () => live.confirmCash(invoiceId, amount, confirmId));
+/** Split at the door (#235): `amount` now (digital, or `cash` = the driver's claim), the rest on 7 days. */
+export const payPartLater = (invoiceId: number, amount: number, cash: boolean, confirmId?: string) =>
+  write(() => mock.payPartLater(invoiceId, amount, cash), () => live.payPartLater(invoiceId, amount, cash, confirmId));
 export const repay = (shopId: string, amount: number, confirmId?: string) =>
   write(() => mock.repay(shopId, amount), () => live.repay(shopId, amount, confirmId));
 /** The distributor got a driver's cash at the warehouse (only lowers the driver's cash count). */

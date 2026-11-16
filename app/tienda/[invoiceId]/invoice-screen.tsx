@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { ActionLink, ActionList, ActionRow, Button, DetailLink, Held } from "@/components/kit/button";
 import { MoneyField } from "@/components/kit/field";
+import { Choice, Choices } from "@/components/kit/form";
 import { NavLink, Split, TopNav } from "@/components/kit/layout";
 import { Money, MoneyText } from "@/components/kit/money";
 import { Paper, Receipt, ReceiptFold, ReceiptFoot, ReceiptHeader, ReceiptLine, ReceiptLines, ReceiptRule, ReceiptTotal } from "@/components/kit/paper";
@@ -13,15 +14,15 @@ import { Stamp } from "@/components/kit/stamp";
 import { Empty, Failure, Loading } from "@/components/kit/states";
 import { type ConfirmAsk, usePayConfirm } from "@/components/pay-confirm";
 import { ARRIVE_MS, HOLD_MS, QUIET_MS, TapShield, useQuietOnArrival, useSameSpotGuard, useTapShield } from "@/components/tap-shield";
-import { confirmCash, getDrivers, getInvoice, getInvoiceSource, getShop, payLater, payNow } from "@/lib/api";
+import { confirmCash, getDrivers, getInvoice, getInvoiceSource, getShop, payLater, payNow, payPartLater } from "@/lib/api";
 import { dueOn, formatDay, isPastDue, pricedLine } from "@/lib/format";
 import { type Lang, useT } from "@/lib/i18n";
-import { leftToPay, methodLabel, parseAmount, partPayError } from "@/lib/labels";
+import { leftToPay, methodLabel, parseAmount, partPayError, shopCreditFeeBps, splitBlock } from "@/lib/labels";
 import type { Invoice, Receipt as Outcome, Shop } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
 
-type Action = "now" | "part" | "later" | "cash";
-type Panel = "later" | "part" | "cash";
+type Action = "now" | "part" | "later" | "cash" | "split";
+type Panel = "later" | "part" | "cash" | "split";
 type Source = { distributorName: string; note: string | null };
 
 /**
@@ -178,6 +179,10 @@ export default function InvoiceScreen() {
   const [choice, setChoice] = useState<Panel | null | undefined>(undefined);
   const [partText, setPartText] = useState("");
   const [partError, setPartError] = useState<string | null>(null);
+  const [splitText, setSplitText] = useState("");
+  const [splitError, setSplitError] = useState<string | null>(null);
+  // The cash panel (#235): the rest after the cash is paid here later (false) or goes on 7 days (true).
+  const [cashRestLater, setCashRestLater] = useState(false);
   const [landed, setLanded] = useState(false); // the stamp has played; don't replay it on Back
   const { noteTap, settle } = useTapShield();
   const { watch, typed, stray } = useSameSpotGuard();
@@ -194,7 +199,7 @@ export default function InvoiceScreen() {
   if (panel === "later" && blocked !== null) panel = null;
   // A panel with its own button takes over from "Pagar ahora", so there is one live pay button at a time.
   // "Pagar ahora" keeps its place, greyed out: nothing below it moves.
-  const panelHasButton = panel === "later" || panel === "part" || (panel === "cash" && hasClaim);
+  const panelHasButton = panel === "later" || panel === "part" || panel === "split" || (panel === "cash" && hasClaim);
 
   const claimJustChanged = useQuietAfterChange(invoice ? hasClaim : null);
   // The pay buttons wait for today's numbers, then one beat more: a double tap on the screen before can't pay.
@@ -220,6 +225,8 @@ export default function InvoiceScreen() {
       await reload(); // show the stamp and the new numbers together
       setChoice(undefined);
       setPartText("");
+      setSplitText("");
+      setCashRestLater(false);
     }
     setOutcome(result);
     // The screen is not what it was: the buttons are gone or have moved (a panel closed, the slip grew a
@@ -259,6 +266,22 @@ export default function InvoiceScreen() {
   const partAmount = parseAmount(partText);
   const partOk = partAmount !== null && partPayError(partText, left, invoice.cashClaim) === null;
   const toggle = (next: Panel) => setChoice(panel === next ? null : next);
+  // Split at the door (#235): a part now, the rest on 7 days. The row opens if a little credit is possible;
+  // the amount typed decides if the rest fits (a $100 invoice over a $50 limit can still go half and half).
+  const splitClosed = splitBlock(shop, invoice, 0.01);
+  const splitAmount = parseAmount(splitText);
+  const splitRest = splitAmount === null ? null : Math.round((left - splitAmount) * 100) / 100;
+  const splitProblem = (text: string): string | null => {
+    const amount = parseAmount(text);
+    if (amount === null) return "Monto inválido.";
+    if (invoice.cashClaim !== undefined) return "Hay efectivo por confirmar. Confírmelo primero en «Pagué en efectivo».";
+    return splitBlock(shop, invoice, Math.round((left - amount) * 100) / 100);
+  };
+  const splitOk = splitText.trim() !== "" && splitProblem(splitText) === null;
+  // What the distributor pays on the part on credit: it slides from 1.5% down the more is paid today.
+  const restFeeBps = (rest: number) => shopCreditFeeBps(Math.round(rest * 100), Math.round(invoice.amount * 100), shop?.goodCycles ?? 0, Boolean(shop?.voucherId));
+  const cashRest = invoice.cashClaim !== undefined ? Math.round((left - invoice.cashClaim) * 100) / 100 : 0;
+  const cashCanSplit = cashRest > 0 && splitBlock(shop, invoice, cashRest) === null;
   const inDollars = t("con dólares digitales", "in digital dollars");
 
   const who = (
@@ -420,6 +443,69 @@ export default function InvoiceScreen() {
           </Button>
         </ActionRow>
         <ActionRow
+          title={t("Pagar una parte, el resto en 7 días", "Pay part now, the rest in 7 days")}
+          hint={splitClosed ? msg(splitClosed).replace(/\.$/, "") : t("En dólares digitales o efectivo", "In digital dollars or cash")}
+          open={splitClosed === null ? panel === "split" : undefined}
+          onClick={() => toggle("split")}
+          disabled={locked || splitClosed !== null}
+        >
+          <MoneyField
+            label={t("¿Cuánto paga hoy?", "How much are you paying today?")}
+            hint={
+              splitRest !== null && splitRest > 0 ? (
+                <>
+                  {t("En 7 días:", "In 7 days:")} <Money value={splitRest} />
+                  {!invoice.ownCredit && (
+                    <>
+                      {" "}
+                      · {t("comisión de su distribuidora", "your distributor's fee")} {(restFeeBps(splitRest) / 100).toFixed(2)}%
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  {t("Falta", "Left to pay:")} <Money value={left} />
+                </>
+              )
+            }
+            error={splitError ? <MoneyText>{msg(splitError)}</MoneyText> : undefined}
+            placeholder="0.00"
+            autoFocus
+            value={splitText}
+            onChange={(e) => {
+              setSplitText(e.target.value);
+              setSplitError(null);
+            }}
+          />
+          <Button
+            onClick={(event) => {
+              if (stray(event)) return;
+              const error = splitProblem(splitText);
+              if (error || splitAmount === null || splitRest === null) return setSplitError(error ?? "Monto inválido.");
+              void run("split", { action: "split", amount: splitAmount, rest: splitRest }, (confirmId) => payPartLater(id, splitAmount, false, confirmId));
+            }}
+            busy={busy === "split"}
+            disabled={locked || unready || panelArriving || splitText.trim() === ""}
+            hint={
+              splitOk && splitAmount !== null ? (
+                <>
+                  <Money value={splitAmount} /> {inDollars}
+                </>
+              ) : (
+                t("Con dólares digitales", "In digital dollars")
+              )
+            }
+          >
+            {t("Pagar y el resto en 7 días", "Pay, the rest in 7 days")}
+          </Button>
+          <p className="text-label text-muted text-pretty">
+            {t(
+              "¿Una parte en efectivo? Déle el efectivo al motorista. Cuando registre el monto, confírmelo en «Pagué en efectivo» y elija el resto en 7 días.",
+              "Part in cash? Hand it to the driver. Once the amount is recorded, confirm it under “I paid in cash” and pick the rest in 7 days.",
+            )}
+          </p>
+        </ActionRow>
+        <ActionRow
           title={t("Pagué en efectivo", "I paid in cash")}
           hint={hasClaim ? t("Efectivo por confirmar", "Cash to confirm") : undefined}
           figure={invoice.cashClaim !== undefined ? <Money value={invoice.cashClaim} /> : undefined}
@@ -433,9 +519,31 @@ export default function InvoiceScreen() {
                 {driver?.name ?? t("El motorista", "The driver")} {t("registró", "registered")} <Money value={invoice.cashClaim} className="font-semibold" />{" "}
                 {t("en efectivo.", "in cash.")}
               </p>
+              {cashCanSplit && (
+                <Choices
+                  label={
+                    <>
+                      {t("El resto", "The rest")} (<Money value={cashRest} />)
+                    </>
+                  }
+                >
+                  <Choice chosen={!cashRestLater} onClick={() => setCashRestLater(false)}>
+                    {t("Lo pago aquí", "I'll pay it here")}
+                  </Choice>
+                  <Choice chosen={cashRestLater} onClick={() => setCashRestLater(true)}>
+                    {t("En 7 días", "In 7 days")}
+                  </Choice>
+                </Choices>
+              )}
               <Button
                 onClick={(event) => {
-                  if (!stray(event)) void run("cash", { action: "cash", amount: invoice.cashClaim ?? 0 }, (confirmId) => confirmCash(id, invoice.cashClaim ?? 0, confirmId));
+                  if (stray(event)) return;
+                  const claim = invoice.cashClaim ?? 0;
+                  if (cashCanSplit && cashRestLater) {
+                    void run("cash", { action: "splitcash", amount: claim, rest: cashRest }, (confirmId) => payPartLater(id, claim, true, confirmId));
+                  } else {
+                    void run("cash", { action: "cash", amount: claim }, (confirmId) => confirmCash(id, claim, confirmId));
+                  }
                 }}
                 busy={busy === "cash"}
                 disabled={locked || unready}
