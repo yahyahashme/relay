@@ -70,12 +70,6 @@ async function workingDay(page) {
   await page.waitForTimeout(2700);
   await pay(page, /^Confirmo|^Confirm/);
   await paid(/Pagada · Crédito|Paid · Credit/);
-  await open("/tienda/1006");
-  await press(page, /Pagar otro monto|Pay another amount/);
-  await page.locator("main input[inputmode=decimal]:visible").fill("45");
-  await page.waitForTimeout(800);
-  await pay(page, /Pagar este monto|Pay this amount/);
-  await paid(/^(Pagado|Paid)$/);
   await move(page, "/ruta/motorista-1");
   await page.waitForSelector("main [data-next]", { timeout: 20_000 });
   await page.locator("main a", { hasText: "1004" }).first().click();

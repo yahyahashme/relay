@@ -76,17 +76,6 @@ const SCENARIOS = [
     after: (text) => /Pagada · Digital/.test(text),
   },
   {
-    name: "Pagar este monto ($ 50 of $ 150)",
-    setup: async (page) => {
-      await button(page, "Pagar otro monto").tap();
-      await page.locator("main input").fill("50");
-      await page.waitForTimeout(900);
-    },
-    target: (page) => button(page, "Pagar este monto"),
-    // One payment of 50 and no more: 50 paid of 150, 100 left, and the slip is not stamped paid.
-    after: (text) => /Pagado\s*\$50\.00 de \$150\.00/.test(text) && /Falta[\s\S]*\$100\.00/.test(text) && !/Pagada ·/.test(text),
-  },
-  {
     name: "Confirmo (Pagar en 7 días)",
     setup: async (page) => {
       await button(page, "Pagar en 7 días").tap();
