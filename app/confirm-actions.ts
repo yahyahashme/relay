@@ -44,7 +44,7 @@ export async function startPayConfirm(request: ConfirmRequest): Promise<ConfirmS
   try {
     const db = getDb();
     if (!db) return { ok: false, message: NO_DB };
-    if (!["pay", "later", "cash", "split", "repay", ...LENDER_ACTIONS].includes(request.action)) return { ok: false, message: "Monto inválido." };
+    if (!["pay", "later", "cash", "split", "splitcash", "repay", ...LENDER_ACTIONS].includes(request.action)) return { ok: false, message: "Monto inválido." };
     if (!Number.isFinite(request.amount) || request.amount <= 0) return { ok: false, message: "Monto inválido." };
     const shop = await shopFor(request);
     if (typeof shop === "string") return { ok: false, message: shop };

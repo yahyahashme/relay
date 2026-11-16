@@ -333,12 +333,12 @@ async function restOnLater(shop: Party, invoice: ChainInvoice, ownCredit: boolea
 }
 
 /**
- * Split at the door (#235): the shop pays a part now in dólares digitales and the rest goes on 7 days,
- * in one confirm. Cash is never part of a split (Yahya, Nov 15): it is all that's left or nothing.
- * Two contract calls (pay, then pay_with_credit or pay_later). Every check the second call makes is run first, so a part is only
+ * Split at the door (#235): the shop pays a part now, digitally or by confirming the cash the driver
+ * recorded, and the rest goes on 7 days, in one confirm. Two contract calls (pay or cash_confirm, then
+ * pay_with_credit or pay_later). Every check the second call makes is run first, so a part is only
  * paid on a split that can finish; if the second still fails, the part stays paid and the screen says so.
  */
-export async function payPartLater(invoiceId: number, amount: number, confirmId?: string): Promise<Receipt> {
+export async function payPartLater(invoiceId: number, amount: number, cash: boolean, confirmId?: string): Promise<Receipt> {
   try {
     const invoice = await chainInvoice(invoiceId);
     if (!invoice) return fail("No encontramos esa factura.");
@@ -352,7 +352,8 @@ export async function payPartLater(invoiceId: number, amount: number, confirmId?
     if (!(await mayActAs(shop))) return fail(NOT_YOURS);
 
     const claim = await read(readClient().get_cash_claim({ id: invoice.id }));
-    if (claim > 0n) return fail("Hay efectivo por confirmar. Confírmelo primero en «Pagué en efectivo».");
+    if (cash && claim !== units) return fail("El efectivo registrado cambió. Revise el monto.");
+    if (!cash && claim > 0n) return fail("Hay efectivo por confirmar. Confírmelo primero en «Pagué en efectivo».");
 
     const ownCredit = !invoice.later && (await offersOwnCredit(invoice));
     if (!ownCredit && (await distributorInReview(invoice))) return fail(IN_REVIEW);
@@ -360,10 +361,14 @@ export async function payPartLater(invoiceId: number, amount: number, confirmId?
     const blocked = splitBlock(view, { ...toInvoice(invoice, await getDirectory()), ownCredit }, toDollars(left - units), pool?.available);
     if (blocked) return fail(blocked);
 
-    const unconfirmed = await confirmed(confirmId, shop, { action: "split", invoiceId }, units);
+    const unconfirmed = await confirmed(confirmId, shop, { action: cash ? "splitcash" : "split", invoiceId }, units);
     if (unconfirmed) return fail(unconfirmed);
 
-    const first = await run(shop.id, (client) => client.pay({ shop: invoice.shop, id: invoice.id, amount: units }));
+    const first = await run(shop.id, (client) =>
+      cash
+        ? client.cash_confirm({ shop: invoice.shop, id: invoice.id, amount: units })
+        : client.pay({ shop: invoice.shop, id: invoice.id, amount: units }),
+    );
     const part = formatMoney(toDollars(units));
     const rest = formatMoney(toDollars(left - units));
     const paidAfter = await chainInvoice(invoiceId);
@@ -406,18 +411,15 @@ export async function getStopPayments(invoiceIds: number[]): Promise<Record<numb
   return out;
 }
 
-/** Cash, step 1: the driver says the shop handed over all that's left in cash. Nothing moves yet. */
+/** Cash, step 1: the driver says how much cash the shop handed over. Nothing moves yet. */
 export async function claimCash(invoiceId: number, amount: number): Promise<Receipt> {
   try {
     const invoice = await chainInvoice(invoiceId);
     if (!invoice) return fail("No encontramos esa factura.");
-    const left = invoice.amount - invoice.paid;
-    if (left <= 0n) return fail("Esta factura ya está pagada.");
+    if (invoice.amount - invoice.paid <= 0n) return fail("Esta factura ya está pagada.");
     // Anything on 7 days is paid back only in digital dollars (Yahya, Nov 16).
     if (invoice.later) return fail("Esta factura está en 7 días: se paga solo en dólares digitales.");
     if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
-    // Cash is all that's left or nothing (Yahya, Nov 15): a part is only paid in dólares digitales.
-    if (toUnits(amount.toFixed(2)) !== left) return fail(`El efectivo es por todo lo que falta (${formatMoney(toDollars(left))}). Una parte solo se paga en dólares digitales.`);
     const driver = (await getDirectory()).byAddress(invoice.driver);
     if (driver?.kind !== "driver") return fail("Este motorista no está en la ruta.");
     if (!(await mayActAs(driver))) return fail(NOT_YOURS);
