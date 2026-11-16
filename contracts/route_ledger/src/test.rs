@@ -394,8 +394,9 @@ fn cash_up_front_earns_no_lower_credit_fee() {
     let digital = payout_after(0, 50 * USD);
     assert_eq!(digital, 50 * USD - bps_of(50 * USD, credit_fee_bps(50 * USD, 100 * USD)));
     // $50 cash + $50 on credit: priced like a $50 invoice all on credit, 1.50%.
+    // The 0.10% usage fee owed on the $50 cash comes out of this payout (#229).
     let cash = payout_after(50 * USD, 0);
-    assert_eq!(cash, 50 * USD - bps_of(50 * USD, CREDIT_FEE_BPS));
+    assert_eq!(cash, 50 * USD - bps_of(50 * USD, CREDIT_FEE_BPS) - bps_of(50 * USD, USAGE_FEE_BPS));
     assert!(cash < digital);
     // Only the digital part lowers it: $40 cash + $30 digital + $30 credit
     // is $30 of a $60 invoice on credit.
@@ -2309,23 +2310,25 @@ fn trusted_buffer_share_shrinks_by_thirds() {
 fn a_trusted_shop_costs_its_distributor_less() {
     let t = setup();
     t.with_credit();
-    for week in 0..4 {
+    let trusted = TRUSTED_CYCLES as u64;
+    let highly = HIGHLY_TRUSTED_CYCLES as u64;
+    for week in 0..trusted {
         t.good_cycle(week, 50 * USD);
     }
-    assert_eq!(t.client.get_shop(&t.shop).good_cycles, 4);
-    // 4 good cycles: buffer 0.50% instead of 0.75%, so the fee is 1.25% and the distributor gets $98.75.
+    assert_eq!(t.client.get_shop(&t.shop).good_cycles, TRUSTED_CYCLES);
+    // TRUSTED_CYCLES good cycles: buffer 0.50% instead of 0.75%, so the fee is 1.25% and the distributor gets $98.75.
     let buffer_before = t.client.get_pool().buffer;
-    assert_eq!(t.payout_of_100(4, 1), 987_500_000);
+    assert_eq!(t.payout_of_100(trusted, 1), 987_500_000);
     assert_eq!(t.client.get_invoice(&1).credit_fee, 12_500_000);
     assert_eq!(t.client.get_pool().buffer - buffer_before, 5_000_000);
     t.client.repay(&t.shop, &t.client.get_shop(&t.shop).owed);
-    for week in 5..9 {
+    for week in (trusted + 1)..(highly + 1) {
         t.good_cycle(week, 50 * USD);
     }
-    assert_eq!(t.client.get_shop(&t.shop).good_cycles, 9);
-    // 8+ good cycles: buffer 0.25%, fee 1.00%, the distributor gets $99.00. Lenders and we keep 0.50% and 0.25%.
+    assert_eq!(t.client.get_shop(&t.shop).good_cycles, HIGHLY_TRUSTED_CYCLES + 1);
+    // HIGHLY_TRUSTED_CYCLES+: buffer 0.25%, fee 1.00%, the distributor gets $99.00. Lenders and we keep 0.50% and 0.25%.
     let treasury_before = t.balance(&t.treasury);
-    assert_eq!(t.payout_of_100(9, 2), 990_000_000);
+    assert_eq!(t.payout_of_100(highly + 1, 2), 990_000_000);
     assert_eq!(t.balance(&t.treasury) - treasury_before, 2_500_000);
     t.assert_pool_matches_balance();
 }
@@ -3080,4 +3083,84 @@ fn bps_of(amount: i128, rate: i128) -> i128 {
 fn half_up_front(t: &Setup) -> bool {
     t.env
         .as_contract(&t.client.address, || load_shop(&t.env, &t.shop).unwrap().cycle_half_up_front)
+}
+
+#[test]
+fn trusted_tiers_take_half_a_year_and_a_year() {
+    // #250 (Rohan): 26 and 52 good weeks, not 4 and 8.
+    assert_eq!((TRUSTED_CYCLES, HIGHLY_TRUSTED_CYCLES), (26, 52));
+    assert_eq!(trusted_buffer_bps(75, 8), 75);
+    assert_eq!(trusted_buffer_bps(75, 25), 75);
+    assert_eq!(trusted_buffer_bps(75, 26), 50);
+    assert_eq!(trusted_buffer_bps(75, 52), 25);
+}
+
+/// A distributor whose shop paid `cash` in cash on invoice 1.
+fn after_cash(cash: i128) -> Setup {
+    let t = setup();
+    t.client.set_terms(&t.shop, &(200 * USD));
+    t.invoice(1, cash);
+    t.client.cash_claim(&t.driver, &1, &cash);
+    t.client.cash_confirm(&t.shop, &1, &cash);
+    t
+}
+
+#[test]
+fn owed_cash_usage_comes_out_of_the_next_digital_payout() {
+    // #229: $500 cash leaves $0.50 owed; the next $100 digital payment pays it.
+    let t = after_cash(500 * USD);
+    assert_eq!(t.client.get_usage_owed(&t.distributor), bps_of(500 * USD, USAGE_FEE_BPS));
+    let treasury_before = t.balance(&t.treasury);
+    let distributor_before = t.balance(&t.distributor);
+    t.invoice(2, 100 * USD);
+    t.client.pay(&t.shop, &2, &(100 * USD));
+    let fee = bps_of(100 * USD, USAGE_FEE_BPS);
+    let owed = bps_of(500 * USD, USAGE_FEE_BPS);
+    assert_eq!(t.balance(&t.treasury) - treasury_before, fee + owed);
+    assert_eq!(t.balance(&t.distributor) - distributor_before, 100 * USD - fee - owed);
+    assert_eq!(t.client.get_usage_owed(&t.distributor), 0);
+}
+
+#[test]
+fn netting_never_takes_more_than_the_payout() {
+    // $50,000 cash leaves $50 owed; a $10 digital payment pays $9.99 of it.
+    let t = after_cash(50_000 * USD);
+    let owed = bps_of(50_000 * USD, USAGE_FEE_BPS);
+    t.invoice(2, 10 * USD);
+    let distributor_before = t.balance(&t.distributor);
+    t.client.pay(&t.shop, &2, &(10 * USD));
+    let net = 10 * USD - bps_of(10 * USD, USAGE_FEE_BPS);
+    assert_eq!(t.balance(&t.distributor), distributor_before);
+    assert_eq!(t.client.get_usage_owed(&t.distributor), owed - net);
+}
+
+#[test]
+fn owed_cash_usage_comes_out_of_a_credit_payout_never_the_pool() {
+    let t = after_cash(500 * USD);
+    t.client.deposit(&t.lender, &(1_000 * USD));
+    let owed = bps_of(500 * USD, USAGE_FEE_BPS);
+    let treasury_before = t.balance(&t.treasury);
+    let distributor_before = t.balance(&t.distributor);
+    t.invoice(2, 100 * USD);
+    t.client.pay_with_credit(&t.shop, &2);
+    assert_eq!(t.balance(&t.distributor) - distributor_before, 985_000_000 - owed);
+    assert_eq!(t.balance(&t.treasury) - treasury_before, 2_500_000 + owed);
+    assert_eq!(t.client.get_usage_owed(&t.distributor), 0);
+    t.assert_pool_matches_balance();
+}
+
+#[test]
+fn a_cash_only_distributor_settles_its_usage_fees() {
+    let t = after_cash(500 * USD);
+    let owed = bps_of(500 * USD, USAGE_FEE_BPS);
+    t.minter.mint(&t.distributor, &(10 * USD));
+    // Can't pay more than it owes, or nothing.
+    assert_eq!(t.client.try_settle_usage(&t.distributor, &(owed + 1)), Err(Ok(Error::Overpay)));
+    assert_eq!(t.client.try_settle_usage(&t.distributor, &0), Err(Ok(Error::InvalidAmount)));
+    let treasury_before = t.balance(&t.treasury);
+    t.client.settle_usage(&t.distributor, &(owed / 2));
+    // The distributor signs it.
+    assert_eq!(t.env.auths()[0].0, t.distributor);
+    assert_eq!(t.balance(&t.treasury) - treasury_before, owed / 2);
+    assert_eq!(t.client.get_usage_owed(&t.distributor), owed - owed / 2);
 }

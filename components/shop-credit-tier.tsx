@@ -16,7 +16,7 @@ const percent = (bps: number) => `${(bps / 100).toFixed(2)}%`;
 
 /**
  * What a credit sale to this shop costs the distributor (#185), and the two ways it gets cheaper:
- * the shop's own record (4 and 8 good cycles in a row), or the distributor vouching for it with a
+ * the shop's own record (26 and 52 good cycles in a row, #250), or the distributor vouching for it with a
  * deposit that covers late payers (0.25%). Shown on the distributor's view of one shop.
  */
 export function ShopCreditTier({ shopId }: { shopId: string }) {
