@@ -19,6 +19,8 @@ import type { Invoice as ChainInvoice } from "@/packages/route_ledger/src/index"
 import { toUnixSeconds } from "@/lib/dates";
 import { firstFreeId, nextDemoId } from "@/lib/demo-ids";
 import { getDb } from "@/lib/server/db";
+import { inReview } from "@/lib/server/fraud";
+import { scanLater } from "@/lib/server/fraud-scan";
 import { checkInvoice, choices, cleanAmount, dueAt, myApprovedDistributor } from "@/lib/server/invoices";
 import { redeemConfirm, unitsToCents, type ConfirmTarget } from "@/lib/server/pay-confirm";
 import { confirmOwner } from "@/lib/server/pay-owner";
@@ -307,6 +309,12 @@ export async function payLater(invoiceId: number, confirmId?: string): Promise<R
       const due = new Date(Number(after?.due ?? 0n) * 1000).toISOString();
       return receipt(hash, `Listo. Tiene hasta el ${formatDay(due)} para pagar ${formatMoney(toDollars(left))}, sin intereses.`);
     }
+    // #231: while Relay reviews this distributor's invoices, they don't go on the lenders' money.
+    const db = getDb();
+    const seller = (await getDirectory()).byAddress(invoice.distributor);
+    if (db && seller && (await inReview(db, "distributor", seller.id))) {
+      return fail("Esta distribuidora está en revisión. Por ahora pague en dólares digitales o en efectivo.");
+    }
     const { hash } = await run(shop.id, (client) => client.pay_with_credit({ shop: invoice.shop, id: invoice.id }));
     const after = await shopView(invoice.shop);
     const due = new Date(Number(after.due_at) * 1000).toISOString();
@@ -490,6 +498,7 @@ export async function createInvoices(rows: InvoiceRow[]): Promise<Receipt> {
       created += 1;
       lastHash = hash;
     }
+    scanLater(); // #231: look for anything off once the reply is sent
     const message = created === 1 ? "Listo. Se creó 1 factura." : `Listo. Se crearon ${created} facturas.`;
     return receipt(lastHash, message);
   } catch (error) {

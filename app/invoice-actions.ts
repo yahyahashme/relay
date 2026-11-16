@@ -1,5 +1,7 @@
 "use server";
 
+import { scanLater } from "@/lib/server/fraud-scan";
+
 // "Nueva factura" (#133): a signed-up, approved distributor invoices one of
 // their shops, signed on the server with their own key (#129).
 
@@ -77,6 +79,7 @@ export async function createInvoiceAction(input: InvoiceInput): Promise<Receipt 
     } catch (error) {
       console.error("[invoices] note", error instanceof Error ? error.message : error); // the invoice itself is made
     }
+    scanLater(); // #231: look for anything off once the reply is sent
     return { ok: true, message: `Factura ${input.invoiceId} creada.`, txHash: hash, explorerUrl: explorerTx(hash), invoiceId: input.invoiceId };
   } catch (error) {
     if (error instanceof ContractError && error.code === 1) {
