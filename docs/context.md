@@ -2,7 +2,9 @@
 
 **Velocity x Stellar Blockchain Innovation Challenge** · Space 1 (savings, credit, inflation resilience)
 Team: Yahya (Software Eng), Jack (Computer Eng), Ruhaan (Computer Eng), Rohan (FARM). UW first-years, new to finance and blockchain.
-Last updated: Mon Nov 9, 2026, evening (re-planned after the advisor calls). All times are Eastern (ET).
+Last updated: Mon Nov 16, 2026 (lenders, buffer, safety). All times are Eastern (ET).
+
+**Newest answers first:** what is live and what is only planned for lenders, the buffer, ID checks, fraud, vouching and part-payment is in [§7.8](#78-whats-live-and-whats-planned-nov-16). The newest decisions are at the bottom of the [Decisions log](#16-decisions-log). Where an older line in this file disagrees, §7.8 and the newest log row win.
 
 **How to use this file**
 - It's our one source of truth. Put it in the repo as `docs/context.md`.
@@ -373,12 +375,16 @@ A shop buys $100 of stock and picks "pay in 7 days".
 - **The distributor's own money** (option 3 below, "Dar yo los 7 días"), for shops it knows: no credit fee, only our 0.10%. The distributor carries the risk. Paying late still counts against the shop (#203).
 - **The lender pool** (options 1 and 2), for shops the distributor won't carry: the pool pays the distributor at delivery for 1.0% to 1.5%, or 0.25% if it vouches for the shop.
 - **Distributors never fund the pool.** A distributor can't sign up or be approved as a lender (#207).
-- **Lenders** are approved in the contract after a business check (KYB). They can be revoked, but they can always take out money that isn't lent. The order:
-  1. The pilot has no lender.
-  2. **One wholesale lender** that already lends USDC to fintechs on Stellar (precedents: Tribal Credit's USDC facility on Stellar, 2022; Arf), as a single partner and with a Salvadoran lawyer's OK.
-  3. Salvadoran microfinance institutions and cooperatives, once there is a track record.
+- **Lenders** are approved in the contract after a business check (KYB). They can be revoked, but they can always take out money that isn't lent.
+- **Who we'd approach, in order (Yahya, Nov 16; replaces "one wholesale Stellar lender first").** These are the first we'd reach out to, and we name them if a judge asks. None has been contacted or has agreed yet.
+  1. **Pilot:** no outside lender. Credit runs on the distributor's own money ("Dar yo los 7 días"); if the pool is used, it's our own grant or pre-seed money, plus a buffer we seed first.
+  2. **Local licensed lenders that already serve micro-businesses:** FEDECRÉDITO's cajas de crédito, the FEDECACES credit cooperatives, and microfinance members of ASOMI (for example Apoyo Integral and Optima). A foreign licensed lender only with a Salvadoran lawyer's OK.
+  3. **Funders behind those lenders:** BANDESAL (the state development bank, which lends to lenders, not to shops) and impact funds already active in El Salvador, such as Oikocredit. We pitch them our channel; they fund their partner lenders.
 - **Never:** individuals, Relay itself, or DeFi pools. Blend and Aave need borrowers to put up collateral, and shops have none.
-- **Why lenders would come:** BANDESAL told us no institution in El Salvador offers 7-day stock credit.
+- **Why shops don't already borrow from those lenders:** their loans run for months, are paid monthly, and need paperwork, branch visits and often co-signers. A $60 stock bill for 7 days costs them more to process than it earns. Relay brings the shops, the payment record and the backup fund, so the lender never visits a shop.
+- **Why lenders would come:** Rohan asked BANDESAL, and it replied (Nov 14) that it has no very short-term credit product and knows of no institution in El Salvador that offers one. The reply and quote are in [`docs/research.md`](research.md), partner outreach table, BANDESAL row (#188).
+- **Where the pool money sits:** inside the Relay contract on Stellar, not in a wallet anyone holds a key to. Only the contract's rules move it, only a lender's own signature takes its money out, and no function lets Relay take lender money. Lenders hold shares, so every credit sale uses each lender's money in proportion to what it put in, and the 0.50% splits the same way. Example: A puts in $6,000 and B $4,000; a $100 sale uses $60 of A's money and $40 of B's, and the $0.50 splits $0.30 and $0.20. `/prestamista` shows each lender's "Puso", "Retiró" and "Su parte" of each sale (#224). Say "protected by a backup fund", never "guaranteed": lenders lose only if defaults are bigger than the buffer. For a real launch: an outside audit and a multi-signature admin key.
+- **Buffer target (Yahya, Nov 15; plan only, no contract change):** the 0.75% stays in its own pot in the contract, and only a default spends it. The target is 25% of the money lent out, enough for 1 in 4 shops to default in the same week with lenders losing nothing (banks hold about 8% to 12%). It's high on purpose, because El Salvador's recent growth rests on one government. Above the target there are three options, picked once the pilot shows real default rates: (1) charge distributors less; (2) take a smaller buffer cut so lenders earn more; (3) later, Relay lends part of the extra itself, only money above the target and only once licensed or through a licensed partner. Until then Relay does not lend. Today nothing caps the buffer; it just keeps growing.
 
 **Three options, chosen per shop** (whoever covers a late payer sets the price)
 
@@ -507,7 +513,7 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 - Friendly but not deceptive: "dólares digitales" on main screens, and one tap shows it's USDC on Stellar.
 - Spanish first, big buttons, works on a cheap Android phone and a slow connection.
 - Shops never pay fees.
-- We're not the lender, and distributors never fund the pool. Lenders are approved after a business check: first one wholesale lender that already lends USDC on Stellar, then Salvadoran microfinance institutions and cooperatives (§5, Nov 15).
+- We're not the lender, and distributors never fund the pool. Lenders are approved after a business check. After the pilot: Salvadoran cajas de crédito, cooperatives and microfinance institutions, funded by BANDESAL or impact funds (§5, Nov 16).
 - Personal data stays off the public ledger.
 
 ### 7.6 Scaling (a "future" slide, not built)
@@ -524,7 +530,7 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 
 **Phases**
 1. **One route on the distributor's own money** ("Dar yo los 7 días", #194): invoices, the cash two-tap, digital payments, and 7-day credit the distributor carries itself, paying only our 0.10% usage fee. No lender in the pilot.
-2. **Add one wholesale lender to the pool** (§5, "Who carries the credit"), plus the cash-in partner registered with the CNAD (§6).
+2. **Add the first licensed local lender to the pool** (§5, "Who carries the credit"), plus the cash-in partner registered with the CNAD (§6).
 3. **A second distributor serving the same shops.** The shared record is what one distributor's database can't give (§14).
 
 **What the pilot measures** (from §9): the share of invoices paid digitally, driver cash gaps caught, on-time payments, and defaults as a share of credit sales.
@@ -532,6 +538,38 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 **Go or no-go:** the distributor keeps using Relay without us pushing, and defaults stay under 0.75% of credit sales, the most option 1's buffer can absorb at full credit (§5).
 
 **Money:** the founders are the engineers, plus one local sales hire once the pilot works. The pilot year (one route of about 60 shops) costs about $138K and brings in under $1K, so it needs a grant or pre-seed (the next Stellar Community Fund build award). Break-even is at about 19 distributors (fixed costs about $147K a year plus about $2,550 per distributor; shops are not ID-checked, #217); about 23 if half of credit sales are pay-later or vouched. Rohan's cost model in `docs/product/assumptions.md` has the details.
+
+### 7.8 What's live and what's planned (Nov 16)
+
+Live means it's on the site today, on the contract in `config/testnet.json`. Planned means decided but not built, or built but not merged.
+
+**Live**
+- **Credit starts only after 2 digital payments** (#217, #218). A new shop gets no credit at sign-up. Credit opens after 2 deliveries paid in full in dólares digitales at the door, a credit period apart (a week; 2 minutes in the demo). The first limit is half its usual delivery, $50 to $100. A runaway shop takes about $100 at most and loses its supplier.
+- **Part-payment.** On an invoice, "Pagar otro monto" lets the shop pay part now and put the rest on 7-day credit. The distributor's fee is charged only on the credited part, and it gets cheaper the more is paid up front: 1.5% when all of it is on credit, 1.22% at half, 1.0% when a tenth or less is on credit (`credit_fee_bps` in the contract). Example: a $100 invoice with $50 paid now and $50 on credit costs the distributor 1.22% of $50, about $0.61, instead of $1.50.
+- **Vouching** ("Respaldar esta tienda", option 2 in §5). On the page of a shop in its own list, a distributor vouches for it. That shop's credit then costs the distributor 0.25% instead of up to 1.5%. In return the distributor keeps a deposit in the pool of at least 20% of the vouched credit that's out, and the deposit pays first if the shop is more than 7 days late (`call_recourse`). A new vouched shop skips the 2-payment wait and starts at $100. If the deposit is short, the sale goes at the normal fee.
+- **ID checks, simulated** (#216). Distributor and lender sign-up has a "Representante legal" step: DUI, date of birth, a photo of the DUI and a selfie, plus the company's CNR matrícula (lenders also give their NIT). The demo checks the formats and shows "Identidad verificada (demo)". Photos never leave the phone; the server keeps only the numbers and the status. `/admin` shows it next to each distributor and lender. The demo auto-approves after 8 seconds and says so.
+- **Approve and revoke** (#195). Only approved distributors can invoice. The admin can revoke a distributor (no new invoices, no pool money) or a lender (no new deposits; withdrawals still work).
+- **Pay confirmation** (#199). Every shop payment needs a passkey or a 6-digit PIN.
+- **Lender pool and history** (#190, #224): deposit, withdraw anything not lent, and see each movement on `/prestamista`.
+- **Vouch for any shop** (#227, PR #228). On `/distribuidor/tiendas` → "Buscar en Relay", a distributor finds any shop on Relay, including a fresh account, by name or the owner's phone, and taps "Agregar y respaldar". A box above the search says what backing costs: 0.25% per credit sale, a deposit of 20% of what the shop owes, and only shops that owe nothing. A fresh shop gets the $100 starting credit if the deposit covers it. (The app first opens the shop's credit terms at $0, because `vouch` needs them.)
+- **Fraud flags and reviews** (#231, Yahya's policy after Rohan's review in #221):
+  1. **Flag.** After every new invoice, and on "Revisar ahora" in `/admin`, Relay checks every distributor's invoices (`lib/fraud.ts`). Each flag says why:
+     - a shop with the distributor's phone or payment passkey, which is the main fraud: fake shops drawing pool money;
+     - an invoice more than 3 times that distributor's or that shop's usual size;
+     - 3 or more credit sales to shops created less than 7 days ago;
+     - shops that default at more than twice the Relay average;
+     - 3 or more credit sales at 90% or more of the shop's limit;
+     - 2 or more "pagar en 7 días" invoices overdue and unpaid.
+     A shop that took credit and didn't pay is flagged too. A flag is a reason to look, never a verdict; screens say "En revisión".
+  2. **Pause and ask for proof.** While a distributor is in review, its invoices can't go on the lenders' money ("Pagar en 7 días" from the pool says so; digital, cash and the distributor's own 7 days still work). The admin taps "Pedir prueba" and asks on WhatsApp for the Hacienda electronic invoice code (DTE) or a delivery photo signed by the shop.
+  3. **Clear or close.** "Despejar" ends the review, and the same flags don't come back. "Cerrar cuenta" on a distributor calls `revoke_distributor` (no new invoices, no pool money; its shops still owe what they owe) and signs its owner out. On a shop it sets the limit to $0 and signs the owner out.
+  4. **Legal action** is a manual step after closing; the admin writes it in the review's note.
+  Not checked yet: the same phone (device) signing in to both accounts, and Rohan's circle check on unlock payments (#221).
+
+**Planned**
+- **Credit v3** (#220, PR #222, goes live with the final redeploy): "Crédito Relay X/500", tiered growth (+10 to +30 by the size of each on-time repayment), the "Calificación Relay" from 1 to 10, and lenders see pool numbers only. Until the redeploy, the live contract still grows the limit +$25 per good cycle. Details are in §7.3 once #222 merges.
+- **Real ID checks** (game plan §2d). An identity-verification partner checks the legal representative's DUI against the national registry (RNPN), with a selfie and liveness check, for about $0.20 to $1.50 a person. Don't name the provider in the pitch. An admin checks the CNR registration by hand. Payouts only go to an account in the company's name at our bank or cash-in partner, which runs its own KYB. Lenders also show their licence. Shops get a light DUI check only when they first take credit. The pilot distributor is checked by hand on a call; the partner check comes before the second distributor.
+- **Buffer target** of 25% of money lent, and the lender list (§5). Plan only.
 
 ---
 
@@ -679,7 +717,7 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 | Digital dollars | Digital asset law (2023); the CNAD keeps a public registry of providers (facts 47) | Turning cash into digital dollars, holding them for shops and lending them all look like services that must register (47). 60+ providers are registered, including a bank (46) | A registered partner for now; we'd register only if we did those parts ourselves |
 | Cash agents and e-money | Financial inclusion law (2015), supervised by the SSF; the central bank's rules for bank correspondents (48, 41) | The cash-in counters already run under these rules (41, 45) | The bank or e-money company we partner with (§6) |
 | Interest | Usury law: the central bank sets caps twice a year; the highest is 96.88% a year for Jul to Dec 2026 (18, 49) | Shops pay no interest. The distributor's 1.5% must count as a fee it pays to be paid early, not interest: per year it would be above every cap (56) | No licence; the caps bind whoever lends to the pool |
-| Lending | Banks, cooperatives and savings-and-loan companies are supervised by the SSF; other regular lenders register with the central bank (18) | We're not the lender, and distributors never fund the pool (§7.5) | First one wholesale lender that already lends USDC to fintechs on Stellar, with a Salvadoran lawyer's OK; then licensed microfinance institutions and cooperatives. Never individuals, Relay or DeFi pools (§5) |
+| Lending | Banks, cooperatives and savings-and-loan companies are supervised by the SSF; other regular lenders register with the central bank (18) | We're not the lender, and distributors never fund the pool (§7.5) | After the pilot: licensed Salvadoran cajas de crédito, cooperatives and microfinance institutions (FEDECRÉDITO, FEDECACES, ASOMI members); a foreign lender only with a Salvadoran lawyer's OK. Never individuals, Relay or DeFi pools (§5, Nov 16) |
 | Personal data | Personal data protection law (2024) (50) | Names and phone numbers stay off the public ledger (§8.4); we likely need consent text and a person responsible for data | Us |
 
 ---
@@ -781,7 +819,7 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 - *How do you get your first distributor?* A free pilot for a mid-size distributor with a few routes, through warm introductions: ADES, the distributors' association, and the firm behind the shop count. Day one needs nothing new from shops: they keep paying cash, and the driver and the shop confirm it in two taps, so the owner finally sees who collected what. Credit comes next, on the distributor's own money (§7.7).
 - *Why not just Transfer365 and a database?* Transfer365 only moves money between bank accounts, and about half of small businesses don't have a bank relationship. It doesn't do credit, invoice matching or driver cash records. One distributor's database isn't a record other distributors and lenders can trust. Our contract enforces the credit rules and fee split in the open, settles in seconds, and Stellar describes its fees as under a cent, and lets lenders fund a pool directly.
 - *How does a shop get digital dollars?* Risk #1, said first. The counters already exist: banks run 8,900 correspondent points, and lenders like CrediCampo already take loan payments through Tigo Money's agents (facts 41, 44). The shop pays cash there with a reference number, and a licensed partner credits it in digital dollars (§6 ideas 1, 13 and 14). Banked shops pay by Transfer365, which is free (idea 6). Not solved yet: signing that partner (idea 15).
-- *Who funds the pool?* Never the distributors: they carry shops they know with their own money. The pool is for outside lenders we approve after a business check: first one wholesale lender that already lends digital dollars to fintechs on Stellar, then Salvadoran microfinance institutions. Lenders earn 0.5% of each credit sale, about 13% a year if half the pool is lent out. If asked about Blend or Aave: their borrowers lock up collateral; ours don't, so the record and the weekly truck are the security (§5).
+- *Who funds the pool?* Never the distributors: they carry shops they know with their own money. The pool is for outside lenders we approve after a business check: after the pilot, Salvadoran cajas de crédito, cooperatives and microfinance institutions such as FEDECRÉDITO's cajas, the FEDECACES cooperatives and ASOMI's members, funded by BANDESAL or impact funds like Oikocredit. BANDESAL told us nobody in El Salvador offers 7-day stock credit. Lenders earn 0.5% of each credit sale, about 13% a year if half the pool is lent out. If asked about Blend or Aave: their borrowers lock up collateral; ours don't, so the record and the weekly truck are the security (§5).
 - *What if a shop doesn't pay?* Small limits that grow, no new credit while overdue, a truck that keeps coming back, and a default buffer.
 - *Isn't 1.5% a week expensive?* Per year it's about 79%, and the shop pays none of it. The distributor chooses it to be paid at the door with no risk of default, so it's factoring plus insurance. A cheaper fee for shops it trusts is planned (PR #139), not built yet. Suppliers already give up about 37% a year with standard early-payment discounts (facts 52, 56).
 - *How are you different from Rocket and Tienda Pago?* §10.
@@ -813,6 +851,7 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 | Nov 15 | #217: a new shop no longer gets $200 at sign-up (Yahya: we can't run ID checks on shops, so a shop could take credit and leave). Credit opens after 2 deliveries paid in dólares digitales at the door, a credit period apart; the first limit is half its average delivery, $50 to $100, then +$25 per good cycle as before. A shop its distributor vouches for gets $100 at once if the deposit covers it. Recorded in the DB (`door_payments`), set with `set_terms`; no contract change. A runaway shop takes at most about $100 and loses its supplier. |
 | Nov 15 | #223 "Reiniciar demo" (Yahya: judges may want to retry a payment at the booth): first thing on `/admin`, two taps. The 3 demo shops pay off their pool credit, any written-off debt and open pay-later invoices with test dollars from the demo lender, get the $200 limit again (`set_terms`) and end with $500; every demo phone forgets its PIN or passkey (real accounts untouched). Paid invoices stay in the history (the contract keeps them). App only, no contract change; testnet test dollars only, so Risk #1 (§6) is untouched. The trifold QR (`/demo`) still makes a new invoice on every scan. |
 | Nov 15 | #224 lender movements on `/prestamista` (Yahya: lenders need a proper history of money in and out): "Puso", "Retiró", and per credit sale "Su parte": the dollars of theirs the sale used and what they earned, from their shares at that moment (shares / all shares, replayed from the contract's Deposited, Withdrawn, PaidWithCredit and DefaultCovered events). The rows add up to "Puso" and "Ganó"; if the network no longer keeps the oldest events (about a week), one "Antes de esta lista" row carries the rest. No change to the pool math: shares already split every credit sale and every earning in proportion to what each lender put in. App only. |
+| Nov 16 | #227 vouch by search (Yahya: a distributor should find any shop on Relay and vouch for it, so a fresh account gets its baseline credit): `/distribuidor/tiendas` → "Buscar en Relay" now explains what backing means (0.25% per credit sale instead of up to 1.50%; the backing deposit covers 20% of what the shop owes and pays the pool if the shop is more than 7 days late; a new shop gets $100 at once if the deposit covers it; only a shop that owes nothing) and each result has "Agregar y respaldar". A fresh account has no credit terms on the contract, so the app first opens them at $0 (`set_terms`, admin) and then calls `vouch`; #217's `unlockVouched` gives the $100. App only. |
 | Nov 14 | #185: build both cheaper credit paths (Yahya: "whatever makes more sense from a business perspective"). Trusted shops (record-based buffer cut) and Rohan's recourse tier (distributor deposit, 0.25%). |
 | Nov 5 | Payments between El Salvador's neighbourhood shops and their distributors (the team's own idea; it replaced the Mexico tanda). |
 | Nov 5 | Work in GitHub (repo, board, docs) with one AI chat per workstream. Skip Notion. No long generated reports. |
@@ -852,6 +891,10 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 | Nov 10 | Yahya's PRs wait for Jack's review before they merge; the admin bypass is a rare exception, not the habit. |
 | Nov 14 | Every shop payment needs a confirmation, like a UPI PIN (#199): "Confirme el pago: $X a {distribuidora}", then a passkey (Face ID / fingerprint) with a 6-digit PIN as the backup. The server checks it, bound to that invoice and amount, before it signs. No contract change. |
 | Nov 15 | Go-to-market and lenders final (Yahya): first distributor = mid-size, 3 to 10 routes, free 8-week pilot on one route, warm intros (ADES, Distribución Dinámica, a bank or cash-in partner), the cash two-tap as the day-one hook. The pilot runs on the distributor's own money with no lender. Distributors never fund the pool. Lender order: one wholesale USDC lender on Stellar, then Salvadoran microfinance institutions and cooperatives; never individuals, Relay or DeFi pools (§5, §7.7). |
+| Nov 16 | Lender targets (Yahya): the pilot runs on the distributor's own money, or our own grant money plus a seeded buffer. After that we approach FEDECRÉDITO's cajas de crédito, the FEDECACES cooperatives and ASOMI's microfinance members, with BANDESAL and Oikocredit as funders behind them. These are the first we'd reach out to, and we name them if asked; none has agreed. It replaces "one wholesale Stellar lender first" (§5). |
+| Nov 15 | Buffer target (Yahya): 25% of the money lent out. Above it: charge distributors less, a smaller buffer cut so lenders earn more, or later Relay lends part of the extra (only above the target, only once licensed). Picked after the pilot; no contract change (§5). Pool money sits in the contract, and lenders hold shares pro rata; say "protected", never "guaranteed". |
+| Nov 16 | Fraud policy (Yahya, after Rohan's review, #221): flag odd invoices automatically, pause credit and ask for proof (DTE or delivery photo), close the account, then legal action if serious. Same for shops (limit 0, closed). Being built with the "Respaldar una tienda" search, which lets a distributor vouch for any Relay shop. Live vs planned: §7.8. |
+| Nov 16 | #231 fraud flags built (Yahya's policy, #221): six checks on every distributor's invoices after each new invoice and on "Revisar ahora" in `/admin`, credit on the pool paused while in review, "Pedir prueba" (DTE code or delivery photo), "Despejar" or "Cerrar cuenta" (`revoke_distributor`; for a shop, limit $0), and a note for legal action. Stored in `fraud_reviews`. App only. Details in §7.8. |
 
 ---
 

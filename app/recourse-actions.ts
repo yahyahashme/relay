@@ -5,7 +5,7 @@
 // credit sales to those shops cost 0.25% instead of up to 1.50%. A signed-in,
 // approved distributor acts for its own shops; everyone else for the demo's.
 
-import { VOUCHED_FIRST_LIMIT } from "@/lib/credit-unlock";
+import { neverHadCredit, VOUCHED_FIRST_LIMIT } from "@/lib/credit-unlock";
 import { formatMoney } from "@/lib/format";
 import { isDemoParty } from "@/lib/server/authz";
 import { getDb } from "@/lib/server/db";
@@ -56,6 +56,11 @@ export async function vouchShop(shopId: string, on: boolean): Promise<Receipt> {
     if (!who) return fail(FALLBACK_MESSAGE);
     const shop = who.directory.find(shopId, "shop");
     if (!shop || !who.mayVouch(shopId)) return fail("No encontramos esa tienda.");
+    // A fresh account has no credit terms on the contract yet, and vouch needs them (#227):
+    // open them at a $0 limit first; unlockVouched below gives the $100 if the deposit covers it.
+    if (on && neverHadCredit(await read(readClient().get_shop({ shop: shop.address })))) {
+      await run("admin", (client) => client.set_terms({ shop: shop.address, limit: 0n }));
+    }
     const { hash } = await run(who.id, (client) => client.vouch({ distributor: who.address, shop: shop.address, on }));
     if (!on) return receipt(hash, `Listo. Ya no respalda a ${shop.name}.`);
     // #217: a new shop its distributor vouches for skips the two door payments, if the deposit can back its first limit.
