@@ -460,7 +460,8 @@ export function claimCash(invoiceId: number, amount: number): Receipt {
   if (invoice.paid >= invoice.amount) return fail("Esta factura ya está pagada.");
   const cash = toCents(amount);
   if (cash === null) return fail("Monto inválido.");
-  if (cash > invoice.amount - invoice.paid) return fail("El monto es mayor que lo que falta pagar.");
+  // Cash is all that's left or nothing (Yahya, Nov 15): a part is only paid in dólares digitales.
+  if (cash !== invoice.amount - invoice.paid) return fail(`El efectivo es por todo lo que falta (${money(invoice.amount - invoice.paid)}). Una parte solo se paga en dólares digitales.`);
 
   invoice.cashClaim = cash;
   return ok("Listo. Ahora la tienda debe tocar «Confirmo».");
@@ -487,8 +488,8 @@ export function confirmCash(invoiceId: number, amount: number): Receipt {
   return ok(`Listo. Confirmó ${money(cash)} en efectivo.`);
 }
 
-/** Split at the door (#235): a part now (digital, or the driver's cash), the rest on 7 days. Checked first. */
-export function payPartLater(invoiceId: number, amount: number, cash: boolean): Receipt {
+/** Split at the door (#235): a digital part now, the rest on 7 days. Checked first. Never cash. */
+export function payPartLater(invoiceId: number, amount: number): Receipt {
   const invoice = findInvoice(invoiceId);
   if (!invoice) return fail("No encontramos esa factura.");
   if (invoice.paid >= invoice.amount) return fail("Esta factura ya está pagada.");
@@ -496,13 +497,12 @@ export function payPartLater(invoiceId: number, amount: number, cash: boolean): 
   if (part === null) return fail("Monto inválido.");
   const left = invoice.amount - invoice.paid;
   if (part >= left) return fail("Para pagar todo, use «Pagar ahora».");
-  if (cash && invoice.cashClaim !== part) return fail("El efectivo registrado cambió. Revise el monto.");
-  if (!cash && invoice.cashClaim !== undefined) return fail("Hay efectivo por confirmar. Confírmelo primero en «Pagué en efectivo».");
+  if (invoice.cashClaim !== undefined) return fail("Hay efectivo por confirmar. Confírmelo primero en «Pagué en efectivo».");
   const view = toInvoice(invoice);
   const blocked = splitBlock(getShop(invoice.shopId), view, dollars(left - part), view.ownCredit ? undefined : dollars(db().pool.available / UNITS_PER_CENT));
   if (blocked) return fail(blocked);
 
-  const first = cash ? confirmCash(invoiceId, dollars(part)) : payNow(invoiceId, dollars(part));
+  const first = payNow(invoiceId, dollars(part));
   if (!first.ok) return first;
   const rest = payLater(invoiceId);
   if (!rest.ok) return ok(`Pagó ${money(part)}. El resto (${money(left - part)}) no pasó a 7 días: páguelo aquí.`);
