@@ -5,11 +5,14 @@ import { addShopAction, getMyShops, linkShopAction, type MyShops, searchShopsAct
 import { DistributorShell, NewInvoiceAction } from "@/components/distributor-shell";
 import { ActionLink, Button, TextButton } from "@/components/kit/button";
 import { Field, SelectField } from "@/components/kit/field";
-import { Ledger, LedgerCard, type LedgerColumn, RowButton, RowLink } from "@/components/kit/ledger";
+import { Ledger, LedgerCard, type LedgerColumn, RowAction, RowButton, RowLink } from "@/components/kit/ledger";
 import { Money } from "@/components/kit/money";
 import { Stamp, type StampTone } from "@/components/kit/stamp";
-import { Empty, Failure, Loading } from "@/components/kit/states";
+import { Answer, Empty, Failure, Loading } from "@/components/kit/states";
 import { ShopInvite } from "@/components/shop-invite";
+import { VouchNote } from "@/components/vouch-note";
+import { vouchShop } from "@/lib/api";
+import type { Receipt } from "@/lib/types";
 import { HOLD_MS, TapShield, useMovedGuard, useTapShield } from "@/components/tap-shield";
 import { formatPhone } from "@/lib/format";
 import { useT } from "@/lib/i18n";
@@ -51,6 +54,7 @@ export default function ShopsScreen() {
   const running = useRef(false);
   const [held, setHeld] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [vouched, setVouched] = useState<Receipt | null>(null);
   // The invitation on show: the one of the shop just added (`fresh`), or the one a row's "Ver invitación" asked for.
   const [shown, setShown] = useState<{ shopId: string; code: string; phone?: string | null; fresh?: boolean } | null>(null);
   const { noteTap, settle } = useTapShield();
@@ -95,14 +99,17 @@ export default function ShopsScreen() {
     setSearching(false);
   }
 
-  async function link(shopId: string) {
+  /** "Agregar", or "Agregar y respaldar" (#227): the shop buys from this distributor, then it backs it. */
+  async function link(shopId: string, vouch = false) {
     if (running.current) return;
     running.current = true;
-    setBusy(shopId);
+    setBusy(vouch ? `vouch:${shopId}` : shopId);
     setError(null);
+    setVouched(null);
     try {
       const reply = await linkShopAction(shopId, driverId || null);
       if (reply.ok) {
+        if (vouch) setVouched(await vouchShop(shopId, true));
         setMatches((list) => list?.filter((m) => m.id !== shopId) ?? null);
         await load();
       } else {
@@ -261,6 +268,7 @@ export default function ShopsScreen() {
         <div id="agregar-tienda" role="tabpanel" aria-labelledby={`tab-${mode}`} className="flex flex-col gap-2">
           {mode === "buscar" ? (
             <>
+              <VouchNote />
               <form onSubmit={search} className="grid grid-cols-1 gap-x-4 gap-y-3 pt-1 @min-[40rem]:grid-cols-2">
                 {driverSelect}
                 <Field
@@ -299,15 +307,19 @@ export default function ShopsScreen() {
                           <span className="text-[1.0625rem] font-bold">{m.name}</span>
                           <span className="text-label text-muted">{[m.ownerName, m.address].filter(Boolean).join(" · ")}</span>
                         </span>
-                        <span className="shrink-0">
+                        <span className="flex shrink-0 flex-col items-end gap-1">
                           <RowButton onClick={() => void link(m.id)} disabled={busy !== null || held} busy={busy === m.id} label={t(`Agregar ${m.name}`, `Add ${m.name}`)}>
                             {t("Agregar", "Add")}
                           </RowButton>
+                          <RowAction onClick={() => void link(m.id, true)} label={t(`Agregar y respaldar ${m.name}`, `Add and back ${m.name}`)}>
+                            {busy === `vouch:${m.id}` ? t("Procesando...", "Processing...") : t("Agregar y respaldar", "Add and back")}
+                          </RowAction>
                         </span>
                       </li>
                     ))}
                   </ul>
                 ))}
+              {vouched && <Answer receipt={vouched} />}
             </>
           ) : (
             <form onSubmit={add} className="grid grid-cols-1 gap-x-4 gap-y-3 pt-1 @min-[40rem]:grid-cols-2">
