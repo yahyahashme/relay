@@ -642,7 +642,7 @@ Live means it's on the site today, on the contract in `config/testnet.json`. Pla
 | `deposit(lender, amount)` | lender | Puts money in the pool. |
 | `set_terms(admin, shop, limit)` | admin (the distributor, for real) | Sets a shop's credit limit. (Options were planned; the contract has none.) |
 | `pay_with_credit(shop, id)` | shop | Checks that nothing is overdue, the limit isn't exceeded and the pool has money. The pool pays the distributor the amount minus the fee, and the shop's debt and due date are recorded. |
-| `repay(shop, amount)` | shop | Moves test dollars from the shop to the pool and splits the fee into buffer, lenders and us. If it's on time, the limit grows (demo rule: +$25 per on-time repayment, up to a cap). |
+| `repay(shop, amount)` | shop | Moves test dollars from the shop to the pool and splits the fee into buffer, lenders and us. If it's on time, the limit grows by tier (+10 to +30 by the amount repaid, once a period, cap 500; #222). |
 | `get_invoice`, `list_invoices`, `get_shop`, `get_pool`, `get_driver_cash` | anyone | Read-only, for the dashboard. |
 | `invoice_count`, `list_invoices_page(before, limit)`, `get_totals` | anyone | Read-only: the full history a page at a time (30 per call, newest first), and running totals by payment method. |
 

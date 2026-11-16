@@ -20,12 +20,13 @@ All of these:
 ~~Every shop starts at $200~~ (retired Nov 15, #217). **Built (#218):** a new shop gets no credit until it has paid 2 deliveries in full in dólares digitales at the door, a week apart. Then it starts at half its usual delivery, $50 to $100. A shop its distributor vouches for starts at $100 at once.
 
 ## 4. Levelling up
-- **+$25 per on-time repayment, up to $500** (built in #58).
+- **Live since the Nov 16 redeploy (#220, PR #222):** the limit shows as **"Crédito Relay X/500"** and grows by tier on each on-time repayment of pool credit: up to $30 → +10, $30–50 → +15, $50–75 → +20, $75–100 → +25, over $100 → +30, at most once a credit period, sized by everything repaid on time that period, from $10. Cap 500. ~~+$25 per on-time repayment~~ (built in #58, replaced by #222).
+- **Calificación Relay (1–10, #222):** how likely the shop is to repay within 7 days, from its whole history. Shown to the shop, its distributors and (as pool-level numbers only) lenders.
 - **Built in #58 (Nov 10), widened in #139:** a repayment only counts if the shop borrowed **$40 or more** in that cycle (or **$10 or more** when it paid half of every credited invoice up front), and the limit rises **at most once per credit period** (once a week for real). This stops a shop from borrowing $1 and repaying it over and over to reach $500 in minutes.
 - Later, only with real data: the cap rises to $750 after 6 months with no late payments **(guess)**.
 - **Pay later with a distributor only counts against** (**built**, #200, changed by #203). A pay-later invoice paid on time goes on the shop's record ("Pagó a tiempo X de Y con sus distribuidoras", shown with the Relay score), but it never raises the pool limit or counts as a good cycle: the distributor and the shop could cycle invoices at no cost, and lenders carry the limit (Yahya, option B). Paying it late lowers the limit as in §5. Since Nov 16 it can only be paid in dólares digitales (#241).
 - **A good record also makes credit cheaper** (**built**, #185). Each on-time repayment past the same bar, once per period, is a "good cycle"; any late payment starts the count over. After 4 good cycles in a row the buffer's share of the fee drops by a third, after 8 by two thirds: 1.50% → 1.25% → 1.00% at full credit. The distributor pays less to sell on credit to that shop. Lenders still get 0.50%.
-- **Or the distributor vouches for the shop** (**built**, #185, option 2 in context §5): 0.25% per credit sale, backed by a deposit of at least 20% of the vouched credit still owed. More than 7 days late, the deposit pays the pool and the distributor collects from the shop.
+- **Or the distributor vouches for the shop** (**built**, #185, option 2 in context §5): 0.25% per credit sale, backed by a deposit of at least 20% of the vouched credit still owed. More than 7 days late, the deposit pays the pool and the distributor collects from the shop. **Full liability since the Nov 16 redeploy:** if the deposit is short, the rest becomes a debt the distributor owes the pool, taken from its next payouts first, and it can't vouch again until it's cleared.
 
 ## 5. Late-payment ladder
 

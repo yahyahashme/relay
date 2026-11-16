@@ -425,7 +425,7 @@ _Entries 29 to 35 come from this repo, not from a web page. Claude first read th
 
 1. Money leaves our contract in exactly one function, and every function that changes state needs the right person's signature (34).
 2. Distributors pay us, shops never do: 0.1% of a cash or digital invoice, or one credit fee of at most 1.5% when the lender pool pays them at delivery, so they get at least $98.50 per $100 (29). The fee drops toward 1% when the shop pays part up front.
-3. A shop's credit limit starts at $200 and grows $25 for each on-time repayment, but only after a loan of $40 or more (or $10 when the shop paid half up front) and once per credit period, so nobody can farm it with tiny loans (31). Say "once a week" only after Yahya confirms the deployed credit period is 7 days.
+3. A shop's credit opens only after 2 digital payments at the door, a week apart, at half a usual delivery ($50 to $100). Its "Crédito Relay" (out of 500) then grows +10 to +30 by the size of each on-time repayment, at most once a credit period, so nobody can farm it with tiny loans (31).
 4. Our own safety review found and fixed three bugs, and we publish the 10 limits that are still open (35).
 5. If a shop never pays, the loss buffer, filled by up to 0.75% of every credit sale (less when the shop paid part up front), repays the lenders first (32).
 
@@ -464,7 +464,8 @@ _Entries 29 to 35 come from this repo, not from a web page. Claude first read th
 - **Checked:** Claude, 11 Nov 2026 (arithmetic redone; the 0.1% and 0.25% match `lib.rs`). Re-checked Claude, 13 Nov 2026: arithmetic redone again (0.001 × 2,000,000,000 = 2,000,000; 0.0025 × 200,000,000 = 500,000; 0.001 × 1,800,000,000 = 1,800,000; the 10%-on-credit total is 500,000 + 1,800,000 = 2,300,000), and the 0.1% and 0.25% still match `lib.rs` lines 20 and 28 on `origin/main` at 044f987.
 
 ## 31. How a shop's credit limit grows and drops
-- **Claim:** A shop's credit limit grows $25 each time it repays on time, up to $500. It drops $25 when it pays late, and a shop can't grow its limit by borrowing tiny amounts.
+- **Update Nov 16 (#220, PR #222, live on `CBXUYASL…`):** the start and the growth below are replaced. Credit opens after 2 digital payments at the door a week apart, at half a usual delivery ($50 to $100; $100 if vouched, #218). It shows as "Crédito Relay X/500" and grows by tier per on-time pool repayment: up to $30 +10, $30–50 +15, $50–75 +20, $75–100 +25, over $100 +30, once a period, from $10. The late-payment drops ($25 / $50) are unchanged. Use this, not the $200 / +$25 lines below.
+- **Claim (before Nov 16):** A shop's credit limit grows $25 each time it repays on time, up to $500. It drops $25 when it pays late, and a shop can't grow its limit by borrowing tiny amounts.
 - **Update Nov 13 (#137, #139, redeployed as `CAGCZ3I7…`):** it also grows after only **$10** borrowed when the shop paid half of every credited invoice up front. One day late still counts as on time. **2–7 days late:** the limit drops $25. **8+ days late:** it drops $50 and can't grow for 4 credit periods. Constants: `MIN_BORROW_WITH_HALF`, `GRACE_DAYS`, `MINOR_LATE_DAYS`, `MAJOR_LATE_STEP`, `NO_RAISE_PERIODS`.
 - **Number:**
   - Start: $200 in the demo (the admin sets it with `set_terms`).

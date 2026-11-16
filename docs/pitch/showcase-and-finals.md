@@ -8,10 +8,10 @@ Written Thu Nov 12 evening; updated late that evening for the product name (Rela
 
 | When (ET) | What | Source |
 |---|---|---|
-| Mon Nov 16, arrive by 4:00 PM | Project Showcase. Setup 4:00, judging 4:30 to 7:00. Innovation Arena, 280 Joseph St, Kitchener. All four attend. | issue #43 |
+| Mon Nov 16, arrive by 4:00 PM | Project Showcase. Setup 4:00, programming 4:30 to about 6:00, our slot 5:04 PM. **PSE (Pearl Sullivan Engineering), 2nd-floor event space** (venue changed; the game plan in the team Google Doc is the current source). All four attend. | issue #43 |
 | Tue Nov 17, 11 AM to 1 PM | Finalist pitch prep, **Top 8 only**. Same place as the showcase. All four attend if we are in. | issue #44 |
 | Wed Nov 18, **10:00 AM** | Final deck upload, no changes after. | issue #45 |
-| Wed Nov 18, 5:00 to 7:30 PM | Finals: 3-minute pitch plus 3 minutes of questions. All four attend. | issue #45 |
+| Wed Nov 18, 6:00 to 8:30 PM | Finals: 3-minute pitch plus 3 minutes of questions. All four attend. | issue #45 |
 
 **Not known yet:** how and when Velocity tells us we are in the Top 8; the order of teams and what time we must arrive on Wed; how long each judge spends at our table on Mon; whether the venue gives us a table, an easel, power or Wi-Fi. Ask velocity.events@uwaterloo.ca (subject "Blockchain Innovation Challenge Powered by Stellar") on Monday if nobody has said.
 
@@ -87,7 +87,7 @@ Use the laptop that ran `scripts/setup.sh`: it holds the test-dollar issuer. Yah
 | The QR will not scan (glare, angle) | Use a spare printed QR, or hand over the URL on paper. |
 | "No pudimos crear su factura" with "Intentar de nuevo" | Wait a few seconds and tap it. Several judges at once can take about 30 seconds (comment in `app/demo/route.ts`). If it fails twice, play the video. |
 | A button spins for more than 10 seconds | Testnet is slow (`docs/pitch/demo-video.md`). Wait 10 seconds, then play the video. |
-| "Pagar en 7 días" is greyed out | That shop owes money or the invoice is over its $200 limit. Tap "Pagar deuda" on `/tienda/cuenta/tienda-N`, or ask the judge to use "Pagar ahora". |
+| "Pagar en 7 días" is greyed out | That shop owes money or the invoice is over its limit (demo shops: $200 after "Reiniciar demo"). Tap "Pagar deuda", or reset the demo in `/admin` on `/tienda/cuenta/tienda-N`, or ask the judge to use "Pagar ahora". |
 | The dashboard does not move | Reload `/distribuidor`. Check the payment screen shows the green "Pago recibido". |
 | Nothing from the contract works at all | Play the video. Tell Yahya. Testnet may have been reset; the recovery steps are in `docs/product/security.md` and are Yahya's call, not something to run at the venue. |
 | The laptop dies | Show the video on a phone. A second laptop with `/distribuidor` open is the real fix. |
@@ -136,7 +136,7 @@ Pitch time on the day: `m:ss`. Pitcher: `____`. Note-taker: `____`.
 5. Re-time the pitch once with a stopwatch. It must stay under 3:00.
 6. Post the new file in the group chat. Run the pre-upload checklist in section 4 on it the same night, and again in the morning.
 
-## 4. Wed Nov 18: upload by 10:00 AM, finals at 5:00 PM (#45)
+## 4. Wed Nov 18: upload by 10:00 AM, finals at 6:00 PM (#45)
 
 **Upload:** the [upload form](https://airtable.com/apprwC5wqwb4We3jo/paghYqabHAh8pDtac/form) (link from issue #45). Use Velocity's template, as a **PowerPoint** file, **no animations**, **no changes after** the upload. Jack uploads (context §2).
 
@@ -148,8 +148,8 @@ Pitch time on the day: `m:ss`. Pitcher: `____`. Note-taker: `____`.
 | Wed, by 9:00 AM (our suggestion) | Pre-upload checklist below, done together, with the file open on a second laptop. This leaves an hour of slack before the deadline. | |
 | Wed, before 10:00 AM | Upload. Take a screenshot of the form's confirmation. Save the exact uploaded file and post it in the group chat with the time. | |
 | Wed, afternoon | Pitch out loud twice with a timer. Q&A practice with the judge-role list below. | |
-| Wed, before 5:00 PM | Arrive early (our suggestion; the arrival time is not known yet). Laptop, charger, the video file, a phone hotspot. | |
-| 5:00 to 7:30 PM | Finals. 3-minute pitch, then 3 minutes of questions (source: issue #45). | |
+| Wed, before 6:00 PM | Arrive early (our suggestion; the arrival time is not known yet). Laptop, charger, the video file, a phone hotspot. | |
+| 6:00 to 8:30 PM | Finals. 3-minute pitch, then 3 minutes of questions (source: issue #45). | |
 
 ### Pre-upload checklist
 
