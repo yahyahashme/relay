@@ -35,11 +35,11 @@ export function ScoreFacts({ score, tips = true }: { score: CreditScore; tips?: 
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <p className="flex items-baseline gap-2">
             <span className="font-mono text-[2.5rem] leading-none font-semibold tracking-[-0.03em]">{score.score}</span>
-            <span className="text-base text-muted">{t("de 100", "of 100")}</span>
+            <span className="text-base text-muted">{t("de 10", "of 10")}</span>
           </p>
           <Stamp tone={TONE[score.label]}>{SCORE_LABEL[score.label][lang]}</Stamp>
         </div>
-        <Meter used={score.score} of={100} label={t("Puntaje Relay", "Relay score")} />
+        <Meter used={score.score} of={10} label={t("Calificación Relay", "Relay rating")} />
       </div>
       <ul className="flex flex-col border-t border-paper-rule">
         {score.reasons.map((reason) => (
@@ -60,7 +60,7 @@ export function ScoreFacts({ score, tips = true }: { score: CreditScore; tips?: 
         </p>
       )}
       {score.isNew && (
-        <p className="text-muted text-pretty">{t("Todavía es nuevo en Relay: el puntaje se afina con cada pago.", "Still new on Relay: the score sharpens with each payment.")}</p>
+        <p className="text-muted text-pretty">{t("Todavía es nuevo en Relay: la calificación se afina con cada crédito.", "Still new on Relay: the rating sharpens with each credit.")}</p>
       )}
       {tips && score.tips.length > 0 && (
         <div className="flex flex-col gap-1">
@@ -72,7 +72,7 @@ export function ScoreFacts({ score, tips = true }: { score: CreditScore; tips?: 
           ))}
         </div>
       )}
-      <p className="text-label text-muted text-pretty">{t("Puntaje propio de Relay, no de un buró de crédito.", "Relay's own score, not a credit bureau's.")}</p>
+      <p className="text-label text-muted text-pretty">{t("Qué tan probable es que pague su crédito en 7 días, de 1 a 10. Calificación propia de Relay, no de un buró de crédito.", "How likely it is to repay its credit within 7 days, from 1 to 10. Relay's own rating, not a credit bureau's.")}</p>
     </>
   );
 }

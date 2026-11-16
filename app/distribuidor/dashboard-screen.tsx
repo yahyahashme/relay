@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { DistributorShell } from "@/components/distributor-shell";
 import { ActionLink, Button, ButtonLink, TextButton } from "@/components/kit/button";
 import { FilterSelect } from "@/components/kit/field";
+import { RecourseDebt } from "@/components/recourse-debt";
 import { Ledger, LedgerCard, type LedgerColumn, LedgerFigure, LedgerFigures, RowButton, RowLink } from "@/components/kit/ledger";
 import { Money } from "@/components/kit/money";
 import { Stamp } from "@/components/kit/stamp";
@@ -351,6 +352,8 @@ export default function DashboardScreen() {
       </p>
 
       {stepsLeft && <FirstSteps steps={steps} />}
+
+      <RecourseDebt />
 
       <section id="resumen" aria-label={t("Resumen", "Summary")}>
         <LedgerFigures>

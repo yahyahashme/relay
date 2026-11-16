@@ -3,6 +3,8 @@
 // Distributors add shops (#132), and the shop's side: claiming the record with
 // a code, and seeing / removing the distributors that added it.
 
+import { shopRating } from "@/lib/credit";
+import { toShop } from "@/lib/stellar/map";
 import { getDb } from "@/lib/server/db";
 import { countRecent, noteEvent, TOO_MANY } from "@/lib/server/rate-limit";
 import { getDirectory } from "@/lib/server/directory";
@@ -36,7 +38,8 @@ async function myApprovedDistributor() {
   return distributor?.status === "aprobado" ? distributor : null;
 }
 
-export type MyShop = DistributorShopRow & { creditLimit: number; creditOwed: number; driverName: string | null };
+/** `rating` is the 1-10 Relay rating (#220); `onTime` of `cycles` its 7-day credits repaid on time. */
+export type MyShop = DistributorShopRow & { creditLimit: number; creditOwed: number; driverName: string | null; rating?: number; onTime?: number; cycles?: number };
 export type MyShops = { distributorName: string; shops: MyShop[]; drivers: { id: string; name: string }[] };
 
 /** The distributor's shops with their credit, and their drivers for "assigned driver". null if not an approved distributor. */
@@ -52,11 +55,13 @@ export async function getMyShops(): Promise<MyShops | null> {
     rows.map(async (row) => {
       const party = directory.find(row.id, "shop");
       const view = party ? await read(readClient().get_shop({ shop: party.address })) : null;
+      const record = party && view ? shopRating(toShop(party, view), Date.now()) : null;
       return {
         ...row,
         creditLimit: view ? toDollars(view.limit) : 0,
         creditOwed: view ? toDollars(view.owed) : 0,
         driverName: drivers.find((d) => d.id === row.driverId)?.name ?? null,
+        ...(record ? { rating: record.rating, onTime: record.onTime, cycles: record.cycles } : {}),
       };
     }),
   );

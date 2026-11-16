@@ -29,8 +29,8 @@ export function VouchNote() {
         </li>
         <li>
           {t(
-            `Su depósito de respaldo debe cubrir el ${cover} de lo que la tienda debe. Si la tienda paga más de 7 días tarde, el depósito le paga al fondo y usted le cobra a la tienda.`,
-            `Your backing deposit must cover ${cover} of what the shop owes. If the shop pays more than 7 days late, the deposit pays the pool and you collect from the shop.`,
+            `Su depósito de respaldo debe cubrir el ${cover} de lo que la tienda debe. Si la tienda no paga, usted paga lo que deba, primero de su depósito y luego de sus próximos cobros, y le cobra a la tienda.`,
+            `Your backing deposit must cover ${cover} of what the shop owes. If the shop doesn't pay, you pay what it owes, first from your deposit and then from your next payments, and collect from the shop.`,
           )}
         </li>
         <li>

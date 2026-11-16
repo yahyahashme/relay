@@ -50,17 +50,41 @@ pub const RECOURSE_LENDER_BPS: i128 = 15;
 /// through, at the normal pool fee.
 pub const RECOURSE_COVER_BPS: i128 = 2_000;
 
-/// Each on-time repayment raises the shop's limit by $25...
+/// A minor late repayment lowers the limit by $25.
 pub const LIMIT_STEP: i128 = 250_000_000;
-/// ...up to $500. This is our own credit record.
+/// The limit is "Crédito Relay, out of 500": never raised past $500. This is our own credit record.
 pub const LIMIT_CAP: i128 = 5_000_000_000;
-/// A repayment only raises the limit if the shop borrowed at least $40 in
-/// that cycle (about one small delivery), unless it paid at least half of
-/// every credited invoice up front (#135)...
+/// The trusted-shop fee (#185) counts a cycle as good only if the shop
+/// borrowed at least $40 in it, unless it paid at least half of every credited
+/// invoice up front (#135)...
 pub const MIN_BORROW_TO_GROW: i128 = 400_000_000;
-/// The half-up-front waiver still needs $10 on credit in the cycle, so a $1
-/// invoice paid half up front can't farm the limit (Jack's review of #139).
+/// ...in which case $10 is enough (Jack's review of #139). $10 is also the
+/// least a cycle needs to raise the limit at all (#220), so $1 of credit
+/// repaid every week can't farm it.
 pub const MIN_BORROW_WITH_HALF: i128 = 100_000_000;
+/// An on-time cycle raises the limit by tier, on the credit repaid in it
+/// (#220, Yahya, Nov 15): up to $30 → +$10, to $50 → +$15, to $75 → +$20,
+/// to $100 → +$25, over $100 → +$30.
+pub const GROWTH_TIERS: [(i128, i128); 4] = [
+    (300_000_000, 100_000_000),
+    (500_000_000, 150_000_000),
+    (750_000_000, 200_000_000),
+    (1_000_000_000, 250_000_000),
+];
+pub const GROWTH_TOP: i128 = 300_000_000;
+
+/// How much an on-time cycle with `repaid` on credit raises the limit (#220).
+pub fn growth_step(repaid: i128) -> i128 {
+    if repaid < MIN_BORROW_WITH_HALF {
+        return 0;
+    }
+    for (upto, step) in GROWTH_TIERS {
+        if repaid <= upto {
+            return step;
+        }
+    }
+    GROWTH_TOP
+}
 // ...and at most once per credit period. Together these stop a shop from
 // taking $1 of credit and repaying it over and over to reach $500.
 
@@ -126,6 +150,9 @@ pub enum Error {
     /// The invoice is already on pay later with its distributor, so it can't
     /// go on pay later again or move onto the lender pool (#194).
     OnPayLater = 21,
+    /// The distributor still owes the pool for a vouched shop that didn't
+    /// pay (full recourse): no new vouching until it's paid.
+    RecourseDebtOwed = 22,
 }
 
 #[contracttype]
@@ -321,6 +348,9 @@ pub struct RecourseView {
     pub vouched_out: i128,
     /// The least the deposit can be: 20% of `vouched_out`, rounded up.
     pub required: i128,
+    /// Full recourse: what a vouched shop didn't pay and the deposit couldn't
+    /// cover. The distributor owes it to the pool; its next payouts pay it first.
+    pub debt: i128,
 }
 
 #[contracttype]
@@ -336,11 +366,16 @@ pub enum DataKey {
     Shop(Address),
     DriverCash(Address),
     CashClaim(u64),
+    /// Cash confirmed on an invoice. It doesn't count as paid up front for
+    /// the credit fee or the half-up-front waiver (Yahya, Nov 16).
+    CashPaid(u64),
     UsageOwed(Address),
     Distributor(Address),
     Lender(Address),
     RecourseDeposit(Address),
     VouchedOut(Address),
+    /// What the distributor owes the pool for vouched shops (full recourse).
+    RecourseDebt(Address),
     /// (distributor, shop): the distributor gives this shop the 7 days itself (#194).
     OwnCredit(Address, Address),
     Later(Address),
@@ -491,6 +526,18 @@ pub struct RecourseCalled {
     pub paid: i128,
     /// What the shop still owes the pool after that.
     pub owed: i128,
+    /// What the deposit couldn't cover: the distributor owes it now.
+    pub debt: i128,
+}
+
+/// Part of a payout to a distributor went to its recourse debt instead.
+#[contractevent]
+pub struct RecourseDebtPaid {
+    #[topic]
+    pub distributor: Address,
+    pub amount: i128,
+    /// What it still owes after that.
+    pub debt: i128,
 }
 
 #[contractevent]
@@ -655,7 +702,13 @@ impl RouteLedger {
         let config = load_config(&env);
         let usage_fee = bps(amount, USAGE_FEE_BPS)?;
         let token = token::Client::new(&env, &config.token);
-        send(&token, &shop, &invoice.distributor, amount - usage_fee);
+        if recourse_debt(&env, &invoice.distributor) > 0 {
+            let mut pool = load_pool(&env);
+            pay_distributor(&env, &token, &shop, &invoice.distributor, amount - usage_fee, &mut pool);
+            save_pool(&env, &pool);
+        } else {
+            send(&token, &shop, &invoice.distributor, amount - usage_fee);
+        }
         send(&token, &shop, &config.treasury, usage_fee);
 
         invoice.paid += amount;
@@ -718,6 +771,10 @@ impl RouteLedger {
 
     // ---------- v2: cash, the lender pool and credit ----------
 
+    /// Cash can pay part of an invoice at the door (#242), but that part earns
+    /// no up-front benefit when the rest goes on credit (`CashPaid`, Yahya,
+    /// Nov 16).
+    ///
     /// The driver says "the shop gave me this much cash". Nothing changes
     /// until the shop confirms it.
     pub fn cash_claim(env: Env, driver: Address, id: u64, amount: i128) -> Result<(), Error> {
@@ -728,6 +785,11 @@ impl RouteLedger {
         }
         if invoice.status == InvoiceStatus::Paid {
             return Err(Error::AlreadyPaid);
+        }
+        // Anything on 7 days is paid back only in digital dollars (Yahya, Nov 16):
+        // an invoice on its distributor's own 7 days can't be settled in cash.
+        if invoice.later {
+            return Err(Error::OnPayLater);
         }
         if amount <= 0 {
             return Err(Error::InvalidAmount);
@@ -766,8 +828,8 @@ impl RouteLedger {
         if claim > invoice.amount - invoice.paid {
             return Err(Error::Overpay);
         }
-
         invoice.paid += claim;
+        add(&env, DataKey::CashPaid(id), claim);
         record_payment(&env, &mut invoice, PayMethod::Cash, claim);
         add(&env, DataKey::DriverCash(invoice.driver.clone()), claim);
         add(
@@ -991,11 +1053,12 @@ impl RouteLedger {
         //    A shop its distributor vouches for pays 0.25% if the deposit
         //    covers it; a trusted shop pays less of the buffer's share (#185).
         let vouched = terms.voucher.as_ref() == Some(&invoice.distributor)
+            && recourse_debt(&env, &invoice.distributor) == 0
             && recourse_covers(&env, &invoice.distributor, amount)?;
         let (rate, to_buffer_bps, our_bps) = if vouched {
             (RECOURSE_FEE_BPS, 0, RECOURSE_FEE_BPS - RECOURSE_LENDER_BPS)
         } else {
-            let (buffer_bps, our_bps) = fee_split(credit_fee_bps(amount, invoice.amount));
+            let (buffer_bps, our_bps) = fee_split(credit_fee_bps(amount, up_front_base(&env, &invoice)));
             let buffer_bps = trusted_buffer_bps(buffer_bps, terms.good_cycles);
             (LENDER_BPS + buffer_bps + our_bps, buffer_bps, our_bps)
         };
@@ -1013,12 +1076,12 @@ impl RouteLedger {
         let config = load_config(&env);
         let token = token::Client::new(&env, &config.token);
         let me = env.current_contract_address();
-        send(&token, &me, &invoice.distributor, payout);
         send(&token, &me, &config.treasury, ours);
 
         pool.available -= from_pool;
         pool.buffer += to_buffer;
         pool.lent += amount;
+        pay_distributor(&env, &token, &me, &invoice.distributor, payout, &mut pool);
         save_pool(&env, &pool);
 
         if terms.owed == 0 {
@@ -1030,7 +1093,9 @@ impl RouteLedger {
             terms.first_credit_at = now;
         }
         // At least half paid up front, on every credited invoice this cycle.
-        terms.cycle_half_up_front &= invoice.paid.saturating_mul(2) >= invoice.amount;
+        // Cash doesn't count as paid up front (Yahya, Nov 16): only digital dollars do.
+        let base = up_front_base(&env, &invoice);
+        terms.cycle_half_up_front &= (base - amount).saturating_mul(2) >= base;
         terms.owed += amount;
         terms.cycle_borrowed += amount;
         if vouched {
@@ -1185,6 +1250,9 @@ impl RouteLedger {
         let mut terms = load_shop(&env, &shop).ok_or(Error::NoCreditTerms)?;
         if terms.owed > 0 {
             return Err(Error::ShopOwes);
+        }
+        if on && recourse_debt(&env, &distributor) > 0 {
+            return Err(Error::RecourseDebtOwed);
         }
         if on {
             terms.voucher = Some(distributor.clone());
@@ -1341,15 +1409,11 @@ impl RouteLedger {
         );
         let mut pool = load_pool(&env);
         pool.recourse -= amount;
-        save_pool(&env, &pool);
         let config = load_config(&env);
         let token = token::Client::new(&env, &config.token);
-        send(
-            &token,
-            &env.current_contract_address(),
-            &distributor,
-            amount,
-        );
+        let me = env.current_contract_address();
+        pay_distributor(&env, &token, &me, &distributor, amount, &mut pool);
+        save_pool(&env, &pool);
         RecourseWithdrawn {
             distributor,
             amount,
@@ -1389,6 +1453,8 @@ impl RouteLedger {
         if owed == 0 {
             save_pool(&env, &pool);
             terms.good_cycles = 0;
+            // The voucher paid for it, but the shop still defaulted: no more credit.
+            terms.limit = 0;
             close_cycle(
                 &mut terms,
                 env.ledger().timestamp(),
@@ -1479,6 +1545,19 @@ impl RouteLedger {
 
 // ---------- helpers ----------
 
+/// The invoice as the credit fee and the half-up-front waiver see it: without
+/// the part paid in cash (Yahya, Nov 16). Cash at the door earns no up-front
+/// benefit, so $50 cash + $50 on credit is priced like a $50 invoice all on
+/// credit, while $50 in digital dollars + $50 on credit gets the lower rate.
+fn up_front_base(env: &Env, invoice: &Invoice) -> i128 {
+    let cash: i128 = env
+        .storage()
+        .persistent()
+        .get(&DataKey::CashPaid(invoice.id))
+        .unwrap_or(0);
+    invoice.amount - cash
+}
+
 /// `amount * bps / 10_000`, rounded down.
 /// The credit fee in bps when `credited` of an invoice of `total` goes on
 /// credit (#135). With f = credited / total, clamped to [0.10, 1.00]:
@@ -1538,6 +1617,7 @@ fn recourse_view(env: &Env, distributor: &Address) -> Result<RecourseView, Error
         deposit,
         vouched_out,
         required: recourse_required(vouched_out),
+        debt: recourse_debt(env, distributor),
     })
 }
 
@@ -1572,25 +1652,66 @@ fn take_recourse(env: &Env, shop: &Address, terms: &mut Shop, pool: &mut Pool) -
     };
     let key = DataKey::RecourseDeposit(voucher.clone());
     let deposit: i128 = env.storage().persistent().get(&key).unwrap_or(0);
-    let paid = terms.vouched_owed.min(deposit);
-    if paid <= 0 {
-        return 0;
+    let vouched = terms.vouched_owed;
+    let paid = vouched.min(deposit);
+    // Full recourse (Yahya, Nov 16): the voucher answers for all of it. The
+    // deposit pays what it can now; the rest becomes the voucher's debt to the
+    // pool. That part stays counted as lent (an asset the lenders still hold),
+    // and the voucher's next payouts pay it back first.
+    let debt = vouched - paid;
+    if paid > 0 {
+        put(env, &key, &(deposit - paid));
+        pool.recourse -= paid;
+        pool.available += paid;
+        pool.lent -= paid;
     }
-    put(env, &key, &(deposit - paid));
-    pool.recourse -= paid;
-    pool.available += paid;
-    pool.lent -= paid;
-    reduce_vouched(env, terms, paid);
-    terms.owed -= paid;
-    terms.covered_by_distributor += paid;
+    if debt > 0 {
+        add(env, DataKey::RecourseDebt(voucher.clone()), debt);
+    }
+    reduce_vouched(env, terms, vouched);
+    terms.owed -= vouched;
+    terms.covered_by_distributor += vouched;
     RecourseCalled {
         shop: shop.clone(),
         distributor: voucher,
         paid,
         owed: terms.owed,
+        debt,
     }
     .publish(env);
-    paid
+    vouched
+}
+
+/// What the distributor owes the pool for vouched shops.
+fn recourse_debt(env: &Env, distributor: &Address) -> i128 {
+    env.storage()
+        .persistent()
+        .get(&DataKey::RecourseDebt(distributor.clone()))
+        .unwrap_or(0)
+}
+
+/// Pays `amount` to a distributor, but its recourse debt first: that part
+/// goes to the pool (back to the lenders) and only the rest reaches it.
+/// `from` is the payer, or the contract itself for pool payouts.
+fn pay_distributor(env: &Env, token: &token::Client, from: &Address, distributor: &Address, amount: i128, pool: &mut Pool) {
+    let debt = recourse_debt(env, distributor);
+    let take = debt.min(amount).max(0);
+    if take > 0 {
+        let me = env.current_contract_address();
+        if *from != me {
+            token.transfer(from, &me, &take);
+        }
+        pool.available += take;
+        pool.lent -= take;
+        put(env, &DataKey::RecourseDebt(distributor.clone()), &(debt - take));
+        RecourseDebtPaid {
+            distributor: distributor.clone(),
+            amount: take,
+            debt: debt - take,
+        }
+        .publish(env);
+    }
+    send(token, from, distributor, amount - take);
 }
 
 /// The shop's balance just reached 0: grade the cycle and update its record.
@@ -1599,16 +1720,17 @@ fn close_cycle(terms: &mut Shop, now: u64, period: u64) {
     terms.max_days_late = terms.max_days_late.max(days_u32(days));
     if days <= GRACE_DAYS {
         terms.on_time += 1;
-        // +$25 for paying on time, never past $500, and only if the shop
-        // borrowed at least $40 this cycle (or $10, with half of every credited
-        // invoice paid up front), wasn't raised in the last credit period, and
-        // isn't serving a no-raise after a major late payment. A limit the
-        // admin set above $500 is left alone.
+        // Paying on time raises the limit by tier on what the cycle borrowed
+        // (#220: +$10 to +$30), never past $500, at most once per credit
+        // period (so splitting a cycle doesn't pay), and not while serving a
+        // no-raise after a major late payment. A limit the admin set above
+        // $500 is left alone.
         let big_enough = terms.cycle_borrowed >= MIN_BORROW_TO_GROW
             || (terms.cycle_half_up_front && terms.cycle_borrowed >= MIN_BORROW_WITH_HALF);
+        let step = growth_step(terms.cycle_borrowed);
         let waited = terms.last_raise_at == 0 || now >= terms.last_raise_at + period;
-        if big_enough && waited && now >= terms.no_raise_until && terms.limit < LIMIT_CAP {
-            terms.limit = (terms.limit + LIMIT_STEP).min(LIMIT_CAP);
+        if step > 0 && waited && now >= terms.no_raise_until && terms.limit < LIMIT_CAP {
+            terms.limit = (terms.limit + step).min(LIMIT_CAP);
             terms.last_raise_at = now;
         }
         // A good cycle for the trusted-shop fee (#185): same bar, once per period.

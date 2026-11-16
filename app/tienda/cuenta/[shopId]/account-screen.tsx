@@ -1,5 +1,6 @@
 "use client";
 
+import { CREDIT_OUT_OF } from "@/lib/credit-tiers";
 import { CreditUnlockNote } from "@/components/credit-unlock-note";
 import { useParams } from "next/navigation";
 import { type ReactNode, useRef, useState } from "react";
@@ -185,7 +186,10 @@ export default function AccountScreen() {
           <Meter used={shop.creditOwed} of={shop.creditLimit} label={t("Crédito usado", "Credit used")} />
           <p className="flex flex-wrap items-baseline justify-between gap-x-3 text-label text-muted">
             <span>
-              {t("Límite", "Limit")} <Money value={shop.creditLimit} />
+              {t("Crédito Relay", "Relay credit")}{" "}
+              <span className="font-mono font-semibold text-ink">
+                {Math.round(shop.creditLimit)}/{CREDIT_OUT_OF}
+              </span>
             </span>
             {limitMoved !== 0 && (
               <span className={`font-semibold ${limitMoved > 0 ? "text-ok" : "text-bad"}`}>
@@ -205,9 +209,9 @@ export default function AccountScreen() {
         </div>
         {score && (
           <div className="flex flex-col gap-0.5">
-            <dt className="text-label text-muted">{t("Puntaje Relay", "Relay score")}</dt>
+            <dt className="text-label text-muted">{t("Calificación Relay", "Relay rating")}</dt>
             <dd className="font-semibold">
-              <span className="font-mono">{score.score}</span> {t("de 100", "of 100")}
+              <span className="font-mono">{score.score}</span> {t("de 10", "of 10")}
             </dd>
           </div>
         )}

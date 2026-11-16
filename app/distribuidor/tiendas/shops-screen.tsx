@@ -247,7 +247,21 @@ export default function ShopsScreen() {
     },
     { id: "phone", header: t("Teléfono", "Phone"), mono: true, secondary: true, cell: (s) => (s.phone ? formatPhone(s.phone) : "—") },
     { id: "driver", header: t("Motorista", "Driver"), secondary: 54, cell: (s) => s.driverName ?? "—" },
-    { id: "limit", header: t("Límite", "Limit"), figure: true, secondary: 54, cell: (s) => <Money value={s.creditLimit} /> },
+    { id: "limit", header: t("Crédito Relay", "Relay credit"), figure: true, secondary: 54, cell: (s) => <span className="font-mono">{Math.round(s.creditLimit)}/500</span> },
+    {
+      id: "rating",
+      header: t("Calificación", "Rating"),
+      secondary: 54,
+      cell: (s) =>
+        s.rating === undefined ? (
+          "—"
+        ) : (
+          <>
+            <span className="font-mono font-semibold">{s.rating}/10</span>
+            {s.cycles ? <span className="pl-2 text-label text-muted">{t(`Pagó a tiempo ${s.onTime} de ${s.cycles}`, `Paid on time ${s.onTime} of ${s.cycles}`)}</span> : null}
+          </>
+        ),
+    },
     { id: "owed", header: t("Debe", "Owes"), figure: true, cell: (s) => <Money value={s.creditOwed} />, total: <Money value={Math.round(data.shops.reduce((sum, s) => sum + s.creditOwed, 0) * 100) / 100} /> },
     { id: "status", header: t("Estado", "Status"), cell: status },
     // One width whether it holds the button or nothing, so the columns never move sideways.

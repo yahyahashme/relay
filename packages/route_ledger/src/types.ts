@@ -68,7 +68,12 @@ export const Error = {
    * The invoice is already on pay later with its distributor, so it can't
    * go on pay later again or move onto the lender pool (#194).
    */
-  21 : { message: "OnPayLater" }
+  21 : { message: "OnPayLater" },
+  /**
+   * The distributor still owes the pool for a vouched shop that didn't
+   * pay (full recourse): no new vouching until it's paid.
+   */
+  22 : { message: "RecourseDebtOwed" }
 }
 
 /**
@@ -285,6 +290,11 @@ export interface InvoicePaidEvent {
  * A distributor's recourse deposit and what it backs.
  */
 export interface RecourseView {
+  /**
+   * Full recourse: what a vouched shop didn't pay and the deposit couldn't
+   * cover. The distributor owes it to the pool; its next payouts pay it first.
+   */
+  debt: bigint;
   deposit: bigint;
   /**
    * The least the deposit can be: 20% of `vouched_out`, rounded up.
@@ -423,6 +433,10 @@ export interface RecourseCalledEvent {
      * What the shop still owes the pool after that.
      */
     owed?: bigint;
+    /**
+     * What the deposit couldn't cover: the distributor owes it now.
+     */
+    debt?: bigint;
   };
 }
 
@@ -435,6 +449,21 @@ export interface OwnCreditOfferedEvent {
     shop: string;
     distributor?: string;
     on?: boolean;
+  };
+}
+
+/**
+ * Part of a payout to a distributor went to its recourse debt instead.
+ */
+export interface RecourseDebtPaidEvent {
+  name: "RecourseDebtPaid";
+  data: {
+    distributor: string;
+    amount?: bigint;
+    /**
+     * What it still owes after that.
+     */
+    debt?: bigint;
   };
 }
 
@@ -479,5 +508,5 @@ export interface DistributorApprovedEvent {
     distributor: string;
   };
 }
-    export type ContractEvent = RepaidEvent | VouchedEvent | TermsSetEvent | DepositedEvent | PaidLaterEvent | WithdrawnEvent | CashClaimedEvent | InvoicePaidEvent | BufferFundedEvent | CashHandedInEvent | CashConfirmedEvent | LenderRevokedEvent | DefaultCoveredEvent | InvoiceCreatedEvent | LenderApprovedEvent | PaidWithCreditEvent | RecourseCalledEvent | OwnCreditOfferedEvent | RecourseDepositedEvent | RecourseWithdrawnEvent | DistributorRevokedEvent | DistributorApprovedEvent;
+    export type ContractEvent = RepaidEvent | VouchedEvent | TermsSetEvent | DepositedEvent | PaidLaterEvent | WithdrawnEvent | CashClaimedEvent | InvoicePaidEvent | BufferFundedEvent | CashHandedInEvent | CashConfirmedEvent | LenderRevokedEvent | DefaultCoveredEvent | InvoiceCreatedEvent | LenderApprovedEvent | PaidWithCreditEvent | RecourseCalledEvent | OwnCreditOfferedEvent | RecourseDebtPaidEvent | RecourseDepositedEvent | RecourseWithdrawnEvent | DistributorRevokedEvent | DistributorApprovedEvent;
     

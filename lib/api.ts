@@ -17,7 +17,7 @@ import type { LenderHistory } from "./lender-history";
 import { type ConfirmFinish, type ConfirmProof, type ConfirmRequest, type ConfirmStart, DEMO_PIN } from "./pay-confirm";
 import type { DistributorView } from "@/app/distributor-actions";
 import * as mock from "./mock";
-import type { Driver, Invoice, LenderView, MyLender, InvoiceHistory, InvoiceRow, Pool, Profile, Receipt, RecourseView, Shop, ShopHistory, Supplier, Totals } from "./types";
+import type { Driver, Invoice, LenderView, MyLender, InvoiceHistory, InvoiceRow, Pool, PoolHealth, Profile, Receipt, RecourseView, Shop, ShopHistory, Supplier, Totals } from "./types";
 
 export const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS !== "false";
 
@@ -80,6 +80,8 @@ export const getRouteInvites = (driverId: string, shopIds: string[]) =>
   read(() => ({ distributorName: "", codes: {} as Record<string, string> }), () => shops.getRouteInvites(driverId, shopIds));
 /** The distributor's recourse deposit and the vouched credit it backs (#185). */
 export const getRecourse = (): Promise<RecourseView> => read(mock.getRecourse, recourse.getRecourse);
+/** Pool-level numbers for lenders (#220). */
+export const getPoolHealth = (): Promise<PoolHealth> => read(mock.getPoolHealth, live.getPoolHealth);
 /** Everything ever paid, by method, for the dashboard's totals. */
 export const getTotals = (): Promise<Totals> => read(mock.getTotals, live.getTotals);
 /** Every payment the shop made, and what it still owes, newest first (#136). */

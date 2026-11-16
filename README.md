@@ -9,7 +9,7 @@
 
 Neighbourhood shops (tiendas) in El Salvador buy their stock from distributors. In a four-country survey, 8 in 10 small businesses in El Salvador, Guatemala, Honduras and Mexico pay suppliers mainly in cash, and in El Salvador 6 in 10 informal small businesses have borrowed from loan sharks. This app lets a shop pay its supplier in digital dollars, or take the stock now and pay in 7 days with no interest, while a Stellar smart contract keeps the record and enforces the credit rules.
 
-**Live app:** [relay-sv.vercel.app](https://relay-sv.vercel.app) · **Contract on Stellar testnet:** [`CA34DSV5…S52W` on stellar.expert](https://stellar.expert/explorer/testnet/contract/CA34DSV5AYLKSBCSOJFUY5TZJOJNCVU3K4K5M65WWXZLDV5BBJNXS52W) (every payment and fee split is public) · Built for the Velocity x Stellar challenge (Nov 2026) by Yahya, Jack, Rohan and Ruhaan. Plan and decisions: [docs/context.md](docs/context.md).
+**Live app:** [relay-sv.vercel.app](https://relay-sv.vercel.app) · **Contract on Stellar testnet:** [`CBXUYASL…GP4J` on stellar.expert](https://stellar.expert/explorer/testnet/contract/CBXUYASL5HI4J7JWMJSGUNH44R2JKLI2QWGDC5LTTYXM4AFMY5DMGP4J) (every payment and fee split is public) · Built for the Velocity x Stellar challenge (Nov 2026) by Yahya, Jack, Rohan and Ruhaan. Plan and decisions: [docs/context.md](docs/context.md).
 
 ## What's in this repo
 
@@ -31,7 +31,7 @@ Three screens (a website that works like a phone app): the **shop** pays an invo
 - **Pagar ahora:** the shop pays in digital dollars (USDC on Stellar) through our contract, straight to the distributor.
 - **Cash in two taps:** the driver taps "Recibí efectivo", the shop taps "Confirmo". It's recorded on-chain as cash the driver holds for the distributor; no tokens move. A shop can pay part in cash ("Recibí otro monto") and put the rest on the lenders' 7 days (#242).
 - **Pagar en 7 días:** a lender pool pays the distributor now, minus a fee the distributor pays: 1.5% when the whole invoice goes on credit, sliding down to 1.0% the more the shop paid up front (half paid first: 1.22%). Lenders always get 0.50%; the rest splits 3:1 between a safety buffer and us (0.75% / 0.25% at 1.5%). The shop repays within 7 days, with no interest.
-- **Credit record:** a new shop unlocks credit after 2 deliveries paid digitally at the door, a week apart (#217); the first limit is half its average delivery, $50 to $100 ($100 at once if its distributor vouches for it). The limit grows $25 per on-time repayment (cycles of $40+, or $10+ if the shop paid at least half of each credited invoice up front; at most once a week) up to $500. Lateness is graded by days past due: 1 day is a grace day, 2-7 days late lowers the limit $25, 8+ days lowers it $50 and stops raises for 4 weeks, and about 4 weeks late is a default. The record keeps on-time and late counts by band, the most days late, and the date of first credit.
+- **Credit record:** a new shop unlocks credit after 2 deliveries paid digitally at the door, a week apart (#217); the first limit is half its average delivery, $50 to $100 ($100 at once if its distributor vouches for it). The limit ("Crédito Relay", out of 500) grows by tier on each on-time repayment of pool credit: up to $30 +10, to $50 +15, to $75 +20, to $100 +25, over $100 +30, at most once a week, from $10 (#220). Distributors also see a 1-10 rating of how likely the shop is to repay in 7 days. Lateness is graded by days past due: 1 day is a grace day, 2-7 days late lowers the limit $25, 8+ days lowers it $50 and stops raises for 4 weeks, and about 4 weeks late is a default. The record keeps on-time and late counts by band, the most days late, and the date of first credit.
 - **Fees:** distributors pay a 0.1% usage fee on digital and cash payments (for cash it's recorded and billed later). Shops never pay fees.
 - **Network fee sponsorship:** every transaction goes out inside a fee bump paid by our sponsor account (`lib/stellar/sponsor.ts`, used by `lib/stellar/send.ts`), so shops, drivers and the distributor never hold or spend XLM for fees.
 - **Split payment:** "Pagar una parte, el resto en 7 días" pays part now in digital dollars and puts the rest on 7 days in one confirm (#235).
@@ -48,11 +48,11 @@ Three screens (a website that works like a phone app): the **shop** pays an invo
 <!-- contract-ids:start -->
 ## Contract IDs
 
-Stellar testnet, deployed 2026-11-15 by `scripts/deploy.sh`.
+Stellar testnet, deployed 2026-11-16 by `scripts/deploy.sh`.
 
 | What | ID | Explorer |
 |---|---|---|
-| `route_ledger` contract | `CA34DSV5AYLKSBCSOJFUY5TZJOJNCVU3K4K5M65WWXZLDV5BBJNXS52W` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CA34DSV5AYLKSBCSOJFUY5TZJOJNCVU3K4K5M65WWXZLDV5BBJNXS52W) |
+| `route_ledger` contract | `CBXUYASL5HI4J7JWMJSGUNH44R2JKLI2QWGDC5LTTYXM4AFMY5DMGP4J` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CBXUYASL5HI4J7JWMJSGUNH44R2JKLI2QWGDC5LTTYXM4AFMY5DMGP4J) |
 | Test USDC token | `CANWPJKTWATAQKWD4VNDRMPHHWONWJ5IMCIJ2OTJNYFZ5IDQWX2E2NUP` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CANWPJKTWATAQKWD4VNDRMPHHWONWJ5IMCIJ2OTJNYFZ5IDQWX2E2NUP) |
 
 Test USDC is our own, issued by `tiendas-issuer`, not Circle's.

@@ -112,6 +112,7 @@ const RULES: Rule[] = [
   exact("Relay quitó su aprobación: no puede poner más dinero, pero siempre puede retirar el suyo.", "Relay removed your approval: you can't put more money in, but you can always take yours out."),
   exact("Dinero puesto en el fondo.", "Money put in the pool."),
   exact("Dinero retirado del fondo.", "Money taken out of the pool."),
+  exact("Debe dinero al fondo por una tienda que respaldó. Sus próximos cobros lo pagan; hasta entonces no puede respaldar tiendas nuevas.", "You owe the pool for a shop you backed. Your next payments pay it; until then you can't back new shops."),
   exact("Esta distribuidora está en revisión. Por ahora pague en dólares digitales o en efectivo.", "This distributor is under review. For now, pay in digital dollars or in cash."),
   exact("No encontramos esa cuenta.", "We couldn't find that account."),
   exact("Listo. Las tiendas de demo están como al principio.", "Done. The demo shops are back to the start."),

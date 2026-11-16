@@ -1,99 +1,56 @@
 import { describe, expect, it } from "vitest";
-import { creditScore } from "./credit";
-import type { HistoryRow, Shop } from "./types";
+import { creditScore, shopRating } from "./credit";
+import { growthStep } from "./credit-tiers";
+import type { Shop } from "./types";
 
-const NOW = Date.parse("2026-11-13T12:00:00Z");
 const DAY = 24 * 60 * 60 * 1000;
-const shop = (over: Partial<Shop> = {}): Shop => ({
-  id: "tienda-1", name: "Tienda Rosa", owner: "Rosa", creditLimit: 200, creditOwed: 0, overdue: false, onTime: 0, late: 0, lateMinor: 0, lateMajor: 0, maxDaysLate: 0, ...over,
+const NOW = Date.parse("2026-11-15T12:00:00Z");
+const base: Shop = { id: "t", name: "T", owner: "O", creditLimit: 200, creditOwed: 0, overdue: false, onTime: 0, late: 0, lateMinor: 0, lateMajor: 0, maxDaysLate: 0 };
+const shop = (over: Partial<Shop>): Shop => ({ ...base, ...over });
+const since = (days: number) => new Date(NOW - days * DAY).toISOString();
+
+describe("Crédito Relay growth tiers (#220)", () => {
+  it("raises by the amount repaid on time", () => {
+    expect([5, 10, 30, 31, 50, 75, 100, 101, 400].map(growthStep)).toEqual([0, 10, 10, 15, 15, 20, 25, 30, 30]);
+  });
 });
-const paid = (daysAgo: number, daysLate = 0, amount = 100): HistoryRow => ({
-  key: `${daysAgo}-${daysLate}`, kind: "payment", invoiceId: 1, distributor: "El Sol", method: "digital",
-  amount, partial: false, at: new Date(NOW - daysAgo * DAY).toISOString(), daysLate,
-});
 
-describe("Relay score (#137)", () => {
-  it("carries the pay-later record with distributors (#203), and leaves it out when there is none", () => {
-    expect(creditScore(shop({ laterOnTime: 3, laterLate: 1 }), [], 1, NOW).later).toEqual({ onTime: 3, paid: 4 });
-    expect(creditScore(shop(), [], 1, NOW).later).toBeUndefined();
+describe("Relay rating, 1 to 10 (#220)", () => {
+  it("starts a new shop at 6", () => {
+    const score = creditScore(base, [], 1, NOW);
+    expect(score).toMatchObject({ score: 6, label: "bueno", isNew: true });
+    expect(score.reasons[0].es).toBe("Todavía no ha usado crédito");
   });
 
-  it("is middling and says so for a shop with no history", () => {
-    const s = creditScore(shop(), [], 1, NOW);
-    expect(s.isNew).toBe(true);
-    expect(s.score).toBeGreaterThanOrEqual(45);
-    expect(s.score).toBeLessThan(65);
-    expect(s.reasons.map((r) => r.es)).toContain("Todavía no tiene pagos en Relay");
+  it("needs a long on-time record to reach 9 or 10, not a few weeks", () => {
+    expect(shopRating(shop({ onTime: 3, firstCredit: since(21) }), NOW).rating).toBe(7); // under 4 weeks: capped at 7
+    expect(shopRating(shop({ onTime: 4, firstCredit: since(35) }), NOW).rating).toBe(7);
+    expect(shopRating(shop({ onTime: 15, firstCredit: since(120) }), NOW).rating).toBe(8);
+    expect(shopRating(shop({ onTime: 30, firstCredit: since(220) }), NOW).rating).toBe(9);
   });
 
-  it("is excellent for a long, on-time record with room on the limit and several suppliers", () => {
-    const rows = Array.from({ length: 20 }, (_, i) => paid(i * 10));
-    const s = creditScore(shop({ onTime: 14, creditOwed: 40 }), rows, 3, NOW);
-    expect(s.label).toBe("excelente");
-    expect(s.reasons[0]).toMatchObject({ es: "Pagó 34 de 34 a tiempo", good: true });
+  it("weighs a 2-7 day late as half a miss and 8+ days as a whole one", () => {
+    const minor = shopRating(shop({ onTime: 10, late: 2, lateMinor: 2, firstCredit: since(90) }), NOW);
+    const major = shopRating(shop({ onTime: 10, late: 2, lateMajor: 2, firstCredit: since(90) }), NOW);
+    expect(minor.p).toBeGreaterThan(major.p);
+    expect([minor.rating, major.rating]).toEqual([8, 7]);
+    expect(shopRating(shop({ onTime: 2, late: 6, lateMajor: 6, firstCredit: since(90) }), NOW).rating).toBe(4);
   });
 
-  it("drops with late payments and a full limit, and names both", () => {
-    const rows = [paid(5, 10), paid(12, 4), paid(20)];
-    const s = creditScore(shop({ onTime: 1, late: 2, creditOwed: 195 }), rows, 1, NOW);
-    expect(["regular", "riesgo"]).toContain(s.label);
-    const texts = s.reasons.map((r) => r.es);
-    expect(texts).toContain("Pagó 2 de 6 a tiempo");
-    expect(texts).toContain("Usa casi todo su límite");
-    expect(s.tips[0].es).toMatch(/a tiempo/);
+  it("caps at 2 while overdue and 3 with an unpaid write-off", () => {
+    const good = { onTime: 30, firstCredit: since(220) };
+    expect(shopRating(shop({ ...good, overdue: true }), NOW).rating).toBe(2);
+    expect(shopRating(shop({ ...good, laterOverdue: true }), NOW).rating).toBe(2);
+    expect(shopRating(shop({ ...good, late: 1, lateMajor: 1, writtenOff: 120 }), NOW).rating).toBe(3);
+    expect(creditScore(shop({ ...good, overdue: true }), [], 1, NOW).reasons[0].es).toBe("Tiene un pago vencido");
   });
 
-  it("counts one day late as late, and old late marks as half", () => {
-    const oneDay = creditScore(shop({ onTime: 4 }), [paid(3, 1)], 1, NOW).score;
-    const onTime = creditScore(shop({ onTime: 4 }), [paid(3, 0)], 1, NOW).score;
-    expect(oneDay).toBeLessThan(onTime);
-    const recentLate = creditScore(shop({ onTime: 4 }), [paid(10, 10), paid(3)], 1, NOW).score;
-    const oldLate = creditScore(shop({ onTime: 4 }), [paid(250, 10), paid(3)], 1, NOW).score;
-    expect(oldLate).toBeGreaterThan(recentLate);
-  });
-
-  const open = (daysLate: number, amount = 50): HistoryRow => ({
-    key: `open-${daysLate}`, kind: "open", invoiceId: 2, distributor: "El Sol", amount, partial: false,
-    dueDate: new Date(NOW - daysLate * DAY).toISOString(), daysLate,
-  });
-  const good = () => ({ rows: Array.from({ length: 20 }, (_, i) => paid(i * 10)), shop: { onTime: 10, creditOwed: 0 } });
-
-  it("caps a written-off shop at 30 and says why first", () => {
-    const g = good();
-    const s = creditScore(shop({ ...g.shop, writtenOff: 120 }), g.rows, 3, NOW);
-    expect(s.score).toBeLessThanOrEqual(30);
-    expect(s.label).toBe("riesgo");
-    expect(s.reasons[0]).toMatchObject({ es: "Tiene una deuda de crédito que no pagó", good: false });
-  });
-
-  it("caps an invoice 30 days past due at 40", () => {
-    const g = good();
-    const s = creditScore(shop(g.shop), [open(30), ...g.rows], 3, NOW);
-    expect(s.score).toBeLessThanOrEqual(40);
-    expect(s.label).toBe("riesgo");
-    expect(s.reasons[0].es).toBe("Tiene un pago vencido hace 30 días");
-    expect(s.tips[0].es).toMatch(/vencido/);
-  });
-
-  it("caps credit past due at 60", () => {
-    const g = good();
-    const due = new Date(NOW - 3 * DAY).toISOString();
-    const s = creditScore(shop({ ...g.shop, creditOwed: 80, overdue: true, creditDue: due }), g.rows, 3, NOW);
-    expect(s.score).toBeLessThanOrEqual(60);
-    expect(s.label).not.toBe("excelente");
-    expect(s.reasons[0].es).toBe("Tiene un pago vencido hace 3 días");
-  });
-
-  it("keeps a shop that never used credit below excellent", () => {
-    const rows = Array.from({ length: 26 }, (_, i) => paid(i * 7));
-    const s = creditScore(shop(), rows, 3, NOW);
-    expect(s.score).toBeLessThanOrEqual(79);
-    expect(s.reasons.map((r) => r.es)).toContain("Todavía no ha usado crédito");
-  });
-
-  it("stays between 0 and 100", () => {
-    const s = creditScore(shop({ late: 30, creditOwed: 200 }), [paid(1, 30)], 0, NOW);
-    expect(s.score).toBeGreaterThanOrEqual(0);
-    expect(s.label).toBe("riesgo");
+  it("counts pay-later on a distributor's own money too, and stays within 1..10", () => {
+    expect(shopRating(shop({ laterOnTime: 12, firstCredit: since(100) }), NOW).rating).toBe(8);
+    for (let n = 0; n < 60; n += 7) {
+      const r = shopRating(shop({ onTime: n, late: 60 - n, lateMajor: 60 - n, firstCredit: since(400) }), NOW).rating;
+      expect(r).toBeGreaterThanOrEqual(1);
+      expect(r).toBeLessThanOrEqual(10);
+    }
   });
 });

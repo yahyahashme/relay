@@ -153,8 +153,8 @@ export function ShopCreditTier({ shopId }: { shopId: string }) {
                 : mine
                   ? t("Vuelve a la comisión normal.", "It goes back to the normal fee.")
                   : t(
-                      "Paga 0.25%. Si se atrasa más de 7 días, su depósito le paga al fondo y usted le cobra a la tienda.",
-                      "You pay 0.25%. If it is more than 7 days late, your deposit pays the pool and you collect from the shop.",
+                      "Paga 0.25%. Si se atrasa más de 7 días, usted paga lo que deba, primero de su depósito y luego de sus próximos cobros, y le cobra a la tienda.",
+                      "You pay 0.25%. If it is more than 7 days late, you pay what it owes, first from your deposit and then from your next payments, and collect from the shop.",
                     )
             }
           >

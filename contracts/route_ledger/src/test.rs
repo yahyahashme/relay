@@ -355,6 +355,7 @@ fn cash_claim_checks_amounts() {
 
 #[test]
 fn part_cash_then_digital_is_mixed() {
+    // Part cash at the door is allowed again (#242).
     let t = setup();
     t.invoice(1, 150 * USD);
     t.client.cash_claim(&t.driver, &1, &(50 * USD));
@@ -367,22 +368,79 @@ fn part_cash_then_digital_is_mixed() {
     assert_eq!(invoice.method, PayMethod::Mixed);
 }
 
+/// What the distributor gets when the rest of a $100 invoice goes on credit
+/// after `cash` in cash and `digital` in digital dollars.
+fn payout_after(cash: i128, digital: i128) -> i128 {
+    let t = setup();
+    t.client.deposit(&t.lender, &(1_000 * USD));
+    t.client.set_terms(&t.shop, &(200 * USD));
+    t.invoice(1, 100 * USD);
+    if cash > 0 {
+        t.client.cash_claim(&t.driver, &1, &cash);
+        t.client.cash_confirm(&t.shop, &1, &cash);
+    }
+    if digital > 0 {
+        t.client.pay(&t.shop, &1, &digital);
+    }
+    let before = t.token.balance(&t.distributor);
+    t.client.pay_with_credit(&t.shop, &1);
+    t.token.balance(&t.distributor) - before
+}
+
+#[test]
+fn cash_up_front_earns_no_lower_credit_fee() {
+    // Yahya, Nov 16: cash at the door counts for nothing up front.
+    // $50 digital + $50 on credit: half on credit, 1.22%.
+    let digital = payout_after(0, 50 * USD);
+    assert_eq!(digital, 50 * USD - bps_of(50 * USD, credit_fee_bps(50 * USD, 100 * USD)));
+    // $50 cash + $50 on credit: priced like a $50 invoice all on credit, 1.50%.
+    let cash = payout_after(50 * USD, 0);
+    assert_eq!(cash, 50 * USD - bps_of(50 * USD, CREDIT_FEE_BPS));
+    assert!(cash < digital);
+    // Only the digital part lowers it: $40 cash + $30 digital + $30 credit
+    // is $30 of a $60 invoice on credit.
+    let both = payout_after(40 * USD, 30 * USD);
+    assert_eq!(both, 30 * USD - bps_of(30 * USD, credit_fee_bps(30 * USD, 60 * USD)));
+}
+
+#[test]
+fn cash_up_front_does_not_count_as_half_paid() {
+    // Half paid in cash: the half-up-front waiver ($10 is enough to grow) doesn't apply.
+    let t = setup();
+    t.client.deposit(&t.lender, &(1_000 * USD));
+    t.client.set_terms(&t.shop, &(200 * USD));
+    t.invoice(1, 30 * USD);
+    t.client.cash_claim(&t.driver, &1, &(15 * USD));
+    t.client.cash_confirm(&t.shop, &1, &(15 * USD));
+    t.client.pay_with_credit(&t.shop, &1);
+    assert!(!half_up_front(&t));
+
+    // Half paid in digital dollars: it does.
+    let t = setup();
+    t.client.deposit(&t.lender, &(1_000 * USD));
+    t.client.set_terms(&t.shop, &(200 * USD));
+    t.invoice(1, 30 * USD);
+    t.client.pay(&t.shop, &1, &(15 * USD));
+    t.client.pay_with_credit(&t.shop, &1);
+    assert!(half_up_front(&t));
+}
+
 #[test]
 fn stale_cash_claim_cannot_overpay() {
     let t = setup();
     t.invoice(1, 150 * USD);
-    t.client.cash_claim(&t.driver, &1, &(100 * USD));
+    t.client.cash_claim(&t.driver, &1, &(150 * USD));
     // The shop pays $100 digitally before confirming the cash.
     t.client.pay(&t.shop, &1, &(100 * USD));
     assert_eq!(
-        t.client.try_cash_confirm(&t.shop, &1, &(100 * USD)),
+        t.client.try_cash_confirm(&t.shop, &1, &(150 * USD)),
         Err(Ok(Error::Overpay))
     );
 
     // And once the invoice is fully paid, a leftover claim cannot be confirmed.
     t.client.pay(&t.shop, &1, &(50 * USD));
     assert_eq!(
-        t.client.try_cash_confirm(&t.shop, &1, &(100 * USD)),
+        t.client.try_cash_confirm(&t.shop, &1, &(150 * USD)),
         Err(Ok(Error::AlreadyPaid))
     );
 }
@@ -840,12 +898,38 @@ fn only_approved_distributors_create_invoices() {
 fn tiny_loans_do_not_grow_the_limit() {
     let t = setup();
     t.with_credit();
-    t.invoice(1, 39 * USD);
+    t.invoice(1, 9 * USD);
     t.client.pay_with_credit(&t.shop, &1);
-    t.client.repay(&t.shop, &(39 * USD));
+    t.client.repay(&t.shop, &(9 * USD));
     let shop = t.client.get_shop(&t.shop);
     assert_eq!(shop.on_time, 1);
     assert_eq!(shop.limit, 200 * USD);
+}
+
+#[test]
+fn growth_follows_the_tiers() {
+    // #220: up to $30 +$10, to $50 +$15, to $75 +$20, to $100 +$25, over $100 +$30; under $10 nothing.
+    let cases = [
+        (9 * USD, 0),
+        (10 * USD, 10 * USD),
+        (30 * USD, 10 * USD),
+        (30 * USD + 1, 15 * USD),
+        (50 * USD, 15 * USD),
+        (75 * USD, 20 * USD),
+        (100 * USD, 25 * USD),
+        (100 * USD + 1, 30 * USD),
+        (450 * USD, 30 * USD),
+    ];
+    for (repaid, step) in cases {
+        assert_eq!(growth_step(repaid), step, "repaid {repaid}");
+    }
+    // In the contract: an on-time $60 cycle raises $200 to $220.
+    let t = setup();
+    t.with_credit();
+    t.invoice(1, 60 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    t.client.repay(&t.shop, &(60 * USD));
+    assert_eq!(t.client.get_shop(&t.shop).limit, 220 * USD);
 }
 
 #[test]
@@ -857,7 +941,7 @@ fn small_loans_in_one_cycle_add_up() {
     t.client.pay_with_credit(&t.shop, &1);
     t.client.pay_with_credit(&t.shop, &2);
     t.client.repay(&t.shop, &(40 * USD));
-    assert_eq!(t.client.get_shop(&t.shop).limit, 225 * USD);
+    assert_eq!(t.client.get_shop(&t.shop).limit, 215 * USD); // $40 in the cycle: +$15
 }
 
 #[test]
@@ -1104,16 +1188,17 @@ fn each_function_asks_for_exactly_its_documented_signer() {
     t.client.approve_distributor(&t.stranger());
     t.assert_signed_by(&t.admin, "approve_distributor");
 
-    t.invoice(1, 100 * USD);
+    t.invoice(1, 80 * USD);
     t.assert_signed_by(&t.distributor, "create_invoice");
 
     t.client.pay(&t.shop, &1, &(40 * USD));
     t.assert_signed_by(&t.shop, "pay");
 
-    t.client.cash_claim(&t.driver, &1, &(20 * USD));
+    t.invoice(9, 20 * USD);
+    t.client.cash_claim(&t.driver, &9, &(20 * USD));
     t.assert_signed_by(&t.driver, "cash_claim");
 
-    t.client.cash_confirm(&t.shop, &1, &(20 * USD));
+    t.client.cash_confirm(&t.shop, &9, &(20 * USD));
     t.assert_signed_by(&t.shop, "cash_confirm");
 
     t.client
@@ -1237,7 +1322,7 @@ fn wrong_signer_cannot_move_a_shops_money() {
 #[test]
 fn wrong_signer_cannot_record_cash() {
     let t = setup();
-    t.invoice(1, 150 * USD);
+    t.invoice(1, 100 * USD);
 
     // Not the driver: a stranger, or the shop itself.
     for signer in [t.stranger(), t.shop.clone()] {
@@ -1365,30 +1450,20 @@ fn set_terms_needs_the_admin_and_anyone_can_cover_a_due_default() {
 fn double_cash_confirm_is_no_cash_claim() {
     let t = setup();
     t.invoice(1, 150 * USD);
-    t.client.cash_claim(&t.driver, &1, &(50 * USD));
-    t.client.cash_confirm(&t.shop, &1, &(50 * USD));
+    t.client.cash_claim(&t.driver, &1, &(150 * USD));
+    t.client.cash_confirm(&t.shop, &1, &(150 * USD));
     let invoice = t.client.get_invoice(&1);
-    assert_eq!(invoice.paid, 50 * USD);
+    assert_eq!(invoice.status, InvoiceStatus::Paid);
 
-    // The claim is used up: the second confirm finds nothing and adds nothing.
+    // The claim is used up: the second confirm finds nothing and adds nothing
+    // (NoCashClaim, not AlreadyPaid).
     assert_eq!(
-        t.client.try_cash_confirm(&t.shop, &1, &(50 * USD)),
+        t.client.try_cash_confirm(&t.shop, &1, &(150 * USD)),
         Err(Ok(Error::NoCashClaim))
     );
     assert_eq!(t.client.get_invoice(&1), invoice);
-    assert_eq!(t.client.get_driver_cash(&t.driver), 50 * USD);
-    assert_eq!(t.client.get_usage_owed(&t.distributor), 500_000);
-
-    // Same when the first confirm paid the invoice off: NoCashClaim, not AlreadyPaid.
-    t.client.cash_claim(&t.driver, &1, &(100 * USD));
-    t.client.cash_confirm(&t.shop, &1, &(100 * USD));
-    assert_eq!(t.client.get_invoice(&1).status, InvoiceStatus::Paid);
-    assert_eq!(
-        t.client.try_cash_confirm(&t.shop, &1, &(100 * USD)),
-        Err(Ok(Error::NoCashClaim))
-    );
-    assert_eq!(t.client.get_invoice(&1).paid, 150 * USD);
     assert_eq!(t.client.get_driver_cash(&t.driver), 150 * USD);
+    assert_eq!(t.client.get_usage_owed(&t.distributor), 1_500_000);
     t.assert_nothing_overpaid();
 }
 
@@ -1396,7 +1471,7 @@ fn double_cash_confirm_is_no_cash_claim() {
 fn confirming_another_shops_claim_is_not_your_invoice() {
     let t = setup();
     let other = t.other_shop();
-    t.invoice(1, 150 * USD);
+    t.invoice(1, 100 * USD);
     t.client.cash_claim(&t.driver, &1, &(100 * USD));
 
     assert_eq!(
@@ -1420,10 +1495,10 @@ fn a_stale_claim_never_pushes_paid_above_amount() {
 
     // The shop pays most of it digitally after a bigger cash claim: rejected.
     t.invoice(1, 100 * USD);
-    t.client.cash_claim(&t.driver, &1, &(60 * USD));
+    t.client.cash_claim(&t.driver, &1, &(100 * USD));
     t.client.pay(&t.shop, &1, &(50 * USD));
     assert_eq!(
-        t.client.try_cash_confirm(&t.shop, &1, &(60 * USD)),
+        t.client.try_cash_confirm(&t.shop, &1, &(100 * USD)),
         Err(Ok(Error::Overpay))
     );
     let invoice = t.client.get_invoice(&1);
@@ -1437,7 +1512,7 @@ fn a_stale_claim_never_pushes_paid_above_amount() {
     // Paying the rest closes it, and the old claim is still rejected.
     t.client.pay(&t.shop, &1, &(50 * USD));
     assert_eq!(
-        t.client.try_cash_confirm(&t.shop, &1, &(60 * USD)),
+        t.client.try_cash_confirm(&t.shop, &1, &(100 * USD)),
         Err(Ok(Error::AlreadyPaid))
     );
     assert_eq!(t.client.get_invoice(&1).paid, 100 * USD);
@@ -1456,15 +1531,15 @@ fn a_stale_claim_never_pushes_paid_above_amount() {
     );
     assert_eq!(t.client.get_invoice(&2).paid, 100 * USD);
 
-    // A claim that fits what is left is fine and lands exactly on the amount.
+    // After a digital part, cash for exactly the rest lands on the amount.
     t.invoice(3, 100 * USD);
-    t.client.cash_claim(&t.driver, &3, &(40 * USD));
     t.client.pay(&t.shop, &3, &(60 * USD));
+    t.client.cash_claim(&t.driver, &3, &(40 * USD));
     t.client.cash_confirm(&t.shop, &3, &(40 * USD));
     let invoice = t.client.get_invoice(&3);
     assert_eq!(
-        (invoice.paid, invoice.status),
-        (100 * USD, InvoiceStatus::Paid)
+        (invoice.paid, invoice.status, invoice.method),
+        (100 * USD, InvoiceStatus::Paid, PayMethod::Mixed)
     );
 
     // Only the confirmed $40 was ever cash.
@@ -1749,7 +1824,7 @@ fn half_up_front_waives_the_40_dollar_minimum_to_grow() {
     t.client.pay(&t.shop, &1, &(15 * USD));
     t.client.pay_with_credit(&t.shop, &1);
     t.client.repay(&t.shop, &(15 * USD));
-    assert_eq!(t.client.get_shop(&t.shop).limit, 2_250_000_000);
+    assert_eq!(t.client.get_shop(&t.shop).limit, 2_100_000_000); // $15: +$10
 }
 
 #[test]
@@ -1775,11 +1850,11 @@ fn half_up_front_on_a_tiny_invoice_does_not_grow_the_limit() {
     t.client.pay(&t.shop, &9, &(10 * USD));
     t.client.pay_with_credit(&t.shop, &9);
     t.client.repay(&t.shop, &(10 * USD));
-    assert_eq!(t.client.get_shop(&t.shop).limit, 2_250_000_000);
+    assert_eq!(t.client.get_shop(&t.shop).limit, 2_100_000_000); // $10: +$10
 }
 
 #[test]
-fn one_credited_invoice_without_half_up_front_keeps_the_40_dollar_minimum() {
+fn small_cycles_grow_by_tier_once_a_period() {
     let t = setup();
     t.with_credit();
     t.invoice(1, 30 * USD);
@@ -1787,16 +1862,16 @@ fn one_credited_invoice_without_half_up_front_keeps_the_40_dollar_minimum() {
     t.client.pay(&t.shop, &1, &(15 * USD));
     t.client.pay_with_credit(&t.shop, &1); // half up front
     t.client.pay_with_credit(&t.shop, &2); // nothing up front
-    t.client.repay(&t.shop, &(35 * USD)); // $35 borrowed: under $40
+    t.client.repay(&t.shop, &(35 * USD)); // $35 borrowed: +$15 (#220)
     let shop = t.client.get_shop(&t.shop);
-    assert_eq!((shop.on_time, shop.limit), (1, 2_000_000_000));
+    assert_eq!((shop.on_time, shop.limit, shop.good_cycles), (1, 2_150_000_000, 0)); // not a good cycle: under $40
 
-    // The flag resets with the cycle: a new full-credit cycle under $40 doesn't grow.
+    // A week later, a $30 cycle adds $10.
     t.env.ledger().set_timestamp(START + WEEK);
     t.invoice(3, 30 * USD);
     t.client.pay_with_credit(&t.shop, &3);
     t.client.repay(&t.shop, &(30 * USD));
-    assert_eq!(t.client.get_shop(&t.shop).limit, 2_000_000_000);
+    assert_eq!(t.client.get_shop(&t.shop).limit, 2_250_000_000);
 }
 
 #[test]
@@ -1861,13 +1936,14 @@ fn contract_balance_equals_the_pool_and_only_credit_sends_money_out() {
     check("approve_distributor", false);
 
     // Digital and cash payments never touch the pool.
-    t.invoice(1, 150 * USD);
+    t.invoice(1, 100 * USD);
     check("create_invoice", false);
     t.client.pay(&t.shop, &1, &(50 * USD));
     check("pay", false);
-    t.client.cash_claim(&t.driver, &1, &(50 * USD));
+    t.invoice(9, 50 * USD);
+    t.client.cash_claim(&t.driver, &9, &(50 * USD));
     check("cash_claim", false);
-    t.client.cash_confirm(&t.shop, &1, &(50 * USD));
+    t.client.cash_confirm(&t.shop, &9, &(50 * USD));
     check("cash_confirm", false);
     t.client
         .cash_handed_in(&t.distributor, &t.driver, &(20 * USD));
@@ -1913,7 +1989,7 @@ fn contract_balance_equals_the_pool_and_only_credit_sends_money_out() {
 #[test]
 fn cash_handed_in_needs_an_approved_distributor() {
     let t = setup();
-    t.invoice(1, 150 * USD);
+    t.invoice(1, 100 * USD);
     t.client.cash_claim(&t.driver, &1, &(100 * USD));
     t.client.cash_confirm(&t.shop, &1, &(100 * USD));
     assert_eq!(t.client.get_driver_cash(&t.driver), 100 * USD);
@@ -1942,9 +2018,8 @@ fn cash_handed_in_needs_an_approved_distributor() {
 fn confirm_fails_if_the_driver_changed_the_claim() {
     let t = setup();
     t.invoice(1, 100 * USD);
-    t.client.cash_claim(&t.driver, &1, &(10 * USD));
-    // The shop is shown $10. Before it taps "Confirmo", the driver swaps the claim to $90.
-    t.client.cash_claim(&t.driver, &1, &(90 * USD));
+    t.client.cash_claim(&t.driver, &1, &(100 * USD));
+    // The shop confirms an amount other than the claim: nothing happens.
     assert_eq!(
         t.client.try_cash_confirm(&t.shop, &1, &(10 * USD)),
         Err(Ok(Error::ClaimChanged))
@@ -1952,9 +2027,9 @@ fn confirm_fails_if_the_driver_changed_the_claim() {
     assert_eq!(t.client.get_invoice(&1).paid, 0);
     assert_eq!(t.client.get_driver_cash(&t.driver), 0);
     // Only the amount the shop actually agrees to goes through.
-    t.client.cash_confirm(&t.shop, &1, &(90 * USD));
-    assert_eq!(t.client.get_invoice(&1).paid, 90 * USD);
-    assert_eq!(t.client.get_driver_cash(&t.driver), 90 * USD);
+    t.client.cash_confirm(&t.shop, &1, &(100 * USD));
+    assert_eq!(t.client.get_invoice(&1).paid, 100 * USD);
+    assert_eq!(t.client.get_driver_cash(&t.driver), 100 * USD);
 }
 
 fn ids(list: &Vec<Invoice>) -> std::vec::Vec<u64> {
@@ -2019,21 +2094,22 @@ fn totals_cover_every_payment_by_method() {
     let t = setup();
     t.client.deposit(&t.lender, &(1_000 * USD));
     t.client.set_terms(&t.shop, &(200 * USD));
-    t.invoice(1, 100 * USD);
+    t.invoice(1, 30 * USD);
     t.invoice(2, 60 * USD);
+    t.invoice(3, 70 * USD);
     assert_eq!(
         t.client.get_totals(),
         Totals {
-            invoices: 2,
+            invoices: 3,
             invoiced: 160 * USD,
             ..Totals::default()
         }
     );
 
-    // A mixed invoice counts each part under its own method.
+    // Each payment counts under its own method.
     t.client.pay(&t.shop, &1, &(30 * USD));
-    t.client.cash_claim(&t.driver, &1, &(70 * USD));
-    t.client.cash_confirm(&t.shop, &1, &(70 * USD));
+    t.client.cash_claim(&t.driver, &3, &(70 * USD));
+    t.client.cash_confirm(&t.shop, &3, &(70 * USD));
     t.client.pay_with_credit(&t.shop, &2);
 
     let totals = t.client.get_totals();
@@ -2425,7 +2501,10 @@ fn recourse_pays_the_pool_after_seven_days_late() {
 }
 
 #[test]
-fn a_default_takes_the_deposit_first_then_the_buffer() {
+fn a_default_takes_the_deposit_then_the_distributor_owes_the_rest() {
+    // Full recourse (Yahya, Nov 16): the deposit pays what it can, the rest is
+    // the distributor's debt to the pool. The buffer isn't touched, and the
+    // debt stays counted as lent, so the lenders lose nothing.
     let t = setup();
     t.with_credit();
     t.client.fund_buffer(&t.lender, &(100 * USD));
@@ -2437,19 +2516,83 @@ fn a_default_takes_the_deposit_first_then_the_buffer() {
     let buffer_before = t.client.get_pool().buffer;
     t.client.cover_default(&t.shop);
     let pool = t.client.get_pool();
-    assert_eq!(buffer_before - pool.buffer, 60 * USD);
-    assert_eq!((pool.lent, pool.recourse), (0, 0));
+    assert_eq!(pool.buffer, buffer_before);
+    assert_eq!((pool.lent, pool.recourse), (60 * USD, 0));
     let shop = t.client.get_shop(&t.shop);
     assert_eq!(
         (
             shop.written_off,
             shop.covered_by_distributor,
-            shop.vouched_owed
+            shop.vouched_owed,
+            shop.owed,
+            shop.limit
         ),
-        (60 * USD, 40 * USD, 0)
+        (0, 100 * USD, 0, 0, 0)
     );
-    assert_eq!(t.client.get_recourse(&t.distributor).vouched_out, 0);
+    let recourse = t.client.get_recourse(&t.distributor);
+    assert_eq!((recourse.vouched_out, recourse.debt), (0, 60 * USD));
     t.assert_pool_matches_balance();
+}
+
+#[test]
+fn a_distributor_in_debt_pays_it_from_its_next_payouts() {
+    let t = setup();
+    t.with_credit();
+    t.vouched(40 * USD);
+    t.invoice(1, 100 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    let due = t.client.get_shop(&t.shop).due_at;
+    t.env.ledger().set_timestamp(due + 8 * DAY);
+    t.client.call_recourse(&t.shop);
+    assert_eq!(t.client.get_recourse(&t.distributor).debt, 60 * USD);
+
+    // Another shop pays a $50 invoice digitally: $49.95 after the 0.10% usage fee, all to the debt.
+    let other = t.other_shop();
+    t.client.create_invoice(&t.distributor, &2, &other, &t.driver, &(50 * USD), &(due + 9 * DAY));
+    let before = t.balance(&t.distributor);
+    let lent_before = t.client.get_pool().lent;
+    t.client.pay(&other, &2, &(50 * USD));
+    assert_eq!(t.balance(&t.distributor), before);
+    let paid = 50 * USD - 50 * USD / 1_000;
+    assert_eq!(t.client.get_recourse(&t.distributor).debt, 60 * USD - paid);
+    assert_eq!(lent_before - t.client.get_pool().lent, paid);
+
+    // A $100 credit sale's payout clears the rest; the distributor gets only what's left.
+    t.client.set_terms(&other, &(200 * USD));
+    t.client.create_invoice(&t.distributor, &3, &other, &t.driver, &(100 * USD), &(due + 9 * DAY));
+    let before = t.balance(&t.distributor);
+    t.client.pay_with_credit(&other, &3);
+    let payout = 100 * USD - 100 * USD * 150 / 10_000;
+    let rest = 60 * USD - paid;
+    assert_eq!(t.balance(&t.distributor) - before, payout - rest);
+    assert_eq!(t.client.get_recourse(&t.distributor).debt, 0);
+    t.assert_pool_matches_balance();
+}
+
+#[test]
+fn a_distributor_in_debt_cant_vouch_or_get_the_vouched_fee() {
+    let t = setup();
+    t.with_credit();
+    t.vouched(30 * USD);
+    t.invoice(1, 150 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    let due = t.client.get_shop(&t.shop).due_at;
+    t.env.ledger().set_timestamp(due + 8 * DAY);
+    t.client.call_recourse(&t.shop);
+    assert!(t.client.get_recourse(&t.distributor).debt > 0);
+
+    let other = t.other_shop();
+    t.client.set_terms(&other, &(200 * USD));
+    assert_eq!(
+        t.client.try_vouch(&t.distributor, &other, &true),
+        Err(Ok(Error::RecourseDebtOwed))
+    );
+    // Still vouched for the first shop, but its next credit sale goes at the normal fee.
+    t.client.set_terms(&t.shop, &(200 * USD));
+    t.client.create_invoice(&t.distributor, &2, &t.shop, &t.driver, &(100 * USD), &(due + 9 * DAY));
+    t.client.pay_with_credit(&t.shop, &2);
+    assert_eq!(t.client.get_invoice(&2).credit_fee, 100 * USD * 150 / 10_000);
+    assert_eq!(t.client.get_shop(&t.shop).vouched_owed, 0);
 }
 
 #[test]
@@ -2577,17 +2720,20 @@ fn pay_later_paid_late_counts_as_late() {
 }
 
 #[test]
-fn pay_later_in_cash_still_counts() {
+fn pay_later_is_never_paid_in_cash() {
+    // Yahya, Nov 16: anything on 7 days is paid back only in digital dollars.
     let t = setup();
     t.invoice(1, 100 * USD);
     t.client.offer_own_credit(&t.distributor, &t.shop, &true);
     t.client.pay_later(&t.shop, &1);
-    t.client.cash_claim(&t.driver, &1, &(100 * USD));
-    t.client.cash_confirm(&t.shop, &1, &(100 * USD));
+    assert_eq!(
+        t.client.try_cash_claim(&t.driver, &1, &(100 * USD)),
+        Err(Ok(Error::OnPayLater))
+    );
+    t.client.pay(&t.shop, &1, &(100 * USD));
     let shop = t.client.get_shop(&t.shop);
     assert_eq!(shop.later_owed, 0);
     assert_eq!(shop.later_on_time, 1);
-    assert_eq!(t.client.get_usage_owed(&t.distributor), 1_000_000);
 }
 
 #[test]
@@ -2774,7 +2920,7 @@ fn on_time_pay_later_counts_on_the_record_but_never_raises_the_pool_limit() {
     t.env.ledger().set_timestamp(START + 6 * WEEK + DAY);
     t.client.repay(&t.shop, &(50 * USD));
     let shop = t.client.get_shop(&t.shop);
-    assert_eq!((shop.limit, shop.good_cycles), (225 * USD, 1));
+    assert_eq!((shop.limit, shop.good_cycles), (215 * USD, 1)); // $50 cycle: +$15
 }
 
 #[test]
@@ -2789,7 +2935,7 @@ fn on_time_pay_later_does_not_reset_or_add_to_good_cycles() {
     // A pay-later paid on time a week later leaves both alone.
     t.later_paid(1, 2, 50 * USD, 0);
     let shop = t.client.get_shop(&t.shop);
-    assert_eq!((shop.limit, shop.good_cycles), (225 * USD, 1));
+    assert_eq!((shop.limit, shop.good_cycles), (215 * USD, 1)); // $50 cycle: +$15
 }
 
 #[test]
@@ -2822,7 +2968,7 @@ fn late_pay_later_resets_good_cycles() {
     assert_eq!(t.client.get_shop(&t.shop).good_cycles, 1);
     t.later_paid(1, 2, 40 * USD, 3);
     let shop = t.client.get_shop(&t.shop);
-    assert_eq!((shop.limit, shop.good_cycles), (200 * USD, 0));
+    assert_eq!((shop.limit, shop.good_cycles), (190 * USD, 0)); // $215 - $25
 }
 
 #[test]
@@ -2835,7 +2981,7 @@ fn pay_later_without_pool_terms_only_builds_the_record() {
 }
 
 #[test]
-fn late_cash_pay_later_still_costs() {
+fn late_pay_later_still_costs() {
     let t = setup();
     t.with_credit();
     t.invoice(1, 50 * USD);
@@ -2843,8 +2989,7 @@ fn late_cash_pay_later_still_costs() {
     t.client.pay_later(&t.shop, &1);
     let due = t.client.get_invoice(&1).due;
     t.env.ledger().set_timestamp(due + 3 * DAY);
-    t.client.cash_claim(&t.driver, &1, &(50 * USD));
-    t.client.cash_confirm(&t.shop, &1, &(50 * USD));
+    t.client.pay(&t.shop, &1, &(50 * USD));
     let shop = t.client.get_shop(&t.shop);
     assert_eq!((shop.limit, shop.later_late), (175 * USD, 1));
 }
@@ -2926,4 +3071,13 @@ fn a_revoked_distributor_can_still_record_cash_handed_in() {
     // Re-approving works as before.
     t.client.approve_distributor(&t.distributor);
     assert!(t.client.is_distributor(&t.distributor));
+}
+
+fn bps_of(amount: i128, rate: i128) -> i128 {
+    amount * rate / 10_000
+}
+
+fn half_up_front(t: &Setup) -> bool {
+    t.env
+        .as_contract(&t.client.address, || load_shop(&t.env, &t.shop).unwrap().cycle_half_up_front)
 }
