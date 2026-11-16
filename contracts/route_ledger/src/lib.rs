@@ -768,6 +768,9 @@ impl RouteLedger {
 
     // ---------- v2: cash, the lender pool and credit ----------
 
+    /// Cash is all or nothing (Yahya, Nov 16, #237): it pays all that is left on
+    /// the invoice, never a part of it.
+    ///
     /// The driver says "the shop gave me this much cash". Nothing changes
     /// until the shop confirms it.
     pub fn cash_claim(env: Env, driver: Address, id: u64, amount: i128) -> Result<(), Error> {
@@ -784,6 +787,9 @@ impl RouteLedger {
         }
         if amount > invoice.amount - invoice.paid {
             return Err(Error::Overpay);
+        }
+        if amount != invoice.amount - invoice.paid {
+            return Err(Error::InvalidAmount);
         }
         put(&env, &DataKey::CashClaim(id), &amount);
         CashClaimed { id, driver, amount }.publish(&env);
@@ -816,7 +822,6 @@ impl RouteLedger {
         if claim > invoice.amount - invoice.paid {
             return Err(Error::Overpay);
         }
-
         invoice.paid += claim;
         record_payment(&env, &mut invoice, PayMethod::Cash, claim);
         add(&env, DataKey::DriverCash(invoice.driver.clone()), claim);
