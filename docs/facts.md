@@ -1048,3 +1048,35 @@ _Entries 64 and 65 came out of Rohan's finance review on Nov 14 ("isn't Stellar 
   - The source is a trade publication summarising MoneyGram's release, not the release itself. Open MoneyGram's own release (PR Newswire, 22 Apr 2026) before quoting it on a slide.
   - Idea, not a fact: a shop owner whose family already receives remittances in the MoneyGram app could pay the truck from that balance, skipping cash-in. Nobody has checked whether the app can send to an outside Stellar address.
 - **Checked:** Claude, 14 Nov 2026 (opened the article; the quote and date match). Pending a teammate's check.
+
+_Entries 66 to 68 come from Ruhaan's cash-in research on #156 (comment of 16 Nov 2026). Each one is a route a shop could use today to turn $50 in cash into USDC on Stellar in its own wallet. The costs come from **published fee structures with example inputs**, not from live quotes, and nobody has done a field test yet. Context §6 has the plan for testing them._
+
+## 66. Cash-in route A: a Chivo machine, then a LOBSTR swap to USDC on Stellar (about $1.25 on $50)
+- **Claim:** A shop owner puts $50 in cash into a Chivo machine and receives bitcoin in Chivo Wallet. In LOBSTR, a Stellar wallet, she opens "Deposit from another chain → Bitcoin → USDC on Stellar". She sends the quoted bitcoin from Chivo to the swap address within the 3-hour window, and LOBSTR's partner NEAR Intents delivers USDC to her Stellar account.
+- **Number:** about $1.25 in costs on $50 (about 2.5%): $0 assumed at the Chivo deposit, about $0.50 assumed to send the bitcoin, and about $0.75 for the swap service and network charge. She receives about 48.75 USDC. Athena's filing says 200 Chivo machines were first installed in El Salvador. How many still take deposits is unknown.
+- **Source:** LOBSTR help, "NEAR Intents partnership: swap crypto from another chain to Stellar", https://lobstr.freshdesk.com/support/solutions/articles/151000227418-near-intents-partnership-swap-crypto-from-another-chain-to-stellar-with-lobstr ; Athena Bitcoin Global 10-Q, https://www.sec.gov/Archives/edgar/data/1095146/000168316826003924/abit_i10q-033126.htm ; Chivo deposit tutorial, https://www.youtube.com/watch?v=Z2mtcYPT4ec
+- **Use in:** Q&A on Risk #1 ("can a shop get digital dollars today?"). Ruhaan rates this route the cheapest and the first to field-test.
+- **Caveat:**
+  - The $0 deposit fee and the $0.50 send cost are assumptions. The active machine count and the real fee need a check in El Salvador.
+  - The money passes through bitcoin for a few minutes. Price moves inside the swap window come out of the shop's pocket. The app must never call it crypto (context §3.5).
+  - LOBSTR needs a Stellar account that already holds a Circle USDC trustline. Relay accounts have one.
+  - Athena's filing says some Chivo-branded machines can send bitcoin straight to an outside address. That would skip Chivo Wallet, but no machine has been tried with a swap address.
+- **Checked:** Ruhaan, 16 Nov 2026 (#156 comment, links opened). Claude has not opened them.
+
+## 67. Cash-in route B: a Western Union counter, Airtm, then a withdrawal to Stellar (about $5.42 on $50)
+- **Claim:** In Airtm, the shop owner chooses "Add funds → Western Union", and a peer accepts. Airtm holds the peer's USDC in escrow. She sends the peer $46 in cash from an AirPak or Western Union counter, with ID, and keeps the receipt. When the peer confirms receipt, Airtm releases the USDC. She then withdraws it to her own Stellar address.
+- **Number:** about $5.42 on $50 (about 11%): $4.00 for Western Union, a 2% Airtm spread ($0.92) and $0.50 for the Stellar withdrawal. She receives 44.58 USDC. AirPak advertises 800+ points in El Salvador.
+- **Source:** Airtm help on payment methods, escrow, rates and fees, and Stellar USDC withdrawals (links on #156); AirPak FAQ, https://airpak.com.sv/preguntas-frecuentes/ ; Western Union SV FAQ, https://www.westernunion.com/sv/es/frequently-asked-questions.html
+- **Use in:** Q&A, as the counter-based route: a person at a counter takes the cash, with no machine involved.
+- **Caveat:**
+  - The trade needs a peer to be available, and the timing and real fees still need testing. Western Union itself tells customers not to send money to people they have never met, and the Airtm peer is a stranger.
+  - It is the slowest and least certain route of the three. Use it as a backup, never as the plan.
+- **Checked:** Ruhaan, 16 Nov 2026 (#156 comment). Claude has not opened the links.
+
+## 68. Cash-in route C: an Athena bitcoin machine, then a LOBSTR swap (about $11.47 on $50)
+- **Claim:** At an Athena machine, the shop owner scans the bitcoin QR of a fresh LOBSTR swap ("Bitcoin → USDC on Stellar") and pays $50 in cash. NEAR Intents converts the bitcoin to USDC on Stellar.
+- **Number:** about $11.47 on $50 (about 23%), using a $3 flat fee and a 20% markup in the model. She receives about 38.53 USDC. Athena lists 21 locations in El Salvador. Its SEC filing reports a typical 13% to 28% markup.
+- **Source:** Athena locator, https://branches.athenabitcoin.com/ ; Athena terms, https://athenabitcoin.com/legal/doc/terms-of-service/ ; 10-Q as in entry 66.
+- **Use in:** Q&A only, to show we compared the routes. It is too expensive for a shop.
+- **Caveat:** No Salvadoran machine has been tried with a swap QR. If the machine insists on a wallet the shop controls, that adds a step and possibly a fee.
+- **Checked:** Ruhaan, 16 Nov 2026 (#156 comment). Claude has not opened the links.

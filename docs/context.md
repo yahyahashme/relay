@@ -457,6 +457,9 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 | 13 | **Use the counters that already exist.** Banks run 8,900 correspondent points inside small businesses (facts 41). One bank's customers deposit at PuntoXpress at no extra cost (42), and a wallet tops up at 748+ Punto Express points without surcharge (43). A banked shop deposits there and pays from its account; Transfer365 is free (14). | Nov 12 | Most promising for banked shops |
 | 14 | **Idea 1 already works for loans.** CrediCampo borrowers repay through Tigo Money's 2,500+ agents, and Banco Integral's through AKÍ Pago's about 1,000 points (facts 44). We need a partner that does the same and credits digital dollars. | Nov 12 | Precedent found |
 | 15 | **Ask partners that already hold the licences.** A bank that is also registered as a digital asset provider (Banco Atlántida El Salvador, facts 46) has banking and a digital asset registration; a licensed e-money company (Tigo Money, 45) has the cash agents. Contact them first. | Nov 12 | To contact |
+| 16 | **Chivo machine + LOBSTR swap** (facts 66). Cash goes into a Chivo machine as bitcoin, and a LOBSTR swap turns it into USDC on Stellar in the shop's own wallet. About $1.25 on $50 (about 2.5%) on published fees, cheaper than MoneyGram's own cash-in benchmark of $2 on $50 where it offers cash-in. | Nov 16 | **First to field-test** (Ruhaan, #156) |
+| 17 | **Western Union counter + Airtm** (facts 67). The shop pays cash to an Airtm peer at an AirPak or Western Union counter, and the USDC comes out of escrow to its Stellar address. About $5.42 on $50 (about 11%). Depends on a peer being available. | Nov 16 | Backup, counter-based |
+| 18 | **Athena bitcoin machine + LOBSTR swap** (facts 68). About $11.47 on $50 (about 23%), with a 13 to 28% markup. | Nov 16 | Too expensive |
 
 **Finding, Nov 7 (Yahya, MoneyGram Ramps locator):** MoneyGram has **cash-out** points in El Salvador (USDC to cash), in San Salvador and other cities. The locator shows the nearest 10 at a time, so we don't have a full count. Examples in central San Salvador: Banco Cuscatlán, Super Selectos, Banco Promerica, Banco Integral, Banco Davivienda, Banco Abank and a DLC road market. What it means for us: cash-out has a real answer today, so a distributor can turn digital dollars into cash at a bank or supermarket. **Cash-in (cash to USDC) is still unsolved,** and that's the half shops need.
 
@@ -473,7 +476,25 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 
 **Built, Nov 16 (#235, kept by Yahya after a second look):** split payment at the door. A shop can pay part in cash (the driver records any amount with "Recibí otro monto", the shop confirms it) and put the rest on the lenders' 7 days in the same confirm. The credit part and its fee stay in dólares digitales: the pool pays the distributor and keeps the fee at the door, and the shop repays only digitally. The cash part is still the two-tap record from Nov 10, so it doesn't solve cash-in. It does mean a shop short on cash pays what it has in cash and repays the rest digitally within the week (idea 2).
 
-**Still to find out:** what a partner pays per deposit, whether a partner will credit digital dollars rather than a bank account, and how far the nearest counter is for a typical shop (ask it in interviews, §13 question 6).
+**Found, Nov 16 (Ruhaan, #156; facts 66 to 68): how we go about cash-in.** A shop can already turn cash into USDC on Stellar in its own wallet today. Ruhaan priced three routes on $50, using published fees and example inputs:
+
+| Route | Cost on $50 | Shop receives |
+|---|---|---|
+| Chivo machine → LOBSTR swap (idea 16) | about $1.25 (2.5%) | about 48.75 USDC |
+| Western Union / AirPak counter → Airtm (17) | about $5.42 (11%) | 44.58 USDC |
+| Athena machine → LOBSTR swap (18) | about $11.47 (23%) | about 38.53 USDC |
+
+The plan:
+
+1. **Field-test the Chivo → LOBSTR route first.** Record the cash paid, the receipt, the app's quote, the Stellar transaction, the USDC actually received and the time it took. A real test has to land on a mainnet wallet, because the demo runs on testnet.
+2. **Keep Airtm as the backup that uses a counter.**
+3. **Keep the licensed partner as the long-term answer** (ideas 1, 13 to 15). These routes work today with no deal, but each one passes through bitcoin or a peer trade for a few minutes. A partner that credits digital dollars straight from a cash deposit is cleaner for shops and lenders.
+
+Since credit is repaid only in digital dollars (Nov 16), route A is how a cash-only shop repays within the week today.
+
+What not to say: that cash-in is solved, or that $1.25 is a quote. Until the field test, it is "about $1.25 on published fees".
+
+**Still to find out:** the real costs and timing of route A in a field test (above), how many Chivo machines still take deposits, what a partner pays per deposit, whether a partner will credit digital dollars rather than a bank account, and how far the nearest counter is for a typical shop (ask it in interviews, §13 question 6).
 
 ---
 
@@ -909,6 +930,7 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 | Nov 16 | Cash up front earns no credit benefit (Yahya: the cash part "should count as way less credit or even none"). The contract keeps `CashPaid` per invoice, and `pay_with_credit` prices the fee and the half-up-front waiver as if the cash part weren't on the invoice: $50 cash + $50 on credit pays 1.50% like $50 all on credit; $50 in digital dollars + $50 on credit pays 1.22%. Goes out with the #222 redeploy. |
 | Nov 16 | #231 fraud flags built (Yahya's policy, #221): six checks on every distributor's invoices after each new invoice and on "Revisar ahora" in `/admin`, credit on the pool paused while in review, "Pedir prueba" (DTE code or delivery photo), "Despejar" or "Cerrar cuenta" (`revoke_distributor`; for a shop, limit $0), and a note for legal action. Stored in `fraud_reviews`. App only. Details in §7.8. |
 | Nov 16 | Full recourse on vouched shops (Yahya: "every shop that doesn't pay back on credit, the distributor owes the lenders that same amount"). Contract, stacked on #222 for one redeploy: `take_recourse` moves the whole vouched debt to the distributor; what the deposit can't pay is `RecourseDebt`, counted as lent, paid first from its next payouts (`pay_distributor` in `pay`, `pay_with_credit`, `withdraw_recourse`); `vouch` refuses with error 22 while it owes, and its credit sales go at the normal fee. A default still sets the shop's limit to $0. The 20% deposit minimum stays. |
+| Nov 16 | Cash-in plan (Ruhaan's research on #156, Yahya): field-test the Chivo machine → LOBSTR route to USDC on Stellar first (about $1.25 on $50 on published fees), keep the Western Union/Airtm counter route as the backup, and keep looking for a licensed partner for the long term. Facts 66 to 68, ideas 16 to 18 in §6. Docs only; the demo still simulates cash-in. |
 
 ---
 

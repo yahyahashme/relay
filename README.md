@@ -86,12 +86,20 @@ Anyone can sign up at `/registro` (shop or distributor; drivers join by their di
 
 ## Risk #1: turning cash into digital dollars
 
-We think shops are mostly paid in cash. For digital payments to work, that cash has to become digital dollars somewhere, cheaply. We haven't solved this yet. As of Nov 7, the other direction seems to exist: MoneyGram lists cash-out points in El Salvador, such as banks and supermarkets in San Salvador, so distributors may be able to cash out (its locator shows only the nearest 10, so we have no full count). For El Salvador, its coverage data lists cash-out but, as far as we found, not cash-in, and no person has checked its map yet. Getting cash in is the open problem. Our ideas so far are in section 6 of [docs/context.md](docs/context.md).
+We think shops are mostly paid in cash. For digital payments to work, that cash has to become digital dollars somewhere, cheaply. Cash-out already has an answer: MoneyGram lists cash-out points in El Salvador, such as banks and supermarkets. For cash-in, Ruhaan found three routes a shop could use today to turn cash into USDC on Stellar in its own wallet. Using published fees on $50:
+
+| Route | Cost on $50 |
+|---|---|
+| A Chivo cash machine, then a swap in the LOBSTR Stellar wallet | about $1.25 |
+| A Western Union counter, then Airtm | about $5.42 |
+| An Athena machine, then the LOBSTR swap | about $11.47 |
+
+These numbers come from published fees, not live quotes, and none of the routes has been field-tested yet. Sources: [docs/facts.md](docs/facts.md) entries 66 to 68. Full notes: section 6 of [docs/context.md](docs/context.md).
 
 **Our plan:**
-- The shop repays like a bill: cash at a bank or payment point with a reference number, and a licensed partner converts the cash in bulk.
-- One weekly cash-in of only what is owed, with no deposit at sign-up.
-- Partner with a bank or cash-in company that already has a reputation in El Salvador.
+- Field-test the Chivo → LOBSTR route first. Keep the Western Union/Airtm counter route as the backup.
+- One weekly cash-in of only what is owed, with no deposit at sign-up. Credit is repaid only in digital dollars.
+- Long term, partner with a licensed bank or cash-in company in El Salvador that credits digital dollars straight from a cash deposit, so shops don't have to go through bitcoin or a peer trade.
 
 The demo uses test dollars, with cash-in simulated and labelled on screen.
 

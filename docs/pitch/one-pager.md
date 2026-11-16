@@ -51,7 +51,7 @@ Target: 120 to 150 words.
 <!-- q6 -->
 Rohan studies FARM (Financial Analysis and Risk Management), which covers the credit and risk side. Three engineers (software, two computer) built and tested our public contract, CAGCZ3I7CQHZDELPV5OB2W4D4LHA7MPSOBP4NO2AV4JO2G6HED7HV4ML on Stellar testnet, and the app: https://relay-sv.vercel.app. Then we asked for help: 2 advisor calls, and emails to 4 banks and a supermarket chain in El Salvador. We are first-year Waterloo students and none of us has run a shop, so we learned this from them.
 
-We also say the hardest part plainly. Risk #1: turning cash into digital dollars isn't solved in El Salvador, and our demo simulates it; MoneyGram lists cash-out points in El Salvador but, as far as we found, not cash-in. Our plan: shops repay weekly like a bill at a bank or payment point, and a licensed partner converts in bulk and does KYC on shops and KYB on distributors.
+We also say the hardest part plainly. Risk #1 is turning cash into digital dollars, and our demo simulates it. MoneyGram lists cash-out points in El Salvador. For cash-in, a shop can already get USDC on Stellar through a Chivo cash machine and a LOBSTR wallet swap, for about $1.25 on $50 on published fees. We field-test that route first. Long term, a licensed partner converts cash in bulk and does KYC on shops and KYB on distributors.
 <!-- /q6 -->
 
 ## 7. Submit your Devpost link

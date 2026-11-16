@@ -203,6 +203,7 @@ Do not cut "says Conamype", "(2019 survey)", or "KYC and KYB". The fact sheet an
 | "Stellar says payments are final in about five seconds" (0:25 segment); "fees under a cent" (answer 6) | `docs/facts.md` entries 36 (developers.stellar.org: "Ledgers close in ~5 seconds, and their transactions are final when they do.") and 37 (stellar.org/solutions/cross-border-payments: "network fees under a cent") | Matches. Both are Stellar describing itself, and a teammate still has to open the links (entries 36 and 37 say so). Stellar's own pages give conflicting USD fee figures, so the script gives no dollar fee and attributes the claim. |
 | 8 in 10 small businesses in four countries pay suppliers mainly in cash (left panel) | Entry 11. The crews sentence that shared this line (entry 40, pending) was cut from the board on Nov 14. | Matches entry 11 (regional, four countries). |
 | MoneyGram lists cash-out in El Salvador, we found no cash-in (answer 3) | Entry 38: moneygram.com/stellar, "Cash-out is available in 170+ countries and territories and cash-in in 25+ countries"; its coverage data lists El Salvador as cash-out only | Matches entry 38's safe wording ("as far as we found"). "Cash-out only" is false in general. No person has looked at the map yet (entry 38). |
+| Chivo machine + LOBSTR: about $1.25 on $50 (answer 3) | Facts 66 (Ruhaan, #156): published fees with example inputs | Matches, if "on published fees" is said. Not a quote and not field-tested. |
 | The product is called Relay, tagline "Del efectivo al crédito" (script, board title) | `lib/brand.ts` on `main`: `APP_NAME = "Relay"`, `TAGLINE = "Del efectivo al crédito"`; PR #100 | Matches |
 | The app is at relay-sv.vercel.app (board, under the QR) | `curl -sI https://relay-sv.vercel.app` answers 200 (Nov 12 night); the old tiendas-stellar address answers 307 to it. `public/qr-demo.png` decodes (macOS CoreImage) to `https://relay-sv.vercel.app/demo` | Matches |
 | Fee sponsorship (the diagram says "Pays the network fees (fee sponsorship)") | Built in #113 (merged Nov 13): when the sponsor key is set, every app transaction goes out inside a fee bump that the sponsor pays. #113 says the key is set in Vercel; we did not look at Vercel's settings. Checked Nov 13 on Horizon testnet (public): the test transaction in #113, `1491673f…`, has `fee_account` `GA4Q52…` (the sponsor) and source Tienda Rosa `GD2HWN…`; the sponsor's 8 most recent transactions (19:41 to 19:51 UTC) came from 6 different accounts, all successful. | **Claimable**, worded: "our sponsor account pays the network fees". Not "gasless" and not "users never need XLM": the demo accounts hold test XLM. |
@@ -246,13 +247,21 @@ The eight questions from #39, each with an answer that fits **20 seconds (46 wor
 
 ### 3. How does a shop get digital dollars? (Risk #1)
 
-> Our biggest risk, and not solved: cash-in. MoneyGram lists cash-out in El Salvador, but we found no cash-in. Our plan: shops repay weekly like a bill, at a bank or payment point, and a licensed partner converts the cash in bulk. Our demo simulates cash-in.
+> Cash-in is our biggest risk. MoneyGram lists cash-out here. For cash-in, we found three routes into digital dollars on Stellar. The cheapest, a Chivo cash machine plus the LOBSTR wallet, costs about $1.25 on $50 on published fees. We field-test it next. Our demo simulates cash-in.
 
-45 words, 19.3 s. ("No shop pre-loads money." was cut to fit 20 s after the MoneyGram hedge; say it if asked.)
-- **Facts:** context §6: the Nov 7 finding (MoneyGram has cash-out points in El Salvador, cash-in is open; MoneyGram's own page, moneygram.com/stellar, says cash-out in 170+ countries and territories and cash-in in 25+, so "cash-out only" is false in general and we only say what we found here), ideas 1 (repay like a bill), 2 and 10 (one weekly trip, no deposit at sign-up) and 12 (partner, don't build). README "Risk #1". The demo labels cash-in as simulated on screen.
-- **Must include:** say it first, say "not solved", then the plan.
-- **Never:** that cash-in is solved, that a partner exists, that shops can already convert cash cheaply, or that MoneyGram covers "cash-out only".
-- **If they push, "what does cash-in cost?":** > We don't know yet what cash-in costs per $100, or how far a typical shop is from a payment point. Finding that out is the next step with a partner. (30 words; context §6 "Still to find out".)
+48 words, about 20 s.
+- **Facts:**
+  - Facts 66 to 68 (Ruhaan, #156): the three routes and their costs.
+  - Context §6: "Found, Nov 16" and ideas 16 to 18.
+  - Facts 38 and 65: MoneyGram cash-out.
+  - README "Risk #1". The demo labels cash-in as simulated on screen.
+- **Must include:** say it first, say "on published fees", and say it isn't field-tested yet.
+- **Never:**
+  - that cash-in is solved, field-tested or cheap for certain, or that $1.25 is a quote
+  - that a partner exists
+  - that MoneyGram covers "cash-out only" or does cash-in in El Salvador
+- **If they push, "isn't that bitcoin?":** > For a few minutes, yes. LOBSTR swaps it straight into USDC on Stellar, so the shop holds digital dollars. Long term we want a licensed partner that credits digital dollars straight from a cash deposit. (36 words; context §6.)
+- **If they push, "what about a counter, not a machine?":** > Western Union or AirPak, which has over 800 points, through Airtm: about $5.42 on $50. It's our backup. (18 words; facts 67.)
 
 ### 4. What if a shop doesn't pay?
 
