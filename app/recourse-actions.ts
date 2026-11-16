@@ -45,9 +45,9 @@ const amountUnits = (amount: number) => (Number.isFinite(amount) && amount > 0 ?
 
 export async function getRecourse(): Promise<RecourseView> {
   const who = await acting();
-  if (!who) return { distributorId: "", deposit: 0, vouchedOut: 0, required: 0 };
+  if (!who) return { distributorId: "", deposit: 0, vouchedOut: 0, required: 0, debt: 0 };
   const view = await read(readClient().get_recourse({ distributor: who.address }));
-  return { distributorId: who.id, deposit: toDollars(view.deposit), vouchedOut: toDollars(view.vouched_out), required: toDollars(view.required) };
+  return { distributorId: who.id, deposit: toDollars(view.deposit), vouchedOut: toDollars(view.vouched_out), required: toDollars(view.required), debt: toDollars(view.debt) };
 }
 
 export async function vouchShop(shopId: string, on: boolean): Promise<Receipt> {

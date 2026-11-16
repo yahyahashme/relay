@@ -585,7 +585,7 @@ function vouchedOut(): number {
 
 export function getRecourse(): RecourseView {
   const out = dollars(vouchedOut());
-  return { distributorId: MOCK_DISTRIBUTOR, deposit: dollars(db().recourse.deposit), vouchedOut: out, required: recourseRequired(out) };
+  return { distributorId: MOCK_DISTRIBUTOR, deposit: dollars(db().recourse.deposit), vouchedOut: out, required: recourseRequired(out), debt: 0 };
 }
 
 export function vouchShop(shopId: string, on: boolean): Receipt {

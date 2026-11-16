@@ -150,6 +150,9 @@ pub enum Error {
     /// The invoice is already on pay later with its distributor, so it can't
     /// go on pay later again or move onto the lender pool (#194).
     OnPayLater = 21,
+    /// The distributor still owes the pool for a vouched shop that didn't
+    /// pay (full recourse): no new vouching until it's paid.
+    RecourseDebtOwed = 22,
 }
 
 #[contracttype]
@@ -345,6 +348,9 @@ pub struct RecourseView {
     pub vouched_out: i128,
     /// The least the deposit can be: 20% of `vouched_out`, rounded up.
     pub required: i128,
+    /// Full recourse: what a vouched shop didn't pay and the deposit couldn't
+    /// cover. The distributor owes it to the pool; its next payouts pay it first.
+    pub debt: i128,
 }
 
 #[contracttype]
@@ -365,6 +371,8 @@ pub enum DataKey {
     Lender(Address),
     RecourseDeposit(Address),
     VouchedOut(Address),
+    /// What the distributor owes the pool for vouched shops (full recourse).
+    RecourseDebt(Address),
     /// (distributor, shop): the distributor gives this shop the 7 days itself (#194).
     OwnCredit(Address, Address),
     Later(Address),
@@ -515,6 +523,18 @@ pub struct RecourseCalled {
     pub paid: i128,
     /// What the shop still owes the pool after that.
     pub owed: i128,
+    /// What the deposit couldn't cover: the distributor owes it now.
+    pub debt: i128,
+}
+
+/// Part of a payout to a distributor went to its recourse debt instead.
+#[contractevent]
+pub struct RecourseDebtPaid {
+    #[topic]
+    pub distributor: Address,
+    pub amount: i128,
+    /// What it still owes after that.
+    pub debt: i128,
 }
 
 #[contractevent]
@@ -679,7 +699,13 @@ impl RouteLedger {
         let config = load_config(&env);
         let usage_fee = bps(amount, USAGE_FEE_BPS)?;
         let token = token::Client::new(&env, &config.token);
-        send(&token, &shop, &invoice.distributor, amount - usage_fee);
+        if recourse_debt(&env, &invoice.distributor) > 0 {
+            let mut pool = load_pool(&env);
+            pay_distributor(&env, &token, &shop, &invoice.distributor, amount - usage_fee, &mut pool);
+            save_pool(&env, &pool);
+        } else {
+            send(&token, &shop, &invoice.distributor, amount - usage_fee);
+        }
         send(&token, &shop, &config.treasury, usage_fee);
 
         invoice.paid += amount;
@@ -1015,6 +1041,7 @@ impl RouteLedger {
         //    A shop its distributor vouches for pays 0.25% if the deposit
         //    covers it; a trusted shop pays less of the buffer's share (#185).
         let vouched = terms.voucher.as_ref() == Some(&invoice.distributor)
+            && recourse_debt(&env, &invoice.distributor) == 0
             && recourse_covers(&env, &invoice.distributor, amount)?;
         let (rate, to_buffer_bps, our_bps) = if vouched {
             (RECOURSE_FEE_BPS, 0, RECOURSE_FEE_BPS - RECOURSE_LENDER_BPS)
@@ -1037,12 +1064,12 @@ impl RouteLedger {
         let config = load_config(&env);
         let token = token::Client::new(&env, &config.token);
         let me = env.current_contract_address();
-        send(&token, &me, &invoice.distributor, payout);
         send(&token, &me, &config.treasury, ours);
 
         pool.available -= from_pool;
         pool.buffer += to_buffer;
         pool.lent += amount;
+        pay_distributor(&env, &token, &me, &invoice.distributor, payout, &mut pool);
         save_pool(&env, &pool);
 
         if terms.owed == 0 {
@@ -1210,6 +1237,9 @@ impl RouteLedger {
         if terms.owed > 0 {
             return Err(Error::ShopOwes);
         }
+        if on && recourse_debt(&env, &distributor) > 0 {
+            return Err(Error::RecourseDebtOwed);
+        }
         if on {
             terms.voucher = Some(distributor.clone());
         } else if terms.voucher.as_ref() == Some(&distributor) {
@@ -1365,15 +1395,11 @@ impl RouteLedger {
         );
         let mut pool = load_pool(&env);
         pool.recourse -= amount;
-        save_pool(&env, &pool);
         let config = load_config(&env);
         let token = token::Client::new(&env, &config.token);
-        send(
-            &token,
-            &env.current_contract_address(),
-            &distributor,
-            amount,
-        );
+        let me = env.current_contract_address();
+        pay_distributor(&env, &token, &me, &distributor, amount, &mut pool);
+        save_pool(&env, &pool);
         RecourseWithdrawn {
             distributor,
             amount,
@@ -1413,6 +1439,8 @@ impl RouteLedger {
         if owed == 0 {
             save_pool(&env, &pool);
             terms.good_cycles = 0;
+            // The voucher paid for it, but the shop still defaulted: no more credit.
+            terms.limit = 0;
             close_cycle(
                 &mut terms,
                 env.ledger().timestamp(),
@@ -1562,6 +1590,7 @@ fn recourse_view(env: &Env, distributor: &Address) -> Result<RecourseView, Error
         deposit,
         vouched_out,
         required: recourse_required(vouched_out),
+        debt: recourse_debt(env, distributor),
     })
 }
 
@@ -1596,25 +1625,66 @@ fn take_recourse(env: &Env, shop: &Address, terms: &mut Shop, pool: &mut Pool) -
     };
     let key = DataKey::RecourseDeposit(voucher.clone());
     let deposit: i128 = env.storage().persistent().get(&key).unwrap_or(0);
-    let paid = terms.vouched_owed.min(deposit);
-    if paid <= 0 {
-        return 0;
+    let vouched = terms.vouched_owed;
+    let paid = vouched.min(deposit);
+    // Full recourse (Yahya, Nov 16): the voucher answers for all of it. The
+    // deposit pays what it can now; the rest becomes the voucher's debt to the
+    // pool. That part stays counted as lent (an asset the lenders still hold),
+    // and the voucher's next payouts pay it back first.
+    let debt = vouched - paid;
+    if paid > 0 {
+        put(env, &key, &(deposit - paid));
+        pool.recourse -= paid;
+        pool.available += paid;
+        pool.lent -= paid;
     }
-    put(env, &key, &(deposit - paid));
-    pool.recourse -= paid;
-    pool.available += paid;
-    pool.lent -= paid;
-    reduce_vouched(env, terms, paid);
-    terms.owed -= paid;
-    terms.covered_by_distributor += paid;
+    if debt > 0 {
+        add(env, DataKey::RecourseDebt(voucher.clone()), debt);
+    }
+    reduce_vouched(env, terms, vouched);
+    terms.owed -= vouched;
+    terms.covered_by_distributor += vouched;
     RecourseCalled {
         shop: shop.clone(),
         distributor: voucher,
         paid,
         owed: terms.owed,
+        debt,
     }
     .publish(env);
-    paid
+    vouched
+}
+
+/// What the distributor owes the pool for vouched shops.
+fn recourse_debt(env: &Env, distributor: &Address) -> i128 {
+    env.storage()
+        .persistent()
+        .get(&DataKey::RecourseDebt(distributor.clone()))
+        .unwrap_or(0)
+}
+
+/// Pays `amount` to a distributor, but its recourse debt first: that part
+/// goes to the pool (back to the lenders) and only the rest reaches it.
+/// `from` is the payer, or the contract itself for pool payouts.
+fn pay_distributor(env: &Env, token: &token::Client, from: &Address, distributor: &Address, amount: i128, pool: &mut Pool) {
+    let debt = recourse_debt(env, distributor);
+    let take = debt.min(amount).max(0);
+    if take > 0 {
+        let me = env.current_contract_address();
+        if *from != me {
+            token.transfer(from, &me, &take);
+        }
+        pool.available += take;
+        pool.lent -= take;
+        put(env, &DataKey::RecourseDebt(distributor.clone()), &(debt - take));
+        RecourseDebtPaid {
+            distributor: distributor.clone(),
+            amount: take,
+            debt: debt - take,
+        }
+        .publish(env);
+    }
+    send(token, from, distributor, amount - take);
 }
 
 /// The shop's balance just reached 0: grade the cycle and update its record.

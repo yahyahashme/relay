@@ -2451,7 +2451,10 @@ fn recourse_pays_the_pool_after_seven_days_late() {
 }
 
 #[test]
-fn a_default_takes_the_deposit_first_then_the_buffer() {
+fn a_default_takes_the_deposit_then_the_distributor_owes_the_rest() {
+    // Full recourse (Yahya, Nov 16): the deposit pays what it can, the rest is
+    // the distributor's debt to the pool. The buffer isn't touched, and the
+    // debt stays counted as lent, so the lenders lose nothing.
     let t = setup();
     t.with_credit();
     t.client.fund_buffer(&t.lender, &(100 * USD));
@@ -2463,19 +2466,83 @@ fn a_default_takes_the_deposit_first_then_the_buffer() {
     let buffer_before = t.client.get_pool().buffer;
     t.client.cover_default(&t.shop);
     let pool = t.client.get_pool();
-    assert_eq!(buffer_before - pool.buffer, 60 * USD);
-    assert_eq!((pool.lent, pool.recourse), (0, 0));
+    assert_eq!(pool.buffer, buffer_before);
+    assert_eq!((pool.lent, pool.recourse), (60 * USD, 0));
     let shop = t.client.get_shop(&t.shop);
     assert_eq!(
         (
             shop.written_off,
             shop.covered_by_distributor,
-            shop.vouched_owed
+            shop.vouched_owed,
+            shop.owed,
+            shop.limit
         ),
-        (60 * USD, 40 * USD, 0)
+        (0, 100 * USD, 0, 0, 0)
     );
-    assert_eq!(t.client.get_recourse(&t.distributor).vouched_out, 0);
+    let recourse = t.client.get_recourse(&t.distributor);
+    assert_eq!((recourse.vouched_out, recourse.debt), (0, 60 * USD));
     t.assert_pool_matches_balance();
+}
+
+#[test]
+fn a_distributor_in_debt_pays_it_from_its_next_payouts() {
+    let t = setup();
+    t.with_credit();
+    t.vouched(40 * USD);
+    t.invoice(1, 100 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    let due = t.client.get_shop(&t.shop).due_at;
+    t.env.ledger().set_timestamp(due + 8 * DAY);
+    t.client.call_recourse(&t.shop);
+    assert_eq!(t.client.get_recourse(&t.distributor).debt, 60 * USD);
+
+    // Another shop pays a $50 invoice digitally: $49.95 after the 0.10% usage fee, all to the debt.
+    let other = t.other_shop();
+    t.client.create_invoice(&t.distributor, &2, &other, &t.driver, &(50 * USD), &(due + 9 * DAY));
+    let before = t.balance(&t.distributor);
+    let lent_before = t.client.get_pool().lent;
+    t.client.pay(&other, &2, &(50 * USD));
+    assert_eq!(t.balance(&t.distributor), before);
+    let paid = 50 * USD - 50 * USD / 1_000;
+    assert_eq!(t.client.get_recourse(&t.distributor).debt, 60 * USD - paid);
+    assert_eq!(lent_before - t.client.get_pool().lent, paid);
+
+    // A $100 credit sale's payout clears the rest; the distributor gets only what's left.
+    t.client.set_terms(&other, &(200 * USD));
+    t.client.create_invoice(&t.distributor, &3, &other, &t.driver, &(100 * USD), &(due + 9 * DAY));
+    let before = t.balance(&t.distributor);
+    t.client.pay_with_credit(&other, &3);
+    let payout = 100 * USD - 100 * USD * 150 / 10_000;
+    let rest = 60 * USD - paid;
+    assert_eq!(t.balance(&t.distributor) - before, payout - rest);
+    assert_eq!(t.client.get_recourse(&t.distributor).debt, 0);
+    t.assert_pool_matches_balance();
+}
+
+#[test]
+fn a_distributor_in_debt_cant_vouch_or_get_the_vouched_fee() {
+    let t = setup();
+    t.with_credit();
+    t.vouched(30 * USD);
+    t.invoice(1, 150 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    let due = t.client.get_shop(&t.shop).due_at;
+    t.env.ledger().set_timestamp(due + 8 * DAY);
+    t.client.call_recourse(&t.shop);
+    assert!(t.client.get_recourse(&t.distributor).debt > 0);
+
+    let other = t.other_shop();
+    t.client.set_terms(&other, &(200 * USD));
+    assert_eq!(
+        t.client.try_vouch(&t.distributor, &other, &true),
+        Err(Ok(Error::RecourseDebtOwed))
+    );
+    // Still vouched for the first shop, but its next credit sale goes at the normal fee.
+    t.client.set_terms(&t.shop, &(200 * USD));
+    t.client.create_invoice(&t.distributor, &2, &t.shop, &t.driver, &(100 * USD), &(due + 9 * DAY));
+    t.client.pay_with_credit(&t.shop, &2);
+    assert_eq!(t.client.get_invoice(&2).credit_fee, 100 * USD * 150 / 10_000);
+    assert_eq!(t.client.get_shop(&t.shop).vouched_owed, 0);
 }
 
 #[test]

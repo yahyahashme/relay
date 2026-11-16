@@ -31,7 +31,11 @@ export type Shop = {
   unlock?: { paid: number; needed: number; nextFrom?: string };
 };
 /** A distributor's recourse deposit (#185), in dollars. `required` = 20% of `vouchedOut`. */
-export type RecourseView = { distributorId: string; deposit: number; vouchedOut: number; required: number };
+export type RecourseView = {
+  distributorId: string; deposit: number; vouchedOut: number; required: number;
+  /** Full recourse: what it owes the pool for vouched shops that didn't pay, beyond its deposit. */
+  debt: number;
+};
 export type Driver = { id: string; name: string; cashHeld: number; distributorId?: string };
 /** The credit pool, in dollars. `lent` is what shops still owe it; lenders own `available + lent`. */
 export type Pool = { available: number; buffer: number; lent: number };

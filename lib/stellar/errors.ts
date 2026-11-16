@@ -37,6 +37,7 @@ const MESSAGES: Record<number, string> = {
   19: "Solo puede cambiar el respaldo cuando la tienda no debe nada.",
   20: "Su distribuidora no le da los 7 días en esta factura.",
   21: "Esta factura ya está en 7 días con su distribuidora.",
+  22: "Debe dinero al fondo por una tienda que respaldó. Sus próximos cobros lo pagan; hasta entonces no puede respaldar tiendas nuevas.",
   [LOW_BALANCE]: "No tiene suficientes dólares digitales para este pago.",
 };
 
