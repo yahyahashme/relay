@@ -7,10 +7,10 @@ import type { AuthenticationResponseJSON, PublicKeyCredentialCreationOptionsJSON
 /**
  * What the shop is confirming: pay (all or part), take the 7 days, confirm cash, or pay back credit.
  * A lender (#207): put money in the pool ("lend") or take it out ("withdraw").
- * A split (#235): pay a part now in dólares digitales ("split") and the rest goes on 7 days in the
- * same confirm. The amount is the part paid today. Cash is never split.
+ * A split (#235): pay a part now, digitally ("split") or by confirming the driver's cash ("splitcash"),
+ * and the rest goes on 7 days in the same confirm. The amount is the part paid today.
  */
-export type ConfirmAction = "pay" | "later" | "cash" | "split" | "repay" | "lend" | "withdraw";
+export type ConfirmAction = "pay" | "later" | "cash" | "split" | "splitcash" | "repay" | "lend" | "withdraw";
 
 export type ConfirmRequest = {
   action: ConfirmAction;
