@@ -415,7 +415,7 @@ export async function claimCash(invoiceId: number, amount: number): Promise<Rece
     if (!invoice) return fail("No encontramos esa factura.");
     if (invoice.amount - invoice.paid <= 0n) return fail("Esta factura ya está pagada.");
     if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
-    // Cash is all or nothing: the whole invoice, never a part of it (Yahya, Nov 15).
+    // Cash is all or nothing: the whole invoice, never a part of it (Yahya, Nov 16).
     if (invoice.paid > 0n || toUnits(amount.toFixed(2)) !== invoice.amount) return fail(CASH_WHOLE);
     const driver = (await getDirectory()).byAddress(invoice.driver);
     if (driver?.kind !== "driver") return fail("Este motorista no está en la ruta.");

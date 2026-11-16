@@ -131,7 +131,7 @@ export default function RouteScreen() {
   const shownId = shown?.invoice.id ?? null;
   if (shown && !shown.paid && armed !== shown.invoice.id) setArmed(shown.invoice.id);
 
-  // Cash is all or nothing (Yahya, Nov 15): only for the whole invoice, so not once a part was paid digitally.
+  // Cash is all or nothing (Yahya, Nov 16): only for the whole invoice, so not once a part was paid digitally.
   const canClaim = shown !== null && !shown.paid && shown.invoice.cashClaim === undefined && shown.invoice.paid === 0;
   const splitKey = shown && (shown.invoice.paid > 0 || shown.invoice.later) ? `${shown.invoice.id}:${shown.invoice.paid}:${shown.invoice.later ?? false}` : null;
   useEffect(() => {
