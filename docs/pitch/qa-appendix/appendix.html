@@ -1,0 +1,531 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Relay Q&amp;A Appendix</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap"><style>
+@page { size: 1920px 1080px; margin: 0; }
+html,body { margin:0; padding:0; }
+section.pg { width:1920px; height:1080px; position:relative; overflow:hidden; page-break-after:always; break-after:page; }
+aside { display:none; }
+section.pg {
+  background: #f1f5fa;
+  color: #0b1f3a;
+  font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
+  padding: 120px 128px 176px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.pn {
+  position: absolute;
+  top: 52px;
+  right: 128px;
+  width: 300px;
+  text-align: right;
+  margin: 0;
+  font-family: Inter, sans-serif;
+  font-weight: 700;
+  font-size: 28px;
+  color: #0b4ea2;
+}
+.kicker {
+  margin: 0;
+  font-family: Inter, sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0b4ea2;
+}
+h2.t {
+  margin: 0;
+  font-family: Inter, sans-serif;
+  font-weight: 800;
+  font-size: 54px;
+  line-height: 1.08;
+  color: #0b1f3a;
+}
+.src {
+  position: absolute;
+  left: 128px;
+  bottom: 48px;
+  width: 1664px;
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.3;
+  color: #4a586b;
+  border-top: 2px solid #dce4ee;
+  padding-top: 14px;
+}
+.row { display: flex; gap: 28px; }
+.col { display: flex; flex-direction: column; gap: 18px; }
+.grow { flex: 1; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.card {
+  background: #ffffff;
+  border: 2px solid #dce4ee;
+  border-radius: 16px;
+  padding: 22px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.card.hl { border-color: #0b4ea2; }
+.big {
+  margin: 0;
+  font-family: Inter, sans-serif;
+  font-weight: 800;
+  font-size: 60px;
+  line-height: 1;
+  color: #0b4ea2;
+}
+.big.bad { color: #b42318; }
+.big.ok { color: #146c43; }
+.mid {
+  margin: 0;
+  font-family: Inter, sans-serif;
+  font-weight: 800;
+  font-size: 40px;
+  line-height: 1.05;
+  color: #0b4ea2;
+}
+.lbl { margin: 0; font-size: 26px; line-height: 1.3; color: #0b1f3a; }
+.mini { margin: 0; font-size: 24px; line-height: 1.3; color: #4a586b; }
+.grp {
+  margin: 0;
+  font-family: Inter, sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #4a586b;
+}
+.fbox {
+  background: #ffffff;
+  border: 2px solid #0b4ea2;
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.fbox.dark { background: #0b1f3a; border-color: #0b1f3a; }
+.fbox.dark .lbl, .fbox.dark .fh { color: #f1f5fa; }
+.fbox.warn { border-color: #8f5200; background: #fcf0dc; }
+.fbox.bad { border-color: #b42318; background: #fde8e5; }
+.fbox.ok { border-color: #146c43; background: #e3f3e8; }
+.fbox.credit { border-color: #5b3fa6; background: #efeafb; }
+.fh {
+  margin: 0;
+  font-family: Inter, sans-serif;
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 1.15;
+  color: #0b1f3a;
+}
+.arr {
+  margin: 0;
+  font-family: Inter, sans-serif;
+  font-weight: 800;
+  font-size: 40px;
+  color: #0b4ea2;
+  align-self: center;
+}
+table.tb { border-collapse: collapse; width: 100%; font-size: 26px; background: #ffffff; }
+table.tb th {
+  text-align: left;
+  font-family: Inter, sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  color: #f1f5fa;
+  background: #0b1f3a;
+  padding: 12px 16px;
+}
+table.tb td { padding: 11px 16px; border-bottom: 2px solid #dce4ee; line-height: 1.25; vertical-align: top; }
+table.tb.c td { padding: 6px 14px; }
+svg text[font-family="Atkinson Hyperlegible"] { font-family: "Atkinson Hyperlegible", Inter, sans-serif; }
+.live { color: #146c43; font-weight: 700; }
+.plan { color: #8f5200; font-weight: 700; }
+.note {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.3;
+  color: #4a586b;
+  background: #e1edfb;
+  border-radius: 12px;
+  padding: 12px 18px;
+}
+
+</style></head><body>
+<!-- Relay Q&A appendix: 10 pages, 1920x1080. Edit the text in each <section>, then print to PDF (Chrome: Save as PDF, no margins). Speaker notes are in each <aside>. -->
+<section id="problem" class="pg">
+<p class="pn">1 / 10</p>
+<p class="kicker">Q&amp;A appendix · The problem</p>
+<h2 class="t">Shops borrow at loan-shark prices. Distributors drown in cash.</h2>
+<div class="row grow">
+<div class="col" style="width:1050px">
+<p class="grp">The shop</p>
+<div class="grid2">
+<div class="card"><p class="big bad">1,869%</p><p class="lbl">a year: the average rate loan sharks charge small businesses</p></div>
+<div class="card"><p class="big bad">62.2%</p><p class="lbl">of informal micro-businesses have borrowed from a loan shark</p></div>
+<div class="card"><p class="big">57%</p><p class="lbl">of adults have no account (43% do), so years of paying on time leave no record</p></div>
+<div class="card"><p class="big">24 of 30</p><p class="lbl">days a month shops are short of stock for lack of credit (official estimate)</p></div>
+</div>
+</div>
+<div class="col grow">
+<p class="grp">The distributor</p>
+<div class="card"><p class="mid">4.7–15.3%</p><p class="lbl">of cash taken is lost to handling it (US retail study)</p></div>
+<div class="card"><p class="mid">Cash on trucks</p><p class="lbl">delivery crews have been robbed and extorted</p></div>
+<div class="card hl"><p class="mid">No 7-day credit</p><p class="lbl">El Salvador's development bank knows of no lender that offers it</p></div>
+</div>
+</div>
+<p class="src">Sources: FUSAI &amp; ASOMI study, El Diario de Hoy, 24 Jul 2026 · World Bank Findex 2024, Diario El Mundo, 19 Jul 2025 · Conamype, El Diario de Hoy, 31 May 2026 · IHL Group "Cash Multipliers", Business Wire, 30 Jan 2018 · El Diario de Hoy, 23 Jul 2024 · BANDESAL email to Relay, 14 Nov 2026</p>
+<aside>Use for: why does this matter, who is hurt, why now. Loan-shark rate is a reported average and may repeat 2022 CIOPS data. Cash-handling cost is a North American retail study, use as an order of magnitude only.</aside>
+</section>
+<section id="market" class="pg">
+<p class="pn">2 / 10</p>
+<p class="kicker">Q&amp;A appendix · Market and access</p>
+<h2 class="t">A worldwide gap, a $2 billion proving ground</h2>
+<div class="row grow">
+<div class="col" style="width:1000px; gap:16px">
+<p class="grp">From the world to one country</p>
+<div class="row" style="align-items:center; gap:22px"><div class="card" style="width:380px; background:#0b1f3a; border-color:#0b1f3a"><p class="mid" style="color:#f1f5fa">$5.7T</p></div><p class="lbl" style="width:560px">credit small businesses in developing countries need but can't get (+$2.1T for informal firms)</p></div>
+<div class="row" style="align-items:center; gap:22px"><div class="card" style="width:320px; background:#0b4ea2; border-color:#0b4ea2"><p class="mid" style="color:#f1f5fa">85,265</p></div><p class="lbl" style="width:620px">shops and small retailers in El Salvador, 50,133 of them neighbourhood tiendas (2025)</p></div>
+<div class="row" style="align-items:center; gap:22px"><div class="card" style="width:260px; background:#265f9e; border-color:#265f9e"><p class="mid" style="color:#f1f5fa">$2B / yr</p></div><p class="lbl" style="width:680px">of stock those shops buy from distributors: our market</p></div>
+<div class="row" style="align-items:center; gap:22px"><div class="card" style="width:220px; background:#a8d5ff; border-color:#a8d5ff"><p class="mid" style="color:#0b1f3a">$2.3M</p></div><p class="lbl" style="width:720px">our yearly revenue if every one of those sales used Relay: a ceiling, not a forecast</p></div>
+</div>
+<div class="card grow" style="gap:12px">
+<p class="grp">Getting cash into digital dollars today</p>
+<p class="mini">Cost on $50 of cash, routes the team tested</p>
+<svg aria-label="Bar chart: cost of turning $50 cash into digital dollars. Chivo machine then LOBSTR swap about $1.25; Western Union then Airtm about $5.42; Athena bitcoin machine then LOBSTR about $11.47." viewBox="0 0 560 300" width="560" height="300">
+<text x="0" y="26" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Chivo machine → LOBSTR</text>
+<rect x="0" y="40" width="58" height="40" rx="6" fill="#146c43"/>
+<text x="70" y="70" font-size="26" font-weight="700" fill="#146c43" font-family="Inter">$1.25 (2.5%)</text>
+<text x="0" y="126" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Western Union → Airtm</text>
+<rect x="0" y="140" width="250" height="40" rx="6" fill="#8f5200"/>
+<text x="262" y="170" font-size="26" font-weight="700" fill="#8f5200" font-family="Inter">$5.42 (10.8%)</text>
+<text x="0" y="226" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Athena bitcoin machine → LOBSTR</text>
+<rect x="0" y="240" width="530" height="40" rx="6" fill="#b42318"/>
+<text x="16" y="270" font-size="26" font-weight="700" fill="#ffffff" font-family="Inter">$11.47 (22.9%)</text>
+</svg>
+<p class="note">Cash-in is Risk #1: we need a licensed cash-in partner. MoneyGram's app already lets Salvadorans receive, hold and cash out digital dollars on Stellar.</p>
+</div>
+</div>
+<p class="src">Sources: IFC &amp; SME Finance Forum "MSME Finance Gap", Mar 2025 · Diario El Mundo, 24 Feb and 1 Mar 2026 · Diario El Salvador, 27 Feb 2026 · Relay cost model (docs/product/assumptions.md) · Team cash-in tests, Nov 2026 (LOBSTR, Airtm, Athena 10-Q) · The Paypers, 23 Apr 2026</p>
+<aside>Use for: how big is the market, why El Salvador, how do shops get digital dollars. Never say "a $5.7 trillion market": it is unmet credit demand, 2019 data. The $2.3M ceiling assumes 10% of sales on credit and every distributor sale in the country.</aside>
+</section>
+<section id="flows" class="pg">
+<p class="pn">3 / 10</p>
+<p class="kicker">Q&amp;A appendix · How a delivery gets paid</p>
+<h2 class="t">One delivery, four ways to pay. The shop never pays interest.</h2>
+<div class="row grow" style="align-items:center; gap:20px">
+<div class="fbox dark" style="width:290px; padding:26px 24px"><p class="fh">Truck delivers</p><p class="lbl">The invoice opens on the shop's phone</p></div>
+<p class="arr">→</p>
+<div class="col grow" style="gap:14px">
+<table class="tb">
+<tr><th style="width:430px">The shop chooses</th><th>Distributor gets</th><th>If the shop never pays</th><th style="width:220px">Fee (distributor)</th></tr>
+<tr><td><b>Pay now</b>: digital, or cash that shop and driver confirm with two taps</td><td>99.9% today</td><td>No credit, no risk</td><td><b>0.1%</b></td></tr>
+<tr><td><b>Pay in 7 days</b>: the lender pool pays the distributor</td><td>98.5–99% today</td><td>Buffer first, then lenders</td><td><b>1.0–1.5%</b></td></tr>
+<tr><td><b>Vouched</b>: the distributor backs a shop it knows</td><td>99.75% today</td><td>The distributor, all of it: deposit first, then its next payouts</td><td><b>0.25%</b></td></tr>
+<tr><td><b>Distributor's own 7 days</b>: no pool</td><td>99.9% after 7 days</td><td>The distributor</td><td><b>0.1%</b></td></tr>
+</table>
+<div class="row" style="gap:14px">
+<p class="note grow">Split allowed: part now, the rest in 7 days</p>
+<p class="note grow">Credit is repaid only in digital dollars</p>
+<p class="note grow">A cash part earns no fee discount</p>
+</div>
+</div>
+</div>
+<p class="src">Sources: Relay contract on Stellar testnet, CBXUYASL…GP4J (USAGE_FEE 0.10%, CREDIT_FEE 1.00–1.50%, RECOURSE_FEE 0.25%, full recourse with a 20% deposit, PR #222) · docs/context.md §5 and decision log, Nov 16 2026</p>
+<aside>Use for: how does it work, who pays, who carries the risk, why would a distributor pay. The more risk the distributor keeps, the cheaper it is. Shops pay the invoice price in every path.</aside>
+</section>
+<section id="fees" class="pg">
+<p class="pn">4 / 10</p>
+<p class="kicker">Q&amp;A appendix · Where the fee goes</p>
+<h2 class="t">On a $100 credit sale, $98.50 reaches the distributor today</h2>
+<div class="row grow" style="gap:40px">
+<div class="col" style="width:760px; gap:14px">
+<p class="grp">The $1.50 fee, split three ways</p>
+<svg aria-label="Bar showing the $1.50 credit fee split: $0.50 to lenders, $0.75 to the default buffer, $0.25 to Relay." viewBox="0 0 760 330" width="760" height="330">
+<rect x="0" y="10" width="252" height="130" fill="#0b4ea2"/>
+<rect x="254" y="10" width="378" height="130" fill="#5b3fa6"/>
+<rect x="634" y="10" width="126" height="130" fill="#0b1f3a"/>
+<text x="126" y="92" text-anchor="middle" font-size="44" font-weight="800" fill="#ffffff" font-family="Inter">$0.50</text>
+<text x="443" y="92" text-anchor="middle" font-size="44" font-weight="800" fill="#ffffff" font-family="Inter">$0.75</text>
+<text x="697" y="92" text-anchor="middle" font-size="36" font-weight="800" fill="#ffffff" font-family="Inter">$0.25</text>
+<text x="126" y="186" text-anchor="middle" font-size="28" font-weight="700" fill="#0b1f3a" font-family="Inter">Lenders</text>
+<text x="126" y="220" text-anchor="middle" font-size="24" fill="#4a586b" font-family="Atkinson Hyperlegible">their return</text>
+<text x="443" y="186" text-anchor="middle" font-size="28" font-weight="700" fill="#0b1f3a" font-family="Inter">Default buffer</text>
+<text x="443" y="220" text-anchor="middle" font-size="24" fill="#4a586b" font-family="Atkinson Hyperlegible">covers shops that don't pay</text>
+<text x="697" y="186" text-anchor="middle" font-size="28" font-weight="700" fill="#0b1f3a" font-family="Inter">Relay</text>
+<text x="697" y="220" text-anchor="middle" font-size="24" fill="#4a586b" font-family="Atkinson Hyperlegible">runs it</text>
+<text x="0" y="300" font-size="26" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Shop repays the full $100 in 7 days, interest-free</text>
+</svg>
+<p class="note">Lenders always get 0.50%. Discounts come out of the buffer, because those shops are less risky. Each dollar pays one fee, never two.</p>
+</div>
+<div class="col grow" style="gap:12px">
+<p class="grp">The fee slides with risk</p>
+<table class="tb" style="font-size:25px">
+<tr><th>Case</th><th>Fee</th><th>Lenders</th><th>Buffer</th><th>Relay</th></tr>
+<tr><td>All on credit</td><td><b>1.50%</b></td><td>0.50%</td><td>0.75%</td><td>0.25%</td></tr>
+<tr><td>Half paid up front (digital)</td><td><b>1.22%</b></td><td>0.50%</td><td>0.54%</td><td>0.18%</td></tr>
+<tr><td>A tenth or less on credit</td><td><b>1.00%</b></td><td>0.50%</td><td>0.38%</td><td>0.12%</td></tr>
+<tr><td>Trusted shop, 4 good weeks</td><td><b>1.25%</b></td><td>0.50%</td><td>0.50%</td><td>0.25%</td></tr>
+<tr><td>Trusted shop, 8 good weeks</td><td><b>1.00%</b></td><td>0.50%</td><td>0.25%</td><td>0.25%</td></tr>
+<tr><td>Distributor vouches</td><td><b>0.25%</b></td><td>0.15%</td><td>0%</td><td>0.10%</td></tr>
+<tr><td>Paid now, or own 7 days</td><td><b>0.10%</b></td><td>–</td><td>–</td><td>0.10%</td></tr>
+</table>
+</div>
+</div>
+<p class="src">Sources: Relay contract on Stellar testnet, CBXUYASL…GP4J (fee constants and split, smoke-tested Nov 16 2026: $50 cash + $100 credit paid 1.50%, half digital + half credit paid 1.22%) · docs/context.md §5</p>
+<aside>Use for: what do you charge, who gets what, what do lenders earn per sale, why is the fee lower for some shops. The fee is charged only on the credited part.</aside>
+</section>
+<section id="fairprice" class="pg">
+<p class="pn">5 / 10</p>
+<p class="kicker">Q&amp;A appendix · Is the price fair?</p>
+<h2 class="t">The shop pays 0%. The distributor pays less than cash or cards cost.</h2>
+<div class="row grow" style="gap:32px">
+<div class="card" style="width:820px; gap:10px">
+<p class="grp">Yearly cost of short-term credit</p>
+<svg aria-label="Bar chart, log scale: loan sharks 1,869% a year; legal maximum for micro-business loans 96.88%; Relay's credit fee annualized about 79%, paid by the distributor; early-payment discount about 37%; bank loans under one year 7.6%; what the shop pays on Relay 0%." viewBox="0 0 760 470" width="760" height="470">
+<text x="0" y="24" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Loan shark (the shop pays)</text>
+<rect x="0" y="34" width="572" height="30" rx="5" fill="#b42318"/>
+<text x="584" y="58" font-size="26" font-weight="800" fill="#b42318" font-family="Inter">1,869%</text>
+<text x="0" y="102" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Legal maximum, micro-business loans</text>
+<rect x="0" y="112" width="348" height="30" rx="5" fill="#6f8196"/>
+<text x="360" y="136" font-size="26" font-weight="800" fill="#4a586b" font-family="Inter">96.88%</text>
+<text x="0" y="180" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Relay credit fee as a yearly rate (distributor pays)</text>
+<rect x="0" y="190" width="332" height="30" rx="5" fill="#0b4ea2"/>
+<text x="344" y="214" font-size="26" font-weight="800" fill="#0b4ea2" font-family="Inter">≈ 79%</text>
+<text x="0" y="258" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Early-payment discount, "2/10 net 30"</text>
+<rect x="0" y="268" width="274" height="30" rx="5" fill="#6f8196"/>
+<text x="286" y="292" font-size="26" font-weight="800" fill="#4a586b" font-family="Inter">≈ 37%</text>
+<text x="0" y="336" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Bank loans under one year</text>
+<rect x="0" y="346" width="154" height="30" rx="5" fill="#6f8196"/>
+<text x="166" y="370" font-size="26" font-weight="800" fill="#4a586b" font-family="Inter">7.6%</text>
+<text x="0" y="414" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">What the shop pays on Relay</text>
+<text x="0" y="456" font-size="34" font-weight="800" fill="#146c43" font-family="Inter">0%</text>
+<text x="760" y="456" text-anchor="end" font-size="24" fill="#4a586b" font-family="Atkinson Hyperlegible">log scale</text>
+</svg>
+</div>
+<div class="card grow" style="gap:10px">
+<p class="grp">Cost per payment, to the business</p>
+<svg aria-label="Bar chart: handling cash costs 4.7 to 15.3% of cash; card payments online about 2.6% on a $100 sale; in person about 1.9%; Relay credit 1.0 to 1.5%; Relay pay now 0.1%." viewBox="0 0 680 400" width="680" height="400">
+<text x="0" y="24" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Handling cash</text>
+<rect x="0" y="34" width="459" height="30" rx="5" fill="#fde8e5"/>
+<rect x="141" y="34" width="318" height="30" rx="5" fill="#b42318"/>
+<text x="470" y="58" font-size="26" font-weight="800" fill="#b42318" font-family="Inter">4.7–15.3%</text>
+<text x="0" y="102" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Card, online ($100 sale)</text>
+<rect x="0" y="112" width="77" height="30" rx="5" fill="#6f8196"/>
+<text x="89" y="136" font-size="26" font-weight="800" fill="#4a586b" font-family="Inter">≈ 2.6%</text>
+<text x="0" y="180" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Card, in person ($100 sale)</text>
+<rect x="0" y="190" width="56" height="30" rx="5" fill="#6f8196"/>
+<text x="68" y="214" font-size="26" font-weight="800" fill="#4a586b" font-family="Inter">≈ 1.9%</text>
+<text x="0" y="258" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Relay, shop pays in 7 days</text>
+<rect x="0" y="268" width="45" height="30" rx="5" fill="#0b4ea2"/>
+<text x="57" y="292" font-size="26" font-weight="800" fill="#0b4ea2" font-family="Inter">1.0–1.5%</text>
+<text x="0" y="336" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Relay, paid at the door</text>
+<rect x="0" y="346" width="5" height="30" rx="2" fill="#0b4ea2"/>
+<text x="17" y="370" font-size="26" font-weight="800" fill="#0b4ea2" font-family="Inter">0.1%</text>
+</svg>
+<p class="note">The 1.5% buys the distributor cash at the door with zero default risk. A yearly rate is shown only to compare.</p>
+</div>
+</div>
+<p class="src">Sources: FUSAI &amp; ASOMI, El Diario de Hoy, 24 Jul 2026 · Central bank maximum rates Jul–Dec 2026, via ContraPunto, 24 Jul 2026 · Relay maths, facts.md 56 · OpenStax Principles of Finance §19.2 · Central bank via Diario El Mundo, 2 Sep 2026 · IHL Group, 2018 · Visa/Mastercard US rates via The Motley Fool, 2026 (US rates)</p>
+<aside>Use for: is this predatory, why not cards, is it legal. Say who pays first: the shop pays 0% interest. The 1.5% is a fee a business chooses for being paid at delivery with no default risk. A lawyer must confirm the fee-versus-interest reading. Card rates are US averages.</aside>
+</section>
+<section id="credit" class="pg">
+<p class="pn">6 / 10</p>
+<p class="kicker">Q&amp;A appendix · How a shop earns credit</p>
+<h2 class="t">Credit is earned, not given, and it shrinks when a shop pays late</h2>
+<div class="row" style="align-items:stretch; gap:12px">
+<div class="fbox" style="width:250px"><p class="fh">Sign up</p><p class="mini">no credit yet</p></div>
+<p class="arr">→</p>
+<div class="fbox" style="width:340px"><p class="fh">2 digital payments</p><p class="mini">at the door, at least a week apart</p></div>
+<p class="arr">→</p>
+<div class="fbox credit" style="width:360px"><p class="fh">First limit $50–$100</p><p class="mini">half the average delivery · vouched: $100 now</p></div>
+<p class="arr">→</p>
+<div class="fbox ok grow"><p class="fh">Grows each on-time week</p><p class="mini">up to "Crédito Relay 500"</p></div>
+</div>
+<div class="row grow" style="gap:32px">
+<div class="card" style="width:780px; gap:10px">
+<p class="grp">Raise after an on-time repayment</p>
+<svg aria-label="Bar chart of limit raises by amount repaid on time: up to $30 adds $10; $30 to $50 adds $15; $50 to $75 adds $20; $75 to $100 adds $25; over $100 adds $30." viewBox="0 0 720 300" width="720" height="300">
+<text x="0" y="40" font-size="26" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Up to $30</text>
+<rect x="180" y="16" width="120" height="34" rx="5" fill="#146c43"/><text x="312" y="42" font-size="26" font-weight="800" fill="#146c43" font-family="Inter">+$10</text>
+<text x="0" y="98" font-size="26" fill="#0b1f3a" font-family="Atkinson Hyperlegible">$30–$50</text>
+<rect x="180" y="74" width="180" height="34" rx="5" fill="#146c43"/><text x="372" y="100" font-size="26" font-weight="800" fill="#146c43" font-family="Inter">+$15</text>
+<text x="0" y="156" font-size="26" fill="#0b1f3a" font-family="Atkinson Hyperlegible">$50–$75</text>
+<rect x="180" y="132" width="240" height="34" rx="5" fill="#146c43"/><text x="432" y="158" font-size="26" font-weight="800" fill="#146c43" font-family="Inter">+$20</text>
+<text x="0" y="214" font-size="26" fill="#0b1f3a" font-family="Atkinson Hyperlegible">$75–$100</text>
+<rect x="180" y="190" width="300" height="34" rx="5" fill="#146c43"/><text x="492" y="216" font-size="26" font-weight="800" fill="#146c43" font-family="Inter">+$25</text>
+<text x="0" y="272" font-size="26" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Over $100</text>
+<rect x="180" y="248" width="360" height="34" rx="5" fill="#146c43"/><text x="552" y="274" font-size="26" font-weight="800" fill="#146c43" font-family="Inter">+$30</text>
+</svg>
+<p class="mini">At least $10 repaid · once a week at most · never past $500</p>
+</div>
+<div class="col grow" style="gap:10px">
+<p class="grp">Paying late</p>
+<div class="fbox ok"><p class="lbl"><b>1 day late</b>: grace, nothing happens</p></div>
+<div class="fbox warn"><p class="lbl"><b>2–7 days late</b>: limit −$25</p></div>
+<div class="fbox bad"><p class="lbl"><b>8+ days late</b>: −$50, no raises for 4 weeks</p></div>
+<div class="fbox bad"><p class="lbl"><b>Still unpaid</b>: no new credit at all</p></div>
+<div class="fbox dark"><p class="lbl"><b>4 weeks unpaid</b>: default. Buffer repays lenders, limit $0, debt stays on record</p></div>
+</div>
+</div>
+<p class="src">Sources: Relay contract on Stellar testnet, CBXUYASL…GP4J (GROWTH_TIERS, LIMIT_CAP $500, GRACE_DAYS 1, $25 and $50 steps, DEFAULT_AFTER_PERIODS 4) · 2-payment unlock, PR #218 · Credit v3 and "Calificación Relay" 1–10 rating, PR #222</p>
+<aside>Use for: how do you lend to shops with no history, how fast does a limit grow, what happens when a shop pays late or never pays. The first two payments are the history. A shop also gets a 1-to-10 rating of how likely it is to repay in 7 days; lenders see only pool-level numbers.</aside>
+</section>
+<section id="defaults" class="pg">
+<p class="pn">7 / 10</p>
+<p class="kicker">Q&amp;A appendix · When a shop doesn't pay</p>
+<h2 class="t">Losses fall through layers before they reach lenders</h2>
+<div class="row grow" style="gap:32px">
+<div class="col" style="width:640px; gap:8px">
+<div class="fbox bad"><p class="fh">A shop misses a payment</p><p class="mini">no new credit until it pays</p></div>
+<p class="arr" style="font-size:32px">↓</p>
+<div class="fbox warn"><p class="fh">1. The distributor, if it vouched</p><p class="mini">owes all of it: its deposit first, then its next payouts</p></div>
+<p class="arr" style="font-size:32px">↓</p>
+<div class="fbox credit"><p class="fh">2. The default buffer</p><p class="mini">up to 0.75% of every credit sale · target: 25% of money lent</p></div>
+<p class="arr" style="font-size:32px">↓</p>
+<div class="fbox"><p class="fh">3. Lenders, shared in proportion</p><p class="mini">only if losses are bigger than the buffer</p></div>
+</div>
+<div class="col grow" style="gap:12px">
+<div class="row" style="gap:16px">
+<div class="card grow"><p class="mid">1 in 4 shops</p><p class="mini">could default in the same week at the 25% target, with lenders losing nothing</p></div>
+<div class="card grow"><p class="mid">8–12%</p><p class="mini">what banks typically hold, for comparison</p></div>
+</div>
+<div class="card grow" style="gap:6px">
+<p class="grp">Benchmarks: how often credit goes bad</p>
+<svg aria-label="Bar chart: suppliers in Peru lose about 0.2 to 0.3 percent on credit to shops; Relay's buffer covers up to 0.75 percent of credit volume; ENLACE, a Salvadoran microfinancer, wrote off 1.8 percent of its loans in 2025; Salvadoran banks 1.5 percent overdue; Peru's financial system 3.3 percent overdue; Peru's microfinancers 6.0 percent overdue." viewBox="0 0 900 330" width="900" height="330">
+<text x="0" y="26" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Suppliers in Peru, credit to shops (loss)</text>
+<rect x="560" y="8" width="24" height="26" rx="4" fill="#146c43"/><text x="594" y="30" font-size="24" font-weight="800" fill="#146c43" font-family="Inter">0.2–0.3%</text>
+<text x="0" y="80" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Relay buffer covers (of credit volume)</text>
+<rect x="560" y="62" width="40" height="26" rx="4" fill="#5b3fa6"/><text x="610" y="84" font-size="24" font-weight="800" fill="#5b3fa6" font-family="Inter">0.75%</text>
+<text x="0" y="134" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Salvadoran banks (overdue)</text>
+<rect x="560" y="116" width="80" height="26" rx="4" fill="#6f8196"/><text x="650" y="138" font-size="24" font-weight="800" fill="#4a586b" font-family="Inter">1.5%</text>
+<text x="0" y="188" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">ENLACE microfinance, El Salvador (written off)</text>
+<rect x="560" y="170" width="96" height="26" rx="4" fill="#6f8196"/><text x="666" y="192" font-size="24" font-weight="800" fill="#4a586b" font-family="Inter">1.8%</text>
+<text x="0" y="242" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Peru financial system (overdue)</text>
+<rect x="560" y="224" width="176" height="26" rx="4" fill="#6f8196"/><text x="746" y="246" font-size="24" font-weight="800" fill="#4a586b" font-family="Inter">3.3%</text>
+<text x="0" y="296" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Peru microfinancers (overdue)</text>
+<rect x="560" y="278" width="320" height="26" rx="4" fill="#6f8196"/><text x="790" y="300" font-size="24" font-weight="800" fill="#ffffff" font-family="Inter">6.0%</text>
+</svg>
+<p class="mini">Measures differ (losses vs overdue, 7-day vs months-long loans): use as context, not a direct comparison. Shops pay the supplier they need next week first.</p>
+</div>
+</div>
+</div>
+<p class="src">Sources: Relay contract (full recourse on vouched shops, PR #222; buffer 0.75%) and buffer target, docs/context.md §5 · Perú Retail / Asociación Peruana de Finanzas · Revista E&amp;N (ABANSA), 2025 · Zumma Ratings, ENLACE, Dec 2025 · El Peruano, Jul 2026 (SBS, Mar 2026) · SBS to Peru's Congress, Oct 2025</p>
+<aside>Use for: how is repayment protected, what if defaults rise, how much can the buffer take, what do others lose. Say "protected by a backup fund", never "guaranteed". The 25% target is a plan; today the buffer just grows. In the pilot there is no outside lender.</aside>
+</section>
+<section id="lenders" class="pg">
+<p class="pn">8 / 10</p>
+<p class="kicker">Q&amp;A appendix · Who funds the credit</p>
+<h2 class="t">Local licensed lenders join after the pilot</h2>
+<div class="row" style="align-items:stretch; gap:12px">
+<div class="fbox" style="width:420px"><p class="grp">Pilot</p><p class="lbl">The distributor's own money, or our grant money plus a seeded buffer</p></div>
+<p class="arr">→</p>
+<div class="fbox ok" style="width:520px"><p class="grp">Then</p><p class="lbl">FEDECRÉDITO's cajas de crédito, FEDECACES cooperatives, ASOMI's microfinance members</p></div>
+<p class="arr">→</p>
+<div class="fbox grow"><p class="grp">Funders behind them</p><p class="lbl">BANDESAL, Oikocredit</p></div>
+</div>
+<div class="row" style="gap:16px">
+<p class="note grow">None has agreed yet: these are the first we'd approach</p>
+<p class="note grow" style="background:#fde8e5; color:#b42318"><b>Never:</b> individuals, Relay itself, DeFi pools (Blend and Aave need collateral shops don't have)</p>
+</div>
+<div class="row grow" style="gap:32px">
+<div class="card" style="width:900px; gap:8px">
+<p class="grp">Lender return a year, by how much of the pool is lent</p>
+<svg aria-label="Bar chart of lender yearly return: pool fully lent 26 percent; three quarters lent 20 percent; half lent 13 percent; a quarter lent 6.5 percent; vouched sales only about 8 percent; bank loans under one year 7.6 percent for comparison." viewBox="0 0 840 290" width="740" height="256">
+<text x="0" y="30" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">All lent, every week</text>
+<rect x="330" y="10" width="416" height="30" rx="5" fill="#0b4ea2"/><text x="756" y="34" font-size="26" font-weight="800" fill="#0b4ea2" font-family="Inter">26%</text>
+<text x="0" y="78" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Three-quarters lent</text>
+<rect x="330" y="58" width="320" height="30" rx="5" fill="#0b4ea2"/><text x="660" y="82" font-size="26" font-weight="800" fill="#0b4ea2" font-family="Inter">20%</text>
+<text x="0" y="126" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Half lent</text>
+<rect x="330" y="106" width="208" height="30" rx="5" fill="#0b4ea2"/><text x="548" y="130" font-size="26" font-weight="800" fill="#0b4ea2" font-family="Inter">13%</text>
+<text x="0" y="174" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">A quarter lent</text>
+<rect x="330" y="154" width="104" height="30" rx="5" fill="#0b4ea2"/><text x="444" y="178" font-size="26" font-weight="800" fill="#0b4ea2" font-family="Inter">6.5%</text>
+<text x="0" y="222" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Vouched sales only</text>
+<rect x="330" y="202" width="125" height="30" rx="5" fill="#a8d5ff"/><text x="465" y="226" font-size="26" font-weight="800" fill="#265f9e" font-family="Inter">≈ 8%</text>
+<text x="0" y="270" font-size="24" fill="#4a586b" font-family="Atkinson Hyperlegible">Bank loans under 1 year</text>
+<rect x="330" y="250" width="122" height="30" rx="5" fill="#6f8196"/><text x="462" y="274" font-size="26" font-weight="800" fill="#4a586b" font-family="Inter">7.6%</text>
+</svg>
+<p class="mini">0.50% a week while lent, before losses above the buffer</p>
+</div>
+<div class="card grow" style="gap:10px">
+<p class="grp">How the pool works</p>
+<p class="lbl">Money stays inside the contract. No one at Relay can move it.</p>
+<p class="lbl">Lenders hold shares and can withdraw unlent money at any time.</p>
+<p class="lbl"><b>Example:</b> A puts in $6,000 and B $4,000. A $100 sale uses $60 and $40; the $0.50 splits $0.30 and $0.20.</p>
+<p class="lbl"><b>Protected</b> by the buffer, never "guaranteed".</p>
+</div>
+</div>
+<p class="src">Sources: docs/context.md §5 (lender order and pool rules, Nov 16 2026) · Relay contract (approve_lender, deposit, withdraw, shares) · Relay maths, docs/product/assumptions.md · Central bank, loans under one year, via Diario El Mundo, 2 Sep 2026</p>
+<aside>Use for: who are your lenders, why would anyone lend, can lenders pick shops, can they get money out, is this a bank. Lenders don't pick shops: one pool, like an index fund. Every lender is approved in the contract after a business check and can be revoked, but can always withdraw unlent money.</aside>
+</section>
+<section id="economics" class="pg">
+<p class="pn">9 / 10</p>
+<p class="kicker">Q&amp;A appendix · Unit economics</p>
+<h2 class="t">A volume business: break-even at about 19 distributors</h2>
+<div class="row" style="gap:20px">
+<div class="card grow"><p class="mid">$10,140</p><p class="mini">revenue a year per mid-size distributor ($6,240 usage + $3,900 credit)</p></div>
+<div class="card grow"><p class="mid">$2,534</p><p class="mini">our costs a year per distributor (field staff, support, travel, ID check)</p></div>
+<div class="card grow"><p class="mid">$147K</p><p class="mini">fixed costs a year, the same at 1 or 30 distributors</p></div>
+<div class="card grow hl"><p class="mid">≈ 19</p><p class="mini">distributors to break even ($147K ÷ $7,600 left per distributor)</p></div>
+</div>
+<div class="row grow" style="gap:24px">
+<div class="card" style="width:560px; gap:6px">
+<p class="grp">Fixed costs ($K a year)</p>
+<svg aria-label="Fixed costs per year in thousands of dollars: 2 founder-engineers 60; sales hire 12; payroll extras 18; lawyer 20; contract audit 20; office and accounting 12; hosting 5." viewBox="0 0 500 330" width="500" height="330">
+<text x="0" y="28" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">2 founder-engineers</text><rect x="250" y="8" width="180" height="28" rx="4" fill="#0b4ea2"/><text x="440" y="30" font-size="24" font-weight="800" fill="#0b4ea2" font-family="Inter">60</text>
+<text x="0" y="74" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Lawyer</text><rect x="250" y="54" width="60" height="28" rx="4" fill="#265f9e"/><text x="320" y="76" font-size="24" font-weight="800" fill="#265f9e" font-family="Inter">20</text>
+<text x="0" y="120" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Contract audit</text><rect x="250" y="100" width="60" height="28" rx="4" fill="#265f9e"/><text x="320" y="122" font-size="24" font-weight="800" fill="#265f9e" font-family="Inter">20</text>
+<text x="0" y="166" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Payroll extras</text><rect x="250" y="146" width="54" height="28" rx="4" fill="#265f9e"/><text x="314" y="168" font-size="24" font-weight="800" fill="#265f9e" font-family="Inter">18</text>
+<text x="0" y="212" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Local sales hire</text><rect x="250" y="192" width="36" height="28" rx="4" fill="#265f9e"/><text x="296" y="214" font-size="24" font-weight="800" fill="#265f9e" font-family="Inter">12</text>
+<text x="0" y="258" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Office, accounting</text><rect x="250" y="238" width="36" height="28" rx="4" fill="#265f9e"/><text x="296" y="260" font-size="24" font-weight="800" fill="#265f9e" font-family="Inter">12</text>
+<text x="0" y="304" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Hosting</text><rect x="250" y="284" width="15" height="28" rx="4" fill="#265f9e"/><text x="275" y="306" font-size="24" font-weight="800" fill="#265f9e" font-family="Inter">5</text>
+</svg>
+</div>
+<div class="card" style="width:560px; gap:6px">
+<p class="grp">Break-even if… (distributors)</p>
+<svg aria-label="Break-even sensitivity: founders sell, no sales hire, 17 distributors; base case 19; fixed costs up 10 thousand dollars 21; half of credit on pay-later or vouched 23; only 10 percent of sales on credit 23; all credit pay-later or vouched 28." viewBox="0 0 500 330" width="500" height="330">
+<text x="0" y="28" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">No sales hire yet</text><rect x="250" y="8" width="153" height="28" rx="4" fill="#146c43"/><text x="413" y="30" font-size="24" font-weight="800" fill="#146c43" font-family="Inter">17</text>
+<text x="0" y="74" font-size="24" fill="#0b1f3a" font-weight="700" font-family="Atkinson Hyperlegible">Base case</text><rect x="250" y="54" width="171" height="28" rx="4" fill="#0b4ea2"/><text x="431" y="76" font-size="24" font-weight="800" fill="#0b4ea2" font-family="Inter">19</text>
+<text x="0" y="120" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Fixed costs +$10K</text><rect x="250" y="100" width="189" height="28" rx="4" fill="#8f5200"/><text x="449" y="122" font-size="24" font-weight="800" fill="#8f5200" font-family="Inter">21</text>
+<text x="0" y="166" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">Half credit own/vouched</text><rect x="250" y="146" width="207" height="28" rx="4" fill="#8f5200"/><text x="467" y="168" font-size="24" font-weight="800" fill="#8f5200" font-family="Inter">23</text>
+<text x="0" y="212" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">10% on credit, not 20%</text><rect x="250" y="192" width="207" height="28" rx="4" fill="#8f5200"/><text x="467" y="214" font-size="24" font-weight="800" fill="#8f5200" font-family="Inter">23</text>
+<text x="0" y="258" font-size="24" fill="#0b1f3a" font-family="Atkinson Hyperlegible">All credit own/vouched</text><rect x="250" y="238" width="225" height="28" rx="4" fill="#b42318"/><text x="250" y="304" font-size="24" font-weight="800" fill="#b42318" font-family="Inter">28 at worst</text>
+</svg>
+</div>
+<div class="col grow" style="gap:14px">
+<div class="fbox warn grow"><p class="grp">Pilot year</p><p class="mid" style="color:#8f5200">$138K cost</p><p class="lbl">vs about $600 revenue on one route of ~60 shops. It needs a grant or pre-seed. Its job is to prove repayment, not to profit.</p></div>
+<p class="note">Assumes 10 routes × 100 shops × $150 a week, 20% on credit, and the 0.1% on cash billed monthly</p>
+</div>
+</div>
+<p class="src">Sources: Relay cost model, docs/product/assumptions.md (guesses labelled) · GlobalCostData, software engineer pay in El Salvador, 2026 · Lemon.io developer rates · EY, El Salvador minimum wage $408.80</p>
+<aside>Use for: how do you make money, when are you profitable, what does it cost, what moves break-even, how much do you need. Founders are the engineers, plus one local sales hire. Shops are not ID-checked; they unlock credit with two door payments. Most revenue is the 0.1% usage fee, not the credit share.</aside>
+</section>
+<section id="fraud" class="pg">
+<p class="pn">10 / 10</p>
+<p class="kicker">Q&amp;A appendix · Fraud and trust</p>
+<h2 class="t">Fraud is flagged, paused and proven</h2>
+<div class="row" style="align-items:stretch; gap:10px">
+<div class="fbox" style="width:260px"><p class="fh">6 automatic checks</p><p class="mini">run after every invoice</p></div>
+<p class="arr">→</p>
+<div class="fbox warn" style="width:310px"><p class="fh">"En revisión"</p><p class="mini">pool credit pauses; cash and digital keep working</p></div>
+<p class="arr">→</p>
+<div class="fbox" style="width:300px"><p class="fh">Ask for proof</p><p class="mini">electronic invoice code (DTE) or delivery photo</p></div>
+<p class="arr">→</p>
+<div class="fbox ok" style="width:130px"><p class="fh">Clear</p><p class="mini">or</p></div>
+<div class="fbox bad grow"><p class="fh">Close, then legal action</p><p class="mini">revoked on-chain; debts still owed</p></div>
+</div>
+<table class="tb c" style="font-size:24px">
+<tr><th style="width:420px">Threat</th><th>What stops it</th><th style="width:150px">Status</th></tr>
+<tr><td><b>Distributor invents shops</b> to draw pool money</td><td>2 real digital payments to unlock, $100 max start, fraud flags, payment-circle check</td><td><span class="live">Live</span> / circle: <span class="plan">planned</span></td></tr>
+<tr><td><b>Shop takes credit and vanishes</b></td><td>Small first limit, growth only with on-time repayment, no credit while overdue, buffer covers the loss</td><td><span class="live">Live</span></td></tr>
+<tr><td><b>Driver pockets cash</b></td><td>The shop confirms the exact amount; the contract rejects a changed claim</td><td><span class="live">Live</span></td></tr>
+<tr><td><b>Stolen phone</b></td><td>Every payment needs Face ID, fingerprint or a 6-digit PIN</td><td><span class="live">Live</span></td></tr>
+<tr><td><b>Bad distributor or lender</b></td><td>Business and ID checks, signed liability agreement, revoke on-chain</td><td>Revoke <span class="live">live</span>, checks <span class="plan">planned</span></td></tr>
+<tr><td><b>An insider</b></td><td>Public contract anyone can audit; multi-signature admin key for launch</td><td><span class="plan">Planned</span></td></tr>
+</table>
+<p class="src">Sources: Relay fraud checks and reviews, PR #232 · Relay contract: revoke_distributor and revoke_lender (#195), cash_confirm amount check, passkey or PIN on payments · Simulated ID check, PR #216 · Circle check and policy, issue #221 · docs/context.md §7.8 (live vs planned)</p>
+<aside>Use for: what stops fraud, fake shops, theft, what happens when you catch someone. The screen says "En revisión", never an accusation. Biggest risk is a distributor inventing shops; the worst case is small (about $100 a fake shop) and visible on a public ledger. Only established distributors with manufacturer references are approved.</aside>
+</section>
+</body></html>
