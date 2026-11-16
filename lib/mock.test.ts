@@ -425,3 +425,17 @@ describe("credit is paid back only in digital dollars (Nov 16)", () => {
     expect(mock.payNow(1001).ok).toBe(true);
   });
 });
+
+describe("cash up front earns no credit benefit (Yahya, Nov 16)", () => {
+  it("prices $50 cash + $100 on credit like $100 all on credit, but $50 digital lowers it", () => {
+    mock.claimCash(1001, 50); // $150 invoice
+    mock.confirmCash(1001, 50);
+    expect(mock.payLater(1001).ok).toBe(true);
+    expect(mock.getInvoice(1001)?.creditFee).toBe(1.5);
+
+    mock.resetMock(() => now);
+    mock.payNow(1001, 50);
+    expect(mock.payLater(1001).ok).toBe(true);
+    expect(mock.getInvoice(1001)?.creditFee).toBe(1.31);
+  });
+});

@@ -354,41 +354,75 @@ fn cash_claim_checks_amounts() {
 }
 
 #[test]
-fn cash_is_all_or_nothing() {
-    // Yahya, Nov 16 (#237): cash pays all that's left, never a part of it.
+fn part_cash_then_digital_is_mixed() {
+    // Part cash at the door is allowed again (#242).
     let t = setup();
     t.invoice(1, 150 * USD);
-    assert_eq!(
-        t.client.try_cash_claim(&t.driver, &1, &(50 * USD)),
-        Err(Ok(Error::InvalidAmount))
-    );
-    assert_eq!(t.client.get_cash_claim(&1), 0);
+    t.client.cash_claim(&t.driver, &1, &(50 * USD));
+    t.client.cash_confirm(&t.shop, &1, &(50 * USD));
+    assert_eq!(t.client.get_invoice(&1).status, InvoiceStatus::PartPaid);
 
-    // After a digital part: not a part of the rest, only all of it.
-    t.client.pay(&t.shop, &1, &(50 * USD));
-    assert_eq!(
-        t.client.try_cash_claim(&t.driver, &1, &(60 * USD)),
-        Err(Ok(Error::InvalidAmount))
-    );
-    t.client.cash_claim(&t.driver, &1, &(100 * USD));
-    t.client.cash_confirm(&t.shop, &1, &(100 * USD));
-    assert_eq!(t.client.get_invoice(&1).method, PayMethod::Mixed);
-
-    // A full claim that a digital part overtook before the confirm is refused too.
-    t.invoice(2, 150 * USD);
-    t.client.cash_claim(&t.driver, &2, &(150 * USD));
-    t.client.pay(&t.shop, &2, &(10 * USD));
-    assert!(t.client.try_cash_confirm(&t.shop, &2, &(150 * USD)).is_err());
-    assert_eq!(t.client.get_invoice(&2).paid, 10 * USD);
-    assert_eq!(t.client.get_driver_cash(&t.driver), 100 * USD);
-
-    // The whole invoice in cash is fine.
-    t.invoice(3, 150 * USD);
-    t.client.cash_claim(&t.driver, &3, &(150 * USD));
-    t.client.cash_confirm(&t.shop, &3, &(150 * USD));
-    let invoice = t.client.get_invoice(&3);
+    t.client.pay(&t.shop, &1, &(100 * USD));
+    let invoice = t.client.get_invoice(&1);
     assert_eq!(invoice.status, InvoiceStatus::Paid);
-    assert_eq!(invoice.method, PayMethod::Cash);
+    assert_eq!(invoice.method, PayMethod::Mixed);
+}
+
+/// What the distributor gets when the rest of a $100 invoice goes on credit
+/// after `cash` in cash and `digital` in digital dollars.
+fn payout_after(cash: i128, digital: i128) -> i128 {
+    let t = setup();
+    t.client.deposit(&t.lender, &(1_000 * USD));
+    t.client.set_terms(&t.shop, &(200 * USD));
+    t.invoice(1, 100 * USD);
+    if cash > 0 {
+        t.client.cash_claim(&t.driver, &1, &cash);
+        t.client.cash_confirm(&t.shop, &1, &cash);
+    }
+    if digital > 0 {
+        t.client.pay(&t.shop, &1, &digital);
+    }
+    let before = t.token.balance(&t.distributor);
+    t.client.pay_with_credit(&t.shop, &1);
+    t.token.balance(&t.distributor) - before
+}
+
+#[test]
+fn cash_up_front_earns_no_lower_credit_fee() {
+    // Yahya, Nov 16: cash at the door counts for nothing up front.
+    // $50 digital + $50 on credit: half on credit, 1.22%.
+    let digital = payout_after(0, 50 * USD);
+    assert_eq!(digital, 50 * USD - bps_of(50 * USD, credit_fee_bps(50 * USD, 100 * USD)));
+    // $50 cash + $50 on credit: priced like a $50 invoice all on credit, 1.50%.
+    let cash = payout_after(50 * USD, 0);
+    assert_eq!(cash, 50 * USD - bps_of(50 * USD, CREDIT_FEE_BPS));
+    assert!(cash < digital);
+    // Only the digital part lowers it: $40 cash + $30 digital + $30 credit
+    // is $30 of a $60 invoice on credit.
+    let both = payout_after(40 * USD, 30 * USD);
+    assert_eq!(both, 30 * USD - bps_of(30 * USD, credit_fee_bps(30 * USD, 60 * USD)));
+}
+
+#[test]
+fn cash_up_front_does_not_count_as_half_paid() {
+    // Half paid in cash: the half-up-front waiver ($10 is enough to grow) doesn't apply.
+    let t = setup();
+    t.client.deposit(&t.lender, &(1_000 * USD));
+    t.client.set_terms(&t.shop, &(200 * USD));
+    t.invoice(1, 30 * USD);
+    t.client.cash_claim(&t.driver, &1, &(15 * USD));
+    t.client.cash_confirm(&t.shop, &1, &(15 * USD));
+    t.client.pay_with_credit(&t.shop, &1);
+    assert!(!half_up_front(&t));
+
+    // Half paid in digital dollars: it does.
+    let t = setup();
+    t.client.deposit(&t.lender, &(1_000 * USD));
+    t.client.set_terms(&t.shop, &(200 * USD));
+    t.invoice(1, 30 * USD);
+    t.client.pay(&t.shop, &1, &(15 * USD));
+    t.client.pay_with_credit(&t.shop, &1);
+    assert!(half_up_front(&t));
 }
 
 #[test]
@@ -3037,4 +3071,13 @@ fn a_revoked_distributor_can_still_record_cash_handed_in() {
     // Re-approving works as before.
     t.client.approve_distributor(&t.distributor);
     assert!(t.client.is_distributor(&t.distributor));
+}
+
+fn bps_of(amount: i128, rate: i128) -> i128 {
+    amount * rate / 10_000
+}
+
+fn half_up_front(t: &Setup) -> bool {
+    t.env
+        .as_contract(&t.client.address, || load_shop(&t.env, &t.shop).unwrap().cycle_half_up_front)
 }

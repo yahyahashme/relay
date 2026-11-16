@@ -366,6 +366,9 @@ pub enum DataKey {
     Shop(Address),
     DriverCash(Address),
     CashClaim(u64),
+    /// Cash confirmed on an invoice. It doesn't count as paid up front for
+    /// the credit fee or the half-up-front waiver (Yahya, Nov 16).
+    CashPaid(u64),
     UsageOwed(Address),
     Distributor(Address),
     Lender(Address),
@@ -768,8 +771,9 @@ impl RouteLedger {
 
     // ---------- v2: cash, the lender pool and credit ----------
 
-    /// Cash is all or nothing (Yahya, Nov 16, #237): it pays all that is left on
-    /// the invoice, never a part of it.
+    /// Cash can pay part of an invoice at the door (#242), but that part earns
+    /// no up-front benefit when the rest goes on credit (`CashPaid`, Yahya,
+    /// Nov 16).
     ///
     /// The driver says "the shop gave me this much cash". Nothing changes
     /// until the shop confirms it.
@@ -792,9 +796,6 @@ impl RouteLedger {
         }
         if amount > invoice.amount - invoice.paid {
             return Err(Error::Overpay);
-        }
-        if amount != invoice.amount - invoice.paid {
-            return Err(Error::InvalidAmount);
         }
         put(&env, &DataKey::CashClaim(id), &amount);
         CashClaimed { id, driver, amount }.publish(&env);
@@ -828,6 +829,7 @@ impl RouteLedger {
             return Err(Error::Overpay);
         }
         invoice.paid += claim;
+        add(&env, DataKey::CashPaid(id), claim);
         record_payment(&env, &mut invoice, PayMethod::Cash, claim);
         add(&env, DataKey::DriverCash(invoice.driver.clone()), claim);
         add(
@@ -1056,7 +1058,7 @@ impl RouteLedger {
         let (rate, to_buffer_bps, our_bps) = if vouched {
             (RECOURSE_FEE_BPS, 0, RECOURSE_FEE_BPS - RECOURSE_LENDER_BPS)
         } else {
-            let (buffer_bps, our_bps) = fee_split(credit_fee_bps(amount, invoice.amount));
+            let (buffer_bps, our_bps) = fee_split(credit_fee_bps(amount, up_front_base(&env, &invoice)));
             let buffer_bps = trusted_buffer_bps(buffer_bps, terms.good_cycles);
             (LENDER_BPS + buffer_bps + our_bps, buffer_bps, our_bps)
         };
@@ -1091,7 +1093,9 @@ impl RouteLedger {
             terms.first_credit_at = now;
         }
         // At least half paid up front, on every credited invoice this cycle.
-        terms.cycle_half_up_front &= invoice.paid.saturating_mul(2) >= invoice.amount;
+        // Cash doesn't count as paid up front (Yahya, Nov 16): only digital dollars do.
+        let base = up_front_base(&env, &invoice);
+        terms.cycle_half_up_front &= (base - amount).saturating_mul(2) >= base;
         terms.owed += amount;
         terms.cycle_borrowed += amount;
         if vouched {
@@ -1540,6 +1544,19 @@ impl RouteLedger {
 }
 
 // ---------- helpers ----------
+
+/// The invoice as the credit fee and the half-up-front waiver see it: without
+/// the part paid in cash (Yahya, Nov 16). Cash at the door earns no up-front
+/// benefit, so $50 cash + $50 on credit is priced like a $50 invoice all on
+/// credit, while $50 in digital dollars + $50 on credit gets the lower rate.
+fn up_front_base(env: &Env, invoice: &Invoice) -> i128 {
+    let cash: i128 = env
+        .storage()
+        .persistent()
+        .get(&DataKey::CashPaid(invoice.id))
+        .unwrap_or(0);
+    invoice.amount - cash
+}
 
 /// `amount * bps / 10_000`, rounded down.
 /// The credit fee in bps when `credited` of an invoice of `total` goes on

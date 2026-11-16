@@ -332,6 +332,12 @@ export function createDemoInvoice(shopId?: string): Invoice {
 
 // ---------- writes (same checks, in the same order, as the contract) ----------
 
+/** The invoice as the credit fee and the half-up-front waiver see it: without its cash part (Yahya, Nov 16), like the contract. */
+function upFrontBase(invoice: InvoiceRecord): number {
+  const cash = db().payments.filter((p) => p.invoiceId === invoice.id && p.method === "cash").reduce((sum, p) => sum + p.amount, 0);
+  return invoice.amount - cash;
+}
+
 function logPayment(shopId: string, invoiceId: number | null, method: Payment["method"], amount: number, driverId?: string) {
   db().payments.push({ shopId, invoiceId, method, amount, at: clock(), driverId });
 }
@@ -432,7 +438,7 @@ export function payLater(invoiceId: number): Receipt {
   // credit, $98.50 per $100) down to 1.00% the more the shop paid up front (#135). A trusted
   // shop pays less of the buffer's share; a vouched one 0.25% if the deposit covers it (#185).
   const vouched = shop.vouched && db().recourse.deposit >= Math.round(recourseRequired(dollars(vouchedOut() + amount)) * 100);
-  const split = vouched ? { buffer: 0, ours: RECOURSE_FEE_BPS - RECOURSE_LENDER_BPS } : poolFeeSplit(amount, invoice.amount, shop.goodCycles);
+  const split = vouched ? { buffer: 0, ours: RECOURSE_FEE_BPS - RECOURSE_LENDER_BPS } : poolFeeSplit(amount, upFrontBase(invoice), shop.goodCycles);
   const rate = vouched ? RECOURSE_FEE_BPS : LENDER_BPS + split.buffer + split.ours;
   const ours = bps(units, split.ours);
   const toBuffer = bps(units, split.buffer);
@@ -449,7 +455,8 @@ export function payLater(invoiceId: number): Receipt {
     shop.halfUpFront = true;
   }
   if (shop.firstCreditAt === 0) shop.firstCreditAt = now;
-  shop.halfUpFront &&= invoice.paid * 2 >= invoice.amount;
+  // Cash doesn't count as paid up front (Yahya, Nov 16): only digital dollars do.
+  shop.halfUpFront &&= (upFrontBase(invoice) - amount) * 2 >= upFrontBase(invoice);
   shop.owed += amount;
   shop.cycleBorrowed += amount;
   if (vouched) shop.vouchedOwed += amount;
