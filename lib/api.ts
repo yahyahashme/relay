@@ -124,9 +124,9 @@ export const claimCash = (invoiceId: number, amount: number) =>
 /** `amount` is the claim the shop saw: if the driver changed it since, nothing happens. */
 export const confirmCash = (invoiceId: number, amount: number, confirmId?: string) =>
   write(() => mock.confirmCash(invoiceId, amount), () => live.confirmCash(invoiceId, amount, confirmId));
-/** Split at the door (#235): `amount` now in dólares digitales, the rest on 7 days. Never cash. */
-export const payPartLater = (invoiceId: number, amount: number, confirmId?: string) =>
-  write(() => mock.payPartLater(invoiceId, amount), () => live.payPartLater(invoiceId, amount, confirmId));
+/** Split at the door (#235): `amount` now (digital, or `cash` = the driver's claim), the rest on 7 days. */
+export const payPartLater = (invoiceId: number, amount: number, cash: boolean, confirmId?: string) =>
+  write(() => mock.payPartLater(invoiceId, amount, cash), () => live.payPartLater(invoiceId, amount, cash, confirmId));
 export const repay = (shopId: string, amount: number, confirmId?: string) =>
   write(() => mock.repay(shopId, amount), () => live.repay(shopId, amount, confirmId));
 /** The distributor got a driver's cash at the warehouse (only lowers the driver's cash count). */
