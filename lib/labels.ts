@@ -55,14 +55,14 @@ export function creditFeeBps(credited: number, total: number): number {
 
 // Trusted shops and the recourse tier (#185), the same rules as the contract.
 export const LENDER_BPS = 50;
-export const TRUSTED_CYCLES = 4;
-export const HIGHLY_TRUSTED_CYCLES = 8;
+export const TRUSTED_CYCLES = 26; // about 6 months (#250)
+export const HIGHLY_TRUSTED_CYCLES = 52; // about a year (#250)
 export const RECOURSE_FEE_BPS = 25;
 export const RECOURSE_LENDER_BPS = 15;
 /** The deposit must stay at least 20% of the vouched credit shops still owe. */
 export const RECOURSE_COVER_BPS = 2_000;
 
-/** The buffer's share after `goodCycles` good cycles: all, two thirds from 4, one third from 8 (rounded down). */
+/** The buffer's share after `goodCycles` good cycles: all, two thirds from 26, one third from 52 (rounded down). */
 export function trustedBufferBps(bufferBps: number, goodCycles: number): number {
   if (goodCycles >= HIGHLY_TRUSTED_CYCLES) return Math.floor(bufferBps / 3);
   if (goodCycles >= TRUSTED_CYCLES) return Math.floor((bufferBps * 2) / 3);
@@ -83,7 +83,7 @@ export function shopCreditFeeBps(credited: number, total: number, goodCycles = 0
   return LENDER_BPS + buffer + ours;
 }
 
-/** 0 = normal fee, 1 = trusted (4+ good cycles), 2 = 8+. */
+/** 0 = normal fee, 1 = trusted (26+ good cycles), 2 = 52+. */
 export function trustLevel(goodCycles: number): 0 | 1 | 2 {
   return goodCycles >= HIGHLY_TRUSTED_CYCLES ? 2 : goodCycles >= TRUSTED_CYCLES ? 1 : 0;
 }

@@ -41,7 +41,7 @@ Around the world, small businesses in developing countries can't get about $5.7 
 
 We built a mobile web app on our public Soroban contract. A shop pays now in test dollars, records cash with two taps, or pays in 7 days, interest-free. On-time repayment raises its limit, up to $500: a credit record it never had. Stellar says payments finalize in about five seconds, with fees under a cent.
 
-Distributors pay, never shops: up to 1.5% to be paid instantly on pay-in-7-days sales (0.25% ours, the rest to lenders and a loss buffer), and 0.1% of other invoices (on cash it is recorded and billed later, not collected yet).
+Distributors pay, never shops: up to 1.5% to be paid instantly on pay-in-7-days sales (0.25% ours, the rest to lenders and a loss buffer), and 0.1% of other invoices (on cash it is recorded and taken from the distributor's next digital payout).
 <!-- /q5 -->
 
 ## 6. Why is your team best suited to solve this problem?

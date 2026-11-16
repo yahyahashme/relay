@@ -36,8 +36,10 @@ pub const LENDER_BPS: i128 = 50;
 /// shrinks, because the risk it insures has: by a third from `TRUSTED_CYCLES`,
 /// by two thirds from `HIGHLY_TRUSTED_CYCLES`. Lenders keep `LENDER_BPS` and
 /// our share is unchanged, so at full credit the fee goes 1.50% -> 1.25% -> 1.00%.
-pub const TRUSTED_CYCLES: u32 = 4;
-pub const HIGHLY_TRUSTED_CYCLES: u32 = 8;
+/// Rohan, #250 (Nov 16): about 6 months and 1 year of good weeks, so a shop
+/// (or a fake one) can't reach the cheapest rate in two months.
+pub const TRUSTED_CYCLES: u32 = 26;
+pub const HIGHLY_TRUSTED_CYCLES: u32 = 52;
 
 /// Recourse tier (#185). A distributor can vouch for a shop it knows. On
 /// that distributor's invoices the buffer takes nothing, because the
@@ -530,6 +532,17 @@ pub struct RecourseCalled {
     pub debt: i128,
 }
 
+/// Usage fees owed on cash invoices were paid (#229): netted from a payout,
+/// or sent by the distributor with `settle_usage`.
+#[contractevent]
+pub struct UsageSettled {
+    #[topic]
+    pub distributor: Address,
+    pub amount: i128,
+    /// What it still owes after that.
+    pub owed: i128,
+}
+
 /// Part of a payout to a distributor went to its recourse debt instead.
 #[contractevent]
 pub struct RecourseDebtPaid {
@@ -707,7 +720,7 @@ impl RouteLedger {
             pay_distributor(&env, &token, &shop, &invoice.distributor, amount - usage_fee, &mut pool);
             save_pool(&env, &pool);
         } else {
-            send(&token, &shop, &invoice.distributor, amount - usage_fee);
+            send_to_distributor(&env, &token, &shop, &invoice.distributor, amount - usage_fee);
         }
         send(&token, &shop, &config.treasury, usage_fee);
 
@@ -1132,6 +1145,30 @@ impl RouteLedger {
             .persistent()
             .get(&DataKey::DriverCash(driver))
             .unwrap_or(0)
+    }
+
+    /// A distributor pays the usage fees it owes on cash invoices (#229), for
+    /// a route whose shops only pay cash, so no digital payout nets them.
+    pub fn settle_usage(env: Env, distributor: Address, amount: i128) -> Result<(), Error> {
+        distributor.require_auth();
+        if amount <= 0 {
+            return Err(Error::InvalidAmount);
+        }
+        let owed = usage_owed(&env, &distributor);
+        if amount > owed {
+            return Err(Error::Overpay);
+        }
+        let config = load_config(&env);
+        let token = token::Client::new(&env, &config.token);
+        send(&token, &distributor, &config.treasury, amount);
+        put(&env, &DataKey::UsageOwed(distributor.clone()), &(owed - amount));
+        UsageSettled {
+            distributor,
+            amount,
+            owed: owed - amount,
+        }
+        .publish(&env);
+        Ok(())
     }
 
     pub fn get_usage_owed(env: Env, distributor: Address) -> i128 {
@@ -1711,7 +1748,7 @@ fn pay_distributor(env: &Env, token: &token::Client, from: &Address, distributor
         }
         .publish(env);
     }
-    send(token, from, distributor, amount - take);
+    send_to_distributor(env, token, from, distributor, amount - take);
 }
 
 /// The shop's balance just reached 0: grade the cycle and update its record.
@@ -1793,6 +1830,32 @@ fn was_ever_approved(env: &Env, distributor: &Address) -> bool {
     env.storage()
         .persistent()
         .has(&DataKey::Distributor(distributor.clone()))
+}
+
+fn usage_owed(env: &Env, distributor: &Address) -> i128 {
+    env.storage()
+        .persistent()
+        .get(&DataKey::UsageOwed(distributor.clone()))
+        .unwrap_or(0)
+}
+
+/// Sends `amount` to a distributor, but usage fees it owes on cash invoices
+/// come out first and go to the treasury (#229), never more than `amount`.
+fn send_to_distributor(env: &Env, token: &token::Client, from: &Address, distributor: &Address, amount: i128) {
+    let owed = usage_owed(env, distributor);
+    let take = owed.min(amount).max(0);
+    if take > 0 {
+        let config = load_config(env);
+        send(token, from, &config.treasury, take);
+        put(env, &DataKey::UsageOwed(distributor.clone()), &(owed - take));
+        UsageSettled {
+            distributor: distributor.clone(),
+            amount: take,
+            owed: owed - take,
+        }
+        .publish(env);
+    }
+    send(token, from, distributor, amount - take);
 }
 
 fn send(token: &token::Client, from: &Address, to: &Address, amount: i128) {

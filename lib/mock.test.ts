@@ -250,8 +250,8 @@ describe("trusted shops and the recourse tier (#185)", () => {
   };
 
   it("counts good cycles and charges a trusted shop less", () => {
-    for (let i = 0; i < 4; i++) goodCycle();
-    expect(mock.getShop("tienda-1")?.goodCycles).toBe(4);
+    for (let i = 0; i < 26; i++) goodCycle();
+    expect(mock.getShop("tienda-1")?.goodCycles).toBe(26);
     const invoice = mock.createDemoInvoice("tienda-1");
     mock.payLater(invoice.id);
     expect(mock.getInvoice(invoice.id)?.creditFee).toBeCloseTo(invoice.amount * 0.0125, 6);

@@ -79,7 +79,7 @@ Written Wed Nov 11 from `docs/pitch/deck-outline.md`, `docs/pitch/pitch.md` (PR 
 2. The fee, up to 1.5%: $0.75 buffer, $0.50 lenders, $0.25 us
 3. Start with one distributor's routes, then Ecuador and Panama.
 
-**Small print:** Fees are the numbers in our testnet contract. Cash or digital invoices pay 0.1% (for cash it is recorded, but nothing collects it yet). Credit sales pay no usage fee. Ecuador and Panama also use the US dollar. A plan, not a deal: no distributor, bank or lender has agreed to anything. Entries 29, 25 and 26.
+**Small print:** Fees are the numbers in our testnet contract. Cash or digital invoices pay 0.1% (for cash it is recorded and taken from the distributor's next digital payout, #229). Credit sales pay no usage fee. Ecuador and Panama also use the US dollar. A plan, not a deal: no distributor, bank or lender has agreed to anything. Entries 29, 25 and 26.
 **Visual:** the $100 example as 3 rows.
 **Not on the slide:** a revenue figure. Entry 30's scenarios are Q&A backup only, always "scenario, not a forecast".
 **Waiting on:** nothing; entries 25, 26 and 29 are on `main`.
