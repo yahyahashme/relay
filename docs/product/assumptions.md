@@ -112,7 +112,7 @@ Other costs that sit outside our budget: the licensed lender's share is the 0.50
 | Only 10% of sales on credit instead of 20% | $8,970 | ≈ 23 |
 | **All** credit sales are pay-later or vouched | $7,800 | ≈ 28 |
 
-**Cash usage fees (Nov 16, #229):** revenue counts the 0.10% on cash invoices as collected. The contract records it and, from the next redeploy, takes it out of the distributor's next digital or credit payout (or the distributor pays it with `settle_usage`). A distributor whose shops only ever pay cash must settle it itself; the liability agreement (#221) covers one that doesn't.
+**Cash usage fees (Nov 16, #229):** revenue counts the 0.10% on cash invoices as collected. The contract records it and, since the Nov 16 redeploy, takes it out of the distributor's next digital or credit payout (or the distributor pays it with `settle_usage`). A distributor whose shops only ever pay cash must settle it itself; the liability agreement (#221) covers one that doesn't.
 
 Heavy use of pay-later or vouching is good for shops and distributors but pushes our break-even up, because we earn 0.10% instead of 0.25% on those sales.
 
