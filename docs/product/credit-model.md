@@ -1,6 +1,6 @@
 # Credit model (proposal)
 
-> **Status: proposal by Rohan, updated Nov 10 to match the contract merged in #58. Waiting for Yahya's approval.** Nothing here changes the contract or the plan until this PR is approved and merged. Numbers marked **(guess)** are placeholders until interviews (#7) give real ones.
+> **Status: Rohan's proposal from Nov 10, partly overtaken.** For what is live today (starting limit, part-payment, vouching, ID checks, fraud policy) read [`docs/context.md` §7.8](../context.md#78-whats-live-and-whats-planned-nov-16) first; it wins where this file differs. Numbers marked **(guess)** are placeholders until interviews (#7) give real ones.
 
 How "pay in 7 days" decides who gets credit, how much, and what happens when someone pays late. Think of it as a level system: everyone starts small, levels up by paying on time, and drops levels for paying late.
 
@@ -17,7 +17,7 @@ All of these:
 - Optional: the distributor vouches and shares the loss (option 2 in context §5).
 
 ## 3. Starting limit
-**Every shop starts at $200** (built: #134 sets it when a shop signs up). Next step, not built: once a distributor shares a shop's delivery history, start at the lower of $200 and one average delivery, so a shop that usually buys $120 a week starts at $120.
+~~Every shop starts at $200~~ (retired Nov 15, #217). **Built (#218):** a new shop gets no credit until it has paid 2 deliveries in full in dólares digitales at the door, a week apart. Then it starts at half its usual delivery, $50 to $100. A shop its distributor vouches for starts at $100 at once.
 
 ## 4. Levelling up
 - **+$25 per on-time repayment, up to $500** (built in #58).
@@ -40,6 +40,9 @@ All of these:
 | 28+ days (4 credit periods) | Default: the admin calls `cover_default`. The buffer pays the lenders back what it can, credit goes to $0, and the debt stays on the shop's record. Any later payment goes back into the buffer (**built**) |
 
 ## 6. Fraud controls
+
+> The fraud policy decided Nov 16 (flag, ask for proof, close, legal action) is in [`docs/context.md` §7.8](../context.md#78-whats-live-and-whats-planned-nov-16); Rohan's detailed checks are in #221.
+
 - Only shops the truck actually visits can get credit.
 - Cash payments need two taps (driver and shop).
 - One DUI, one credit line, shared across distributors.
@@ -55,7 +58,8 @@ All of these:
 
 ## 8. The buffer as a dial
 - **Buffer rate = observed loss rate × 1.5**, reviewed quarterly. Losses at 0.3% → buffer could drop to 0.45%; losses at 1% → it rises.
-- The lender seeds the buffer at launch so it isn't empty on day one (**built**: `fund_buffer`; the demo seeds $50).
+- The buffer is seeded at launch so it isn't empty on day one (**built**: `fund_buffer`; `deploy.sh` seeds $200).
+- **Target (Yahya, Nov 15, plan only):** 25% of the money lent out. What happens above it is decided after the pilot ([`docs/context.md` §5](../context.md#5-how-we-make-our-cut)).
 
 ## 9. Stress test
 1,000 shops × about $150 outstanding = **$150K** outstanding **(guess)**. Buffer in per week, at full credit: 0.75% × $150K = **$1,125** (less if shops pay part up front). This assumes every shop repays and borrows again each week, because the buffer grows with each credit sale, not with the amount outstanding.
