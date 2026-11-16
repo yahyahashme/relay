@@ -15,8 +15,7 @@ import { ARRIVE_MS, HOLD_MS, TapShield, useQuietOnArrival, useSameSpotGuard, use
 import { claimCash, getDrivers, getInvoiceNotes, getInvoices, getRouteInvites, getShop, getStopPayments } from "@/lib/api";
 import { formatAmount, formatDay, isPastDue } from "@/lib/format";
 import { useT } from "@/lib/i18n";
-import { leftToday, methodLabel, parseAmount } from "@/lib/labels";
-import { MoneyField } from "@/components/kit/field";
+import { leftToday, methodLabel } from "@/lib/labels";
 import { SAME_SPOT_MS, SAME_SPOT_PX, type Tap } from "@/lib/taps";
 import type { Invoice, Receipt as Outcome, Shop, StopPayments } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
@@ -92,10 +91,6 @@ export default function RouteScreen() {
   const [held, setHeld] = useState(false);
   const [outcome, setOutcome] = useState<{ invoiceId: number; receipt: Outcome } | null>(null);
   const [inviting, setInviting] = useState<number | null>(null);
-  // "Otro monto" (#235): the shop pays part in cash, the driver types what it handed over.
-  const [otherText, setOtherText] = useState("");
-  const [otherError, setOtherError] = useState<string | null>(null);
-  const [otherOpen, setOtherOpen] = useState<number | null>(null);
   // How the stop on show was paid (#235), for the line "Efectivo · A crédito · Falta".
   const [split, setSplit] = useState<{ id: number; paid: number; payments: StopPayments } | null>(null);
   // The stop on show stays on show: a payment that arrives never swaps another stop, and its button, under the thumb.
@@ -136,7 +131,8 @@ export default function RouteScreen() {
   const shownId = shown?.invoice.id ?? null;
   if (shown && !shown.paid && armed !== shown.invoice.id) setArmed(shown.invoice.id);
 
-  const canClaim = shown !== null && !shown.paid && shown.invoice.cashClaim === undefined;
+  // Cash is all or nothing (Yahya, Nov 15): only for the whole invoice, so not once a part was paid digitally.
+  const canClaim = shown !== null && !shown.paid && shown.invoice.cashClaim === undefined && shown.invoice.paid === 0;
   const splitKey = shown && (shown.invoice.paid > 0 || shown.invoice.later) ? `${shown.invoice.id}:${shown.invoice.paid}:${shown.invoice.later ?? false}` : null;
   useEffect(() => {
     if (!splitKey) return;
@@ -446,6 +442,17 @@ export default function RouteScreen() {
             >
               {t("Efectivo registrado", "Cash recorded")}
             </Held>
+          ) : invoice.paid > 0 ? (
+            <Held
+              size="lg"
+              hint={
+                <>
+                  {t("Falta", "Left")} <Money value={shown.left} />
+                </>
+              }
+            >
+              {t("El resto, en dólares digitales", "The rest in digital dollars")}
+            </Held>
           ) : (
             <Button
               size="lg"
@@ -470,58 +477,8 @@ export default function RouteScreen() {
           )}
         </div>
 
-        {(inviteCode || after || explorerUrl || canClaim) && (
+        {(inviteCode || after || explorerUrl) && (
           <ActionList>
-            {canClaim && (
-              <ActionRow
-                size="lg"
-                title={t("Recibí otro monto", "I received another amount")}
-                hint={t("La tienda pagó una parte en efectivo", "The shop paid part in cash")}
-                open={otherOpen === invoice.id}
-                onClick={() => {
-                  shifted.current = Date.now();
-                  setOtherOpen(otherOpen === invoice.id ? null : invoice.id);
-                  setOtherText("");
-                  setOtherError(null);
-                }}
-                disabled={locked}
-              >
-                <MoneyField
-                  label={t("¿Cuánto efectivo recibió?", "How much cash did you get?")}
-                  hint={
-                    <>
-                      {t("Falta", "Left to pay:")} <Money value={shown.left} />
-                    </>
-                  }
-                  error={otherError ? <MoneyText>{msg(otherError)}</MoneyText> : undefined}
-                  placeholder={shown.left.toFixed(2)}
-                  value={otherText}
-                  onChange={(e) => {
-                    setOtherText(e.target.value);
-                    setOtherError(null);
-                  }}
-                />
-                <Button
-                  size="lg"
-                  onClick={(event) => {
-                    if (strayTap(event)) return;
-                    const amount = otherText.trim() === "" ? shown.left : parseAmount(otherText);
-                    if (amount === null) return setOtherError("Monto inválido.");
-                    if (Math.round(amount * 100) > Math.round(shown.left * 100)) return setOtherError("El monto es mayor que lo pendiente.");
-                    void receivedCash(invoice.id, amount);
-                  }}
-                  busy={busy}
-                  disabled={locked || stale}
-                  hint={
-                    <>
-                      <Money value={parseAmount(otherText) ?? shown.left} /> {t("en efectivo", "in cash")}
-                    </>
-                  }
-                >
-                  {t("Registrar este monto", "Record this amount")}
-                </Button>
-              </ActionRow>
-            )}
             {inviteCode && (
               <ActionRow
                 size="lg"

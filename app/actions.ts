@@ -311,6 +311,8 @@ export async function payLater(invoiceId: number, confirmId?: string): Promise<R
   }
 }
 
+const CASH_WHOLE = "En efectivo se paga la factura completa.";
+
 const IN_REVIEW = "Esta distribuidora está en revisión. Por ahora pague en dólares digitales o en efectivo.";
 
 /** #231: while Relay reviews this distributor's invoices, they don't go on the lenders' money. */
@@ -333,12 +335,12 @@ async function restOnLater(shop: Party, invoice: ChainInvoice, ownCredit: boolea
 }
 
 /**
- * Split at the door (#235): the shop pays a part now, digitally or by confirming the cash the driver
- * recorded, and the rest goes on 7 days, in one confirm. Two contract calls (pay or cash_confirm, then
+ * Split at the door (#235): the shop pays a part now in digital dollars and the rest goes on 7 days, in
+ * one confirm. Cash never splits: it pays the whole invoice or nothing. Two contract calls (pay, then
  * pay_with_credit or pay_later). Every check the second call makes is run first, so a part is only
  * paid on a split that can finish; if the second still fails, the part stays paid and the screen says so.
  */
-export async function payPartLater(invoiceId: number, amount: number, cash: boolean, confirmId?: string): Promise<Receipt> {
+export async function payPartLater(invoiceId: number, amount: number, confirmId?: string): Promise<Receipt> {
   try {
     const invoice = await chainInvoice(invoiceId);
     if (!invoice) return fail("No encontramos esa factura.");
@@ -352,8 +354,7 @@ export async function payPartLater(invoiceId: number, amount: number, cash: bool
     if (!(await mayActAs(shop))) return fail(NOT_YOURS);
 
     const claim = await read(readClient().get_cash_claim({ id: invoice.id }));
-    if (cash && claim !== units) return fail("El efectivo registrado cambió. Revise el monto.");
-    if (!cash && claim > 0n) return fail("Hay efectivo por confirmar. Confírmelo primero en «Pagué en efectivo».");
+    if (claim > 0n) return fail("Hay efectivo por confirmar. Confírmelo primero en «Pagué en efectivo».");
 
     const ownCredit = !invoice.later && (await offersOwnCredit(invoice));
     if (!ownCredit && (await distributorInReview(invoice))) return fail(IN_REVIEW);
@@ -361,14 +362,10 @@ export async function payPartLater(invoiceId: number, amount: number, cash: bool
     const blocked = splitBlock(view, { ...toInvoice(invoice, await getDirectory()), ownCredit }, toDollars(left - units), pool?.available);
     if (blocked) return fail(blocked);
 
-    const unconfirmed = await confirmed(confirmId, shop, { action: cash ? "splitcash" : "split", invoiceId }, units);
+    const unconfirmed = await confirmed(confirmId, shop, { action: "split", invoiceId }, units);
     if (unconfirmed) return fail(unconfirmed);
 
-    const first = await run(shop.id, (client) =>
-      cash
-        ? client.cash_confirm({ shop: invoice.shop, id: invoice.id, amount: units })
-        : client.pay({ shop: invoice.shop, id: invoice.id, amount: units }),
-    );
+    const first = await run(shop.id, (client) => client.pay({ shop: invoice.shop, id: invoice.id, amount: units }));
     const part = formatMoney(toDollars(units));
     const rest = formatMoney(toDollars(left - units));
     const paidAfter = await chainInvoice(invoiceId);
@@ -418,6 +415,8 @@ export async function claimCash(invoiceId: number, amount: number): Promise<Rece
     if (!invoice) return fail("No encontramos esa factura.");
     if (invoice.amount - invoice.paid <= 0n) return fail("Esta factura ya está pagada.");
     if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
+    // Cash is all or nothing: the whole invoice, never a part of it (Yahya, Nov 15).
+    if (invoice.paid > 0n || toUnits(amount.toFixed(2)) !== invoice.amount) return fail(CASH_WHOLE);
     const driver = (await getDirectory()).byAddress(invoice.driver);
     if (driver?.kind !== "driver") return fail("Este motorista no está en la ruta.");
     if (!(await mayActAs(driver))) return fail(NOT_YOURS);

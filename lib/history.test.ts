@@ -14,13 +14,12 @@ beforeEach(() => {
 describe("shop history (#136)", () => {
   it("shows a part-paid invoice as two payment rows, with method and driver", () => {
     mock.payNow(1002, 40); // tienda-2, $85.50
-    mock.claimCash(1002, 45.5);
     now = NOW + DAY;
-    mock.confirmCash(1002, 45.5);
+    mock.payNow(1002, 45.5);
     const history = mock.getShopHistory("tienda-2")!;
     const rows = history.rows.filter((r) => r.invoiceId === 1002);
     expect(rows.map((r) => [r.kind, r.method, r.amount, r.partial, r.driverId])).toEqual([
-      ["payment", "cash", 45.5, true, "motorista-1"],
+      ["payment", "digital", 45.5, true, "motorista-1"],
       ["payment", "digital", 40, true, "motorista-1"],
     ]);
     expect(history.paidThisMonth).toBe(85.5);
