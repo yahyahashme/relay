@@ -330,6 +330,22 @@ export interface CashHandedInEvent {
 }
 
 /**
+ * Usage fees owed on cash invoices were paid (#229): netted from a payout,
+ * or sent by the distributor with `settle_usage`.
+ */
+export interface UsageSettledEvent {
+  name: "UsageSettled";
+  data: {
+    distributor: string;
+    amount?: bigint;
+    /**
+     * What it still owes after that.
+     */
+    owed?: bigint;
+  };
+}
+
+/**
  * Union: InvoiceStatus
  */
  export type InvoiceStatus =
@@ -508,5 +524,5 @@ export interface DistributorApprovedEvent {
     distributor: string;
   };
 }
-    export type ContractEvent = RepaidEvent | VouchedEvent | TermsSetEvent | DepositedEvent | PaidLaterEvent | WithdrawnEvent | CashClaimedEvent | InvoicePaidEvent | BufferFundedEvent | CashHandedInEvent | CashConfirmedEvent | LenderRevokedEvent | DefaultCoveredEvent | InvoiceCreatedEvent | LenderApprovedEvent | PaidWithCreditEvent | RecourseCalledEvent | OwnCreditOfferedEvent | RecourseDebtPaidEvent | RecourseDepositedEvent | RecourseWithdrawnEvent | DistributorRevokedEvent | DistributorApprovedEvent;
+    export type ContractEvent = RepaidEvent | VouchedEvent | TermsSetEvent | DepositedEvent | PaidLaterEvent | WithdrawnEvent | CashClaimedEvent | InvoicePaidEvent | BufferFundedEvent | CashHandedInEvent | UsageSettledEvent | CashConfirmedEvent | LenderRevokedEvent | DefaultCoveredEvent | InvoiceCreatedEvent | LenderApprovedEvent | PaidWithCreditEvent | RecourseCalledEvent | OwnCreditOfferedEvent | RecourseDebtPaidEvent | RecourseDepositedEvent | RecourseWithdrawnEvent | DistributorRevokedEvent | DistributorApprovedEvent;
     
