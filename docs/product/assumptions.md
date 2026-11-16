@@ -112,6 +112,8 @@ Other costs that sit outside our budget: the licensed lender's share is the 0.50
 | Only 10% of sales on credit instead of 20% | $8,970 | ≈ 23 |
 | **All** credit sales are pay-later or vouched | $7,800 | ≈ 28 |
 
+**Assumption (Nov 16, #229):** revenue counts the 0.10% on cash invoices as collected. Today the contract only records it, so we would bill distributors for it monthly. If that bill isn't paid, cash fees drop out and break-even rises.
+
 Heavy use of pay-later or vouching is good for shops and distributors but pushes our break-even up, because we earn 0.10% instead of 0.25% on those sales.
 
 **The pilot year looks very different.** One route of about 60 shops (context §7.7, guess): about $468K of invoices a year, so about **$600 in revenue**, against about **$138K in costs** (2 founder-engineers, 1 field person, legal, audit, hosting; no sales hire yet, and no outside lender: the pilot runs on our own money first, context §7). The pilot needs **funding** (a grant or pre-seed) and we say so openly. Its job is to prove repayment and adoption, not to make money.

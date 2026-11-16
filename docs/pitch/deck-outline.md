@@ -53,7 +53,7 @@ The words for each slide are in `docs/pitch/deck-slides.md`, under the same numb
 
 ### 5. The code
 - **Message:** the credit rules are real contract code, not a mock-up.
-- **Visual:** `docs/img/code-slide.png` (from #56). Ready on `main`: PR #82 (merged) repaired the render and added `SCALE=3 node docs/pitch/slides/render.mjs` for print-size images, and the PNG was re-rendered Fri Nov 13 after #139, so it shows the current contract ID (CAGCZ3I7..., equal to `contracts.routeLedger` in `config/testnet.json`) and the current `pay_with_credit` blocks (overdue check, `match` limit check, pool check). The two older IDs it used to show (CAPQ6ZDD... before #90, CDHDZX7V... between #90 and #139) are gone. The script reads the ID and the code itself, but the PNG does not update itself: re-render it after any redeploy or any change to `pay_with_credit`.
+- **Visual:** `docs/img/code-slide.png` (from #56). Ready on `main`: PR #82 (merged) repaired the render and added `SCALE=3 node docs/pitch/slides/render.mjs` for print-size images, and the PNG was re-rendered Fri Nov 13 after #139, so it shows the contract ID of the time (CAGCZ3I7..., retired Nov 16; re-rendered Nov 16 for the live CBXUYASL..., equal to `contracts.routeLedger` in `config/testnet.json`) and the current `pay_with_credit` blocks (overdue check, `match` limit check, pool check). The two older IDs it used to show (CAPQ6ZDD... before #90, CDHDZX7V... between #90 and #139) are gone. The script reads the ID and the code itself, but the PNG does not update itself: re-render it after any redeploy or any change to `pay_with_credit`.
 - **Needs:** nothing. The deployed contract's WASM hash matches a fresh build of #139's code (checked Nov 13, comment on #139). `git log` shows #139 (Fri Nov 13, 7:36 PM ET, commit 517b426) as the last change under `contracts/`; its merge also put the new ID in `config/testnet.json`.
 
 ### 6. Money in 30 seconds, and go-to-market
@@ -113,7 +113,7 @@ For slide 3 and the trifold's middle panel. They have to come from the live app 
 | "What we heard from N people" | #30; `docs/research.md` (#72) | cut from slide 7 on Nov 14: 0 conversations with users (PR #152 logs messages sent only). Add it back only with a real count |
 | Slide text for the 8 slides | `docs/pitch/deck-slides.md` | refreshed Nov 12; slide 7 updated Nov 14. The only bracket left is slide 8's `[our ask]` |
 | Real phone screenshots | live app; steps above | captured in PR #119 (`docs/pitch/trifold/img/`); #125 and #126 merged after, so compare with the live app and recapture if they differ |
-| Code slide with the real contract ID | #56 follow-up, PR #82 | done (Nov 13): PR #82 merged, and the PNG was re-rendered after #139; `docs/img/code-slide.png` on `main` shows the current ID (CAGCZ3I7...). Re-render after any redeploy |
+| Code slide with the real contract ID | #56 follow-up, PR #82 | done (Nov 13): PR #82 merged, and the PNG was re-rendered after #139; `docs/img/code-slide.png` on `main` shows the live ID (CBXUYASL..., re-rendered Nov 16 after the final redeploy). Re-render after any redeploy |
 | Print-size slide images | `SCALE=3 node docs/pitch/slides/render.mjs` (PR #82) | merged; the option is in `docs/pitch/slides/render.mjs` (render on the computer that prints, after the last redeploy) |
 | Architecture picture with the fee-sponsorship line | #119 put it back after #113 turned sponsorship on | done, on `main` |
 | Our ask | team decision | open |
