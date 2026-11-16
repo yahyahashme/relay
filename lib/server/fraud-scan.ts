@@ -12,6 +12,7 @@ import { getDb } from "./db";
 import { getDirectory } from "./directory";
 import { after } from "next/server";
 import { scan, type ScanInput } from "./fraud";
+import { circleShops } from "./credit-unlock";
 
 const MAX_PAGES = 40; // the newest 1,200 invoices
 
@@ -47,15 +48,19 @@ export async function scanInput(db: Db): Promise<ScanInput> {
         passkeys: passkeysOf(r?.owner_id ?? null),
         limit: toDollars(view.limit),
         defaulted: view.written_off > 0n || view.late_major > 0,
+        firstCreditAt: Number(view.first_credit_at) * 1000,
+        dueAt: Number(view.due_at) * 1000,
       };
     }),
   );
 
+  const circles = await circleShops(db);
   const distributors = directory.ofKind("distributor").map((d) => {
     const r = row("distributor", d.id);
     return {
       id: d.id,
       name: d.name,
+      circleShops: circles.get(d.id) ?? [],
       phones: phonesOf(r),
       passkeys: passkeysOf(r?.owner_id ?? null),
       invoices: invoices

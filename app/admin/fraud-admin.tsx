@@ -38,6 +38,14 @@ export function useFlagText() {
         return t(`${f.count} ventas a crédito justo debajo del límite de la tienda.`, `${f.count} credit sales just under the shop's limit.`);
       case "later_unpaid":
         return t(`${f.count} facturas de «pagar en 7 días» vencidas sin pagar.`, `${f.count} "pay in 7 days" invoices overdue and unpaid.`);
+      case "circle_unlock":
+        return f.count === 1
+          ? t(`El dinero con que ${shop} pagó en la puerta vino de la misma distribuidora o sus motoristas. Ese pago no cuenta para su crédito.`, `The money ${shop} paid at the door with came from the distributor itself or its drivers. That payment doesn't count toward its credit.`)
+          : t(`En ${f.count} tiendas, el dinero de los pagos en la puerta vino de la misma distribuidora o sus motoristas. Esos pagos no cuentan para su crédito.`, `At ${f.count} shops, the money for door payments came from the distributor itself or its drivers. Those payments don't count toward their credit.`);
+      case "new_shops_together":
+        return t(`${f.count} de sus tiendas tomaron su primer crédito en la misma semana.`, `${f.count} of its shops took their first credit in the same week.`);
+      case "defaults_together":
+        return t(`${f.count} de sus tiendas dejaron de pagar créditos que vencían con menos de 2 semanas de diferencia.`, `${f.count} of its shops stopped paying credit due less than 2 weeks apart.`);
     }
   };
 }
