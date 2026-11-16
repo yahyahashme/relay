@@ -107,7 +107,7 @@ export async function saveNote(db: Db, kind: ReviewKind, partyId: string, note: 
 
 /** What a scan needs, read by the caller (contract + database), so the scan itself needs no network. */
 export type ScanInput = {
-  distributors: { id: string; name: string; phones: string[]; passkeys: string[]; invoices: FraudInvoice[] }[];
+  distributors: { id: string; name: string; phones: string[]; passkeys: string[]; circleShops?: string[]; invoices: FraudInvoice[] }[];
   shops: FraudShop[];
   now: number;
 };

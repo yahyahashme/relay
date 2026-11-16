@@ -16,24 +16,49 @@ export async function ensureDoorPayments(db: Db): Promise<void> {
   await db.query(`CREATE TABLE IF NOT EXISTS door_payments (
     shop_id TEXT NOT NULL, invoice_id BIGINT NOT NULL, cents BIGINT NOT NULL,
     paid_at TIMESTAMPTZ NOT NULL DEFAULT now(), PRIMARY KEY (shop_id, invoice_id))`);
+  // #221: a payment whose money looped back from the shop's own distributor. Only yes/no is kept.
+  await db.query(`ALTER TABLE door_payments ADD COLUMN IF NOT EXISTS circle BOOLEAN NOT NULL DEFAULT false`);
+  await db.query(`ALTER TABLE door_payments ADD COLUMN IF NOT EXISTS distributor_id TEXT`);
   ready.add(db);
 }
 
-/** A delivery the shop just finished paying in dólares digitales. Once per invoice. */
-export async function recordDoorPayment(db: Db, shopId: string, invoiceId: number, cents: number, at = new Date()): Promise<void> {
+/**
+ * A delivery the shop just finished paying in dólares digitales. Once per invoice. `circle` marks a
+ * payment whose money came back from the shop's own distributor (#221): it is kept but never counts.
+ */
+export async function recordDoorPayment(
+  db: Db,
+  shopId: string,
+  invoiceId: number,
+  cents: number,
+  at = new Date(),
+  check: { circle?: boolean; distributorId?: string } = {},
+): Promise<void> {
   await ensureDoorPayments(db);
-  await db.query(`INSERT INTO door_payments (shop_id, invoice_id, cents, paid_at) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING`, [
-    shopId,
-    invoiceId,
-    cents,
-    at.toISOString(),
-  ]);
+  await db.query(
+    `INSERT INTO door_payments (shop_id, invoice_id, cents, paid_at, circle, distributor_id) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING`,
+    [shopId, invoiceId, cents, at.toISOString(), check.circle ?? false, check.distributorId ?? null],
+  );
 }
 
+/** The door payments that count toward unlock (circles left out). */
 export async function doorPayments(db: Db, shopId: string): Promise<DoorPayment[]> {
   await ensureDoorPayments(db);
-  const rows = await db.query<{ paid_at: string | Date; cents: string | number }>(`SELECT paid_at, cents FROM door_payments WHERE shop_id = $1`, [shopId]);
+  const rows = await db.query<{ paid_at: string | Date; cents: string | number }>(`SELECT paid_at, cents FROM door_payments WHERE shop_id = $1 AND NOT circle`, [
+    shopId,
+  ]);
   return rows.map((r) => ({ at: new Date(r.paid_at).getTime(), cents: Number(r.cents) }));
+}
+
+/** Per distributor, the shops whose door payments looped back to it (#221), for the fraud scan. */
+export async function circleShops(db: Db): Promise<Map<string, string[]>> {
+  await ensureDoorPayments(db);
+  const rows = await db.query<{ distributor_id: string; shop_id: string }>(
+    `SELECT DISTINCT distributor_id, shop_id FROM door_payments WHERE circle AND distributor_id IS NOT NULL`,
+  );
+  const out = new Map<string, string[]>();
+  for (const r of rows) out.set(r.distributor_id, [...(out.get(r.distributor_id) ?? []), r.shop_id]);
+  return out;
 }
 
 /** The credit period in ms, from the contract (a week for real, 2 minutes in the demo). */

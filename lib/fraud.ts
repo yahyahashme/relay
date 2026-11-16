@@ -28,11 +28,31 @@ export type FraudShop = {
   limit: number;
   /** Written off, or paid 8+ days late. */
   defaulted: boolean;
+  /** Unix ms of its first pool credit, if any (#221). */
+  firstCreditAt?: number;
+  /** Unix ms its credit is (or was) due, if any (#221). */
+  dueAt?: number;
 };
 
-export type FraudDistributor = { id: string; name: string; phones: string[]; passkeys: string[] };
+export type FraudDistributor = {
+  id: string;
+  name: string;
+  phones: string[];
+  passkeys: string[];
+  /** Shops whose unlock payments looped back to this distributor (#221 circle check). */
+  circleShops?: string[];
+};
 
-export type FlagRule = "same_contact" | "big_invoice" | "new_shops_credit" | "defaults" | "near_limit" | "later_unpaid";
+export type FlagRule =
+  | "same_contact"
+  | "big_invoice"
+  | "new_shops_credit"
+  | "defaults"
+  | "near_limit"
+  | "later_unpaid"
+  | "circle_unlock"
+  | "new_shops_together"
+  | "defaults_together";
 
 export type Flag = {
   rule: FlagRule;
@@ -52,7 +72,25 @@ export const NEW_SHOP_CREDIT_MAX = 3; // this many credit sales to brand-new sho
 export const NEAR_LIMIT = 0.9;
 export const NEAR_LIMIT_MAX = 3;
 export const LATER_UNPAID_MAX = 2;
+/** #221: this many of one distributor's shops first borrowing inside one week, in the last 4 weeks. */
+export const TOGETHER_SHOPS = 3;
+export const TOGETHER_WINDOW_DAYS = 7;
+export const TOGETHER_LOOKBACK_DAYS = 28;
+/** #221: this many of its shops defaulting with due dates this close together. */
+export const DEFAULTS_TOGETHER = 2;
+export const DEFAULTS_WINDOW_DAYS = 14;
 const DAY = 86_400_000;
+
+/** The biggest group of times that fit inside one window, earliest first. */
+function tightestGroup<T>(items: T[], time: (t: T) => number, windowMs: number): T[] {
+  const sorted = [...items].sort((a, b) => time(a) - time(b));
+  let best: T[] = [];
+  for (let i = 0; i < sorted.length; i++) {
+    const group = sorted.filter((t, j) => j >= i && time(t) - time(sorted[i]) <= windowMs);
+    if (group.length > best.length) best = group;
+  }
+  return best;
+}
 
 /** A stable key for a flag: an admin who clears it isn't asked about the same thing again. */
 export const flagKey = (f: Flag) => [f.rule, f.shopId ?? "", f.invoiceId ?? ""].join(":");
@@ -118,6 +156,22 @@ export function checkDistributor(
   // 6. Pay-later invoices (its own money, so a cover for fake sales) that never get paid.
   const unpaid = invoices.filter((i) => i.later && i.paid < i.amount && now > i.due + DAY);
   if (unpaid.length >= LATER_UNPAID_MAX) flags.push({ rule: "later_unpaid", count: unpaid.length });
+
+  // 7. #221 circle check: a shop's unlock payment was the distributor's own money coming back.
+  const circles = [...new Set(d.circleShops ?? [])];
+  if (circles.length > 0) {
+    flags.push({ rule: "circle_unlock", count: circles.length, shopId: circles.length === 1 ? circles[0] : undefined, shopName: circles.length === 1 ? shops.get(circles[0])?.name : undefined });
+  }
+
+  // 8. #221: several of its shops took their first credit in the same week (a batch of made-up shops).
+  const recent = mine.filter((s) => s.firstCreditAt !== undefined && s.firstCreditAt > 0 && now - s.firstCreditAt < TOGETHER_LOOKBACK_DAYS * DAY);
+  const together = tightestGroup(recent, (s) => s.firstCreditAt!, TOGETHER_WINDOW_DAYS * DAY);
+  if (together.length >= TOGETHER_SHOPS) flags.push({ rule: "new_shops_together", count: together.length, shopId: together[0].id });
+
+  // 9. #221: several of its shops defaulted on credit due about the same time (they ran together).
+  const gone = mine.filter((s) => s.defaulted && s.dueAt !== undefined && s.dueAt > 0);
+  const ranTogether = tightestGroup(gone, (s) => s.dueAt!, DEFAULTS_WINDOW_DAYS * DAY);
+  if (ranTogether.length >= DEFAULTS_TOGETHER) flags.push({ rule: "defaults_together", count: ranTogether.length, shopId: ranTogether[0].id });
 
   return flags;
 }

@@ -49,3 +49,27 @@ describe("fraud flags (#231)", () => {
     expect(flags.map(flagKey)).toEqual(["later_unpaid::"]);
   });
 });
+
+describe("pattern flags (#221)", () => {
+  it("flags shops whose unlock money looped back to the distributor", () => {
+    const flags = checkDistributor({ ...D, circleShops: ["a"] }, [inv("a", 50)], map(shop("a")), 0, NOW);
+    expect(flags).toEqual([expect.objectContaining({ rule: "circle_unlock", count: 1, shopId: "a", shopName: "Tienda a" })]);
+  });
+
+  it("flags 3 shops first borrowing the same week, not 3 spread out", () => {
+    const together = map(...["a", "b", "c"].map((id, i) => shop(id, { firstCreditAt: NOW - 10 * DAY + i * DAY })));
+    const invoices = [inv("a", 50), inv("b", 50), inv("c", 50)];
+    expect(checkDistributor(D, invoices, together, 0, NOW)).toEqual([expect.objectContaining({ rule: "new_shops_together", count: 3, shopId: "a" })]);
+    const spread = map(...["a", "b", "c"].map((id, i) => shop(id, { firstCreditAt: NOW - 25 * DAY + i * 9 * DAY })));
+    expect(checkDistributor(D, invoices, spread, 0, NOW)).toEqual([]);
+    const old = map(...["a", "b", "c"].map((id) => shop(id, { firstCreditAt: NOW - 60 * DAY })));
+    expect(checkDistributor(D, invoices, old, 0, NOW)).toEqual([]);
+  });
+
+  it("flags 2 shops defaulting on credit due within 2 weeks", () => {
+    const shops = map(shop("a", { defaulted: true, dueAt: NOW - 20 * DAY }), shop("b", { defaulted: true, dueAt: NOW - 15 * DAY }), ...["c", "d", "e", "f"].map((id) => shop(id)));
+    const invoices = ["a", "b", "c", "d", "e", "f"].map((id) => inv(id, 50));
+    const rules = checkDistributor(D, invoices, shops, 0.5, NOW).map((f) => f.rule);
+    expect(rules).toEqual(["defaults_together"]);
+  });
+});

@@ -26,6 +26,7 @@ import { checkInvoice, choices, cleanAmount, dueAt, myApprovedDistributor } from
 import { redeemConfirm, unitsToCents, type ConfirmTarget } from "@/lib/server/pay-confirm";
 import { confirmOwner } from "@/lib/server/pay-owner";
 import { recordDoorPayment, unlockIfDue, unlockStatus } from "@/lib/server/credit-unlock";
+import { isCircle } from "@/lib/server/circle-check";
 import type { Party } from "@/lib/server/directory";
 import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type InvoiceRow, type LenderView, type Pool, type PoolHealth, type Receipt, type Payment, type Shop, type ShopHistory, type StopPayments, type Supplier, type Totals } from "@/lib/types";
 import { splitBlock } from "@/lib/labels";
@@ -291,7 +292,16 @@ async function countDoorPayment(shop: Party, invoice: ChainInvoice): Promise<num
   const db = getDb();
   if (!db) return null;
   try {
-    await recordDoorPayment(db, shop.id, Number(invoice.id), unitsToCents(invoice.amount));
+    // #221: money that loops back from the shop's own distributor doesn't count, and the admin sees it.
+    // Demo shops skip the check (the demo distributor funds them on purpose).
+    const directory = await getDirectory();
+    const distributor = directory.byAddress(invoice.distributor);
+    const circle = !isDemoParty(shop.id) && (await isCircle(directory, shop.address, invoice.distributor));
+    await recordDoorPayment(db, shop.id, Number(invoice.id), unitsToCents(invoice.amount), new Date(), { circle, distributorId: distributor?.id });
+    if (circle) {
+      scanLater();
+      return null;
+    }
     return await unlockIfDue(db, shop);
   } catch (error) {
     console.error("[credit unlock]", error instanceof Error ? error.message : error);
