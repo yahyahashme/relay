@@ -541,7 +541,7 @@ This section goes in every doc we make: the README, the one-pager, the pitch, `d
 
 ### 7.8 What's live and what's planned (Nov 16)
 
-Live means it's on the site today, on the contract in `config/testnet.json`. Planned means decided but not built, or built but not merged.
+Live means it's on the site today, on the contract in `config/testnet.json`. Planned means decided but not built, or built but not merged. Contract changes that are merged or waiting but not yet deployed are tracked in [#234 "Waiting for redeploy"](https://github.com/yahyahashme/relay/issues/234); nothing there is live until Yahya runs the final redeploy.
 
 **Live**
 - **Credit starts only after 2 digital payments** (#217, #218). A new shop gets no credit at sign-up. Credit opens after 2 deliveries paid in full in dólares digitales at the door, a credit period apart (a week; 2 minutes in the demo). The first limit is half its usual delivery, $50 to $100. A runaway shop takes about $100 at most and loses its supplier.
