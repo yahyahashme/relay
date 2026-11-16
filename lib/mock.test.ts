@@ -54,21 +54,20 @@ describe("cash", () => {
     expect(mock.getDrivers()[0].cashHeld).toBe(150);
   });
 
-  it("refuses a confirm if the driver changed the claim", () => {
-    mock.claimCash(1001, 10);
-    mock.claimCash(1001, 90); // swapped after the shop saw $10
-    expect(mock.confirmCash(1001, 10)).toMatchObject({
+  it("refuses a confirm if the amount left changed since the claim", () => {
+    mock.claimCash(1001, 150);
+    expect(mock.confirmCash(1001, 100)).toMatchObject({
       ok: false,
       message: "El motorista cambió el monto. Revise el nuevo monto y confirme de nuevo.",
     });
     expect(mock.getInvoice(1001)?.paid).toBe(0);
-    expect(mock.confirmCash(1001, 90).ok).toBe(true);
+    expect(mock.confirmCash(1001, 150).ok).toBe(true);
   });
 
-  it("marks part cash and part digital as mixed", () => {
-    mock.claimCash(1001, 50);
-    mock.confirmCash(1001, 50);
-    mock.payNow(1001);
+  it("marks part digital and the rest in cash as mixed", () => {
+    mock.payNow(1001, 50);
+    mock.claimCash(1001, 100);
+    mock.confirmCash(1001, 100);
     expect(mock.getInvoice(1001)).toMatchObject({ status: "paid", method: "mixed" });
   });
 });
@@ -385,7 +384,7 @@ describe("split at the door (#235)", () => {
   it("pays a part digitally and puts the rest on credit, even over the limit for the whole", () => {
     // $220 is over the $200 limit, but $40 now and $180 on credit fits.
     expect(mock.payLater(1003).message).toBe("Supera su límite de crédito.");
-    const receipt = mock.payPartLater(1003, 40, false);
+    const receipt = mock.payPartLater(1003, 40);
     expect(receipt).toMatchObject({ ok: true });
     expect(receipt.message).toMatch(/^Listo\. Pagó \$40\.00 hoy\. Tiene hasta el .+ para pagar \$180\.00, sin intereses\.$/);
     expect(mock.getInvoice(1003)).toMatchObject({ paid: 220, status: "paid" });
@@ -394,25 +393,20 @@ describe("split at the door (#235)", () => {
   });
 
   it("checks the rest before any money moves", () => {
-    expect(mock.payPartLater(1003, 10, false).message).toBe("Supera su límite de crédito.");
+    expect(mock.payPartLater(1003, 10).message).toBe("Supera su límite de crédito.");
     expect(mock.getInvoice(1003)).toMatchObject({ paid: 0 });
-    expect(mock.payPartLater(1001, 150, false).message).toBe("Para pagar todo, use «Pagar ahora».");
+    expect(mock.payPartLater(1001, 150).message).toBe("Para pagar todo, use «Pagar ahora».");
   });
 
-  it("confirms the driver's cash and puts the rest on credit", () => {
-    mock.claimCash(1001, 50);
-    expect(mock.payPartLater(1001, 60, true).message).toBe("El efectivo registrado cambió. Revise el monto.");
-    expect(mock.payPartLater(1001, 20, false).message).toBe("Hay efectivo por confirmar. Confírmelo primero en «Pagué en efectivo».");
-    expect(mock.payPartLater(1001, 50, true).ok).toBe(true);
-    expect(mock.getInvoice(1001)).toMatchObject({ paid: 150, status: "paid" });
-    expect(mock.getInvoice(1001)?.cashClaim).toBeUndefined();
-    expect(mock.getDrivers().find((d) => d.id === "motorista-1")?.cashHeld).toBe(50);
-    expect(mock.getStopPayments([1001])[1001]).toEqual({ digital: 0, cash: 50, credit: 100 });
+  it("never splits cash: the driver records all that's left or nothing", () => {
+    expect(mock.claimCash(1001, 50).message).toBe("El efectivo es por todo lo que falta ($150.00). Una parte solo se paga en dólares digitales.");
+    expect(mock.claimCash(1001, 150).ok).toBe(true);
+    expect(mock.payPartLater(1001, 20).message).toBe("Hay efectivo por confirmar. Confírmelo primero en «Pagué en efectivo».");
   });
 
   it("puts the rest on the distributor's own 7 days when it gives them", () => {
     mock.offerOwnCredit("tienda-1", true);
-    expect(mock.payPartLater(1001, 30, false).ok).toBe(true);
+    expect(mock.payPartLater(1001, 30).ok).toBe(true);
     expect(mock.getInvoice(1001)).toMatchObject({ paid: 30, later: true, laterAmount: 120 });
     expect(mock.getShop("tienda-1")).toMatchObject({ creditOwed: 0 });
   });
