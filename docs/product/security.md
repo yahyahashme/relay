@@ -2,7 +2,7 @@
 
 This is the page to open when someone asks "who can move the money?". It covers the `route_ledger` contract (`contracts/route_ledger/src/lib.rs`), how keys are handled, what is real versus demo, and how we handle fraud. It is a testnet demo: no real dollars, no outside audit.
 
-Reviewed Nov 16, 2026 against the live contract `CBXUYASL…GP4J` (PR #222: credit v3, full recourse, cash rules), #221. Claims about the contract have a test in `contracts/route_ledger/src/test.rs`; the names are in brackets.
+Reviewed Nov 16, 2026 against `lib.rs` on main: the live contract `CBXUYASL…GP4J` (PR #222: credit v3, full recourse, cash rules) plus #251 (trusted tiers at 26/52 good weeks, cash usage fees collected), which goes live with the next redeploy. Claims about the contract have a test in `contracts/route_ledger/src/test.rs`; the names are in brackets.
 
 ## 1. Who can move the money
 
@@ -18,6 +18,7 @@ Every state-changing function either calls `require_auth()` on the address it ta
 | `cash_claim` | the driver on the invoice | its invoice, not paid, **not on the distributor's own 7 days** (`OnPayLater`), amount above 0 and not over what is left | nothing; it stores the claim [`pay_later_is_never_paid_in_cash`]. |
 | `cash_confirm` | the shop on the invoice | a claim exists, it equals the amount the shop saw (`ClaimChanged`), still fits what is left | no tokens. Adds to `paid`, the driver's cash total and the distributor's usage fee owed. Records the cash part, which earns no up-front fee benefit [`cash_up_front_earns_no_lower_credit_fee`, `cash_up_front_does_not_count_as_half_paid`]. |
 | `cash_handed_in` | a distributor that was ever approved | amount above 0 and not over what the driver holds | no tokens; lowers the driver's cash total (limit 3). |
+| `settle_usage` (#251, next redeploy) | the distributor | amount above 0 and not over what it owes | its own tokens to the treasury, for usage fees on cash. Its next payout (digital, credit or deposit withdrawal) also pays them first, after any recourse debt. |
 | `deposit` | an approved lender | approved and not revoked (`NotLender`), amount above 0 | the lender's own tokens into the pool, for shares at today's value [`only_approved_lenders_can_deposit`, `a_later_lender_does_not_take_earlier_earnings`]. |
 | `withdraw` | the lender | has the shares (`NotEnoughShares`), the money isn't lent out (`PoolTooLow`) | **pool money**, to that lender only, at the shares' value [`lender_earns_on_credit_and_withdraws_it`, `lent_money_cannot_be_withdrawn_until_repaid`]. |
 | `set_terms` | admin | limit not negative | nothing directly; sets a shop's limit. |
@@ -101,7 +102,7 @@ The Stellar Development Foundation can wipe testnet, which deletes our contract,
 ## 7. Known limits
 
 1. **The admin is trusted.** It can't move tokens, but with `approve_distributor` and `set_terms` it could make an address it controls a distributor and give a shop it controls a large limit. For real: the licensed partner as a multisig, a cap on limits, and vetting for each distributor.
-2. **Usage fees on cash are recorded, not collected.** `get_usage_owed` shows what each distributor owes us; no function settles it yet. The liability agreement caps how much can stay unpaid.
+2. **Usage fees on cash are collected only from payouts or by choice.** Since #251 (next redeploy) the next payout to the distributor pays them first, and `settle_usage` lets a cash-only distributor pay. A distributor that never takes a payout and never settles still owes them; the liability agreement caps how much can stay unpaid (policy, not code).
 3. **`cash_handed_in` can't tell which distributor a driver works for.** Any approved (or revoked) distributor can lower any driver's cash total. Bookkeeping only; no tokens move.
 4. **The buffer only moves in `cover_default`,** from the buffer back to the lenders. A written-off debt repaid later refills the buffer, not the lenders who took the loss.
 5. **A stale cash claim stays in storage** after the invoice is paid another way. `cash_confirm` rejects it; screens ignore it.
