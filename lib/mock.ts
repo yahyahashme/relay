@@ -458,6 +458,8 @@ export function claimCash(invoiceId: number, amount: number): Receipt {
   const invoice = findInvoice(invoiceId);
   if (!invoice) return fail("No encontramos esa factura.");
   if (invoice.paid >= invoice.amount) return fail("Esta factura ya está pagada.");
+  // Anything on 7 days is paid back only in digital dollars (Yahya, Nov 16).
+  if (invoice.later) return fail("Esta factura está en 7 días: se paga solo en dólares digitales.");
   const cash = toCents(amount);
   if (cash === null) return fail("Monto inválido.");
   // Cash is all that's left or nothing (Yahya, Nov 15): a part is only paid in dólares digitales.
