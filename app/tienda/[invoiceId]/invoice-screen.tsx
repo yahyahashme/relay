@@ -17,12 +17,12 @@ import { ARRIVE_MS, HOLD_MS, QUIET_MS, TapShield, useQuietOnArrival, useSameSpot
 import { confirmCash, getDrivers, getInvoice, getInvoiceSource, getShop, payLater, payNow, payPartLater } from "@/lib/api";
 import { dueOn, formatDay, isPastDue, pricedLine } from "@/lib/format";
 import { type Lang, useT } from "@/lib/i18n";
-import { leftToPay, methodLabel, parseAmount, partPayError, shopCreditFeeBps, splitBlock } from "@/lib/labels";
+import { leftToPay, methodLabel, parseAmount, shopCreditFeeBps, splitBlock } from "@/lib/labels";
 import type { Invoice, Receipt as Outcome, Shop } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
 
-type Action = "now" | "part" | "later" | "cash" | "split";
-type Panel = "later" | "part" | "cash" | "split";
+type Action = "now" | "later" | "cash" | "split";
+type Panel = "later" | "cash" | "split";
 type Source = { distributorName: string; note: string | null };
 
 /**
@@ -177,8 +177,6 @@ export default function InvoiceScreen() {
   // Which option is unfolded (one at a time). undefined = the shop hasn't picked yet,
   // so a cash amount the driver registered opens its own panel.
   const [choice, setChoice] = useState<Panel | null | undefined>(undefined);
-  const [partText, setPartText] = useState("");
-  const [partError, setPartError] = useState<string | null>(null);
   const [splitText, setSplitText] = useState("");
   const [splitError, setSplitError] = useState<string | null>(null);
   // The cash panel (#235): the rest after the cash is paid here later (false) or goes on 7 days (true).
@@ -199,7 +197,7 @@ export default function InvoiceScreen() {
   if (panel === "later" && blocked !== null) panel = null;
   // A panel with its own button takes over from "Pagar ahora", so there is one live pay button at a time.
   // "Pagar ahora" keeps its place, greyed out: nothing below it moves.
-  const panelHasButton = panel === "later" || panel === "part" || panel === "split" || (panel === "cash" && hasClaim);
+  const panelHasButton = panel === "later" || panel === "split" || (panel === "cash" && hasClaim);
 
   const claimJustChanged = useQuietAfterChange(invoice ? hasClaim : null);
   // The pay buttons wait for today's numbers, then one beat more: a double tap on the screen before can't pay.
@@ -224,7 +222,6 @@ export default function InvoiceScreen() {
     if (result.ok) {
       await reload(); // show the stamp and the new numbers together
       setChoice(undefined);
-      setPartText("");
       setSplitText("");
       setCashRestLater(false);
     }
@@ -263,8 +260,6 @@ export default function InvoiceScreen() {
   const settled = isPaid && (busy !== null || held || outcome?.ok === true); // paid on this visit: let the stamp land
   const locked = busy !== null || held || claimJustChanged;
   const unready = stale || arriving;
-  const partAmount = parseAmount(partText);
-  const partOk = partAmount !== null && partPayError(partText, left, invoice.cashClaim) === null;
   const toggle = (next: Panel) => setChoice(panel === next ? null : next);
   // Split at the door (#235): a part now, the rest on 7 days. The row opens if a little credit is possible;
   // the amount typed decides if the rest fits (a $100 invoice over a $50 limit can still go half and half).
@@ -556,54 +551,6 @@ export default function InvoiceScreen() {
           ) : (
             <p className="text-lead">{t("El motorista aún no registró el efectivo.", "The driver hasn't registered the cash yet.")}</p>
           )}
-        </ActionRow>
-        <ActionRow title={t("Pagar otro monto", "Pay another amount")} open={panel === "part"} onClick={() => toggle("part")} disabled={locked}>
-          {/* Above the blank, so the blank and its button stay together when the keyboard comes up. */}
-          {!invoice.ownCredit && (
-            <p className="text-label text-muted text-pretty">
-              {t(
-                "Si paga la mitad o más ahora, la comisión de la distribuidora baja.",
-                "If you pay half or more now, the distributor's fee is lower.",
-              )}
-            </p>
-          )}
-          <MoneyField
-            label={t("¿Cuánto paga ahora?", "How much are you paying now?")}
-            hint={
-              <>
-                {t("Falta", "Left to pay:")} <Money value={left} />
-              </>
-            }
-            error={partError ? <MoneyText>{msg(partError)}</MoneyText> : undefined}
-            placeholder="0.00"
-            autoFocus
-            value={partText}
-            onChange={(e) => {
-              setPartText(e.target.value);
-              setPartError(null);
-            }}
-          />
-          <Button
-            onClick={(event) => {
-              if (stray(event)) return;
-              const error = partPayError(partText, left, invoice.cashClaim);
-              if (error || partAmount === null) return setPartError(error ?? "Monto inválido.");
-              void run("part", { action: "pay", amount: partAmount }, (confirmId) => payNow(id, partAmount, confirmId));
-            }}
-            busy={busy === "part"}
-            disabled={locked || unready || panelArriving || partText.trim() === ""}
-            hint={
-              partOk ? (
-                <>
-                  <Money value={partAmount} /> {inDollars}
-                </>
-              ) : (
-                t("Con dólares digitales", "In digital dollars")
-              )
-            }
-          >
-            {t("Pagar este monto", "Pay this amount")}
-          </Button>
         </ActionRow>
       </ActionList>
     </>
