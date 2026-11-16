@@ -2686,17 +2686,20 @@ fn pay_later_paid_late_counts_as_late() {
 }
 
 #[test]
-fn pay_later_in_cash_still_counts() {
+fn pay_later_is_never_paid_in_cash() {
+    // Yahya, Nov 16: anything on 7 days is paid back only in digital dollars.
     let t = setup();
     t.invoice(1, 100 * USD);
     t.client.offer_own_credit(&t.distributor, &t.shop, &true);
     t.client.pay_later(&t.shop, &1);
-    t.client.cash_claim(&t.driver, &1, &(100 * USD));
-    t.client.cash_confirm(&t.shop, &1, &(100 * USD));
+    assert_eq!(
+        t.client.try_cash_claim(&t.driver, &1, &(100 * USD)),
+        Err(Ok(Error::OnPayLater))
+    );
+    t.client.pay(&t.shop, &1, &(100 * USD));
     let shop = t.client.get_shop(&t.shop);
     assert_eq!(shop.later_owed, 0);
     assert_eq!(shop.later_on_time, 1);
-    assert_eq!(t.client.get_usage_owed(&t.distributor), 1_000_000);
 }
 
 #[test]
@@ -2944,7 +2947,7 @@ fn pay_later_without_pool_terms_only_builds_the_record() {
 }
 
 #[test]
-fn late_cash_pay_later_still_costs() {
+fn late_pay_later_still_costs() {
     let t = setup();
     t.with_credit();
     t.invoice(1, 50 * USD);
@@ -2952,8 +2955,7 @@ fn late_cash_pay_later_still_costs() {
     t.client.pay_later(&t.shop, &1);
     let due = t.client.get_invoice(&1).due;
     t.env.ledger().set_timestamp(due + 3 * DAY);
-    t.client.cash_claim(&t.driver, &1, &(50 * USD));
-    t.client.cash_confirm(&t.shop, &1, &(50 * USD));
+    t.client.pay(&t.shop, &1, &(50 * USD));
     let shop = t.client.get_shop(&t.shop);
     assert_eq!((shop.limit, shop.later_late), (175 * USD, 1));
 }

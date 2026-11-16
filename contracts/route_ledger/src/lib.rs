@@ -782,6 +782,11 @@ impl RouteLedger {
         if invoice.status == InvoiceStatus::Paid {
             return Err(Error::AlreadyPaid);
         }
+        // Anything on 7 days is paid back only in digital dollars (Yahya, Nov 16):
+        // an invoice on its distributor's own 7 days can't be settled in cash.
+        if invoice.later {
+            return Err(Error::OnPayLater);
+        }
         if amount <= 0 {
             return Err(Error::InvalidAmount);
         }
