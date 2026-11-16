@@ -6,7 +6,6 @@ import { useParams } from "next/navigation";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { ActionLink, ActionList, ActionRow, Button, DetailLink, Held } from "@/components/kit/button";
 import { MoneyField } from "@/components/kit/field";
-import { Choice, Choices } from "@/components/kit/form";
 import { NavLink, Split, TopNav } from "@/components/kit/layout";
 import { Money, MoneyText } from "@/components/kit/money";
 import { Paper, Receipt, ReceiptFold, ReceiptFoot, ReceiptHeader, ReceiptLine, ReceiptLines, ReceiptRule, ReceiptTotal } from "@/components/kit/paper";
@@ -181,8 +180,6 @@ export default function InvoiceScreen() {
   const [partError, setPartError] = useState<string | null>(null);
   const [splitText, setSplitText] = useState("");
   const [splitError, setSplitError] = useState<string | null>(null);
-  // The cash panel (#235): the rest after the cash is paid here later (false) or goes on 7 days (true).
-  const [cashRestLater, setCashRestLater] = useState(false);
   const [landed, setLanded] = useState(false); // the stamp has played; don't replay it on Back
   const { noteTap, settle } = useTapShield();
   const { watch, typed, stray } = useSameSpotGuard();
@@ -226,7 +223,6 @@ export default function InvoiceScreen() {
       setChoice(undefined);
       setPartText("");
       setSplitText("");
-      setCashRestLater(false);
     }
     setOutcome(result);
     // The screen is not what it was: the buttons are gone or have moved (a panel closed, the slip grew a
@@ -280,8 +276,6 @@ export default function InvoiceScreen() {
   const splitOk = splitText.trim() !== "" && splitProblem(splitText) === null;
   // What the distributor pays on the part on credit: it slides from 1.5% down the more is paid today.
   const restFeeBps = (rest: number) => shopCreditFeeBps(Math.round(rest * 100), Math.round(invoice.amount * 100), shop?.goodCycles ?? 0, Boolean(shop?.voucherId));
-  const cashRest = invoice.cashClaim !== undefined ? Math.round((left - invoice.cashClaim) * 100) / 100 : 0;
-  const cashCanSplit = cashRest > 0 && splitBlock(shop, invoice, cashRest) === null;
   const inDollars = t("con dólares digitales", "in digital dollars");
 
   const who = (
@@ -444,7 +438,7 @@ export default function InvoiceScreen() {
         </ActionRow>
         <ActionRow
           title={t("Pagar una parte, el resto en 7 días", "Pay part now, the rest in 7 days")}
-          hint={splitClosed ? msg(splitClosed).replace(/\.$/, "") : t("En dólares digitales o efectivo", "In digital dollars or cash")}
+          hint={splitClosed ? msg(splitClosed).replace(/\.$/, "") : t("Una parte en dólares digitales", "Part in digital dollars")}
           open={splitClosed === null ? panel === "split" : undefined}
           onClick={() => toggle("split")}
           disabled={locked || splitClosed !== null}
@@ -482,7 +476,7 @@ export default function InvoiceScreen() {
               if (stray(event)) return;
               const error = splitProblem(splitText);
               if (error || splitAmount === null || splitRest === null) return setSplitError(error ?? "Monto inválido.");
-              void run("split", { action: "split", amount: splitAmount, rest: splitRest }, (confirmId) => payPartLater(id, splitAmount, false, confirmId));
+              void run("split", { action: "split", amount: splitAmount, rest: splitRest }, (confirmId) => payPartLater(id, splitAmount, confirmId));
             }}
             busy={busy === "split"}
             disabled={locked || unready || panelArriving || splitText.trim() === ""}
@@ -498,12 +492,6 @@ export default function InvoiceScreen() {
           >
             {t("Pagar y el resto en 7 días", "Pay, the rest in 7 days")}
           </Button>
-          <p className="text-label text-muted text-pretty">
-            {t(
-              "¿Una parte en efectivo? Déle el efectivo al motorista. Cuando registre el monto, confírmelo en «Pagué en efectivo» y elija el resto en 7 días.",
-              "Part in cash? Hand it to the driver. Once the amount is recorded, confirm it under “I paid in cash” and pick the rest in 7 days.",
-            )}
-          </p>
         </ActionRow>
         <ActionRow
           title={t("Pagué en efectivo", "I paid in cash")}
@@ -519,31 +507,11 @@ export default function InvoiceScreen() {
                 {driver?.name ?? t("El motorista", "The driver")} {t("registró", "registered")} <Money value={invoice.cashClaim} className="font-semibold" />{" "}
                 {t("en efectivo.", "in cash.")}
               </p>
-              {cashCanSplit && (
-                <Choices
-                  label={
-                    <>
-                      {t("El resto", "The rest")} (<Money value={cashRest} />)
-                    </>
-                  }
-                >
-                  <Choice chosen={!cashRestLater} onClick={() => setCashRestLater(false)}>
-                    {t("Lo pago aquí", "I'll pay it here")}
-                  </Choice>
-                  <Choice chosen={cashRestLater} onClick={() => setCashRestLater(true)}>
-                    {t("En 7 días", "In 7 days")}
-                  </Choice>
-                </Choices>
-              )}
               <Button
                 onClick={(event) => {
                   if (stray(event)) return;
                   const claim = invoice.cashClaim ?? 0;
-                  if (cashCanSplit && cashRestLater) {
-                    void run("cash", { action: "splitcash", amount: claim, rest: cashRest }, (confirmId) => payPartLater(id, claim, true, confirmId));
-                  } else {
-                    void run("cash", { action: "cash", amount: claim }, (confirmId) => confirmCash(id, claim, confirmId));
-                  }
+                  void run("cash", { action: "cash", amount: claim }, (confirmId) => confirmCash(id, claim, confirmId));
                 }}
                 busy={busy === "cash"}
                 disabled={locked || unready}
