@@ -426,6 +426,8 @@ export async function claimCash(invoiceId: number, amount: number): Promise<Rece
     if (!invoice) return fail("No encontramos esa factura.");
     const left = invoice.amount - invoice.paid;
     if (left <= 0n) return fail("Esta factura ya está pagada.");
+    // Anything on 7 days is paid back only in digital dollars (Yahya, Nov 16).
+    if (invoice.later) return fail("Esta factura está en 7 días: se paga solo en dólares digitales.");
     if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
     // Cash is all that's left or nothing (Yahya, Nov 15): a part is only paid in dólares digitales.
     if (toUnits(amount.toFixed(2)) !== left) return fail(`El efectivo es por todo lo que falta (${formatMoney(toDollars(left))}). Una parte solo se paga en dólares digitales.`);

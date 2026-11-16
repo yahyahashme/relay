@@ -34,6 +34,7 @@ const RULES: Rule[] = [
   pattern(String.raw`Listo\. Pagó ${MONEY} hoy\. Tiene hasta el ${DATE} para pagar ${MONEY}, sin intereses\.`, (_, part, d, m, rest) =>
     `Done. You paid ${part} today. You have until ${englishDay(d, m)} to pay ${rest}, with no interest.`),
   pattern(String.raw`Pagó ${MONEY}\. El resto \(${MONEY}\) no pasó a 7 días: páguelo aquí\.`, "You paid $1. The rest ($2) didn't go on 7 days: pay it here."),
+  exact("Esta factura está en 7 días: se paga solo en dólares digitales.", "This invoice is on 7 days: it's paid in digital dollars only."),
   exact("Para pagar todo, use «Pagar ahora».", "To pay it all, use “Pay now”."),
   pattern(String.raw`El efectivo es por todo lo que falta \(${MONEY}\)\. Una parte solo se paga en dólares digitales\.`, "Cash covers all that's left ($1). A part can only be paid in digital dollars."),
   exact("Hay efectivo por confirmar. Confírmelo primero en «Pagué en efectivo».", "There's cash to confirm. Confirm it first under “I paid in cash”."),

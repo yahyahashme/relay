@@ -495,11 +495,12 @@ export default function InvoiceScreen() {
         </ActionRow>
         <ActionRow
           title={t("Pagué en efectivo", "I paid in cash")}
-          hint={hasClaim ? t("Efectivo por confirmar", "Cash to confirm") : undefined}
+          // Anything on 7 days is paid back only in digital dollars (Yahya, Nov 16).
+          hint={invoice.later ? t("En 7 días: solo dólares digitales", "On 7 days: digital dollars only") : hasClaim ? t("Efectivo por confirmar", "Cash to confirm") : undefined}
           figure={invoice.cashClaim !== undefined ? <Money value={invoice.cashClaim} /> : undefined}
-          open={panel === "cash"}
+          open={invoice.later ? undefined : panel === "cash"}
           onClick={() => toggle("cash")}
-          disabled={locked}
+          disabled={locked || invoice.later === true}
         >
           {invoice.cashClaim !== undefined ? (
             <>
