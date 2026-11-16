@@ -549,17 +549,24 @@ Live means it's on the site today, on the contract in `config/testnet.json`. Pla
 - **Approve and revoke** (#195). Only approved distributors can invoice. The admin can revoke a distributor (no new invoices, no pool money) or a lender (no new deposits; withdrawals still work).
 - **Pay confirmation** (#199). Every shop payment needs a passkey or a 6-digit PIN.
 - **Lender pool and history** (#190, #224): deposit, withdraw anything not lent, and see each movement on `/prestamista`.
+- **Vouch for any shop** (#227, PR #228). On `/distribuidor/tiendas` → "Buscar en Relay", a distributor finds any shop on Relay, including a fresh account, by name or the owner's phone, and taps "Agregar y respaldar". A box above the search says what backing costs: 0.25% per credit sale, a deposit of 20% of what the shop owes, and only shops that owe nothing. A fresh shop gets the $100 starting credit if the deposit covers it. (The app first opens the shop's credit terms at $0, because `vouch` needs them.)
+- **Fraud flags and reviews** (#231, Yahya's policy after Rohan's review in #221):
+  1. **Flag.** After every new invoice, and on "Revisar ahora" in `/admin`, Relay checks every distributor's invoices (`lib/fraud.ts`). Each flag says why:
+     - a shop with the distributor's phone or payment passkey, which is the main fraud: fake shops drawing pool money;
+     - an invoice more than 3 times that distributor's or that shop's usual size;
+     - 3 or more credit sales to shops created less than 7 days ago;
+     - shops that default at more than twice the Relay average;
+     - 3 or more credit sales at 90% or more of the shop's limit;
+     - 2 or more "pagar en 7 días" invoices overdue and unpaid.
+     A shop that took credit and didn't pay is flagged too. A flag is a reason to look, never a verdict; screens say "En revisión".
+  2. **Pause and ask for proof.** While a distributor is in review, its invoices can't go on the lenders' money ("Pagar en 7 días" from the pool says so; digital, cash and the distributor's own 7 days still work). The admin taps "Pedir prueba" and asks on WhatsApp for the Hacienda electronic invoice code (DTE) or a delivery photo signed by the shop.
+  3. **Clear or close.** "Despejar" ends the review, and the same flags don't come back. "Cerrar cuenta" on a distributor calls `revoke_distributor` (no new invoices, no pool money; its shops still owe what they owe) and signs its owner out. On a shop it sets the limit to $0 and signs the owner out.
+  4. **Legal action** is a manual step after closing; the admin writes it in the review's note.
+  Not checked yet: the same phone (device) signing in to both accounts, and Rohan's circle check on unlock payments (#221).
 
 **Planned**
 - **Credit v3** (#220, PR #222, goes live with the final redeploy): "Crédito Relay X/500", tiered growth (+10 to +30 by the size of each on-time repayment), the "Calificación Relay" from 1 to 10, and lenders see pool numbers only. Until the redeploy, the live contract still grows the limit +$25 per good cycle. Details are in §7.3 once #222 merges.
 - **Real ID checks** (game plan §2d). An identity-verification partner checks the legal representative's DUI against the national registry (RNPN), with a selfie and liveness check, for about $0.20 to $1.50 a person. Don't name the provider in the pitch. An admin checks the CNR registration by hand. Payouts only go to an account in the company's name at our bank or cash-in partner, which runs its own KYB. Lenders also show their licence. Shops get a light DUI check only when they first take credit. The pilot distributor is checked by hand on a call; the partner check comes before the second distributor.
-- **Fraud policy** (Yahya, Nov 16, after Rohan's review in #221; being built now):
-  1. **Flag.** Automatic checks run on every distributor's invoices, and anything odd shows in `/admin` with a reason. The biggest risk is a distributor inventing fake shops to draw pool money. First rule: a distributor and a "shop" sharing a phone, device or account. Others: invoices far bigger than usual, lots of credit to brand-new shops, and a distributor whose shops default far more than average. Rohan's circle check on unlock payments is in #221.
-  2. **Pause and ask for proof.** Credit pauses. The distributor shows the Hacienda electronic invoice code (DTE) or a delivery photo.
-  3. **Clear it or close the account.** Closing is `revoke_distributor`: no new invoices and no pool money. Its shops still owe what they owe.
-  4. **Legal action** if it's serious. This is a manual step after closing.
-  - **Shops** get the same steps: limit set to 0 and the account closed, then legal action depending on the kind of fraud.
-- **Vouch for any shop** ("Respaldar una tienda", being built now). A search on the distributor account finds any shop on Relay, including a fresh account, and vouches for it, so the shop gets the $100 starting credit. Today a distributor can only vouch for shops already in its own list.
 - **Buffer target** of 25% of money lent, and the lender list (§5). Plan only.
 
 ---
@@ -884,6 +891,7 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 | Nov 16 | Lender targets (Yahya): the pilot runs on the distributor's own money, or our own grant money plus a seeded buffer. After that we approach FEDECRÉDITO's cajas de crédito, the FEDECACES cooperatives and ASOMI's microfinance members, with BANDESAL and Oikocredit as funders behind them. These are the first we'd reach out to, and we name them if asked; none has agreed. It replaces "one wholesale Stellar lender first" (§5). |
 | Nov 15 | Buffer target (Yahya): 25% of the money lent out. Above it: charge distributors less, a smaller buffer cut so lenders earn more, or later Relay lends part of the extra (only above the target, only once licensed). Picked after the pilot; no contract change (§5). Pool money sits in the contract, and lenders hold shares pro rata; say "protected", never "guaranteed". |
 | Nov 16 | Fraud policy (Yahya, after Rohan's review, #221): flag odd invoices automatically, pause credit and ask for proof (DTE or delivery photo), close the account, then legal action if serious. Same for shops (limit 0, closed). Being built with the "Respaldar una tienda" search, which lets a distributor vouch for any Relay shop. Live vs planned: §7.8. |
+| Nov 16 | #231 fraud flags built (Yahya's policy, #221): six checks on every distributor's invoices after each new invoice and on "Revisar ahora" in `/admin`, credit on the pool paused while in review, "Pedir prueba" (DTE code or delivery photo), "Despejar" or "Cerrar cuenta" (`revoke_distributor`; for a shop, limit $0), and a note for legal action. Stored in `fraud_reviews`. App only. Details in §7.8. |
 
 ---
 

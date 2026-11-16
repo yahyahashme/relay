@@ -12,6 +12,7 @@ import { formatDay } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { sellLabel } from "@/lib/sells";
 import { DemoReset } from "./demo-reset";
+import { FraudAdmin } from "./fraud-admin";
 import { IdentityStamp, LenderAdmin } from "./lender-admin";
 
 type List = { pending: AdminRow[]; decided: AdminRow[] };
@@ -224,6 +225,8 @@ export default function AdminScreen() {
           />
         </section>
       )}
+
+      <FraudAdmin />
 
       <LenderAdmin />
     </Frame>
