@@ -121,3 +121,33 @@ export function chatLink(phone: string, message: string): string {
   }
   return `https://wa.me/503${digits}?text=${encodeURIComponent(message)}`;
 }
+
+/**
+ * "Enviar enlace de pago": a WhatsApp message with the invoice's own payment link, so the shop can pay any day,
+ * even when the driver can't come. `to` is the whole number, country code first; "" opens WhatsApp with no number
+ * and it asks who to send to (a shop with no phone on file, or the demo without its team number).
+ */
+export function payLinkMessage({ to, shopName, distributorName, invoiceId, amountUnits, dueAt, now, link }: {
+  to: string;
+  shopName: string;
+  distributorName?: string;
+  invoiceId: number;
+  amountUnits: bigint;
+  dueAt: number;
+  now: number;
+  link: string;
+}): string {
+  if (amountUnits <= 0n) throw new Error("Monto inválido.");
+  const from = distributorName ? ` de ${distributorName}` : "";
+  const deadline = dueLabel(dueAt, now);
+  const when = deadline ? ` (${deadline})` : "";
+  const message = `Hola ${shopName}, su factura ${invoiceId}${from} por ${formatUSD(amountUnits)} está lista para pagar${when}. Puede pagarla aquí con dólares digitales cuando quiera, sin esperar al motorista: ${link}`;
+  return `https://wa.me/${to.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
+}
+
+/** The WhatsApp number (country code first, digits only) for an El Salvador phone, or "" if it isn't one. */
+export function waNumber(phone: string | null | undefined): string {
+  const compact = (phone ?? "").replace(/[ -]/g, "").replace(/^\+/, "");
+  const digits = /^503\d{8}$/.test(compact) ? compact.slice(3) : compact;
+  return /^[267]\d{7}$/.test(digits) ? `503${digits}` : "";
+}

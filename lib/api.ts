@@ -14,6 +14,7 @@ import * as recourse from "@/app/recourse-actions";
 import * as confirm from "@/app/confirm-actions";
 import * as lenders from "@/app/lender-actions";
 import * as secondChance from "@/app/second-chance-actions";
+import * as payLinks from "@/app/pay-link-actions";
 import type { AppealInput } from "./second-chance";
 import type { LenderHistory } from "./lender-history";
 import { type ConfirmFinish, type ConfirmProof, type ConfirmRequest, type ConfirmStart, DEMO_PIN } from "./pay-confirm";
@@ -78,6 +79,8 @@ export const getInvoiceNotes = (ids: number[]) => read(() => ({}) as Record<numb
 export const getInvoiceSource = (id: number) =>
   read(() => ({ distributorName: "Distribuidora El Sol", note: null as string | null }), () => invoices.getInvoiceSource(id));
 /** Claim codes for the stops on a route, shown only to that driver or their distributor (#132). */
+/** Who each unpaid invoice's "Enviar enlace de pago" goes to (only the invoice's distributor or driver gets a number). */
+export const getPayTargets = (invoiceIds: number[]) => read(() => mock.getPayTargets(invoiceIds), () => payLinks.getPayTargets(invoiceIds));
 export const getRouteInvites = (driverId: string, shopIds: string[]) =>
   read(() => ({ distributorName: "", codes: {} as Record<string, string> }), () => shops.getRouteInvites(driverId, shopIds));
 /** The distributor's recourse deposit and the vouched credit it backs (#185). */

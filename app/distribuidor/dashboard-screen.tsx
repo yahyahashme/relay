@@ -10,14 +10,15 @@ import { Money } from "@/components/kit/money";
 import { Stamp } from "@/components/kit/stamp";
 import { Answer, Empty, Failure, Loading } from "@/components/kit/states";
 import { TapShield, useMovedGuard, useTapShield } from "@/components/tap-shield";
-import { createDemoInvoice, getDistributorView, handInCash } from "@/lib/api";
+import { createDemoInvoice, getDistributorView, getPayTargets, handInCash } from "@/lib/api";
+import { invoicePayHref } from "@/lib/pay-link";
 import { DEMO_PHONES, DEMO_WHATSAPP } from "@/lib/demo-contacts";
 import { formatAmount, formatDay, plural } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { invoiceStatus, leftToPay, methodLabel, type StatusTone } from "@/lib/labels";
 import { toUnits } from "@/lib/money";
 import { dueWindow, invoiceMark, MARK } from "@/lib/stamps";
-import type { Driver, Invoice, Receipt, Shop } from "@/lib/types";
+import type { Driver, Invoice, PayTarget, Receipt, Shop } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
 import { reminderLink } from "@/lib/whatsapp";
 
@@ -32,7 +33,12 @@ const FIRST_ROWS = 10;
  * A signed-in, approved distributor sees their own business (#130); anyone else, the demo.
  * Shops include every shop the distributor works with, so a debt counts even when its invoices are older.
  */
-const loadDashboard = async (pages: number) => ({ ...(await getDistributorView(pages)), now: Date.now() });
+const loadDashboard = async (pages: number) => {
+  const view = await getDistributorView(pages);
+  // Who each unpaid invoice's "Enviar enlace de pago" goes to; a missing number never hides the dashboard.
+  const payTargets = await getPayTargets(view.invoices.filter((i) => i.status !== "paid").map((i) => i.id)).catch(() => ({}) as Record<number, PayTarget>);
+  return { ...view, payTargets, now: Date.now() };
+};
 
 const HIGHLIGHT_MS = 4000;
 
@@ -317,6 +323,15 @@ export default function DashboardScreen() {
     { id: "hand", header: <span className="sr-only">{t("Entrega", "Hand-in")}</span>, end: true, className: "w-64 min-w-64 py-1", cell: handIn },
   ];
 
+  // Any unpaid invoice: the shop can pay from its phone any day, without waiting for the driver.
+  const payLink = (i: Invoice) => {
+    const href = invoicePayHref(i, shopName(i.shopId), data.payTargets[i.id], now);
+    return href ? (
+      <RowLink external href={href} label={t(`Enviar enlace de pago de la factura ${i.id} por WhatsApp`, `Send the payment link for invoice ${i.id} on WhatsApp`)}>
+        {t("Enviar enlace de pago", "Send payment link")}
+      </RowLink>
+    ) : null;
+  };
   const remind = (shop: Shop) => {
     const href = shopReminder(shop, now);
     return href ? (
@@ -455,6 +470,7 @@ export default function DashboardScreen() {
                   <RowLink href={`/distribuidor/tienda/${i.shopId}`} label={t(`Historial de ${shopName(i.shopId)}`, `History of ${shopName(i.shopId)}`)}>
                     {t("Historial", "History")}
                   </RowLink>
+                  {payLink(i)}
                   {!scope.isDemo && (
                     <RowLink
                       href={`/distribuidor/factura?tienda=${encodeURIComponent(i.shopId)}&motorista=${encodeURIComponent(i.driverId)}`}

@@ -12,13 +12,14 @@ import { Stamp, type StampTone } from "@/components/kit/stamp";
 import { Empty, Failure, Loading } from "@/components/kit/states";
 import { ShopInvite } from "@/components/shop-invite";
 import { ARRIVE_MS, HOLD_MS, TapShield, useQuietOnArrival, useSameSpotGuard, useTapShield } from "@/components/tap-shield";
-import { claimCash, getDrivers, getInvoiceNotes, getInvoices, getRouteInvites, getShop, getStopPayments } from "@/lib/api";
+import { claimCash, getDrivers, getInvoiceNotes, getInvoices, getPayTargets, getRouteInvites, getShop, getStopPayments } from "@/lib/api";
 import { formatAmount, formatDay, isPastDue } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { leftToday, methodLabel, parseAmount } from "@/lib/labels";
 import { MoneyField } from "@/components/kit/field";
 import { SAME_SPOT_MS, SAME_SPOT_PX, type Tap } from "@/lib/taps";
-import type { Invoice, Receipt as Outcome, Shop, StopPayments } from "@/lib/types";
+import type { Invoice, PayTarget, Receipt as Outcome, Shop, StopPayments } from "@/lib/types";
+import { invoicePayHref } from "@/lib/pay-link";
 import { usePolling } from "@/lib/use-polling";
 
 /** Where the QR sends the shop. Local and preview builds have no NEXT_PUBLIC_SITE_URL. */
@@ -79,12 +80,14 @@ export default function RouteScreen() {
     const [drivers, invoices] = await Promise.all([getDrivers(), getInvoices()]);
     const stops = invoices.filter((i) => i.driverId === driverId);
     const shopIds = [...new Set(stops.map((i) => i.shopId))];
-    const [shops, invites, notes] = await Promise.all([
+    const unpaid = stops.filter((i) => i.status !== "paid").map((i) => i.id);
+    const [shops, invites, notes, payTargets] = await Promise.all([
       Promise.all(shopIds.map(getShop)).then((list) => list.filter((s): s is Shop => s !== null)),
       getRouteInvites(driverId, shopIds),
-      getInvoiceNotes(stops.filter((i) => i.status !== "paid").map((i) => i.id)),
+      getInvoiceNotes(unpaid),
+      getPayTargets(unpaid).catch(() => ({}) as Record<number, PayTarget>),
     ]);
-    return { driver: drivers.find((d) => d.id === driverId) ?? null, stops, shops, invites, notes, now: Date.now() };
+    return { driver: drivers.find((d) => d.id === driverId) ?? null, stops, shops, invites, notes, payTargets, now: Date.now() };
   });
   const [busy, setBusy] = useState(false);
   const running = useRef(false);
@@ -338,6 +341,8 @@ export default function RouteScreen() {
     const claim = invoice.cashClaim;
     const mark = stopMark(shown, now, t);
     const inviteCode: string | undefined = data.invites.codes[invoice.shopId];
+    // The shop can pay later from its phone if this stop can't happen today (Yahya, Nov 17).
+    const payHref = !shown.paid && claim === undefined ? invoicePayHref(invoice, shown.name, data.payTargets[invoice.id], now, process.env.NEXT_PUBLIC_SITE_URL) : null;
     const explorerUrl = outcome !== null && outcome.invoiceId === invoice.id && outcome.receipt.ok ? outcome.receipt.explorerUrl : undefined;
     const after = shown.paid ? next : null;
     // "Efectivo $X · A crédito $Y · Falta $Z" once the stop was paid more than one way, or in part (#235).
@@ -470,7 +475,7 @@ export default function RouteScreen() {
           )}
         </div>
 
-        {(inviteCode || after || explorerUrl || canClaim) && (
+        {(inviteCode || after || explorerUrl || canClaim || payHref) && (
           <ActionList>
             {canClaim && (
               <ActionRow
@@ -521,6 +526,15 @@ export default function RouteScreen() {
                   {t("Registrar este monto", "Record this amount")}
                 </Button>
               </ActionRow>
+            )}
+            {payHref && (
+              <ActionLink
+                size="lg"
+                href={payHref}
+                external
+                title={t("Enviar enlace de pago por WhatsApp", "Send payment link on WhatsApp")}
+                hint={t("Si no puede pasar hoy, la tienda paga desde su teléfono", "If you can't stop by today, the shop pays from its phone")}
+              />
             )}
             {inviteCode && (
               <ActionRow
