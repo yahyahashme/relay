@@ -607,6 +607,7 @@ Live means it's on the site today, on the contract in `config/testnet.json`. Pla
   2. **A distributor vouches.** Any approved distributor can back the shop (its own list or "Buscar en Relay"), even before the old debt is paid, if $10 of its deposit is free (20% of the $50). Full recourse as for any vouched shop.
   3. **An appeal to Relay.** "Pedir otra oportunidad" asks why it fell behind, what changed and how it will pay the old debt. It's stored in Postgres (`credit_appeals`) and reviewed in `/admin` → "Solicitudes de otra oportunidad" with Aprobar ($50) or Rechazar. One pending request at a time, and at most one approved every 6 months.
   A shop closed in a fraud review gets none of these. The rating stays capped at 2 while a written-off debt is unpaid.
+- **Payment link on WhatsApp** (Yahya, Nov 17: a shop ready to pay on its last day shouldn't wait for a driver who can't come). Every unpaid invoice in the distributor's Facturas list has "Enviar enlace de pago", and the driver's open stop has "Enviar enlace de pago por WhatsApp". One tap opens WhatsApp with the shop's number and a message with what's left, the due date and the invoice's own page (`/tienda/[id]`), where the shop pays in dólares digitales any day. Only the invoice's distributor or driver gets the shop's number; with no number on file WhatsApp asks who to send to. Demo shops go to the team's own number (`NEXT_PUBLIC_DEMO_WHATSAPP`). App only.
 
 **Waiting for the next redeploy:** nothing (Nov 16).
 
@@ -952,6 +953,7 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 | Nov 16 | Cash-in plan (Ruhaan's research on #156, Yahya): field-test the Chivo machine → LOBSTR route to USDC on Stellar first (about $1.25 on $50 on published fees), keep the Western Union/Airtm counter route as the backup, and keep looking for a licensed partner for the long term. Facts 66 to 68, ideas 16 to 18 in §6. Docs only; the demo still simulates cash-in. |
 | Nov 16 | "Pagar otro monto" removed from the shop invoice (Yahya: it duplicates "Pagar una parte, el resto en 7 días"). App only, no redeploy. The design-system sample at /sistema keeps it as a drawing. |
 | Nov 17 | Second chances (Yahya, "Build all three now"; judges asked how a shop that failed comes back): a shop that defaulted restarts at $50 when it repays its old debt, when any distributor vouches for it ($10 of deposit free, full recourse), or when Relay approves its appeal in `/admin` (one approval per 6 months). Not for shops closed for fraud. App only, no redeploy. Details in §7.8. |
+| Nov 17 | "Enviar enlace de pago por WhatsApp" on every unpaid invoice and on the driver's stop (Yahya: the shop should be able to pay even when the driver can't come). Links to the invoice's own page; real numbers only for that invoice's distributor or driver, demo to the team's number. App only. The weekly-visit question is open: the 7 days is a rule we chose (due by next delivery, never past 7 days), still to check in interviews. |
 
 ---
 

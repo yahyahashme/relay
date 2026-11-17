@@ -34,6 +34,8 @@ export type Shop = {
   /** A shop whose credit stopped after a default (Nov 17): how it can start again. Absent otherwise, or if closed for fraud. */
   secondChance?: { appeal?: "pendiente" | "aprobada" | "rechazada"; appealAt?: string; nextAppealFrom?: string };
 };
+/** Where "Enviar enlace de pago" sends an invoice's link: a WhatsApp number (country code first), or "" to let WhatsApp ask. */
+export type PayTarget = { to: string; distributorName?: string };
 /** How one stop was paid (#235): what came in digitally, in cash, and on credit (pool or the distributor's 7 days). */
 export type StopPayments = { digital: number; cash: number; credit: number };
 /** A distributor's recourse deposit (#185), in dollars. `required` = 20% of `vouchedOut`. */

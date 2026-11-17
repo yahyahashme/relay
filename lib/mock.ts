@@ -7,11 +7,12 @@
 
 import { poolHealth } from "./pool-health";
 import { growthStep } from "./credit-tiers";
+import { DEMO_WHATSAPP } from "./demo-contacts";
 import { formatDay, formatMoney, plural } from "./format";
 import { buildHistory } from "./history";
 import { buildLenderHistory, type LenderHistory, type LenderMove, type PoolEvent } from "./lender-history";
 import { LENDER_BPS, poolFeeSplit, splitBlock, RECOURSE_FEE_BPS, RECOURSE_LENDER_BPS, recourseRequired } from "./labels";
-import { HISTORY_PAGE, type Driver, type Payment, type Profile, type ShopHistory, type Supplier, type Invoice, type InvoiceHistory, type InvoiceRow, type PayMethod, type LenderView, type MyLender, type Pool, type PoolHealth, type Receipt, type RecourseView, type Shop, type StopPayments, type Totals } from "./types";
+import { HISTORY_PAGE, type Driver, type Payment, type Profile, type ShopHistory, type Supplier, type Invoice, type InvoiceHistory, type InvoiceRow, type PayMethod, type PayTarget, type LenderView, type MyLender, type Pool, type PoolHealth, type Receipt, type RecourseView, type Shop, type StopPayments, type Totals } from "./types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CREDIT_DAYS = 7;
@@ -638,6 +639,16 @@ export function vouchShop(shopId: string, on: boolean): Receipt {
   if (shop.owed > 0) return fail("Solo puede cambiar el respaldo cuando la tienda no debe nada.");
   shop.vouched = on;
   return ok(on ? `Listo. Ahora respalda a ${shop.name}.` : `Listo. Ya no respalda a ${shop.name}.`);
+}
+
+/** The mock's invoices are all demo shops: every link goes to the team's own number (or none). */
+export function getPayTargets(invoiceIds: number[]): Record<number, PayTarget> {
+  const out: Record<number, PayTarget> = {};
+  for (const id of invoiceIds) {
+    const invoice = db().invoices.find((i) => i.id === id);
+    if (invoice && invoice.paid < invoice.amount) out[id] = { to: DEMO_WHATSAPP, distributorName: DISTRIBUTOR_NAME };
+  }
+  return out;
 }
 
 /** The mock has no defaulted shops; the form still answers like the server. */
