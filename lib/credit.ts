@@ -5,7 +5,8 @@
 //   make it a 10. Each on-time credit or pay-later cycle is a success; 2-7 days late is half a miss,
 //   8+ days late a whole miss, a written-off debt 3 misses.
 // - p = (6 + successes) / (10 + successes + misses); rating = round(10 p), kept to 1..10.
-// - Caps, whatever the record: 3 while a written-off debt is unpaid, 2 while anything is overdue,
+// - Caps, whatever the record: 3 while anything is overdue, 2 while a written-off debt (4+ weeks
+//   unpaid) is unpaid, so the ceiling only drops the longer a debt stays unpaid,
 //   7 with under 4 weeks of history.
 // - Recency (8-week half-life) needs a date per cycle; the contract keeps counts, not dates, so for
 //   now every cycle weighs the same. Pay-at-delivery doesn't count: it says nothing about credit.
@@ -40,7 +41,7 @@ export function shopRating(shop: Shop, now: number, firstSeen?: number): { ratin
   const p = (PRIOR_CYCLES * PRIOR_RATE + successes) / (PRIOR_CYCLES + successes + misses);
   const start = Math.min(shop.firstCredit ? Date.parse(shop.firstCredit) : Infinity, firstSeen ?? Infinity);
   const shortHistory = !Number.isFinite(start) || now - start < 28 * DAY_MS;
-  const cap = defaulted ? 3 : shop.overdue || shop.laterOverdue ? 2 : shortHistory ? 7 : 10;
+  const cap = defaulted ? 2 : shop.overdue || shop.laterOverdue ? 3 : shortHistory ? 7 : 10;
   const rating = Math.max(1, Math.min(cap, Math.round(10 * p)));
   return { rating, p, onTime, cycles: onTime + minor + major, cap };
 }
@@ -53,8 +54,8 @@ export function creditScore(shop: Shop, rows: HistoryRow[], _suppliers: number, 
   const { rating, onTime, cycles, cap } = shopRating(shop, now, Number.isFinite(firstSeen) ? firstSeen : undefined);
   const isNew = cycles === 0;
   const reasons: Reason[] = [];
-  if (cap === 3) reasons.push({ es: "Tiene una deuda de crédito que no pagó", en: "Has credit debt it did not repay", good: false, weight: 2 });
-  else if (cap === 2) reasons.push({ es: "Tiene un pago vencido", en: "Has a payment past due", good: false, weight: 1.5 });
+  if (cap === 2) reasons.push({ es: "Tiene una deuda de crédito que no pagó", en: "Has credit debt it did not repay", good: false, weight: 2 });
+  else if (cap === 3) reasons.push({ es: "Tiene un pago vencido", en: "Has a payment past due", good: false, weight: 1.5 });
   if (cycles > 0) {
     reasons.push({ es: `Pagó a tiempo ${onTime} de ${cycles} créditos`, en: `Repaid ${onTime} of ${cycles} credits on time`, good: onTime / cycles >= 0.8, weight: 1 });
   } else {
