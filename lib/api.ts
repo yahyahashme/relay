@@ -13,6 +13,8 @@ import * as invoices from "@/app/invoice-actions";
 import * as recourse from "@/app/recourse-actions";
 import * as confirm from "@/app/confirm-actions";
 import * as lenders from "@/app/lender-actions";
+import * as secondChance from "@/app/second-chance-actions";
+import type { AppealInput } from "./second-chance";
 import type { LenderHistory } from "./lender-history";
 import { type ConfirmFinish, type ConfirmProof, type ConfirmRequest, type ConfirmStart, DEMO_PIN } from "./pay-confirm";
 import type { DistributorView } from "@/app/distributor-actions";
@@ -138,6 +140,9 @@ export const createInvoices = (rows: InvoiceRow[]) =>
 /** The distributor vouches for a shop (0.25% credit fee, its deposit covers late payers), or stops (#185). */
 export const vouchShop = (shopId: string, on: boolean) =>
   write(() => mock.vouchShop(shopId, on), () => recourse.vouchShop(shopId, on));
+/** A shop whose credit stopped after a default asks Relay for a second chance at $50 (reviewed in /admin). */
+export const sendAppeal = (shopId: string, answers: AppealInput) =>
+  write(() => mock.sendAppeal(shopId), () => secondChance.sendAppeal(shopId, answers));
 /** The distributor gives a shop the 7 days itself (no credit fee, it waits and carries the risk), or goes back to the pool (#194). */
 export const offerOwnCredit = (shopId: string, on: boolean) =>
   write(() => mock.offerOwnCredit(shopId, on), () => recourse.offerOwnCredit(shopId, on));

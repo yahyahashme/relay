@@ -6,6 +6,8 @@
 // approved distributor acts for its own shops; everyone else for the demo's.
 
 import { neverHadCredit, VOUCHED_FIRST_LIMIT } from "@/lib/credit-unlock";
+import { creditStopped, RESTART_LIMIT } from "@/lib/second-chance";
+import { closedForFraud, restartCredit } from "@/lib/server/second-chance";
 import { formatMoney } from "@/lib/format";
 import { isDemoParty } from "@/lib/server/authz";
 import { getDb } from "@/lib/server/db";
@@ -68,10 +70,15 @@ export async function vouchShop(shopId: string, on: boolean): Promise<Receipt> {
       console.error("[credit unlock] vouch", error instanceof Error ? error.message : error);
       return null;
     });
-    return receipt(
-      hash,
-      unlocked ? `Listo. Ahora respalda a ${shop.name}. Ya tiene ${formatMoney(unlocked)} de crédito.` : `Listo. Ahora respalda a ${shop.name}.`,
-    );
+    if (unlocked) return receipt(hash, `Listo. Ahora respalda a ${shop.name}. Ya tiene ${formatMoney(unlocked)} de crédito.`);
+    // Second chance, route 2: a shop whose credit stopped after a default starts again at $50 on this deposit.
+    const restarted = await vouchedRestart(who.address, shop).catch((error) => {
+      console.error("[second chance] vouch", error instanceof Error ? error.message : error);
+      return null;
+    });
+    if (restarted === "short") return receipt(hash, `Listo. Ahora respalda a ${shop.name}. Para darle otra oportunidad de ${formatMoney(RESTART_LIMIT)}, necesita ${formatMoney(RESTART_LIMIT / 5)} libres en su depósito.`);
+    if (restarted) return receipt(hash, `Listo. Ahora respalda a ${shop.name}. Tiene otra oportunidad: ${formatMoney(restarted)} de crédito.`);
+    return receipt(hash, `Listo. Ahora respalda a ${shop.name}.`);
   } catch (error) {
     return failure(error);
   }
@@ -83,6 +90,16 @@ async function vouchedFirstLimit(distributor: string, shop: { address: string })
   const room = recourse.deposit - recourse.required;
   if (room * 5n < toUnits(VOUCHED_FIRST_LIMIT.toFixed(2))) return null;
   return unlockVouched(shop);
+}
+
+/** A stopped shop (credit lost after a default) gets $50 again, only while the deposit covers 20% of it on top of what it backs. */
+async function vouchedRestart(distributor: string, shop: { id: string; address: string }): Promise<number | "short" | null> {
+  const view = await read(readClient().get_shop({ shop: shop.address }));
+  if (!creditStopped(view) || (await closedForFraud(getDb(), shop.id))) return null;
+  const recourse = await read(readClient().get_recourse({ distributor }));
+  if ((recourse.deposit - recourse.required) * 5n < toUnits(RESTART_LIMIT.toFixed(2))) return "short";
+  await restartCredit(shop.address);
+  return RESTART_LIMIT;
 }
 
 /** Does the acting distributor give this shop the 7 days itself (#194)? */

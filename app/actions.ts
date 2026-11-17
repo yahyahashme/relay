@@ -27,6 +27,8 @@ import { redeemConfirm, unitsToCents, type ConfirmTarget } from "@/lib/server/pa
 import { confirmOwner } from "@/lib/server/pay-owner";
 import { recordDoorPayment, unlockIfDue, unlockStatus } from "@/lib/server/credit-unlock";
 import { isCircle } from "@/lib/server/circle-check";
+import { creditStopped, restartsAfterRepay, RESTART_LIMIT } from "@/lib/second-chance";
+import { closedForFraud, restartCredit, secondChanceFor } from "@/lib/server/second-chance";
 import type { Party } from "@/lib/server/directory";
 import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type InvoiceRow, type LenderView, type Pool, type PoolHealth, type Receipt, type Payment, type Shop, type ShopHistory, type StopPayments, type Supplier, type Totals } from "@/lib/types";
 import { splitBlock } from "@/lib/labels";
@@ -107,6 +109,11 @@ export async function getShop(shopId: string): Promise<Shop | null> {
   if (db) {
     const unlock = await unlockStatus(db, party.id, view).catch(() => null);
     if (unlock) shop.unlock = unlock;
+    // A shop that lost its credit after a default sees its ways back (repay, a voucher, an appeal).
+    if (creditStopped(view)) {
+      const chance = await secondChanceFor(db, party.id).catch(() => null);
+      if (chance) shop.secondChance = chance;
+    }
   }
   return shop;
 }
@@ -489,15 +496,29 @@ export async function repay(shopId: string, amount: number, confirmId?: string):
     const address = shop.address;
     if (!Number.isFinite(amount) || amount <= 0) return fail("Monto inválido.");
     const before = await shopView(address);
-    if (before.owed <= 0n) return fail("No tiene deudas pendientes.");
+    // With nothing owed now, a written-off debt can still be paid back (second chance, route 1).
+    const old = before.owed <= 0n && before.written_off > 0n;
+    const target = old ? before.written_off : before.owed;
+    if (target <= 0n) return fail("No tiene deudas pendientes.");
     // The screen sends dollars; "pay everything" must send the exact units owed.
     const asked = toUnits(amount.toFixed(2));
-    const units = asked >= before.owed || toDollars(before.owed) === amount ? before.owed : asked;
+    const units = asked >= target || toDollars(target) === amount ? target : asked;
     const unconfirmed = await confirmed(confirmId, shop, { action: "repay", invoiceId: null }, units);
     if (unconfirmed) return fail(unconfirmed);
 
     const { hash } = await run(shop.id, (client) => client.repay({ shop: address, amount: units }));
     const after = await shopView(address);
+    if (old) {
+      if (after.written_off > 0n) return receipt(hash, `Pago recibido: ${formatMoney(toDollars(units))}. Falta ${formatMoney(toDollars(after.written_off))} de su deuda anterior.`);
+      if (restartsAfterRepay(before, after) && !(await closedForFraud(getDb(), shop.id))) {
+        const restarted = await restartCredit(address).then(
+          () => true,
+          (error) => (console.error("[second chance] restart", error), false),
+        );
+        if (restarted) return receipt(hash, `Deuda anterior pagada. Su crédito vuelve con ${formatMoney(RESTART_LIMIT)}.`);
+      }
+      return receipt(hash, "Deuda anterior pagada. Gracias.");
+    }
     if (after.owed > 0n) {
       return receipt(hash, `Pago recibido: ${formatMoney(toDollars(units))}. Falta ${formatMoney(toDollars(after.owed))}.`);
     }

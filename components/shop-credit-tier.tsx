@@ -11,6 +11,7 @@ import { useT } from "@/lib/i18n";
 import { HIGHLY_TRUSTED_CYCLES, parseAmount, recourseRequired, shopCreditFeeBps, TRUSTED_CYCLES, trustLevel } from "@/lib/labels";
 import type { Receipt } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
+import { RESTART_LIMIT } from "@/lib/second-chance";
 
 const percent = (bps: number) => `${(bps / 100).toFixed(2)}%`;
 
@@ -36,6 +37,8 @@ export function ShopCreditTier({ shopId }: { shopId: string }) {
   const good = shop.goodCycles ?? 0;
   const mine = shop.voucherId !== undefined && shop.voucherId === recourse.distributorId;
   const other = shop.voucherId !== undefined && !mine;
+  // Lost its credit after a default (second chance, route 2): vouching brings it back at $50.
+  const stopped = shop.creditLimit === 0 && shop.creditOwed === 0 && ((shop.writtenOff ?? 0) > 0 || shop.late > 0 || shop.firstCredit !== undefined);
   const fullBps = shopCreditFeeBps(1, 1, good);
   const level = trustLevel(good);
   // The next $100 sale on credit still gets 0.25% only if the deposit covers 20% of it too.
@@ -152,7 +155,12 @@ export function ShopCreditTier({ shopId }: { shopId: string }) {
                 ? t("Puede cambiarlo cuando la tienda no deba nada.", "You can change this when the shop owes nothing.")
                 : mine
                   ? t("Vuelve a la comisión normal.", "It goes back to the normal fee.")
-                  : t(
+                  : stopped
+                    ? t(
+                        `Esta tienda perdió su crédito por no pagar. Si la respalda, vuelve con ${formatMoney(RESTART_LIMIT)} (necesita ${formatMoney(RESTART_LIMIT / 5)} libres en su depósito). Si no paga, usted paga todo lo que deba.`,
+                        `This shop lost its credit for not paying. If you back it, it starts again at ${formatMoney(RESTART_LIMIT)} (you need ${formatMoney(RESTART_LIMIT / 5)} free in your deposit). If it doesn't pay, you pay everything it owes.`,
+                      )
+                    : t(
                       "Paga 0.25%. Si se atrasa más de 7 días, usted paga lo que deba, primero de su depósito y luego de sus próximos cobros, y le cobra a la tienda.",
                       "You pay 0.25%. If it is more than 7 days late, you pay what it owes, first from your deposit and then from your next payments, and collect from the shop.",
                     )

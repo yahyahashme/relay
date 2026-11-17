@@ -11,6 +11,7 @@ import { HOLD_MS, TapShield, useMovedGuard, useSecondTap, useTapShield } from "@
 import { formatDay } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { sellLabel } from "@/lib/sells";
+import { AppealsAdmin } from "./appeals-admin";
 import { DemoReset } from "./demo-reset";
 import { FraudAdmin } from "./fraud-admin";
 import { IdentityStamp, LenderAdmin } from "./lender-admin";
@@ -227,6 +228,8 @@ export default function AdminScreen() {
       )}
 
       <FraudAdmin />
+
+      <AppealsAdmin />
 
       <LenderAdmin />
     </Frame>
