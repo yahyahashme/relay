@@ -37,11 +37,14 @@ describe("Relay rating, 1 to 10 (#220)", () => {
     expect(shopRating(shop({ onTime: 2, late: 6, lateMajor: 6, firstCredit: since(90) }), NOW).rating).toBe(4);
   });
 
-  it("caps at 2 while overdue and 3 with an unpaid write-off", () => {
+  it("caps at 3 while overdue and 2 with an unpaid write-off", () => {
     const good = { onTime: 30, firstCredit: since(220) };
-    expect(shopRating(shop({ ...good, overdue: true }), NOW).rating).toBe(2);
-    expect(shopRating(shop({ ...good, laterOverdue: true }), NOW).rating).toBe(2);
-    expect(shopRating(shop({ ...good, late: 1, lateMajor: 1, writtenOff: 120 }), NOW).rating).toBe(3);
+    expect(shopRating(shop({ ...good, overdue: true }), NOW).rating).toBe(3);
+    expect(shopRating(shop({ ...good, laterOverdue: true }), NOW).rating).toBe(3);
+    expect(shopRating(shop({ ...good, late: 1, lateMajor: 1, writtenOff: 120 }), NOW).rating).toBe(2);
+    // written off and still overdue: the longer-unpaid cap wins, never a higher ceiling than overdue alone
+    expect(shopRating(shop({ ...good, overdue: true, late: 1, lateMajor: 1, writtenOff: 120 }), NOW).rating).toBe(2);
+    expect(creditScore(shop({ ...good, writtenOff: 120 }), [], 1, NOW).reasons[0].es).toBe("Tiene una deuda de crédito que no pagó");
     expect(creditScore(shop({ ...good, overdue: true }), [], 1, NOW).reasons[0].es).toBe("Tiene un pago vencido");
   });
 
