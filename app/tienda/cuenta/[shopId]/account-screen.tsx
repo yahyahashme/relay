@@ -14,7 +14,9 @@ import { usePayConfirm } from "@/components/pay-confirm";
 import { HOLD_MS, TapShield, useMovedGuard, useQuietOnArrival, useSameSpotGuard, useTapShield } from "@/components/tap-shield";
 import { getBalance, getInvoices, getShop, getShopHistory, getSuppliers, repay } from "@/lib/api";
 import { creditScore } from "@/lib/credit";
-import { formatDay } from "@/lib/format";
+import { formatDay, formatMoney } from "@/lib/format";
+import { RESTART_LIMIT } from "@/lib/second-chance";
+import { SecondChanceCard } from "@/components/second-chance-card";
 import { useT } from "@/lib/i18n";
 import { MARK } from "@/lib/stamps";
 import type { Receipt as Outcome } from "@/lib/types";
@@ -68,7 +70,7 @@ export default function AccountScreen() {
   const { lang, t, msg } = useT();
   const { ask, sheet } = usePayConfirm();
   // "Pagar deuda" pays with one tap, so it waits a beat after it comes on screen: a double tap on the screen before can't pay.
-  const arriving = useQuietOnArrival(Boolean(data?.shop && !stale && data.shop.creditOwed > 0));
+  const arriving = useQuietOnArrival(Boolean(data?.shop && !stale && (data.shop.creditOwed > 0 || (data.shop.secondChance && data.shop.writtenOff))));
 
   // Coming back to this screen is a new visit: the last visit's stamp and message don't carry over.
   if (stale && (paid !== null || outcome !== null)) {
@@ -92,7 +94,8 @@ export default function AccountScreen() {
     if (!shop || running.current) return; // two taps in the same instant, before the screen has redrawn: one payment
     running.current = true;
     const before = {
-      amount: shop.creditOwed,
+      // Nothing owed now but a written-off debt: paying it back restarts credit at $50 (second chance).
+      amount: shop.creditOwed > 0 ? shop.creditOwed : (shop.writtenOff ?? 0),
       limit: shop.creditLimit,
       due: shop.creditDue,
     };
@@ -122,6 +125,8 @@ export default function AccountScreen() {
   }
 
   const owes = shop.creditOwed > 0;
+  // A shop whose credit stopped after a default, with a written-off debt it can still pay back.
+  const oldDebt = !owes && shop.secondChance ? (shop.writtenOff ?? 0) : 0;
   const justPaid = paid !== null && !owes;
   const hasCredit = shop.creditLimit > 0;
   const available = Math.max(0, Math.round((shop.creditLimit - shop.creditOwed) * 100) / 100);
@@ -151,8 +156,8 @@ export default function AccountScreen() {
 
       <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-2">
         <div className="flex flex-col gap-0.5">
-          <p className="text-label font-semibold text-muted">{justPaid ? t("Deuda", "Debt") : t("Debe", "You owe")}</p>
-          <Money value={justPaid ? paid.amount : shop.creditOwed} className="text-[2.5rem] leading-none font-semibold tracking-[-0.02em]" />
+          <p className="text-label font-semibold text-muted">{justPaid ? t("Deuda", "Debt") : oldDebt > 0 ? t("Deuda anterior", "Earlier debt") : t("Debe", "You owe")}</p>
+          <Money value={justPaid ? paid.amount : owes ? shop.creditOwed : oldDebt} className="text-[2.5rem] leading-none font-semibold tracking-[-0.02em]" />
           <p className="pt-1 text-label text-muted">
             {justPaid ? (
               t("Pagada hoy", "Paid today")
@@ -240,6 +245,12 @@ export default function AccountScreen() {
           <p>{t("Sin intereses", "No interest")}</p>
         ) : hasCredit ? (
           <p className="font-semibold text-ok">{t("No tiene deudas pendientes.", "You have no debts to pay.")}</p>
+        ) : shop.secondChance ? (
+          <p className="text-pretty">
+            {oldDebt > 0
+              ? t(`Al pagar su deuda anterior, su crédito vuelve con ${formatMoney(RESTART_LIMIT)}.`, `When you pay your earlier debt, your credit comes back at ${formatMoney(RESTART_LIMIT)}.`)
+              : t("Su crédito está en pausa.", "Your credit is on hold.")}
+          </p>
         ) : shop.unlock ? (
           <CreditUnlockNote unlock={shop.unlock} />
         ) : (
@@ -286,13 +297,14 @@ export default function AccountScreen() {
         facts={
           <div id="estado-de-cuenta" className="flex flex-col gap-4">
             {slip}
+            {shop.secondChance && !owes && !justPaid && <SecondChanceCard shopId={shop.id} chance={shop.secondChance} oldDebt={oldDebt} />}
             {shortcuts}
           </div>
         }
         actions={
           <>
             <div ref={payPlace} className="empty:hidden">
-              {owes || busy ? (
+              {owes || oldDebt > 0 || busy ? (
                 <Button
                   onClick={(event) => {
                     if (!stray(event) && !justMoved()) void payDebt();
@@ -302,11 +314,11 @@ export default function AccountScreen() {
                   arriving={arriving}
                   hint={
                     <>
-                      <Money value={owes ? shop.creditOwed : (paid?.amount ?? 0)} /> {inDollars}
+                      <Money value={owes ? shop.creditOwed : oldDebt > 0 ? oldDebt : (paid?.amount ?? 0)} /> {inDollars}
                     </>
                   }
                 >
-                  {t("Pagar deuda", "Pay debt")}
+                  {oldDebt > 0 ? t("Pagar deuda anterior", "Pay earlier debt") : t("Pagar deuda", "Pay debt")}
                 </Button>
               ) : (
                 justPaid && (

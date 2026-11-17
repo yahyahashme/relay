@@ -602,6 +602,11 @@ Live means it's on the site today, on the contract in `config/testnet.json`. Pla
 - **Trusted-shop discount takes 6 months and a year** (#250, PR #251, Rohan): `TRUSTED_CYCLES` 26 and `HIGHLY_TRUSTED_CYCLES` 52 (were 4 and 8).
 - **Cash usage fees are collected** (#229, PR #251, options A + B): cash invoices still add 0.10% to `UsageOwed(distributor)`. The distributor's next payout (a digital payment, a credit payout or a deposit withdrawal) sends what it owes to the treasury first, after any recourse debt, never more than the payout, with a `UsageSettled` event. A cash-only distributor pays with `settle_usage(distributor, amount)`. Option C (a cap on unpaid fees) is a policy in the liability agreement (#221), not code.
 - **Full recourse on vouched shops** (PR #222): if a vouched shop doesn't pay, the distributor owes all of it, first from its deposit, then from its next payouts (digital payments, credit payouts, deposit withdrawals). It can't vouch for new shops until it's paid, and the dashboard shows "Debe $X al fondo".
+- **Second chances for shops that defaulted** (Yahya, Nov 17; judges asked how a failed shop comes back). A shop whose credit stopped after a default (limit $0, nothing owed now) can start again at **$50** on pool credit in three ways. App only, all through the admin's `set_terms`; after the restart the normal growth rules apply.
+  1. **Pay the old debt.** "Pagar deuda anterior" on Mi cuenta repays the written-off debt (the contract's `repay` refills the buffer). Once it's all paid, credit comes back at $50 by itself.
+  2. **A distributor vouches.** Any approved distributor can back the shop (its own list or "Buscar en Relay"), even before the old debt is paid, if $10 of its deposit is free (20% of the $50). Full recourse as for any vouched shop.
+  3. **An appeal to Relay.** "Pedir otra oportunidad" asks why it fell behind, what changed and how it will pay the old debt. It's stored in Postgres (`credit_appeals`) and reviewed in `/admin` → "Solicitudes de otra oportunidad" with Aprobar ($50) or Rechazar. One pending request at a time, and at most one approved every 6 months.
+  A shop closed in a fraud review gets none of these. The rating stays capped at 2 while a written-off debt is unpaid.
 
 **Waiting for the next redeploy:** nothing (Nov 16).
 
@@ -946,6 +951,7 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 | Nov 16 | #221 (Rohan's fraud review, Yahya: "just fix these issues"): no cap on a distributor's pool use. Instead a circle check on unlock payments (3 steps, 14 days; doesn't count + flag, never a ban; demo skipped; yes/no stored only), pattern flags (first credit together, defaults together), a liability agreement with estafa action and a cap on unpaid cash usage fees, and established distributors only (2+ years, manufacturer references). App and docs only; `docs/product/security.md` rewritten from the live contract. |
 | Nov 16 | Cash-in plan (Ruhaan's research on #156, Yahya): field-test the Chivo machine → LOBSTR route to USDC on Stellar first (about $1.25 on $50 on published fees), keep the Western Union/Airtm counter route as the backup, and keep looking for a licensed partner for the long term. Facts 66 to 68, ideas 16 to 18 in §6. Docs only; the demo still simulates cash-in. |
 | Nov 16 | "Pagar otro monto" removed from the shop invoice (Yahya: it duplicates "Pagar una parte, el resto en 7 días"). App only, no redeploy. The design-system sample at /sistema keeps it as a drawing. |
+| Nov 17 | Second chances (Yahya, "Build all three now"; judges asked how a shop that failed comes back): a shop that defaulted restarts at $50 when it repays its old debt, when any distributor vouches for it ($10 of deposit free, full recourse), or when Relay approves its appeal in `/admin` (one approval per 6 months). Not for shops closed for fraud. App only, no redeploy. Details in §7.8. |
 
 ---
 

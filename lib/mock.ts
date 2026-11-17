@@ -640,6 +640,12 @@ export function vouchShop(shopId: string, on: boolean): Receipt {
   return ok(on ? `Listo. Ahora respalda a ${shop.name}.` : `Listo. Ya no respalda a ${shop.name}.`);
 }
 
+/** The mock has no defaulted shops; the form still answers like the server. */
+export function sendAppeal(shopId: string): Receipt {
+  if (!findShop(shopId)) return fail("No encontramos esa tienda.");
+  return ok("Listo. Relay revisará su solicitud y le avisará.");
+}
+
 /** The demo distributor gives a shop the 7 days itself, or goes back to the pool (#194). */
 export function offerOwnCredit(shopId: string, on: boolean): Receipt {
   const shop = findShop(shopId);

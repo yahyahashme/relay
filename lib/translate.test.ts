@@ -10,7 +10,7 @@ const source = (path: string) => readFileSync(join(root, path), "utf8");
 const SPANISH = /\b(factura|facturas|tienda|motorista|monto|pago|pagar|pagada|deuda|efectivo|crédito|límite|listo|fila|falta|tiene|está|intente|inválid[oa]|encontramos|dólares|vencido|recibido)\b/i;
 
 // Accounts and the screens built on them (#129 on): their messages come back from the server too.
-const SERVER_FILES = ["app/auth-actions.ts", "lib/server/accounts.ts", "app/distributor-actions.ts", "lib/server/distributors.ts", "app/registro/distributor-form.tsx", "app/driver-actions.ts", "lib/server/drivers.ts", "app/shop-actions.ts", "lib/server/shops.ts", "app/invoice-actions.ts", "app/recourse-actions.ts", "lib/server/invoices.ts", "app/shop-signup-actions.ts", "components/shop-signup.tsx", "lib/server/authz.ts", "lib/server/rate-limit.ts", "lib/server/pay-confirm.ts", "app/confirm-actions.ts", "lib/pay-confirm.ts", "app/lender-actions.ts", "lib/server/lenders.ts", "app/registro/lender-form.tsx", "lib/identity.ts", "components/identity-check.tsx", "lib/server/identity.ts"];
+const SERVER_FILES = ["app/auth-actions.ts", "lib/server/accounts.ts", "app/distributor-actions.ts", "lib/server/distributors.ts", "app/registro/distributor-form.tsx", "app/driver-actions.ts", "lib/server/drivers.ts", "app/shop-actions.ts", "lib/server/shops.ts", "app/invoice-actions.ts", "app/recourse-actions.ts", "lib/server/invoices.ts", "app/shop-signup-actions.ts", "components/shop-signup.tsx", "lib/server/authz.ts", "lib/server/rate-limit.ts", "lib/server/pay-confirm.ts", "app/confirm-actions.ts", "lib/pay-confirm.ts", "app/lender-actions.ts", "lib/server/lenders.ts", "app/registro/lender-form.tsx", "lib/identity.ts", "components/identity-check.tsx", "lib/server/identity.ts", "app/second-chance-actions.ts"];
 
 describe("translateMessage", () => {
   // One example of every message the server, the mock, the contract and the CSV parser send.
@@ -26,6 +26,11 @@ describe("translateMessage", () => {
     ["Deuda pagada con atraso.", "Debt paid late."],
     ["Deuda pagada a tiempo. Su límite subió a $225.00.", "Debt paid on time. Your limit went up to $225.00."],
     ["Deuda pagada a tiempo. Gracias.", "Debt paid on time. Thank you."],
+    ["Pago recibido: $20.00. Falta $40.00 de su deuda anterior.", "Payment received: $20.00. $40.00 of your earlier debt left to pay."],
+    ["Deuda anterior pagada. Su crédito vuelve con $50.00.", "Earlier debt paid. Your credit comes back at $50.00."],
+    ["Listo. Ahora respalda a Tienda Rosa. Tiene otra oportunidad: $50.00 de crédito.", "Done. You now back Tienda Rosa. It has a second chance: $50.00 of credit."],
+    ["Listo. Ahora respalda a Tienda Rosa. Para darle otra oportunidad de $50.00, necesita $10.00 libres en su depósito.", "Done. You now back Tienda Rosa. To give it a second chance at $50.00, you need $10.00 free in your deposit."],
+    ["Ya tuvo otra oportunidad hace poco. Puede pedir otra desde el 18 may.", "You had a second chance recently. You can ask again from May 18."],
     ["PIN incorrecto. Le quedan 3 intentos.", "Wrong PIN. 3 tries left."],
     ["PIN incorrecto. Le queda 1 intento.", "Wrong PIN. 1 try left."],
     ["El monto cambió. Confirme el pago otra vez.", "The amount changed. Confirm the payment again."],
